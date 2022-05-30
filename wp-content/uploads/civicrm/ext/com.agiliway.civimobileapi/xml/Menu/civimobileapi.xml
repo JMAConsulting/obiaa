@@ -1,0 +1,115 @@
+<?xml version="1.0"?>
+<menu>
+  <item>
+    <path>civicrm/civimobile/auth</path>
+    <page_callback>CRM_CiviMobileAPI_Page_Auth</page_callback>
+    <title>Core</title>
+    <access_callback>1</access_callback>
+  </item>
+  <item>
+    <path>civicrm/civimobile/public/api</path>
+    <page_callback>CRM_CiviMobileAPI_Page_PublicApi_Api</page_callback>
+    <title>Core</title>
+    <access_callback>1</access_callback>
+  </item>
+  <item>
+    <path>civicrm/civimobile/public/settings</path>
+    <page_callback>CRM_CiviMobileAPI_Page_PublicSettings</page_callback>
+    <title>Core</title>
+    <access_callback>1</access_callback>
+  </item>
+  <item>
+    <path>civicrm/civimobile/disable_push_token</path>
+    <page_callback>CRM_CiviMobileAPI_Page_DisablePushToken</page_callback>
+    <title>Core</title>
+    <access_callback>1</access_callback>
+  </item>
+  <item>
+    <path>civicrm/civimobile/delete_push_token</path>
+    <page_callback>CRM_CiviMobileAPI_Page_DeletePushToken</page_callback>
+    <title>DeletePushToken</title>
+    <access_callback>1</access_callback>
+  </item>
+  <item>
+    <path>civicrm/civimobile/settings</path>
+    <title>CiviMobileAPI Settings</title>
+    <page_callback>CRM_CiviMobileAPI_Form_Settings</page_callback>
+    <access_arguments>administer CiviCRM</access_arguments>
+  </item>
+  <item>
+    <path>civicrm/civimobile/calendar/settings</path>
+    <title>CiviMobile Calendar Settings</title>
+    <page_callback>CRM_CiviMobileAPI_Form_CalendarSettings</page_callback>
+    <access_arguments>administer CiviCRM</access_arguments>
+  </item>
+  <item>
+    <path>civicrm/civimobile/dashboard</path>
+    <title>CiviMobile</title>
+    <page_callback>CRM_CiviMobileAPI_Form_Dashboard</page_callback>
+    <access_arguments>access CiviCRM</access_arguments>
+  </item>
+  <item>
+    <path>civicrm/civimobile/event/agenda</path>
+    <page_callback>CRM_CiviMobileAPI_Form_Agenda</page_callback>
+    <title>Agenda</title>
+    <access_arguments>view Agenda</access_arguments>
+  </item>
+  <item>
+    <path>civicrm/civimobile/event/session</path>
+    <page_callback>CRM_CiviMobileAPI_Form_Session</page_callback>
+    <title>Session</title>
+    <access_arguments>view Agenda</access_arguments>
+  </item>
+  <item>
+    <path>civicrm/civimobile/venue</path>
+    <title>Venue</title>
+    <page_callback>CRM_CiviMobileAPI_Form_Venue</page_callback>
+    <access_arguments>view Agenda</access_arguments>
+  </item>
+  <item>
+    <path>civicrm/civimobile/event-locations</path>
+    <title>Event Locations</title>
+    <page_callback>CRM_CiviMobileAPI_Form_EventLocations</page_callback>
+    <access_arguments>view Agenda</access_arguments>
+  </item>
+  <item>
+    <path>civicrm/civimobile/manage-venues</path>
+    <title>Manage Venues</title>
+    <page_callback>CRM_CiviMobileAPI_Page_ManageVenues</page_callback>
+    <access_arguments>view Agenda</access_arguments>
+  </item>
+  <item>
+    <path>civicrm/civimobile/event-speakers</path>
+    <title>Speakers</title>
+    <page_callback>CRM_CiviMobileAPI_Page_Speakers</page_callback>
+    <access_arguments>view Agenda</access_arguments>
+  </item>
+  <item>
+    <path>civicrm/civimobile/checklist</path>
+    <title>CiviMobile Checklist</title>
+    <page_callback>CRM_CiviMobileAPI_Page_Checklist</page_callback>
+    <access_arguments>administer CiviCRM</access_arguments>
+  </item>
+  <item>
+    <path>civicrm/civimobile/ajax/event-sessions</path>
+    <page_callback>CRM_CiviMobileAPI_Page_AJAX_Agenda::getEventSessions</page_callback>
+    <access_arguments>view Agenda</access_arguments>
+  </item>
+  <item>
+    <path>civicrm/civimobile/ajax/event-speakers</path>
+    <page_callback>CRM_CiviMobileAPI_Page_AJAX_Agenda::getEventSpeakers</page_callback>
+    <access_arguments>view Agenda</access_arguments>
+  </item>
+  <item>
+    <path>civicrm/civimobile/event/speaker</path>
+    <title>Speaker</title>
+    <page_callback>CRM_CiviMobileAPI_Form_Speaker</page_callback>
+    <access_arguments>view Agenda</access_arguments>
+  </item>
+  <item>
+    <path>civicrm/civimobile/file</path>
+    <title>Get Image File</title>
+    <page_callback>CRM_CiviMobileAPI_Page_File</page_callback>
+    <access_callback>1</access_callback>
+  </item>
+</menu>

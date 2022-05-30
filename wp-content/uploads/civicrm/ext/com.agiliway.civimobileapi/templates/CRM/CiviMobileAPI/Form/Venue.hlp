@@ -1,0 +1,20 @@
+{htxt id="address-help-title"}
+  {ts}Address{/ts}
+{/htxt}
+{htxt id="address-help"}
+  {ts}The Venue can be located at a different address than the event. The location map will be displayed using this field.{/ts}
+{/htxt}
+
+{htxt id="scheme-help-title"}
+  {ts}Scheme{/ts}
+{/htxt}
+{htxt id="scheme-help"}
+  {ts}Schematic view of the Venue, will be available as a picture (jpg/png) or link (pdf).{/ts}
+{/htxt}
+
+{htxt id="address-description-help-title"}
+  {ts}Details{/ts}
+{/htxt}
+{htxt id="address-description-help"}
+  {ts}Short tips on how to get to the Venue (pin codes, floors, etc.).{/ts}
+{/htxt}

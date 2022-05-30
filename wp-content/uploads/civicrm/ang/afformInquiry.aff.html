@@ -1,0 +1,25 @@
+<af-form ctrl="afform">
+  <af-entity data="{contact_type: 'Individual', source: 'Inquiry'}" type="Contact" name="Individual1" label="Individual 1" actions="{create: true, update: true}" security="FBAC" />
+  <af-entity data="{source_contact_id: 'user_contact_id', assignee_contact_id: ['204', '203'], status_id: '1'}" type="Activity" name="Activity1" label="Activity 1" actions="{create: true, update: true}" security="FBAC" />
+  <fieldset af-fieldset="Activity1" class="af-container" af-title="Activity 1">
+    <af-field name="activity_type_id" defn="{options: [{id: 55, label: 'Interview'}, {id: 67, label: 'Banners'}, {id: 68, label: 'Flags'}, {id: 69, label: 'Flowers'}, {id: 70, label: 'Murals'}, {id: 71, label: 'Signage'}, {id: 72, label: 'Fa\u00e7ade improvement'}, {id: 73, label: 'Event participation'}, {id: 74, label: 'Sponsorship opportunity'}, {id: 75, label: 'General Inquiry'}], input_attrs: {}, afform_default: '55'}" />
+    <af-field name="subject" />
+    <af-field name="details" />
+    <af-field name="location" />
+    <af-field name="priority_id" defn="{options: [{id: 1, label: 'Urgent'}, {id: 2, label: 'Normal'}, {id: 3, label: 'Low'}], input_attrs: {}}" />
+  </fieldset>
+  <fieldset af-fieldset="Individual1" class="af-container" af-title="Individual 1">
+    <div class="af-container">
+      <div class="af-container af-layout-inline">
+        <af-field name="first_name" />
+      </div>
+      <af-field name="last_name" />
+      <div af-join="Email" af-repeat="Add" min="1">
+        <div class="af-container af-layout-inline">
+          <af-field name="email" />
+        </div>
+      </div>
+    </div>
+  </fieldset>
+  <button class="af-button btn btn-primary" crm-icon="fa-check" ng-click="afform.submit()">Submit</button>
+</af-form>

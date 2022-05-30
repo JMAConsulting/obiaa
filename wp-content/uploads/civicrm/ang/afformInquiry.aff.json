@@ -1,0 +1,16 @@
+{
+    "type": "form",
+    "requires": [],
+    "title": "Inquiry",
+    "description": "",
+    "is_dashlet": false,
+    "is_public": true,
+    "is_token": false,
+    "server_route": "civicrm/inquiry-form",
+    "permission": "*always allow*",
+    "create_submission": true,
+    "entity_type": null,
+    "join_entity": null,
+    "contact_summary": null,
+    "redirect": null
+}
