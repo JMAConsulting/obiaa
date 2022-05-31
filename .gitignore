@@ -8,3 +8,5 @@ wp-content/wflogs/
 wp-content/wflogs/*
 wp-content/debug.log
 wp-content/uploads/civicrm/civicrm.settings.php
+!wp-content/uploads/civicrm/ext/
+!wp-content/uploads/civicrm/ext/*
