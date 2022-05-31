@@ -168,6 +168,8 @@ class Groups_Sync {
           if (empty($contact['email'])) {
             return;
           }
+	  $wpUser = get_user_by('email', $contact['email']);
+	  if (empty($wpUser->ID)) {
           $username = $this->generateUserName($contact);
           $user_data = [
             'ID' => '',
@@ -179,7 +181,11 @@ class Groups_Sync {
             'nickname' => $username,
             'role' =>  get_option('default_role'),
           ];
-          $user_id = wp_insert_user($user_data);
+	  $user_id = wp_insert_user($user_data);
+	  }
+	  else {
+            $user_id = $wpUser->ID;
+	  }
           $ufMatch = [
             'uf_id' => $user_id,
             'contact_id' => $contact_id,
