@@ -10,3 +10,8 @@ wp-content/debug.log
 wp-content/uploads/civicrm/civicrm.settings.php
 !wp-content/uploads/civicrm/ext/
 !wp-content/uploads/civicrm/ext/*
+wp-content/uploads/2022/
+wp-content/uploads/civicrm/ConfigAndLog/
+wp-content/uploads/civicrm/persist/
+wp-content/uploads/civicrm/templates_c/
+wp-content/uploads/civicrm/upload/
