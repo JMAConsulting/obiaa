@@ -51,14 +51,14 @@ function add_staff_assignee($form, $action) {
     }
     if (empty($primaryContact)) {
       // If we still don't have a primary contact by now, assign to the default contact ID.
-      $primaryContact = \Civi\Api4\Domain::get()
+      $primaryContact = \Civi\Api4\Domain::get(FALSE)
         ->addSelect('contact_id')
         ->setLimit(1)
         ->execute()[0]['contact_id'];
     }
     if (!empty($primaryContact)) {
       // We assign this to the activity.
-      \Civi\Api4\Activity::update()
+      \Civi\Api4\Activity::update(FALSE)
         ->addValue('assignee_contact_id', [
           $primaryContact,
         ])
