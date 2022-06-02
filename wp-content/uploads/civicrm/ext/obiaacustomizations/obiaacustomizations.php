@@ -143,6 +143,27 @@ function obiaacustomizations_civicrm_themes(&$themes) {
   _obiaacustomizations_civix_civicrm_themes($themes);
 }
 
+function obiaacustomizations_civicrm_permission(&$permissions) {
+  $prefix = ts('CiviContribute') . ": ";
+  $permissions['manage payment pages'] = array(
+    $prefix . ts('manage Payment pages'),
+    ts('manage Payment page configuration'),
+  );
+}
+
+function obiaacustomizations_civicrm_pageRun(&$page) {
+  if (get_class($page) == "CRM_Contribute_Page_DashBoard" && !CRM_Core_Permission::check('manage payment pages')) {
+    CRM_Core_Resources::singleton()->addScript(
+      "CRM.$(function($) {
+        $('a.button:contains(\"Manage Payment Pages\")').parent().hide();;
+      });
+    ");
+  }
+  if (get_class($page) == "CRM_Contribute_Page_ContributionPage" && !CRM_Core_Permission::check('manage payment pages')) {
+    CRM_Core_Error::statusBounce(ts('You do not have permission to access this page.'));
+  }
+}
+
 function obiaacustomizations_civicrm_buildForm($formName, &$form) {
   if ($formName == "CRM_Contribute_Form_Contribution" && (in_array($form->_action, [CRM_Core_Action::ADD, CRM_Core_Action::UPDATE]))) {
     $financialType = array_search('General Payment', CRM_Contribute_BAO_Contribution::buildOptions('financial_type_id', 'get'));
