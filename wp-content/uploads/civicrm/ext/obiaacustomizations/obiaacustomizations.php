@@ -180,6 +180,56 @@ function obiaacustomizations_civicrm_buildForm($formName, &$form) {
   }
 }
 
+function obiaacustomizations_civicrm_alterMailContent(&$content) {
+  if ($content['valueName'] == 'contribution_offline_receipt') {
+    $customGroupHtml = "{if !empty(\$customGroup)}
+      {foreach from=\$customGroup item=value key=customName}
+       <tr>
+        <th {\$headerStyle}>
+         {\$customName}
+        </th>
+       </tr>
+       {foreach from=\$value item=v key=n}
+        <tr>
+         <td {\$labelStyle}>
+          {\$n}
+         </td>
+         <td {\$valueStyle}>
+          {\$v}
+         </td>
+        </tr>
+       {/foreach}
+      {/foreach}
+     {/if}";
+    $newCustomGroupHtml = "{if !empty(\$customGroup)}
+      {foreach from=\$customGroup item=value key=customName}
+      {if \$customName neq 'Payment Details'}
+       <tr>
+        <th {\$headerStyle}>
+         {\$customName}
+        </th>
+       </tr>
+       {foreach from=\$value item=v key=n}
+        <tr>
+         <td {\$labelStyle}>
+          {\$n}
+         </td>
+         <td {\$valueStyle}>
+          {\$v}
+         </td>
+        </tr>
+       {/foreach}
+      {/if}
+      {/foreach}
+     {/if}";
+    foreach (['subject', 'html', 'text'] as $key) {
+      $content[$key] = str_replace('{contact.display_name}', '{contribution.custom_56}', $content[$key]);
+      $content[$key] = str_replace('{contact.email_greeting}', 'Dear {contribution.custom_56}', $content[$key]);
+      $content[$key] = str_replace($customGroupHtml, $newCustomGroupHtml, $content[$key]);
+    }	    
+  }
+}
+
 // --- Functions below this ship commented out. Uncomment as required. ---
 
 /**
