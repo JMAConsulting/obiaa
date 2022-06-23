@@ -228,6 +228,91 @@ function obiaacustomizations_civicrm_alterMailContent(&$content) {
       $content[$key] = str_replace($customGroupHtml, $newCustomGroupHtml, $content[$key]);
     }	    
   }
+  if ($content['valueName'] == 'contribution_online_receipt') {
+    $customPre = "{if !empty(\$customPre)}
+      <tr>
+       <th {\$headerStyle}>
+        {\$customPre_grouptitle}
+       </th>
+      </tr>
+      {foreach from=\$customPre item=customValue key=customName}
+       {if (!empty(\$trackingFields) and ! in_array(\$customName, \$trackingFields)) or empty(\$trackingFields)}
+        <tr>
+         <td {\$labelStyle}>
+          {\$customName}
+         </td>
+         <td {\$valueStyle}>
+          {\$customValue}
+         </td>
+        </tr>
+       {/if}
+      {/foreach}
+     {/if}";
+    $customPreHtml = "{if !empty(\$customPre)}
+      <tr>
+       <th {\$headerStyle}>
+        {\$customPre_grouptitle}
+       </th>
+      </tr>
+      {foreach from=\$customPre item=customValue key=customName}
+       {if ((!empty(\$trackingFields) and ! in_array(\$customName, \$trackingFields)) or empty(\$trackingFields)) and \$customName neq 'Receipt Made Out To'}
+        <tr>
+         <td {\$labelStyle}>
+          {\$customName}
+         </td>
+         <td {\$valueStyle}>
+          {\$customValue}
+         </td>
+        </tr>
+       {/if}
+      {/foreach}
+     {/if}";
+
+   $customPost = "{if !empty(\$customPost)}
+      <tr>
+       <th {\$headerStyle}>
+        {\$customPost_grouptitle}
+       </th>
+      </tr>
+      {foreach from=\$customPost item=customValue key=customName}
+       {if (!empty(\$trackingFields) and ! in_array(\$customName, \$trackingFields)) or empty(\$trackingFields)}
+        <tr>
+         <td {\$labelStyle}>
+          {\$customName}
+         </td>
+         <td {\$valueStyle}>
+          {\$customValue}
+         </td>
+        </tr>
+       {/if}
+      {/foreach}
+     {/if}";
+   $customPostHtml = "{if !empty(\$customPost)}
+      <tr>
+       <th {\$headerStyle}>
+        {\$customPost_grouptitle}
+       </th>
+      </tr>
+      {foreach from=\$customPost item=customValue key=customName}
+       {if ((!empty(\$trackingFields) and ! in_array(\$customName, \$trackingFields)) or empty(\$trackingFields)) and \$customName neq 'Receipt Made Out To'}
+        <tr>
+         <td {\$labelStyle}>
+          {\$customName}
+         </td>
+         <td {\$valueStyle}>
+          {\$customValue}
+         </td>
+        </tr>
+       {/if}
+      {/foreach}
+     {/if}";
+   foreach (['subject', 'html', 'text'] as $key) {
+      $content[$key] = str_replace('{contact.display_name}', '{contribution.custom_56}', $content[$key]);
+      $content[$key] = str_replace('{contact.email_greeting}', 'Dear {contribution.custom_56}', $content[$key]);
+      $content[$key] = str_replace($customPre, $customPreHtml, $content[$key]);
+      $content[$key] = str_replace($customPost, $customPostHtml, $content[$key]);
+    }
+  }
 }
 
 // --- Functions below this ship commented out. Uncomment as required. ---
