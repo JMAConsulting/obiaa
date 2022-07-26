@@ -228,7 +228,7 @@ function obiaacustomizations_civicrm_alterMailContent(&$content) {
      {/if}";
     foreach (['subject', 'html', 'text'] as $key) {
       $content[$key] = str_replace('{contact.display_name}', '{assign var="receiptalternate" value="{contribution.custom_56}"}{if $receiptalternate}{contribution.custom_56}{else}{contact.display_name}{/if}', $content[$key]);
-      $content[$key] = str_replace('{contact.email_greeting}', '{assign var="receiptalternate" value="{contribution.custom_56}"}{if $receiptalternate}Dear {contribution.custom_56}{else}{contact.email_greeting}{/if}', $content[$key]);
+      $content[$key] = str_replace('{$greeting}', '{assign var="receiptalternate" value="{contribution.custom_56}"}{if $receiptalternate}Dear {contribution.custom_56}{else}{$greeting}{/if}', $content[$key]);
       $content[$key] = str_replace($customGroupHtml, $newCustomGroupHtml, $content[$key]);
     }	    
   }
@@ -259,7 +259,7 @@ function obiaacustomizations_civicrm_alterMailContent(&$content) {
        </th>
       </tr>
       {foreach from=\$customPre item=customValue key=customName}
-       {if ((!empty(\$trackingFields) and ! in_array(\$customName, \$trackingFields)) or empty(\$trackingFields)) and \$customName neq 'Receipt Made Out To' and \$customName neq 'First Name' and \$customName neq 'Last Name'}
+       {if ((!empty(\$trackingFields) and ! in_array(\$customName, \$trackingFields)) or empty(\$trackingFields)) and \$customName neq ' Receipt Made Out To ' and \$customName neq ' First Name ' and \$customName neq ' Last Name '}
         <tr>
          <td {\$labelStyle}>
           {\$customName}
@@ -272,49 +272,13 @@ function obiaacustomizations_civicrm_alterMailContent(&$content) {
       {/foreach}
      {/if}";
 
-   $customPost = "{if !empty(\$customPost)}
-      <tr>
-       <th {\$headerStyle}>
-        {\$customPost_grouptitle}
-       </th>
-      </tr>
-      {foreach from=\$customPost item=customValue key=customName}
-       {if (!empty(\$trackingFields) and ! in_array(\$customName, \$trackingFields)) or empty(\$trackingFields)}
-        <tr>
-         <td {\$labelStyle}>
-          {\$customName}
-         </td>
-         <td {\$valueStyle}>
-          {\$customValue}
-         </td>
-        </tr>
-       {/if}
-      {/foreach}
-     {/if}";
-   $customPostHtml = "{if !empty(\$customPost)}
-      <tr>
-       <th {\$headerStyle}>
-        {\$customPost_grouptitle}
-       </th>
-      </tr>
-      {foreach from=\$customPost item=customValue key=customName}
-       {if ((!empty(\$trackingFields) and ! in_array(\$customName, \$trackingFields)) or empty(\$trackingFields)) and \$customName neq 'Receipt Made Out To' and \$customName neq 'First Name' and \$customName neq 'Last Name'}
-        <tr>
-         <td {\$labelStyle}>
-          {\$customName}
-         </td>
-         <td {\$valueStyle}>
-          {\$customValue}
-         </td>
-        </tr>
-       {/if}
-      {/foreach}
-     {/if}";
+   $customPost = "{if (!empty(\$trackingFields) and ! in_array(\$customName, \$trackingFields)) or empty(\$trackingFields)}";
+   $customPostHtml = "{if ((!empty(\$trackingFields) and ! in_array(\$customName, \$trackingFields)) or empty(\$trackingFields)) and \$customName neq 'Receipt Made Out To' and \$customName neq 'First Name' and \$customName neq 'Last Name'}";
    foreach (['subject', 'html', 'text'] as $key) {
       $content[$key] = str_replace('{contact.display_name}', '{assign var="receiptalternate" value="{contribution.custom_56}"}{if $receiptalternate}{contribution.custom_56}{else}{contact.display_name}{/if}', $content[$key]);
-      $content[$key] = str_replace('{contact.email_greeting}', '{assign var="receiptalternate" value="{contribution.custom_56}"}{if $receiptalternate}Dear {contribution.custom_56},{else}{contact.email_greeting}{/if}', $content[$key]);
+      $content[$key] = str_replace('{$greeting}', '{assign var="receiptalternate" value="{contribution.custom_56}"}{if $receiptalternate}Dear {contribution.custom_56}{else}{$greeting}{/if}', $content[$key]);
       $content[$key] = str_replace('{$billingName}', '{assign var="receiptalternate" value="{contribution.custom_56}"}{if $receiptalternate}{$receiptalternate}{else}{$billingName}{/if}', $content[$key]);
-      $content[$key] = str_replace($customPre, $customPreHtml, $content[$key]);
+      //$content[$key] = str_replace($customPre, $customPreHtml, $content[$key]);
       $content[$key] = str_replace($customPost, $customPostHtml, $content[$key]);
     }
   }
