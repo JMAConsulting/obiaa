@@ -149,6 +149,10 @@ function obiaacustomizations_civicrm_permission(&$permissions) {
     $prefix . ts('manage Payment pages'),
     ts('manage Payment page configuration'),
   );
+  $permissions['administer payments'] = array(
+    $prefix . ts('administer payments'),
+    ts('administer payment configuration'),
+  );
 }
 
 function obiaacustomizations_civicrm_pageRun(&$page) {
@@ -223,8 +227,8 @@ function obiaacustomizations_civicrm_alterMailContent(&$content) {
       {/foreach}
      {/if}";
     foreach (['subject', 'html', 'text'] as $key) {
-      $content[$key] = str_replace('{contact.display_name}', '{contribution.custom_56}', $content[$key]);
-      $content[$key] = str_replace('{contact.email_greeting}', 'Dear {contribution.custom_56}', $content[$key]);
+      $content[$key] = str_replace('{contact.display_name}', '{assign var="receiptalternate" value="{contribution.custom_56}"}{if $receiptalternate}{contribution.custom_56}{else}{contact.display_name}{/if}', $content[$key]);
+      $content[$key] = str_replace('{contact.email_greeting}', '{assign var="receiptalternate" value="{contribution.custom_56}"}{if $receiptalternate}Dear {contribution.custom_56}{else}{contact.email_greeting}{/if}', $content[$key]);
       $content[$key] = str_replace($customGroupHtml, $newCustomGroupHtml, $content[$key]);
     }	    
   }
@@ -255,7 +259,7 @@ function obiaacustomizations_civicrm_alterMailContent(&$content) {
        </th>
       </tr>
       {foreach from=\$customPre item=customValue key=customName}
-       {if ((!empty(\$trackingFields) and ! in_array(\$customName, \$trackingFields)) or empty(\$trackingFields)) and \$customName neq 'Receipt Made Out To'}
+       {if ((!empty(\$trackingFields) and ! in_array(\$customName, \$trackingFields)) or empty(\$trackingFields)) and \$customName neq 'Receipt Made Out To' and \$customName neq 'First Name' and \$customName neq 'Last Name'}
         <tr>
          <td {\$labelStyle}>
           {\$customName}
@@ -294,7 +298,7 @@ function obiaacustomizations_civicrm_alterMailContent(&$content) {
        </th>
       </tr>
       {foreach from=\$customPost item=customValue key=customName}
-       {if ((!empty(\$trackingFields) and ! in_array(\$customName, \$trackingFields)) or empty(\$trackingFields)) and \$customName neq 'Receipt Made Out To'}
+       {if ((!empty(\$trackingFields) and ! in_array(\$customName, \$trackingFields)) or empty(\$trackingFields)) and \$customName neq 'Receipt Made Out To' and \$customName neq 'First Name' and \$customName neq 'Last Name'}
         <tr>
          <td {\$labelStyle}>
           {\$customName}
@@ -309,6 +313,7 @@ function obiaacustomizations_civicrm_alterMailContent(&$content) {
    foreach (['subject', 'html', 'text'] as $key) {
       $content[$key] = str_replace('{contact.display_name}', '{contribution.custom_56}', $content[$key]);
       $content[$key] = str_replace('{contact.email_greeting}', 'Dear {contribution.custom_56}', $content[$key]);
+      $content[$key] = str_replace('{$billingName}', '{contribution.custom_56}', $content[$key]);
       $content[$key] = str_replace($customPre, $customPreHtml, $content[$key]);
       $content[$key] = str_replace($customPost, $customPostHtml, $content[$key]);
     }
