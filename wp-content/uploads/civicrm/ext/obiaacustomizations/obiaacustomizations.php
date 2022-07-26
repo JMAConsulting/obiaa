@@ -311,9 +311,9 @@ function obiaacustomizations_civicrm_alterMailContent(&$content) {
       {/foreach}
      {/if}";
    foreach (['subject', 'html', 'text'] as $key) {
-      $content[$key] = str_replace('{contact.display_name}', '{contribution.custom_56}', $content[$key]);
-      $content[$key] = str_replace('{contact.email_greeting}', 'Dear {contribution.custom_56}', $content[$key]);
-      $content[$key] = str_replace('{$billingName}', '{contribution.custom_56}', $content[$key]);
+      $content[$key] = str_replace('{contact.display_name}', '{assign var="receiptalternate" value="{contribution.custom_56}"}{if $receiptalternate}{contribution.custom_56}{else}{contact.display_name}{/if}', $content[$key]);
+      $content[$key] = str_replace('{contact.email_greeting}', '{assign var="receiptalternate" value="{contribution.custom_56}"}{if $receiptalternate}Dear {contribution.custom_56},{else}{contact.email_greeting}{/if}', $content[$key]);
+      $content[$key] = str_replace('{$billingName}', '{assign var="receiptalternate" value="{contribution.custom_56}"}{if $receiptalternate}{$receiptalternate}{else}{$billingName}{/if}', $content[$key]);
       $content[$key] = str_replace($customPre, $customPreHtml, $content[$key]);
       $content[$key] = str_replace($customPost, $customPostHtml, $content[$key]);
     }
