@@ -620,8 +620,8 @@ if (!function_exists('is_writable_r')) {
 function civimobileapi_civicrm_navigationMenu(&$menu) {
   $civiMobile = [
     'name' => E::ts('CiviMobile'),
-    'permission' => 'administer CiviCRM',
-    'operator' => NULL,
+    'permission' => 'administer CiviCRM,administer payments',
+    'operator' => 'AND',
     'separator' => NULL,
   ];
   _civimobileapi_civix_insert_navigation_menu($menu, 'Administer/', $civiMobile);

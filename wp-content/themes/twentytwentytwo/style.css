@@ -146,3 +146,6 @@ body > .is-root-container > .wp-block-template-part > .wp-block-cover,
 	padding-left: var(--wp--custom--spacing--outer);
 }
 
+.wp-block-group h1.wp-block-post-title {
+	margin-bottom: 0 !important;
+}
