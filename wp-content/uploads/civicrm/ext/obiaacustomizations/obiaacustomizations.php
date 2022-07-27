@@ -1,5 +1,6 @@
 <?php
-
+define("PAYMENTPAGE", 4);
+define("LOCALDOLLARSPAGE", 5);
 require_once 'obiaacustomizations.civix.php';
 // phpcs:disable
 use CRM_Obiaacustomizations_ExtensionUtil as E;
@@ -181,6 +182,15 @@ function obiaacustomizations_civicrm_buildForm($formName, &$form) {
         $('#total_amount').css('margin-left', '-3px');
       });
     ");
+  }
+
+  // Custom Js Payment page
+  if($formName == 'CRM_Contribute_Form_Contribution_Main' && $form->_id == PAYMENTPAGE ) {
+    Civi::resources()->addScriptFile('obiaacustomizations', 'js/payment.js');
+  }
+  // Custom Js Local Dollars  page
+  if($formName == 'CRM_Contribute_Form_Contribution_Main' && $form->_id == LOCALDOLLARSPAGE ) {
+    Civi::resources()->addScriptFile('obiaacustomizations', 'js/localdollars.js');
   }
 }
 
