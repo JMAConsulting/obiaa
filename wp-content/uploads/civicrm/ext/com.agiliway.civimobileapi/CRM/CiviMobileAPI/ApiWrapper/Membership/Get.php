@@ -111,6 +111,18 @@ class CRM_CiviMobileAPI_ApiWrapper_Membership_Get implements API_Wrapper {
       $contactId = $membership['contact_id'];
     }
 
+    $membershipId = (int)$membership['id'];
+    $membershipCardSql = "SELECT cm.contact_id,cm.end_date,cc.organization_name
+                      FROM civicrm_membership cm
+                      LEFT JOIN civicrm_contact cc ON cm.contact_id = cc.id WHERE cm.id = $membershipId";
+    $dao = CRM_Core_DAO::executeQuery($membershipCardSql);
+    $dao->fetch();
+
+    $additionalInfo['organization_name'] = $dao->organization_name;
+    $additionalInfo['expiration_date'] = $dao->end_date;
+
+    $additionalInfo['qrCode'] = $this->generateQRcode($membership['id']);
+
     if (!empty($contactId)) {
       try {
         $lastPayment = civicrm_api3('MembershipPayment', 'getsingle', [
@@ -276,6 +288,38 @@ class CRM_CiviMobileAPI_ApiWrapper_Membership_Get implements API_Wrapper {
     }
 
     return [];
+  }
+
+  /**
+   * Generates QRcode for memebrship card
+   * Saves QRcode in Membership's custom fields
+   *
+   * @throws \api_Exception
+   */
+  public function generateQRcode($membershipId) {
+    $hashCode = hash('ripemd160', "membershipId" . $membershipId);
+    $config = CRM_Core_Config::singleton();
+    $directoryName = $config->uploadDir . DIRECTORY_SEPARATOR . 'qr';
+    CRM_Utils_File::createDir($directoryName);
+    $imageName = $this->generateImageName($membershipId);
+    $path = $directoryName . DIRECTORY_SEPARATOR . $imageName;
+    $params = [
+      'attachFile_1' => [
+        'uri' => $path,
+        'location' => $path,
+        'description' => '',
+        'type' => 'image/png'
+      ],
+    ];
+
+    \PHPQRCode\QRcode::png("http://civimobile.org/membership?qr=" . $membershipId . '_' . $hashCode, $path, 'L', 9, 3);
+    CRM_Core_BAO_File::processAttachment($params, 'civicrm_membership', $membershipId);
+    $fileUrl = CRM_CiviMobileAPI_Utils_File::getFileUrl($membershipId,'civicrm_membership', $this->generateImageName($membershipId));
+    return $fileUrl;
+  }
+
+  private function generateImageName($membershipId) {
+    return 'membershipId_' . $membershipId . '.png';
   }
 
 }

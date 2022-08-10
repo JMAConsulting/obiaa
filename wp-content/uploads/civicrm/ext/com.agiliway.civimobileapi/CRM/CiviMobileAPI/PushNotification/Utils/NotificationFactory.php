@@ -144,12 +144,15 @@ class CRM_CiviMobileAPI_PushNotification_Utils_NotificationFactory {
   private function getCaseNotification() {
     $notificationManager = NULL;
     if ($this->hookContext === "post") {
-
       $notificationManager = new CRM_CiviMobileAPI_PushNotification_Utils_Hook_Post_CasePushNotification($this->objectName, $this->action, $this->objectId);
       $notificationManager->setObjectRef($this->objectRef);
-
     } elseif ($this->hookContext === "pre" && $this->action === 'delete') {
-       $notificationManager = new CRM_CiviMobileAPI_PushNotification_Utils_Hook_Pre_CasePushNotification($this->objectName, $this->action, $this->objectId);
+      if (!empty($this->objectId)) {
+        $caseDeleteService = CRM_CiviMobileAPI_PushNotification_Utils_CaseDeleteService::getInstance();
+        $caseDeleteService->addRecentlyDeletedId($this->objectId);
+      }
+
+      $notificationManager = new CRM_CiviMobileAPI_PushNotification_Utils_Hook_Pre_CasePushNotification($this->objectName, $this->action, $this->objectId);
     }
 
     return $notificationManager;
@@ -170,8 +173,7 @@ class CRM_CiviMobileAPI_PushNotification_Utils_NotificationFactory {
 
         $notificationManager = new CRM_CiviMobileAPI_PushNotification_Utils_Hook_Post_CasePushNotification("Case", "edit", $this->objectRef->case_id);
         $notificationManager->setObjectRef($caseObjectRef);
-      }
-      else {
+      } else {
         $notificationManager = new CRM_CiviMobileAPI_PushNotification_Utils_Hook_Post_RelationshipPushNotification($this->objectName, $this->action, $this->objectId);
         $notificationManager->setObjectRef($this->objectRef);
       }
@@ -191,8 +193,7 @@ class CRM_CiviMobileAPI_PushNotification_Utils_NotificationFactory {
     if ($this->hookContext === "post") {
       $notificationManager = new CRM_CiviMobileAPI_PushNotification_Utils_Hook_Post_ParticipantPushNotification($this->objectName, $this->action, $this->objectId);
       $notificationManager->setObjectRef($this->objectRef);
-    }
-    elseif ($this->hookContext === "pre" && $this->action === 'delete') {
+    } elseif ($this->hookContext === "pre" && $this->action === 'delete') {
       $notificationManager = new CRM_CiviMobileAPI_PushNotification_Utils_Hook_Pre_ParticipantPushNotification($this->objectName, $this->action, $this->objectId);
     }
 
@@ -242,5 +243,4 @@ class CRM_CiviMobileAPI_PushNotification_Utils_NotificationFactory {
 
     return $notificationManager;
   }
-
 }

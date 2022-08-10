@@ -14,21 +14,14 @@ class CRM_CiviMobileAPI_Utils_Agenda_Speakers {
       return [];
     }
     $ids = explode(',', $stringIds);
-    $names = [];
 
     $participants = civicrm_api3('Participant', 'get', [
       'sequential' => 1,
       'id' => ['IN' => $ids],
       'event_id' => $eventId
     ]);
-    foreach ($participants["values"] as $speaker) {
-      $names[] = [
-        'display_name' => $speaker["display_name"],
-        'id' => $speaker["id"],
-        'contact_id' => $speaker["contact_id"]
-      ];
-    }
-    return $names;
+
+    return CRM_CiviMobileAPI_Utils_Participant::getParticipantsShortDetails($participants['values']);
   }
 
   /**

@@ -39,6 +39,43 @@ class CRM_CiviMobileAPI_PushNotification_Utils_Hook_Pre_ActivityPushNotification
   }
 
   /**
+   * @return array|null
+   */
+  private function getCaseIdByActivity($activityId) {
+    if (empty($this->id)) {
+      return null;
+    }
+
+    try {
+      $case = civicrm_api3('Case', 'get', [
+        'return' => 'id',
+        'activity_id' => $activityId,
+      ]);
+    } catch (Exception $e) {
+      return null;
+    }
+
+    return $case['id'];
+  }
+
+  public function sendNotification() {
+    if ($this->action == 'delete') {
+      $isRecentlyDeleted = false;
+      $caseId = $this->getCaseIdByActivity($this->id);
+      if (!empty($caseId)) {
+        $caseDeleteService = CRM_CiviMobileAPI_PushNotification_Utils_CaseDeleteService::getInstance();
+        $isRecentlyDeleted = $caseDeleteService->isCaseRecentlyDeleted($caseId);
+      }
+
+      if (!$isRecentlyDeleted) {
+        parent::sendNotification();
+      }
+    } else {
+      parent::sendNotification();
+    }
+  }
+
+  /**
    * @inheritdoc
    */
   protected function getTitle() {

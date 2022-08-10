@@ -1,3 +1,7 @@
+<div class="qr_open_popup">
+  <button class="open_btn" id="open_btn">Open Qr Code</button>
+</div>
+
 <div id="civimobile-popup" class="civi-mobile-popup-wrap">
   <div class="civi-mobile-popup-close"></div>
 
@@ -63,6 +67,27 @@
 
   #civimobile-popup .civi-mobile-popup-block {
     width: 126px;
+  }
+
+  .qr_open_popup {
+    position: fixed;
+    right: 25px;
+    bottom: 25px;
+  }
+
+  .qr_open_popup button {
+    background-color: #4CAF50; /* Green */
+    border: none;
+    color: white;
+    padding: 10px 3px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 14px;
+    margin: 4px 2px;
+    cursor: pointer;
+    border-radius: 5px;
+    z-index: 9999;
   }
 
   #civimobile-popup .civi-mobile-popup-close {
@@ -199,9 +224,35 @@
       $('.civi-mobile-popup-wrap').show();
     }
 
+    /*
+     Black list to hide open qr code because crm block code in down url
+     */
+    var currentLocation = window.location.href;
+    if (currentLocation.match('civicrm/pledge/add')
+      || currentLocation.match('civicrm/member/add')
+      || currentLocation.match('civicrm/grant') || currentLocation.match('civimobile')
+      || currentLocation.match('civicrm/contribute/transact')
+      || currentLocation.match('civicrm/event/register')
+    ) {
+      $('.qr_open_popup').hide();
+    }
+
+    if ($('#civimobile-popup').css('display') === 'none') {
+      $('.open_btn').show();
+    } else {
+      $('.open_btn').hide();
+    }
+
+    $('.open_btn').click(function() {
+      $('.civi-mobile-popup-wrap').show();
+      $('.open_btn').hide();
+      setCookie("civimobile_popup_close", true, 0);
+    });
+
     $('.civi-mobile-popup-close').click(function() {
       setCookie("civimobile_popup_close", true, 30);
       $('.civi-mobile-popup-wrap').hide();
+      $('.open_btn').show();
     });
     $('.civi-mobile-popup-more').click(function() {
       $('.civi-mobile-popup-block').hide();

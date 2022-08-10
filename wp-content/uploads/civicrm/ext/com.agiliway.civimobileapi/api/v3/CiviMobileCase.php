@@ -16,7 +16,7 @@ function civicrm_api3_civi_mobile_case_get($params) {
 
   $id = 1;
   foreach ($allStatuses['values'] as $value) {
-    $summary[] = ['status' => $value['label'],'amount' => (new CRM_CiviMobileAPI_Utils_CaseSummary)->getCountOfCases($value['value'], $params), 'id' => $id++];
+    $summary[] = ['status' => $value['label'], 'amount' => (new CRM_CiviMobileAPI_Utils_CaseSummary)->getCountOfCases($value['value'], $params), 'id' => $id++];
   }
 
   return civicrm_api3_create_success($summary, $params);
@@ -29,63 +29,76 @@ function civicrm_api3_civi_mobile_case_get($params) {
  * @return array
  */
 function civicrm_api3_civi_mobile_case_create($params) {
-  try {
-    $case = civicrm_api3('Case', 'create', $params);
-  } catch (CiviCRM_API3_Exception $e) {
-    $case = [];
-  }
+  $params['id'] = $params['case_id'];
 
-  if (!empty($case)) {
-    $caseId = $case['values'][$case['id']]['id'];
+  if (empty($params['id'])) {
+    $caseObj = CRM_Case_BAO_Case::create($params);
 
-    $contactId = CRM_Case_BAO_Case::getCaseClients($caseId)[0];
-    unset($params['status_id']);
+    civicrm_api3('Case', 'create', [
+      'id' => $caseObj->id,
+      'status_id' => $params['status_id'],
+    ]);
 
-    $activities = CRM_Case_BAO_Case::getCaseActivity($caseId, $params, $contactId);
+    $form = new CRM_Case_Form_Case();
+    $form->_context = 'standalone';
+    $form->_activityTypeFile = 'OpenCase';
+    $form->_currentUserId = CRM_Core_Session::singleton()->get('userID');
+    $form->_currentlyViewedContactId = $params['contact_id'];
 
-    $activitiesId = [];
-    foreach ($activities['data'] as $activity) {
-      $activitiesId[$activity['DT_RowId']] = $activity['status_id'];
+    $params['reset_date_time'] = $params['start_date'];
+
+    $form->_caseId = $params['case_id'] = $caseObj->id;
+    $form->case_type = $params['case_type'] = CRM_Core_DAO::getFieldValue('CRM_Case_DAO_CaseType', $params['case_type_id'], 'name', 'id');;
+    $form->_allowMultiClient = true;
+
+    CRM_CiviMobileAPI_Utils_CreateCase::runCreateCase($form, $params);
+
+    return ['message' => $params['statusMsg']];
+  } else {
+    $caseId = $params['id'];
+
+    if ($params['reassign_contact_id']) {
+      $reassign_id = CRM_Case_BAO_Case::mergeCases($params['reassign_contact_id'], $params['id'], $params['contact_id'], NULL, TRUE);
     }
+    civicrm_api3('Case', 'create', [
+      'contact_id' => $params['contact_id'],
+      'id' => $params['id'],
+      'subject' => $params['subject'],
+      'case_type_id' => $params['case_type_id'],
+      'status_id' => $params['status_id'],
+      'details' => $params['details'],
+    ]);
 
-    $mainActivityId = NULL;
-    foreach ($activitiesId as $activityId => $activityStatus) {
-      try {
-        civicrm_api3('Activity', 'create', [
-          'source_contact_id' => $contactId,
-          'id' => $activityId,
-          'activity_date_time' => $params['start_date'],
-        ]);
-      } catch (CiviCRM_API3_Exception $e) {
-        continue;
+    if (!empty($params['case_type_id'])) {
+      $contactId = CRM_Case_BAO_Case::getCaseClients($caseId)[0];
+      unset($params['status_id']);
+
+      $activities = CRM_Case_BAO_Case::getCaseActivity($caseId, $params, $contactId);
+
+      $activitiesId = [];
+      $activity = [];
+      foreach ($activities['data'] as $activity) {
+        $activitiesId[$activity['DT_RowId']] = $activity['status_id'];
+        $activity[] = $activity['value'];
       }
 
-      if ($activityStatus == 'Completed') {
-        $mainActivityId = $activityId;
-      }
+      $form = new CRM_Core_Form();
+      $form->_caseId[0] = $caseId;
+      $form->_currentUserId = CRM_Core_Session::singleton()->get('userID');
+      $form->_currentlyViewedContactId = $params['contact_id'];
+      $params['is_reset_timeline'] = 1;
+      $params['reset_date_time'] = $params['start_date'];
+      CRM_Case_Form_Activity_ChangeCaseType::beginPostProcess($form, $params);
+      CRM_Case_Form_Activity_ChangeCaseType::endPostProcess($form, $params, $activity);
     }
-  }
 
-  if (isset($_FILES['file'])) {
-    try {
-      civicrm_api3('Attachment', 'create', [
-        'name' => $_FILES['file']["name"],
-        'mime_type' => $_FILES['file']["type"],
-        'entity_id' => $mainActivityId,
-        'entity_table' => "civicrm_activity",
-        'url' => $_FILES['file']["tmp_name"],
-        'path' => $_FILES['file']["tmp_name"],
-        'upload_date' => date('Y-m-d H:i:s'),
-        'options' => [
-          'move-file' => $_FILES['file']['tmp_name']
-        ]
-      ]);
-    } catch (CiviCRM_API3_Exception $e) {
-      Civi::log()->warning("File not uploaded.");
+    if ($params['reassign_contact_id']) {
+      $newReassign = implode(',', $reassign_id);
+      return ['updated_case_id' => $newReassign];
     }
-  }
 
-  return civicrm_api3_create_success($case['values']);
+    return ['updated_case_id' => $params['id']];
+  }
 }
 
 /**
@@ -101,11 +114,16 @@ function _civicrm_api3_civi_mobile_case_create_spec(&$params) {
     'api.required' => 0,
     'type' => CRM_Utils_Type::T_INT
   ];
+  $params['reassign_contact_id'] = [
+    'title' => 'Reassign Contact Id',
+    'description' => E::ts('Reassign Contact Id'),
+    'api.required' => 0,
+    'type' => CRM_Utils_Type::T_INT
+  ];
   $params['status_id'] = [
     'title' => 'Case status',
     'description' => E::ts('Case status'),
     'api.required' => 0,
-    'type' => CRM_Utils_Type::T_STRING
   ];
   $params['case_type_id'] = [
     'title' => 'Case type',

@@ -83,6 +83,12 @@ class CRM_CiviMobileAPI_Form_Session extends CRM_Core_Form {
           $url = CRM_Utils_System::url('civicrm/civimobile/event/speaker', 'reset=1&action=view&pid=' . $speaker['id'] . '&eid=' . $this->eventId);
           $session["speakers_with_links"][] = '<a href="' . $url . '" class="crm-popup medium-popup">' . $speaker["display_name"] . '</a>';
         }
+        $session["participant_with_links"] = [];
+        foreach ($session["participants"] as $participant) {
+          $url = CRM_Utils_System::url('civicrm/contact/view/', 'reset=1&cid=' . $participant['contact_id']);
+          $session["participant_with_links"][] = '<a href="' . $url . '" class="crm-popup">' . $participant["display_name"] . '</a>';
+        }
+        $session['participant_with_links'] = implode(', ', $session['participant_with_links']);
         $session["speakers_with_links"] = implode(', ', $session["speakers_with_links"]);
         $session["venue_link"] = '<a href="' . CRM_Utils_System::url('civicrm/civimobile/venue', 'reset=1&use_delete_button=0&action=view&id=' . $session['venue_id'] . '&location_id=' . $event->loc_block_id) . '" class="crm-popup medium-popup">' . $session['venue_name'] . '</a>';
         $this->assign('can_edit_session', CRM_CiviMobileAPI_Utils_Permission::isEnoughPermissionForCreateEventSession());
@@ -272,6 +278,7 @@ class CRM_CiviMobileAPI_Form_Session extends CRM_Core_Form {
       $defaults["date"] = substr($session["start_time"], 0, 10);
       $defaults["start_time"] = $session["start_time"];
       $defaults["end_time"] = $session["end_time"];
+      $defaults["participant"] = $session["participant"];
     }
 
     return $defaults;

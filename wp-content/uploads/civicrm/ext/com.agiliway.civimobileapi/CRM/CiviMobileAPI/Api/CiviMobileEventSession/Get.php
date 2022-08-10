@@ -49,6 +49,13 @@ class CRM_CiviMobileAPI_Api_CiviMobileEventSession_Get extends CRM_CiviMobileAPI
         if (CRM_Core_Session::getLoggedInContactID()) {
           $preparedEventSession['is_favourite'] = $session["is_favourite"];
         }
+        $favoriteParticipants = CRM_CiviMobileAPI_BAO_FavouriteEventSession::getAll(['event_session_id' => $session["id"]]);
+        $favoriteParticipantIds = [];
+        foreach ($favoriteParticipants as $participant) {
+          $favoriteParticipantIds[] = (int)$participant['contact_id'];
+        }
+
+        $preparedEventSession['participants'] = CRM_CiviMobileAPI_Utils_Participant::getParticipantsNames($favoriteParticipantIds, $session["event_id"]);
 
         $result[] = $preparedEventSession;
       }

@@ -207,6 +207,14 @@ class CRM_CiviMobileAPI_Upgrader extends CRM_CiviMobileAPI_Upgrader_Base {
     return TRUE;
   }
 
+  public function upgrade_0023() {
+    try {
+    $this->executeSql('ALTER TABLE civicrm_contact_push_notification_messages DROP COLUMN message');
+    } catch (Exception $e) {}
+    
+    return TRUE;
+    }
+
   /**
    * Installs scheduled job
    *

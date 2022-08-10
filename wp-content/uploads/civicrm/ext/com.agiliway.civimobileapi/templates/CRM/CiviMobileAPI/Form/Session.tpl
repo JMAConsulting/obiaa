@@ -55,6 +55,14 @@
             {$eventSession.description}
           </td>
         </tr>
+       {if $eventSession.participant_with_links}
+        <tr>
+          <td class="label">Participant</td>
+          <td>
+              {$eventSession.participant_with_links}
+          </td>
+        </tr>
+       {/if}
       </table>
     {else}
       {if $action eq 8}

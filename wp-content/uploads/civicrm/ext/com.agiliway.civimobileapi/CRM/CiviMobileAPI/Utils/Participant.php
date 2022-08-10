@@ -108,4 +108,46 @@ class CRM_CiviMobileAPI_Utils_Participant {
     return $publicKey;
   }
 
+  /**
+   * Returns array with names of participants
+   *
+   * @param $contactIds
+   * @param $eventId
+   * @return array
+   */
+  public static function getParticipantsNames($contactIds, $eventId) {
+    if (empty($contactIds)) {
+      return [];
+    }
+
+    $participants = civicrm_api3('Participant', 'get', [
+      'sequential' => 1,
+      'contact_id' => ['IN' => $contactIds],
+      'event_id' => $eventId,
+      'options' => ['limit' => 0]
+    ]);
+
+    return self::getParticipantsShortDetails($participants['values']);
+  }
+
+  /**
+   * Returns short participants details (display_name,id,contact_id)
+   *
+   * @param $participants
+   * @return array
+   */
+  public static function getParticipantsShortDetails($participants) {
+    $names = [];
+
+    foreach ($participants as $speaker) {
+      $names[] = [
+        'display_name' => $speaker["display_name"],
+        'id' => $speaker["id"],
+        'contact_id' => $speaker["contact_id"]
+      ];
+    }
+
+    return $names;
+  }
+
 }

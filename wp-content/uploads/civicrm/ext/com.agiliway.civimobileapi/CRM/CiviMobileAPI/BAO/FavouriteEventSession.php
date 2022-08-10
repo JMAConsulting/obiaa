@@ -75,7 +75,7 @@ class CRM_CiviMobileAPI_BAO_FavouriteEventSession extends CRM_CiviMobileAPI_DAO_
    * @return \CRM_Utils_SQL_Select
    */
   private static function buildSelectQuery($returnValue = 'rows') {
-    $query = CRM_Utils_SQL_Select::from(CRM_CiviMobileAPI_DAO_EventSession::getTableName());
+    $query = CRM_Utils_SQL_Select::from(CRM_CiviMobileAPI_DAO_FavouriteEventSession::getTableName());
 
     if ($returnValue == 'rows') {
       $query->select('

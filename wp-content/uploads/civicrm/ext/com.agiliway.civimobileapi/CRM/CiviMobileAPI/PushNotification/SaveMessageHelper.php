@@ -24,7 +24,6 @@ class CRM_CiviMobileAPI_PushNotification_SaveMessageHelper {
       $paramsForInsert = [
         'contact_id' => $contactId,
         'data' => $data,
-        'message' => $text,
         'message_title' => $title,
         'entity_table' => $objType,
         'entity_id' => $objID,
