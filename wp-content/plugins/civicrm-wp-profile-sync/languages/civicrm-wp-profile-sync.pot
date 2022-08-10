@@ -1,0 +1,2036 @@
+# Copyright (C) 2022 Christian Wach
+# This file is distributed under the same license as the CiviCRM Profile Sync plugin.
+msgid ""
+msgstr ""
+"Project-Id-Version: CiviCRM Profile Sync 0.5.7\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/civicrm-wp-profile-sync\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2022-05-23T07:44:31+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.6.0\n"
+"X-Domain: civicrm-wp-profile-sync\n"
+
+#. Plugin Name of the plugin
+msgid "CiviCRM Profile Sync"
+msgstr ""
+
+#. Plugin URI of the plugin
+msgid "https://github.com/christianwach/civicrm-wp-profile-sync"
+msgstr ""
+
+#. Description of the plugin
+msgid "Keeps a WordPress User profile in sync with a CiviCRM Contact and integrates WordPress and CiviCRM Entities with data synced via Advanced Custom Fields."
+msgstr ""
+
+#. Author of the plugin
+msgid "Christian Wach"
+msgstr ""
+
+#. Author URI of the plugin
+msgid "https://haystack.co.uk"
+msgstr ""
+
+msgid "ID"
+msgstr ""
+
+msgid "Type"
+msgstr ""
+
+msgid "Display Name"
+msgstr ""
+
+msgid "Email"
+msgstr ""
+
+msgid "User Exists"
+msgstr ""
+
+msgid "There are no Contacts selected to create WordPress Users from."
+msgstr ""
+
+msgid "Create WordPress Users from Contacts"
+msgstr ""
+
+msgid "Create WordPress Users"
+msgstr ""
+
+msgid "Cancel"
+msgstr ""
+
+msgid "No"
+msgstr ""
+
+msgid "Yes"
+msgstr ""
+
+#. translators: %s: The email address
+msgid "The email %s already exists."
+msgstr ""
+
+#. translators: %s: The username
+msgid "The username %s is not valid."
+msgstr ""
+
+msgid "Could not create UFMatch record."
+msgstr ""
+
+#. translators: %s: The comma-delimited array of User IDs
+msgid "Users successfully added to WordPress: %s"
+msgstr ""
+
+msgid "Users added"
+msgstr ""
+
+#. translators: %s: The comma-delimited array of User IDs
+msgid "Users not added to WordPress: %s. Please review these Contacts and try again."
+msgstr ""
+
+msgid "Users not added"
+msgstr ""
+
+msgid "CiviCRM Field Mapping"
+msgstr ""
+
+msgid "CiviCRM Entity"
+msgstr ""
+
+msgid "- Select -"
+msgstr ""
+
+msgid "Location Type"
+msgstr ""
+
+msgid "Phone Type"
+msgstr ""
+
+msgid "Website Type"
+msgstr ""
+
+msgid "Contact Type"
+msgstr ""
+
+msgid "Contact Sub-type"
+msgstr ""
+
+msgid "CiviCRM Field"
+msgstr ""
+
+msgid "- Select Field -"
+msgstr ""
+
+msgid "You will need to fill out at least one option for BuddyPress to validate this Field. The options will be populated from CiviCRM when you save the Field, so it does not matter what you enter for the option."
+msgstr ""
+
+msgid "Settings: For further information about using this plugin, please refer to the readme.txt file that comes with this plugin."
+msgstr ""
+
+msgid "Select which Activity Types you want to sync to their corresponding WordPress Post Types."
+msgstr ""
+
+msgid "Sync Now"
+msgstr ""
+
+msgid "Continue Sync"
+msgstr ""
+
+msgid "Stop Sync"
+msgstr ""
+
+msgid "No synced Activity Types found."
+msgstr ""
+
+msgid "Select which Contact Types you want to sync to their corresponding WordPress Post Types."
+msgstr ""
+
+msgid "No synced Contact Types found."
+msgstr ""
+
+msgid "Select which CiviCRM Groups you want to sync to their corresponding WordPress Terms."
+msgstr ""
+
+msgid "No synced Groups found."
+msgstr ""
+
+msgid "Why migrate?"
+msgstr ""
+
+msgid "The CiviCRM ACF Integration plugin is no longer being developed as a standalone plugin, so the functionality that it provides has been transferred to CiviCRM Profile Sync. New features and bug fixes will only be added to this plugin from now on."
+msgstr ""
+
+msgid "What needs to be done?"
+msgstr ""
+
+msgid "I have tried to keep the tasks to an absolute minimum, however there are some changes that are unavoidable. Before you go ahead and deactivate and delete the CiviCRM ACF Integration plugin, there are few things that need to be done to make sure your site continues to work as normal."
+msgstr ""
+
+msgid "CiviCRM Profile Sync will not affect your site until you give it the go-ahead."
+msgstr ""
+
+msgid "Filters and Actions"
+msgstr ""
+
+msgid "If you have not implemented any of the Filters or Actions from the CiviCRM ACF Integration plugin, then it is unlikely that you will need to take any further action before migrating."
+msgstr ""
+
+msgid "Filters and Actions have undergone a major overhaul and there isn’t really a simple substitution formula that I can give you. If you are technical enough to have used them to modify or extend the behaviour of the CiviCRM ACF Integration plugin, then I am confident that you are capable of figuring out their replacements by looking at the equivalent classes, functions and templates in CiviCRM Profile Sync."
+msgstr ""
+
+msgid "This is really just a reminder that you need to do so."
+msgstr ""
+
+msgid "Settings"
+msgstr ""
+
+msgid "The uninstall routine in the CiviCRM ACF Integration plugin will auto-delete its settings when the plugin is deleted. It is therefore necessary to migrate these to CiviCRM Profile Sync before that is done. You should only deactivate and delete the CiviCRM ACF Integration plugin when you are sure everything mentioned here has been completed."
+msgstr ""
+
+msgid "CiviCRM Profile Sync will handle migration of settings for this site when you click the \"Migrate\" button. Because this is a WordPress Multisite install, you will also have to visit the equivalent Migration Page on every site where the CiviCRM ACF Integration plugin is activated and follow the same procedure as here before deactivating it."
+msgstr ""
+
+msgid "CiviCRM Profile Sync will handle migration of settings for you when you click the \"Migrate\" button."
+msgstr ""
+
+msgid "Congratulations!"
+msgstr ""
+
+msgid "CiviCRM Profile Sync has migrated your CiviCRM ACF Integration plugin settings."
+msgstr ""
+
+#. translators: 1: Opening anchor tag, 2: Closing anchor tag
+msgid "You can now go to your %1$sPlugins page%2$s and deactivate the CiviCRM ACF Integration plugin."
+msgstr ""
+
+msgid "When you have done that, you will be able to access the \"Manual Sync\" page here instead of this page."
+msgstr ""
+
+msgid "When you are ready to deactivate the CiviCRM ACF Integration plugin, click the \"Migrate\" button below."
+msgstr ""
+
+msgid "Migrate"
+msgstr ""
+
+msgid "Select which Participants you want to sync to their corresponding WordPress Post Types."
+msgstr ""
+
+msgid "No synced Participant Roles found."
+msgstr ""
+
+msgid "Select which Post Types you want to sync to their corresponding CiviCRM Activity Types."
+msgstr ""
+
+msgid "No synced Activity Post Types found."
+msgstr ""
+
+msgid "Select which Post Types you want to sync to their corresponding CiviCRM Contact Types."
+msgstr ""
+
+msgid "No synced Post Types found."
+msgstr ""
+
+msgid "Select which Post Types you want to sync to their corresponding CiviCRM Participants."
+msgstr ""
+
+msgid "Primary Email"
+msgstr ""
+
+msgid "- Select Primary Email sync method -"
+msgstr ""
+
+msgid "Yes, handle Primary Email sync (recommended)"
+msgstr ""
+
+msgid "No, let CiviCRM handle Primary Email sync"
+msgstr ""
+
+msgid "By default, CiviCRM is set to sync the Primary Email of a Contact to the email of a linked WordPress User. Unfortunately, CiviCRM is a bit clumsy in the way that it does this. Since you have CiviCRM Profile Sync installed, it is recommended that you let this plugin handle Primary Email sync for you."
+msgstr ""
+
+#. translators: 1: Opening anchor tag, 2: Closing anchor tag
+msgid "The CiviCRM Website Type that the WordPress User Profile Website syncs with. Tip: you can manage your %1$sWebsite Types in CiviCRM%2$s."
+msgstr ""
+
+msgid "Nickname"
+msgstr ""
+
+msgid "Sync Nickname"
+msgstr ""
+
+msgid "Check this if you want the WordPress User \"Nickname\" Field to sync with the CiviCRM Contact \"Nickname\" Field."
+msgstr ""
+
+msgid "Save your settings here."
+msgstr ""
+
+msgid "Update"
+msgstr ""
+
+msgid "Things can be a little complicated on initial setup because there can be data in WordPress or CiviCRM or both. The utilities below should help you get going."
+msgstr ""
+
+msgid "CiviCRM Group for ACF Integration"
+msgstr ""
+
+msgid "None"
+msgstr ""
+
+msgid "When a CiviCRM Group is chosen here, then any Post which is given this term will have its synced Contact added to the Group. In CiviCRM, any Contact that is made a member of the chosen Group will have this term assigned to their synced Post."
+msgstr ""
+
+msgid "When a CiviCRM Group is chosen, then any Contact that is a member of the chosen Group will have this term assigned to their synced Post."
+msgstr ""
+
+msgid "Enabled?"
+msgstr ""
+
+msgid "Counted?"
+msgstr ""
+
+msgid "Choose the CiviCRM Field that this ACF Field should sync with. (Optional)"
+msgstr ""
+
+msgid "CiviCRM Form Action Reference: Case"
+msgstr ""
+
+msgid "CiviCRM ACFE Forms only"
+msgstr ""
+
+msgid "Error! Please enter a higher value."
+msgstr ""
+
+msgid "CiviCRM Form Action Reference: Contact"
+msgstr ""
+
+msgid "CiviCRM Form Action Reference: Participant"
+msgstr ""
+
+msgid "CiviCRM Address: Country"
+msgstr ""
+
+msgid "CiviCRM Address: County"
+msgstr ""
+
+msgid "Source State/Province"
+msgstr ""
+
+msgid "The source for the Counties in this Field."
+msgstr ""
+
+msgid "The default State/Province in CiviCRM"
+msgstr ""
+
+msgid "A CiviCRM State Field"
+msgstr ""
+
+msgid "A specific State/Province"
+msgstr ""
+
+msgid "State/Province Field"
+msgstr ""
+
+msgid "Filter the visible Counties by the selected State/Province Field."
+msgstr ""
+
+msgid "Select the State/Province Field"
+msgstr ""
+
+msgid "State/Province"
+msgstr ""
+
+msgid "Use the Counties in this State/Province."
+msgstr ""
+
+msgid "Select the State/Province"
+msgstr ""
+
+msgid "Top Level"
+msgstr ""
+
+msgid "CiviCRM Address: State"
+msgstr ""
+
+msgid "Source Country"
+msgstr ""
+
+msgid "The source for the States/Provinces in this Field."
+msgstr ""
+
+msgid "The default Country in CiviCRM"
+msgstr ""
+
+msgid "A CiviCRM Country Field"
+msgstr ""
+
+msgid "A specific Country"
+msgstr ""
+
+msgid "Country Field"
+msgstr ""
+
+msgid "Filter the visible States/Provinces by the selected Country Field."
+msgstr ""
+
+msgid "Select the Country Field"
+msgstr ""
+
+msgid "Country"
+msgstr ""
+
+msgid "Use the States/Provinces in this Country."
+msgstr ""
+
+msgid "Select the Country"
+msgstr ""
+
+#. translators: %s: The Field title
+msgid "Inside: %s"
+msgstr ""
+
+msgid "CiviCRM Activity action"
+msgstr ""
+
+msgid "CiviCRM Activity"
+msgstr ""
+
+msgid "Activity Type"
+msgstr ""
+
+msgid "Activity Status"
+msgstr ""
+
+msgid "Campaign"
+msgstr ""
+
+msgid "Case"
+msgstr ""
+
+msgid "Select a Case Action in this Form."
+msgstr ""
+
+msgid "Create Case Activity?"
+msgstr ""
+
+msgid "Create a Case Activity even if the Contact already has an existing Case of the selected Type. Useful when you want to add an Activity to a Case."
+msgstr ""
+
+msgid "Conditional On"
+msgstr ""
+
+msgid "Always add"
+msgstr ""
+
+msgid "To add the Activity only when a Form Field is populated (e.g. \"Subject\") link this to the Form Field. To add the Activity only when more complex conditions are met, link this to a Hidden Field with value \"1\" where the conditional logic of that Field shows it when the conditions are met."
+msgstr ""
+
+msgid "Contact References"
+msgstr ""
+
+#. translators: %s: The name of the Field
+msgid "Use one Field to identify the %s."
+msgstr ""
+
+msgid "CiviCRM Contact Action"
+msgstr ""
+
+msgid "Select a Contact Action in this Form."
+msgstr ""
+
+msgid "CiviCRM Contact ID"
+msgstr ""
+
+msgid "Select a CiviCRM Contact ID from the database."
+msgstr ""
+
+msgid "Custom Contact Reference"
+msgstr ""
+
+msgid "Define a custom Contact Reference."
+msgstr ""
+
+msgid "Activity Fields"
+msgstr ""
+
+msgid "Custom Fields"
+msgstr ""
+
+msgid "Attachment(s)"
+msgstr ""
+
+msgid "Attachment Actions"
+msgstr ""
+
+msgid "Add Attachment action"
+msgstr ""
+
+msgid "File"
+msgstr ""
+
+msgid "To add the Attachment to the Activity only when conditions are met, link this to a Hidden Field with value \"1\" where the conditional logic of that Field shows it when the conditions are met."
+msgstr ""
+
+msgid "Attachment"
+msgstr ""
+
+#. translators: %s The name of the Form Action
+msgid "An Activity Type ID is required to create an Activity in \"%s\"."
+msgstr ""
+
+msgid "Action"
+msgstr ""
+
+msgid "Action name"
+msgstr ""
+
+msgid "(Required) Name this action so it can be referenced."
+msgstr ""
+
+msgid "Mapping"
+msgstr ""
+
+msgid "Relationships"
+msgstr ""
+
+msgid "Default"
+msgstr ""
+
+msgid "Enter a custom value or template tag. (See \"Cheatsheet\" tab)"
+msgstr ""
+
+#. translators: %s: The name of the Field
+msgid "Use one Field to identify the %s setting."
+msgstr ""
+
+#. translators: 1: The default instructions, 2: Extra instructions.
+msgid "%1$s %2$s"
+msgstr ""
+
+msgid "Use Mapping Field"
+msgstr ""
+
+#. translators: %s: The name of the Field
+msgid "Map %s"
+msgstr ""
+
+msgid "Choose a mapping for this Setting."
+msgstr ""
+
+msgid "CiviCRM Case action"
+msgstr ""
+
+msgid "CiviCRM Case"
+msgstr ""
+
+msgid "Case Manager"
+msgstr ""
+
+msgid "Case Type"
+msgstr ""
+
+msgid "Case Status"
+msgstr ""
+
+msgid "Activity Medium"
+msgstr ""
+
+msgid "To add the Case only when a Form Field is populated (e.g. \"Subject\") link this to the Form Field. To add the Case only when more complex conditions are met, link this to a Hidden Field with value \"1\" where the conditional logic of that Field shows it when the conditions are met."
+msgstr ""
+
+msgid "Skip creating the Case?"
+msgstr ""
+
+msgid "Skip creating a Case if the Contact already has a Case of this Type. See \"Cheatsheet\" for how to reference the \"created\" and \"skipped\" variables in this action to make other Form Actions conditional on whether the Case is created or skipped."
+msgstr ""
+
+msgid "Message"
+msgstr ""
+
+msgid "Message to display on the Success Page if the Case of this Type already exists. See \"Cheatsheet\" for how to reference the \"dismiss_message\" variable in this action."
+msgstr ""
+
+msgid "Case Fields"
+msgstr ""
+
+#. translators: %s The name of the Form Action
+msgid "A Case Type ID is required to create a Case in \"%s\"."
+msgstr ""
+
+msgid "CiviCRM Contact action"
+msgstr ""
+
+msgid "CiviCRM Contact"
+msgstr ""
+
+msgid "Submitter"
+msgstr ""
+
+msgid "Is this Action for the Contact who is submitting the Form?"
+msgstr ""
+
+msgid "Contact Sub Type"
+msgstr ""
+
+msgid "Dedupe Rule"
+msgstr ""
+
+msgid "Contact Entities"
+msgstr ""
+
+msgid "Website"
+msgstr ""
+
+msgid "Address"
+msgstr ""
+
+msgid "Phone"
+msgstr ""
+
+msgid "Instant Messenger"
+msgstr ""
+
+msgid "Note"
+msgstr ""
+
+msgid "Tag"
+msgstr ""
+
+msgid "Group"
+msgstr ""
+
+msgid "Free Membership"
+msgstr ""
+
+msgid "To add the Contact only when a Form Field is populated (e.g. \"First Name\") link this to the Form Field. To add the Contact only when more complex conditions are met, link this to a Hidden Field with value \"1\" where the conditional logic of that Field shows it when the conditions are met."
+msgstr ""
+
+msgid "Auto-fill with data from CiviCRM"
+msgstr ""
+
+msgid "Contact Fields"
+msgstr ""
+
+msgid "Email Actions"
+msgstr ""
+
+msgid "Add Email action"
+msgstr ""
+
+msgid "To add the Email to the Contact only when conditions are met, link this to a Hidden Field with value \"1\" where the conditional logic of that Field shows it when the conditions are met."
+msgstr ""
+
+msgid "Website Actions"
+msgstr ""
+
+msgid "Add Website action"
+msgstr ""
+
+msgid "To add the Website to the Contact only when conditions are met, link this to a Hidden Field with value \"1\" where the conditional logic of that Field shows it when the conditions are met."
+msgstr ""
+
+msgid "Address Actions"
+msgstr ""
+
+msgid "Add Address action"
+msgstr ""
+
+msgid "Include empty Fields"
+msgstr ""
+
+msgid "Enable this to include empty Fields in the data that is sent to CiviCRM. This will cause the value to be cleared."
+msgstr ""
+
+msgid "Address Fields"
+msgstr ""
+
+msgid "To add the Address to the Contact only when conditions are met, link this to a Hidden Field with value \"1\" where the conditional logic of that Field shows it when the conditions are met."
+msgstr ""
+
+msgid "Phone Actions"
+msgstr ""
+
+msgid "Add Phone action"
+msgstr ""
+
+msgid "To add the Phone to the Contact only when conditions are met, link this to a Hidden Field with value \"1\" where the conditional logic of that Field shows it when the conditions are met."
+msgstr ""
+
+msgid "Instant Messenger Actions"
+msgstr ""
+
+msgid "Add Instant Messenger action"
+msgstr ""
+
+msgid "Instant Messenger Type"
+msgstr ""
+
+msgid "To add the Instant Messenger to the Contact only when conditions are met, link this to a Hidden Field with value \"1\" where the conditional logic of that Field shows it when the conditions are met."
+msgstr ""
+
+msgid "Group Actions"
+msgstr ""
+
+msgid "Add Group action"
+msgstr ""
+
+msgid "Add To Group"
+msgstr ""
+
+msgid "To add the Contact to the Group only when conditions are met, link this to a Hidden Field with value \"1\" where the conditional logic of that Field shows it when the conditions are met."
+msgstr ""
+
+msgid "Enable double opt-in?"
+msgstr ""
+
+msgid "Membership Actions"
+msgstr ""
+
+msgid "Add Membership action"
+msgstr ""
+
+msgid "Add Free Membership"
+msgstr ""
+
+msgid "To add the Free Membership to the Contact only when conditions are met, link this to a Hidden Field with value \"1\" where the conditional logic of that Field shows it when the conditions are met."
+msgstr ""
+
+msgid "Note Actions"
+msgstr ""
+
+msgid "Add Note action"
+msgstr ""
+
+msgid "To add the Note to the Contact only when conditions are met, link this to a Hidden Field with value \"1\" where the conditional logic of that Field shows it when the conditions are met."
+msgstr ""
+
+msgid "To add the Attachment to the Note only when conditions are met, link this to a Hidden Field with value \"1\" where the conditional logic of that Field shows it when the conditions are met."
+msgstr ""
+
+msgid "Tag Actions"
+msgstr ""
+
+msgid "Add Tag action"
+msgstr ""
+
+msgid "Add Tag(s) to Contact"
+msgstr ""
+
+msgid "To add the Tag(s) to the Contact only when conditions are met, link this to a Hidden Field with value \"1\" where the conditional logic of that Field shows it when the conditions are met."
+msgstr ""
+
+msgid "Relationship Actions"
+msgstr ""
+
+msgid "Add Relationship action"
+msgstr ""
+
+msgid "Related Contact"
+msgstr ""
+
+msgid "Is this Contact related to another Contact?"
+msgstr ""
+
+msgid "Not related"
+msgstr ""
+
+msgid "Relationship Fields"
+msgstr ""
+
+msgid "Relationship"
+msgstr ""
+
+msgid "Select the relationship this Contact has with the related Contact"
+msgstr ""
+
+msgid "Is Current Employee"
+msgstr ""
+
+msgid "Is Current Employer"
+msgstr ""
+
+#. translators: %s The name of the Form Action
+msgid "Not enough data to save a Contact in \"%s\"."
+msgstr ""
+
+msgid "CiviCRM Email action"
+msgstr ""
+
+msgid "CiviCRM Email"
+msgstr ""
+
+msgid "Subject"
+msgstr ""
+
+msgid "From Name"
+msgstr ""
+
+msgid "From Email"
+msgstr ""
+
+msgid "Alternative Receiver Address"
+msgstr ""
+
+msgid "Carbon Copy"
+msgstr ""
+
+msgid "Blind Carbon Copy"
+msgstr ""
+
+msgid "Recipient CiviCRM Contact"
+msgstr ""
+
+msgid "Message Template"
+msgstr ""
+
+msgid "Disable Smarty"
+msgstr ""
+
+msgid "Disable Smarty. Normal CiviMail tokens are still supported. By default Smarty is enabled if configured by CIVICRM_MAIL_SMARTY."
+msgstr ""
+
+msgid "Create Activity"
+msgstr ""
+
+msgid "Usually an Email Activity is created when an Email is sent."
+msgstr ""
+
+msgid "Activity Details"
+msgstr ""
+
+msgid "HTML and Text versions of the body"
+msgstr ""
+
+msgid "Just the name of the message template"
+msgstr ""
+
+msgid "Just the HTML version of the body"
+msgstr ""
+
+msgid "Just the text version of the body"
+msgstr ""
+
+msgid "Always send"
+msgstr ""
+
+msgid "To send the Email only when a Form Field is populated (e.g. \"First Name\") link this to the Form Field. To send the Email only when more complex conditions are met, link this to a Hidden Field with value \"1\" where the conditional logic of that Field shows it when the conditions are met."
+msgstr ""
+
+msgid "Recipient Contact Reference"
+msgstr ""
+
+msgid "Email Fields"
+msgstr ""
+
+#. translators: %s The name of the Form Action
+msgid "A Template ID is required to send an Email in \"%s\"."
+msgstr ""
+
+msgid "CiviCRM Event action"
+msgstr ""
+
+msgid "CiviCRM Event"
+msgstr ""
+
+msgid "To add the Event only when a Form Field is populated (e.g. \"Title\") link this to the Form Field. To add the Event only when more complex conditions are met, link this to a Hidden Field with value \"1\" where the conditional logic of that Field shows it when the conditions are met."
+msgstr ""
+
+msgid "Event Settings"
+msgstr ""
+
+msgid "Disabled"
+msgstr ""
+
+msgid "Select"
+msgstr ""
+
+#. translators: %s: The name of the Field
+msgid "Use one Field to identify the %s. Defaults to logged-in Contact."
+msgstr ""
+
+msgid "Event Fields"
+msgstr ""
+
+msgid "Event Location"
+msgstr ""
+
+msgid "Show Location"
+msgstr ""
+
+msgid "Disable to make the Location available to Event Administrators only."
+msgstr ""
+
+msgid "Existing Location"
+msgstr ""
+
+msgid "You cannot map a new Location if you choose an existing one."
+msgstr ""
+
+msgid "New Location"
+msgstr ""
+
+msgid "To add the Address to the Location only when conditions are met, link this to a Hidden Field with value \"1\" where the conditional logic of that Field shows it when the conditions are met."
+msgstr ""
+
+msgid "Address Custom Fields"
+msgstr ""
+
+msgid "Email Addresses"
+msgstr ""
+
+msgid "Add Email"
+msgstr ""
+
+msgid "To add the Email to the Location only when conditions are met, link this to a Hidden Field with value \"1\" where the conditional logic of that Field shows it when the conditions are met."
+msgstr ""
+
+msgid "Emails"
+msgstr ""
+
+msgid "Phone Numbers"
+msgstr ""
+
+msgid "Add Phone"
+msgstr ""
+
+msgid "To add the Phone to the Location only when conditions are met, link this to a Hidden Field with value \"1\" where the conditional logic of that Field shows it when the conditions are met."
+msgstr ""
+
+msgid "Location"
+msgstr ""
+
+msgid "Event Registration"
+msgstr ""
+
+msgid "Allow Online Registration"
+msgstr ""
+
+msgid "Online Registration Configuration"
+msgstr ""
+
+msgid "Enable Components"
+msgstr ""
+
+msgid "Enable Confirmation Screen"
+msgstr ""
+
+msgid "Send Confirmation Email"
+msgstr ""
+
+msgid "Registration Screen"
+msgstr ""
+
+msgid "Include Profile (top of page)"
+msgstr ""
+
+msgid "Include Profile (bottom of page)"
+msgstr ""
+
+msgid "Confirmation Screen"
+msgstr ""
+
+msgid "Thank You Screen"
+msgstr ""
+
+msgid "Confirmation Email"
+msgstr ""
+
+#. translators: %s The name of the Form Action
+msgid "An Event Type ID is required to create an Event in \"%s\"."
+msgstr ""
+
+#. translators: %s The name of the Form Action
+msgid "A title is required to create an Event in \"%s\"."
+msgstr ""
+
+#. translators: %s The name of the Form Action
+msgid "A start date is required to create an Event in \"%s\"."
+msgstr ""
+
+#. translators: %s The name of the Form Action
+msgid "A Street Address is required in \"%s\"."
+msgstr ""
+
+#. translators: %s The name of the Form Action
+msgid "An invalid Email was found in \"%s\"."
+msgstr ""
+
+#. translators: %s The name of the Form Action
+msgid "A valid Phone Number is required in \"%s\"."
+msgstr ""
+
+#. translators: %s The name of the Form Action
+msgid "A Profile is required to enable Online Registration in \"%s\"."
+msgstr ""
+
+msgid "Register Now"
+msgstr ""
+
+#. translators: %s The name of the Form Action
+msgid "A \"From Name\" is required to send a Confirmation Email in \"%s\"."
+msgstr ""
+
+#. translators: %s The name of the Form Action
+msgid "A \"From Email\" is required to send a Confirmation Email in \"%s\"."
+msgstr ""
+
+msgid "CiviCRM Participant action"
+msgstr ""
+
+msgid "CiviCRM Participant"
+msgstr ""
+
+msgid "Participant Role"
+msgstr ""
+
+msgid "Add when full?"
+msgstr ""
+
+msgid "The selected Participant Role is included in the \"Max Number of Participants\" total. Choose whether the Participant should be added even when the \"Max Number\" has been reached."
+msgstr ""
+
+msgid "Participant Status"
+msgstr ""
+
+msgid "To add the Participant only when a Form Field is populated (e.g. \"Email\") link this to the Form Field. To add the Participant only when more complex conditions are met, link this to a Hidden Field with value \"1\" where the conditional logic of that Field shows it when the conditions are met."
+msgstr ""
+
+msgid "Participant References"
+msgstr ""
+
+#. translators: %s: The Field title
+msgid "If the Participant is not the Submitter, use one Field to identify the %s."
+msgstr ""
+
+msgid "CiviCRM Participant Action"
+msgstr ""
+
+msgid "Select a Participant Action in this Form."
+msgstr ""
+
+msgid "CiviCRM Participant ID"
+msgstr ""
+
+msgid "Select a CiviCRM Participant ID from the database."
+msgstr ""
+
+msgid "Custom Participant Reference"
+msgstr ""
+
+msgid "Define a custom Participant Reference."
+msgstr ""
+
+msgid "Event References"
+msgstr ""
+
+msgid "CiviCRM Event ID"
+msgstr ""
+
+msgid "Select a CiviCRM Event ID from the database."
+msgstr ""
+
+msgid "Custom Event Reference"
+msgstr ""
+
+msgid "Define a custom Event Reference."
+msgstr ""
+
+msgid "Event Type"
+msgstr ""
+
+msgid "Choose the Event Type to show its Custom Fields below."
+msgstr ""
+
+msgid "Participant Fields"
+msgstr ""
+
+#. translators: %s The name of the Form Action
+msgid "An Event ID is required to create a Participant in \"%s\"."
+msgstr ""
+
+#. translators: %s The name of the Form Action
+msgid "A Participant Role ID is required to create a Participant in \"%s\"."
+msgstr ""
+
+#. translators: %s The name of the Form Action
+msgid "Could not check if the Event is full in \"%s\"."
+msgstr ""
+
+#. translators: %s The title of the Event
+msgid "Cannot add Participant because \"%s\" is full."
+msgstr ""
+
+#. translators: %s The name of the Form Action
+msgid "Cannot add Participant because the Event in \"%s\" is full."
+msgstr ""
+
+msgid "CiviCRM Entity for ACFE"
+msgstr ""
+
+msgid "is"
+msgstr ""
+
+msgid "CiviCRM Phone"
+msgstr ""
+
+msgid "A custom phone block."
+msgstr ""
+
+#. translators: %s: The number of characters
+msgid "Must be maximum %s characters."
+msgstr ""
+
+msgid "Must be maximum 255 characters."
+msgstr ""
+
+msgid "Values must all be integers."
+msgstr ""
+
+msgid "Values must all be less than 2147483647."
+msgstr ""
+
+msgid "Must be an integer."
+msgstr ""
+
+msgid "Must be less than 2147483647."
+msgstr ""
+
+msgid "Values must all be numbers."
+msgstr ""
+
+msgid "Must be a number."
+msgstr ""
+
+msgid "All values must be a valid money format."
+msgstr ""
+
+msgid "All values must have only two decimal places."
+msgstr ""
+
+msgid "Must be a valid money format."
+msgstr ""
+
+msgid "Only two decimal places please."
+msgstr ""
+
+msgid "A numeric ID must be present to update an Activity."
+msgstr ""
+
+msgid "Name not set"
+msgstr ""
+
+msgid "Activity Types"
+msgstr ""
+
+msgid "Activity"
+msgstr ""
+
+#. translators: 1: Opening anchor tag, 2: Closing anchor tag
+msgid "CiviCRM ACF Integration has become part of CiviCRM Profile Sync. Please visit the %1$sMigration Page%2$s to switch over."
+msgstr ""
+
+msgid "ACF Integration"
+msgstr ""
+
+msgid "You do not have permission to access this page."
+msgstr ""
+
+msgid "Migrate Settings"
+msgstr ""
+
+msgid "Migration Tasks"
+msgstr ""
+
+msgid "Migration Complete"
+msgstr ""
+
+msgid "You must supply an option to option_exists()"
+msgstr ""
+
+msgid "You must supply an option to option_get()"
+msgstr ""
+
+msgid "You must supply an option to option_set()"
+msgstr ""
+
+msgid "You must supply an option to option_delete()"
+msgstr ""
+
+msgid "Posts to sync: {{total}}"
+msgstr ""
+
+msgid "Processing posts {{from}} to {{to}}"
+msgstr ""
+
+msgid "Processing posts {{from}} to {{to}} complete"
+msgstr ""
+
+msgid "Contacts to sync: {{total}}"
+msgstr ""
+
+msgid "Processing contacts {{from}} to {{to}}"
+msgstr ""
+
+msgid "Processing contacts {{from}} to {{to}} complete"
+msgstr ""
+
+msgid "Group members to sync: {{total}}"
+msgstr ""
+
+msgid "Processing group members {{from}} to {{to}}"
+msgstr ""
+
+msgid "Processing group members {{from}} to {{to}} complete"
+msgstr ""
+
+msgid "Activities to sync: {{total}}"
+msgstr ""
+
+msgid "Processing activities {{from}} to {{to}}"
+msgstr ""
+
+msgid "Processing activities {{from}} to {{to}} complete"
+msgstr ""
+
+msgid "Participants to sync: {{total}}"
+msgstr ""
+
+msgid "Processing participants {{from}} to {{to}}"
+msgstr ""
+
+msgid "Processing participants {{from}} to {{to}} complete"
+msgstr ""
+
+msgid "All done!"
+msgstr ""
+
+msgid "WordPress Posts &rarr; CiviCRM Contacts"
+msgstr ""
+
+msgid "CiviCRM Contacts &rarr; WordPress Posts"
+msgstr ""
+
+msgid "WordPress Posts &rarr; CiviCRM Activities"
+msgstr ""
+
+msgid "CiviCRM Activities &rarr; WordPress Posts"
+msgstr ""
+
+msgid "WordPress Posts &rarr; CiviCRM Participants"
+msgstr ""
+
+msgid "CiviCRM Participants &rarr; WordPress Posts"
+msgstr ""
+
+msgid "CiviCRM Groups &rarr; WordPress Terms"
+msgstr ""
+
+msgid "A numeric ID must be present to update a Case."
+msgstr ""
+
+msgid "Case Types"
+msgstr ""
+
+msgid "A numeric ID must be present to update an Attachment."
+msgstr ""
+
+msgid "Could not copy File."
+msgstr ""
+
+msgid "Attach to CiviCRM Entity"
+msgstr ""
+
+msgid "CiviCRM Only"
+msgstr ""
+
+msgid "Delete WordPress Attachment after upload."
+msgstr ""
+
+msgid "File Link"
+msgstr ""
+
+msgid "Choose which File this ACF Field should link to."
+msgstr ""
+
+msgid "Use public WordPress File"
+msgstr ""
+
+msgid "Use permissioned CiviCRM File"
+msgstr ""
+
+msgid "A numeric ID must be present to update a Campaign."
+msgstr ""
+
+msgid "Could not send Opt In Email."
+msgstr ""
+
+msgid "A numeric ID must be present to update a Membership."
+msgstr ""
+
+msgid "A numeric ID must be present to update a Note."
+msgstr ""
+
+msgid "A numeric ID must be present to update a Tag."
+msgstr ""
+
+msgid "Contact Types"
+msgstr ""
+
+msgid "Contact"
+msgstr ""
+
+msgid "Specific Emails"
+msgstr ""
+
+msgid "Location Types"
+msgstr ""
+
+msgid "Choose the CiviCRM Email that this ACF Field should sync with. (Optional)"
+msgstr ""
+
+msgid "A numeric ID must be present to update an Event Location."
+msgstr ""
+
+msgid "A numeric ID must be present to update an Event."
+msgstr ""
+
+msgid "Event Location Fields"
+msgstr ""
+
+msgid "Event Location Address Fields"
+msgstr ""
+
+msgid "Event Location Email Fields"
+msgstr ""
+
+msgid "Event Location Phone Fields"
+msgstr ""
+
+msgid "Event Registration Fields"
+msgstr ""
+
+msgid "Event Registration Screen Fields"
+msgstr ""
+
+msgid "Event Registration Confirmation Screen Fields"
+msgstr ""
+
+msgid "Event Registration Thank You Screen Fields"
+msgstr ""
+
+msgid "Event Registration Confirmation Email Fields"
+msgstr ""
+
+msgid "Event Types"
+msgstr ""
+
+msgid "Any Event Type"
+msgstr ""
+
+msgid "Specific Addresses"
+msgstr ""
+
+msgid "Primary Address"
+msgstr ""
+
+msgid "Billing Address"
+msgstr ""
+
+msgid "CiviCRM Address"
+msgstr ""
+
+msgid "Choose the CiviCRM Location Type that this ACF Field should sync with. (Optional)"
+msgstr ""
+
+msgid "Make Read Only"
+msgstr ""
+
+msgid "Only CiviCRM can set the Location in this Field."
+msgstr ""
+
+msgid "Instant Messenger Fields"
+msgstr ""
+
+msgid "No Synced Post Type"
+msgstr ""
+
+msgid "Synced Post Type"
+msgstr ""
+
+msgid "Enable the \"Participant\" Custom Post Type"
+msgstr ""
+
+msgid "If you would like to use the \"Participant\" Custom Post Type provided by this plugin then check this box. This will also enable a Custom Taxonomy on the \"Participant\" Post Type which is kept in sync with the Participant Roles in CiviCRM."
+msgstr ""
+
+msgid "View in CiviCRM"
+msgstr ""
+
+msgctxt "Taxonomy Description"
+msgid "Description"
+msgstr ""
+
+msgid "The description is not prominent by default, however some themes may show it."
+msgstr ""
+
+msgid "Participant"
+msgstr ""
+
+msgid "CiviCRM"
+msgstr ""
+
+msgid "Edit in CiviCRM"
+msgstr ""
+
+msgid "Participants"
+msgstr ""
+
+msgid "Add New"
+msgstr ""
+
+msgid "Add New Participant"
+msgstr ""
+
+msgid "Edit Participant"
+msgstr ""
+
+msgid "New Participant"
+msgstr ""
+
+msgid "All Participants"
+msgstr ""
+
+msgid "View Participant"
+msgstr ""
+
+msgid "Search Participants"
+msgstr ""
+
+msgid "No matching Participant found"
+msgstr ""
+
+msgid "No Participants found in Trash"
+msgstr ""
+
+msgid "A Participant Post Type"
+msgstr ""
+
+#. translators: %s: The Link URL
+msgid "Participant updated. <a href=\"%s\">View Participant</a>"
+msgstr ""
+
+msgid "Custom field updated."
+msgstr ""
+
+msgid "Custom field deleted."
+msgstr ""
+
+msgid "Participant updated."
+msgstr ""
+
+#. translators: %s: Date and time of the revision
+msgid "Participant restored to revision from %s"
+msgstr ""
+
+#. translators: %s: The Link URL
+msgid "Participant published. <a href=\"%s\">View Participant</a>"
+msgstr ""
+
+msgid "Participant saved."
+msgstr ""
+
+#. translators: %s: The Link URL
+msgid "Participant submitted. <a target=\"_blank\" href=\"%s\">Preview Participant</a>"
+msgstr ""
+
+#. translators: 1: The Date string, 2: The Link URL
+msgid "Participant scheduled for: <strong>%1$s</strong>. <a target=\"_blank\" href=\"%2$s\">Preview Participant</a>"
+msgstr ""
+
+#. translators: Publish box date format, see http://php.net/date
+msgid "M j, Y @ G:i"
+msgstr ""
+
+#. translators: %s: The Link URL
+msgid "Participant draft updated. <a target=\"_blank\" href=\"%s\">Preview Participant</a>"
+msgstr ""
+
+msgid "Add the name of the Participant"
+msgstr ""
+
+msgctxt "taxonomy general name"
+msgid "Participant Roles"
+msgstr ""
+
+msgctxt "taxonomy singular name"
+msgid "Participant Role"
+msgstr ""
+
+msgid "Search Participant Roles"
+msgstr ""
+
+msgid "All Participant Roles"
+msgstr ""
+
+msgid "Parent Participant Role"
+msgstr ""
+
+msgid "Parent Participant Role:"
+msgstr ""
+
+msgid "Edit Participant Role"
+msgstr ""
+
+msgid "Update Participant Role"
+msgstr ""
+
+msgid "Add New Participant Role"
+msgstr ""
+
+msgid "New Participant Role Name"
+msgstr ""
+
+msgid "No Participant Roles found."
+msgstr ""
+
+msgid "No Participant Roles"
+msgstr ""
+
+msgid "Participant Roles"
+msgstr ""
+
+msgctxt "taxonomy general name"
+msgid "Participant Tags"
+msgstr ""
+
+msgctxt "taxonomy singular name"
+msgid "Participant Tag"
+msgstr ""
+
+msgid "Search Participant Tags"
+msgstr ""
+
+msgid "All Participant Tags"
+msgstr ""
+
+msgid "Parent Participant Tag"
+msgstr ""
+
+msgid "Parent Participant Tag:"
+msgstr ""
+
+msgid "Edit Participant Tag"
+msgstr ""
+
+msgid "Update Participant Tag"
+msgstr ""
+
+msgid "Add New Participant Tag"
+msgstr ""
+
+msgid "New Participant Tag"
+msgstr ""
+
+msgid "No Participant Tags found."
+msgstr ""
+
+msgid "Participant Tags"
+msgstr ""
+
+#. translators: %s: The Taxonomy name
+msgid "Show All %s"
+msgstr ""
+
+msgid "Participant Data"
+msgstr ""
+
+msgid "Registration Date"
+msgstr ""
+
+msgid "Use the Date Picker to choose the Date and Time of the Registration."
+msgstr ""
+
+msgid "Status"
+msgstr ""
+
+msgid "Source"
+msgstr ""
+
+msgid "The source of this event registration."
+msgstr ""
+
+msgid "A numeric ID must be present to update a Participant."
+msgstr ""
+
+msgid "Phone Fields"
+msgstr ""
+
+msgid "Could not update term_meta"
+msgstr ""
+
+msgid "CiviCRM ACF Integration"
+msgstr ""
+
+msgid "View this Contact in CiviCRM"
+msgstr ""
+
+#. translators: %s: The Post Type label
+msgid "View %s in WordPress"
+msgstr ""
+
+#. translators: %s: The Post Type label
+msgid "Edit %s in WordPress"
+msgstr ""
+
+msgid "A numeric ID must be present to update a Relationship."
+msgstr ""
+
+msgid "CiviCRM Relationship"
+msgstr ""
+
+msgid "Choose the CiviCRM Relationship that this ACF Field should sync with. (Optional)"
+msgstr ""
+
+#. translators: %s: The Relationship label
+msgid "%s (A-B)"
+msgstr ""
+
+#. translators: %s: The Relationship label
+msgid "%s (B-A)"
+msgstr ""
+
+msgid "Contact Website Type"
+msgstr ""
+
+msgid "CiviCRM Website"
+msgstr ""
+
+msgid "Choose the CiviCRM Website Field that this ACF Field should sync with. (Optional)"
+msgstr ""
+
+msgid "Website Fields"
+msgstr ""
+
+msgid "CiviCRM Activity: Assignee"
+msgstr ""
+
+msgid "CiviCRM Post Type Sync only"
+msgstr ""
+
+msgid "CiviCRM Post Type Sync"
+msgstr ""
+
+msgid "CiviCRM Activity: Creator"
+msgstr ""
+
+msgid "CiviCRM Activity: Target"
+msgstr ""
+
+msgid "CiviCRM Address: City (Read Only)"
+msgstr ""
+
+msgid "CiviCRM Primary Address"
+msgstr ""
+
+msgid "Sync with the CiviCRM Primary Address."
+msgstr ""
+
+msgid "CiviCRM Location Type"
+msgstr ""
+
+msgid "Choose the Location Type of the CiviCRM Address that this ACF Field should sync with."
+msgstr ""
+
+msgid "CiviCRM Address: Country (Read Only)"
+msgstr ""
+
+msgid "CiviCRM Address: State (Read Only)"
+msgstr ""
+
+msgid "CiviCRM Address: Complete"
+msgstr ""
+
+msgid "CiviCRM Address ID"
+msgstr ""
+
+msgid "Show"
+msgstr ""
+
+msgid "Hide"
+msgstr ""
+
+msgid "Please select a Primary Address"
+msgstr ""
+
+msgid "You can only have one Address per Location Type"
+msgstr ""
+
+msgid "Add Address"
+msgstr ""
+
+msgid "Is Primary"
+msgstr ""
+
+msgid "Primary"
+msgstr ""
+
+msgid "Is Billing"
+msgstr ""
+
+msgid "Billing"
+msgstr ""
+
+msgid "Street Address"
+msgstr ""
+
+msgid "Supplemental Address 1"
+msgstr ""
+
+msgid "Supplemental Address 2"
+msgstr ""
+
+msgid "Supplemental Address 3"
+msgstr ""
+
+msgid "City"
+msgstr ""
+
+msgid "Post Code"
+msgstr ""
+
+msgid "Latitude"
+msgstr ""
+
+msgid "Longitude"
+msgstr ""
+
+msgid "Override automatic geocoding"
+msgstr ""
+
+msgid "Override"
+msgstr ""
+
+msgid "CiviCRM ID"
+msgstr ""
+
+msgid "CiviCRM Activity: Attachments"
+msgstr ""
+
+msgid "CiviCRM Attachment ID"
+msgstr ""
+
+msgid "Allowed file types"
+msgstr ""
+
+msgid "Comma separated list. Leave blank for all types"
+msgstr ""
+
+msgid "Please upload an Attachment"
+msgstr ""
+
+msgid "Add Attachment"
+msgstr ""
+
+msgid "Description"
+msgstr ""
+
+msgid "CiviCRM Contact: Existing/New"
+msgstr ""
+
+msgid "Existing Contact"
+msgstr ""
+
+msgid "Select an existing Contact in CiviCRM."
+msgstr ""
+
+msgid "Individual"
+msgstr ""
+
+msgid "Household"
+msgstr ""
+
+msgid "Organization"
+msgstr ""
+
+msgid "First Name"
+msgstr ""
+
+msgid "Last Name"
+msgstr ""
+
+msgid "Household Name"
+msgstr ""
+
+msgid "Organization Name"
+msgstr ""
+
+msgid "Email Address"
+msgstr ""
+
+msgid "New Contact"
+msgstr ""
+
+msgid "Create a new Contact in CiviCRM."
+msgstr ""
+
+msgid "Please select a Contact Type for the New Contact"
+msgstr ""
+
+msgid "Please enter an Email Address for the New Contact"
+msgstr ""
+
+msgid "Please enter a name for the New Household."
+msgstr ""
+
+msgid "Please enter a name for the New Organization."
+msgstr ""
+
+msgid "Please enter a First Name and a Last Name for the New Contact."
+msgstr ""
+
+msgid "Please enter a First Name for the New Contact."
+msgstr ""
+
+msgid "Please enter a Last Name for the New Contact."
+msgstr ""
+
+#. translators: 1: The Link to the Contact, 2: The Email Address of the Contact
+msgid "It looks like this Contact already exists: %1$s %2$s"
+msgstr ""
+
+msgid "CiviCRM Contact: Contact ID (Read Only)"
+msgstr ""
+
+msgid "CiviCRM Participant: Contact Ref"
+msgstr ""
+
+msgid "CiviCRM Contact Reference"
+msgstr ""
+
+msgid "CiviCRM Post Type Sync and ACFE Forms"
+msgstr ""
+
+msgid "CiviCRM Participant: Event with Type"
+msgstr ""
+
+msgid "Event ID"
+msgstr ""
+
+msgid "Select an Event in CiviCRM."
+msgstr ""
+
+msgid "Please select an Event"
+msgstr ""
+
+msgid "CiviCRM Participant: Event Reference"
+msgstr ""
+
+msgid "CiviCRM Instant Messenger: Complete"
+msgstr ""
+
+msgid "CiviCRM Instant Messenger ID"
+msgstr ""
+
+msgid "Please select a Primary Instant Messenger"
+msgstr ""
+
+msgid "Please enter an Instant Messenger"
+msgstr ""
+
+msgid "Add Instant Messenger"
+msgstr ""
+
+msgid "Provider"
+msgstr ""
+
+msgid "CiviCRM Multiple Record Set"
+msgstr ""
+
+msgid "Add Record Set"
+msgstr ""
+
+msgid "CiviCRM Phone: Complete"
+msgstr ""
+
+msgid "CiviCRM Phone ID"
+msgstr ""
+
+msgid "Please select a Primary Number"
+msgstr ""
+
+msgid "Please enter a Phone Number"
+msgstr ""
+
+msgid "Add Phone Number"
+msgstr ""
+
+msgid "Phone Number"
+msgstr ""
+
+msgid "Extension"
+msgstr ""
+
+msgid "CiviCRM Yes / No"
+msgstr ""
+
+msgid "Unknown"
+msgstr ""
+
+#. translators: 1: The Phone location, 2: The Phone type, 3: The Phone number
+msgid "%1$s %2$s: %3$s"
+msgstr ""
+
+#. translators: 1: The Phone record, 2: The Phone extension
+#. translators: 1: The Phone number, 2: The Phone extension
+msgid "%1$s Ext. %2$s"
+msgstr ""
+
+#. translators: 1: The IM Provider, 2: The IM location, 3: The IM name
+msgid "%1$s (%2$s): %3$s"
+msgstr ""
+
+#. translators: 1: The IM Provider, 2: The IM name
+#. translators: 1: The Address location, 2: The name of the city
+#. translators: 1: The Address location, 2: The name of the state
+msgid "%1$s: %2$s"
+msgstr ""
+
+#. translators: %s: The Address location
+msgid "%s Address"
+msgstr ""
+
+msgid "Visit the website to see the Address."
+msgstr ""
+
+msgid "Please include an ACF Field attribute."
+msgstr ""
+
+msgid "ACF Field"
+msgstr ""
+
+msgid "Please enter an ACF Field selector."
+msgstr ""
+
+msgid "Please select a Location Type."
+msgstr ""
+
+msgid "Post (optional)"
+msgstr ""
+
+msgid "Please select a Post."
+msgstr ""
+
+msgid "Select a Location Type"
+msgstr ""
+
+msgid "Visit the website to see the City."
+msgstr ""
+
+msgid "Style"
+msgstr ""
+
+msgid "List"
+msgstr ""
+
+msgid "Comma-separated"
+msgstr ""
+
+msgid "Please choose list or comma-separated output."
+msgstr ""
+
+msgid "CiviCRM City"
+msgstr ""
+
+msgid "Visit the website to see the Instant Messenger record."
+msgstr ""
+
+msgid "Instant Messenger Type (optional)"
+msgstr ""
+
+msgid "Please select an Instant Messenger Type."
+msgstr ""
+
+msgid "CiviCRM Instant Messenger"
+msgstr ""
+
+msgid "Select an Instant Messenger Type"
+msgstr ""
+
+msgid "Visit the website to see the Phone record."
+msgstr ""
+
+msgid "Phone Type (optional)"
+msgstr ""
+
+msgid "Please select a Phone Type."
+msgstr ""
+
+msgid "Select a Phone Type"
+msgstr ""
+
+msgid "Visit the website to see the State."
+msgstr ""
+
+msgid "CiviCRM State"
+msgstr ""
+
+msgid "CiviCRM Profile Sync: Settings"
+msgstr ""
+
+msgid "CiviCRM Profile Sync needs to know which Website Type to sync."
+msgstr ""
+
+msgid "CiviCRM Profile Sync needs to know how to sync the Primary Email."
+msgstr ""
+
+#. translators: 1: The Opening anchor tag, 2: The Closing anchor tag
+msgid "CiviCRM Profile Sync needs your attention. Please visit the %1$sSettings Page%2$s for details."
+msgstr ""
+
+msgid "Profile Sync"
+msgstr ""
+
+msgid "User Profile Settings"
+msgstr ""
+
+#. translators: %d: The number of years
+msgid "%d year"
+msgid_plural "%d years"
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %d: The number of months
+msgid "%d month"
+msgid_plural "%d months"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "Under a month"
+msgstr ""
+
+msgid "Could not update the name of the CiviCRM Contact."
+msgstr ""
+
+msgid "Could not update the nickname of the CiviCRM Contact."
+msgstr ""
+
+msgid "A numeric ID must be present to update a Contact."
+msgstr ""
+
+msgid "A numeric ID must be present to delete a Contact."
+msgstr ""
+
+msgid "CiviCRM Profile"
+msgstr ""
+
+msgid "CiviCRM Profile Sync is managing Contact Email &rarr; User Email sync."
+msgstr ""
+
+msgid "Could not update the email of the CiviCRM Contact."
+msgstr ""
+
+msgid "An ID must be present to edit a Website."
+msgstr ""
+
+msgid "An ID must be present to delete a Website."
+msgstr ""
