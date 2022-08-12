@@ -218,8 +218,8 @@ function civirules_civicrm_navigationMenu(&$menu) {
     'label' => E::ts('CiviRules'),
     'name' => 'CiviRules',
     'url' => NULL,
-    'permission' => 'administer CiviCRM,administer payments',
-    'operator' => 'AND',
+    'permission' => 'administer CiviCRM',
+    'operator' => NULL,
     'separator' => NULL,
   ]);
 
@@ -227,8 +227,8 @@ function civirules_civicrm_navigationMenu(&$menu) {
     'label' => E::ts('Manage Rules'),
     'name' => 'Manage Rules',
     'url' => CRM_Utils_System::url('civicrm/civirules/form/rulesview', 'reset=1', TRUE),
-    'permission' => 'administer CiviCRM,administer payments',
-    'operator' => 'AND',
+    'permission' => 'administer CiviCRM',
+    'operator' => NULL,
     'separator' => 0,
   ]);
 
@@ -236,8 +236,8 @@ function civirules_civicrm_navigationMenu(&$menu) {
     'label' => E::ts('New Rule'),
     'name' => 'New Rule',
     'url' => CRM_Utils_System::url('civicrm/civirule/form/rule', 'reset=1&action=add', TRUE),
-    'permission' => 'administer CiviCRM,administer payments',
-    'operator' => 'AND',
+    'permission' => 'administer CiviCRM',
+    'operator' => NULL,
     'separator' => 0,
   ]);
 
@@ -248,8 +248,8 @@ function civirules_civicrm_navigationMenu(&$menu) {
       'label' => E::ts('CiviRule Tags'),
       'name' => E::ts('CiviRules Tags'),
       'url' => $ruleTagUrl,
-      'permission' => 'administer CiviCRM,administer payments',
-      'operator' => 'AND',
+      'permission' => 'administer CiviCRM',
+      'operator' => NULL,
       'separator' => 0,
     ]);
   }
@@ -384,7 +384,10 @@ function civirules_trigger_postinsert($event) {
  * @param \Civi\Core\DAO\Event\PreUpdate $event
  */
 function civirules_trigger_preupdate(\Civi\Core\DAO\Event\PreUpdate $event) {
-  try {
+  try {    
+    if (!class_exists('CRM_Civirules_Utils')) {
+      return;
+    }    
     $objectName = CRM_Civirules_Utils::getObjectNameFromObject($event->object);
     $objectId = $event->object->id;
     $eventID = $event->eventID ?? 1;
@@ -403,6 +406,9 @@ function civirules_trigger_preupdate(\Civi\Core\DAO\Event\PreUpdate $event) {
  * @param $event
  */
 function civirules_trigger_postupdate($event) {
+  if (!class_exists('CRM_Civirules_Utils')) {
+    return;
+  }    
   $objectName = CRM_Civirules_Utils::getObjectNameFromObject($event->object);
   $eventID = $event->eventID ?? 1;
   if (!civirules_use_posthook('edit', $objectName, $event->object->id, $event->object)) {
