@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="iso-8859-1" ?>
+
+<table>
+  <base>CRM/Biaproperty</base>
+  <class>Property</class>
+  <name>civicrm_property</name>
+  <comment>FIXME</comment>
+  <log>true</log>
+
+  <field>
+    <name>id</name>
+    <type>int unsigned</type>
+    <required>true</required>
+    <comment>Unique Property ID</comment>
+    <html>
+      <type>Number</type>
+    </html>
+  </field>
+  <primaryKey>
+    <name>id</name>
+    <autoincrement>true</autoincrement>
+  </primaryKey>
+
+  <field>
+    <name>roll_no</name>
+    <type>varchar</type>
+    <length>255</length>
+    <comment>Roll #</comment>
+    <required>false</required>
+  </field>
+
+  <field>
+    <name>created_id</name>
+    <type>int unsigned</type>
+    <comment>FK to Contact</comment>
+  </field>
+  <foreignKey>
+    <name>created_id</name>
+    <table>civicrm_contact</table>
+    <key>id</key>
+    <onDelete>CASCADE</onDelete>
+  </foreignKey>
+
+  <field>
+    <name>address_id</name>
+    <type>int unsigned</type>
+    <comment>FK to Address</comment>
+  </field>
+  <foreignKey>
+    <name>address_id</name>
+    <table>civicrm_address</table>
+    <key>id</key>
+    <onDelete>CASCADE</onDelete>
+  </foreignKey>
+
+  <index>
+    <name>UI_address_id</name>
+    <fieldName>address_id</fieldName>
+    <unique>true</unique>
+  </index>
+
+  <field>
+    <name>modified_id</name>
+    <type>int unsigned</type>
+    <comment>FK to Contact</comment>
+  </field>
+  <foreignKey>
+    <name>modified_id</name>
+    <table>civicrm_contact</table>
+    <key>id</key>
+    <onDelete>CASCADE</onDelete>
+  </foreignKey>
+
+  <field>
+    <name>modified_date</name>
+    <type>timestamp</type>
+    <comment>When was the property was created or modified or deleted.</comment>
+    <required>false</required>
+    <default>CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP</default>
+    <html>
+      <label>Modified Date</label>
+    </html>
+    <readonly>true</readonly>
+  </field>
+
+  <paths>
+    <add>civicrm/property/form?reset=1&amp;action=add</add>
+    <view>civicrm/property/form?reset=1&amp;action=view&amp;id=[id]</view>
+    <update>civicrm/property/form?reset=1&amp;action=update&amp;id=[id]</update>
+    <delete>civicrm/property/form?reset=1&amp;action=delete&amp;id=[id]</delete>
+  </paths>
+</table>

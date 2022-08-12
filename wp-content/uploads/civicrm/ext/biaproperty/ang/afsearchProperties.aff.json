@@ -1,0 +1,16 @@
+{
+    "type": "search",
+    "requires": [],
+    "entity_type": "Property",
+    "title": "Properties",
+    "description": "",
+    "is_dashlet": false,
+    "is_public": false,
+    "is_token": false,
+    "contact_summary": "tab",
+    "server_route": "civicrm/property",
+    "permission": "access CiviCRM",
+    "join_entity": null,
+    "redirect": null,
+    "create_submission": null
+}

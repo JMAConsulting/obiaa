@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="iso-8859-1" ?>
+
+<table>
+  <base>CRM/Biaproperty</base>
+  <class>PropertyOwner</class>
+  <name>civicrm_property_owner</name>
+  <comment>FIXME</comment>
+  <log>true</log>
+
+  <field>
+    <name>id</name>
+    <type>int unsigned</type>
+    <required>true</required>
+    <comment>Unique PropertyOwner ID</comment>
+    <html>
+      <type>Number</type>
+    </html>
+  </field>
+  <primaryKey>
+    <name>id</name>
+    <autoincrement>true</autoincrement>
+  </primaryKey>
+
+  <field>
+    <name>property_id</name>
+    <type>int unsigned</type>
+    <comment>FK to Property</comment>
+  </field>
+  <foreignKey>
+    <name>property_id</name>
+    <table>civicrm_property</table>
+    <key>id</key>
+    <onDelete>CASCADE</onDelete>
+  </foreignKey>
+
+  <field>
+    <name>owner_id</name>
+    <type>int unsigned</type>
+    <comment>FK to Contact</comment>
+  </field>
+  <foreignKey>
+    <name>owner_id</name>
+    <table>civicrm_contact</table>
+    <key>id</key>
+    <onDelete>CASCADE</onDelete>
+  </foreignKey>
+
+  <field>
+    <name>is_voter</name>
+    <type>int unsigned</type>
+    <comment>Is Vote?</comment>
+  </field>
+
+  <index>
+   <name>UI_property_owner_key</name>
+   <fieldName>property_id</fieldName>
+   <fieldName>owner_id</fieldName>
+   <unique>true</unique>
+  </index>
+
+</table>

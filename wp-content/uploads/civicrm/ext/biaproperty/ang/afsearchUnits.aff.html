@@ -1,0 +1,15 @@
+<h3 crm-page-title>{{routeParams.title}}</h3>
+<div af-fieldset="" af-title="Owners">
+  <crm-search-display-table search-name="Owners" display-name="Owners" filters="{'PropertyOwner_Property_property_id_01.id': routeParams.pid}"></crm-search-display-table>
+</div>
+<div af-fieldset="" af-title="Units">
+<div class="btn-group">
+    <a class="btn btn-primary crm-popup" ng-href="{{ crmUrl('civicrm/unit/form?', {reset: 1, action: 'add', context: 'create', pid: routeParams.pid}) }}">
+    <i class="crm-i fa-plus-circle"></i>
+    {{:: ts('Add Unit') }}
+  </a>
+</div>
+  <crm-search-display-table search-name="Units" display-name="Units_Table_1_1" filters="{'Unit_PropertyUnit_unit_id_01_PropertyUnit_Property_property_id_01.id': routeParams.pid}"></crm-search-display-table>
+</div>
+<script>
+</script>

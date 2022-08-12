@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<menu>
+  <item>
+    <path>civicrm/property/form</path>
+    <page_callback>CRM_Biaproperty_Form_Property</page_callback>
+    <title>Property</title>
+    <access_arguments>access CiviCRM</access_arguments>
+  </item>
+  <item>
+    <path>civicrm/unit/form</path>
+    <page_callback>CRM_Biaproperty_Form_Unit</page_callback>
+    <title>Unit</title>
+    <access_arguments>access CiviCRM</access_arguments>
+  </item>
+  <item>
+    <path>civicrm/existing/property</path>
+    <page_callback>CRM_Biaproperty_Form_ExistingProperty</page_callback>
+    <title>ExistingProperty</title>
+    <access_arguments>access CiviCRM</access_arguments>
+  </item>
+  <item>
+    <path>civicrm/buisness</path>
+    <page_callback>CRM_Biaproperty_Form_AddBuisness</page_callback>
+    <title>AddBuisness</title>
+    <access_arguments>access CiviCRM</access_arguments>
+  </item>
+  <item>
+     <path>civicrm/assign/vote</path>
+     <page_callback>CRM_Biaproperty_ExtensionUtil::assignVote</page_callback>
+     <access_callback>1</access_callback>
+  </item>
+  <item>
+     <path>civicrm/close-business</path>
+     <page_callback>CRM_Biaproperty_ExtensionUtil::closeBusiness</page_callback>
+     <access_callback>1</access_callback>
+  </item>
+  <item>
+     <path>civicrm/close-property</path>
+     <page_callback>CRM_Biaproperty_ExtensionUtil::closeProperty</page_callback>
+     <access_callback>1</access_callback>
+  </item>
+</menu>

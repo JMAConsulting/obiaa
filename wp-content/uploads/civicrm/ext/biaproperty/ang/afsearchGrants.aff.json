@@ -1,0 +1,16 @@
+{
+    "type": "search",
+    "requires": [],
+    "title": "Grants",
+    "description": "",
+    "is_dashlet": false,
+    "is_public": false,
+    "is_token": false,
+    "contact_summary": "tab",
+    "server_route": "",
+    "permission": "access CiviGrant",
+    "entity_type": null,
+    "join_entity": null,
+    "redirect": null,
+    "create_submission": null
+}

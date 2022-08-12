@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="iso-8859-1" ?>
+
+<table>
+  <base>CRM/Biaproperty</base>
+  <class>UnitBusiness</class>
+  <name>civicrm_unit_business</name>
+  <comment>FIXME</comment>
+  <log>true</log>
+
+  <field>
+    <name>id</name>
+    <type>int unsigned</type>
+    <required>true</required>
+    <comment>Unique UnitBusiness ID</comment>
+    <html>
+      <type>Number</type>
+    </html>
+  </field>
+  <primaryKey>
+    <name>id</name>
+    <autoincrement>true</autoincrement>
+  </primaryKey>
+
+  <field>
+    <name>unit_id</name>
+    <type>int unsigned</type>
+    <comment>FK to Unit</comment>
+  </field>
+  <foreignKey>
+    <name>unit_id</name>
+    <table>civicrm_unit</table>
+    <key>id</key>
+    <onDelete>CASCADE</onDelete>
+  </foreignKey>
+
+  <field>
+    <name>business_id</name>
+    <type>int unsigned</type>
+    <comment>FK to Contact</comment>
+  </field>
+  <foreignKey>
+    <name>business_id</name>
+    <table>civicrm_contact</table>
+    <key>id</key>
+    <onDelete>CASCADE</onDelete>
+  </foreignKey>
+
+  <index>
+    <name>UI_business_id</name>
+    <fieldName>business_id</fieldName>
+    <unique>true</unique>
+  </index>
+
+  <field>
+    <name>property_id</name>
+    <type>int unsigned</type>
+    <comment>FK to Unit</comment>
+  </field>
+  <foreignKey>
+    <name>property_id</name>
+    <table>civicrm_property</table>
+    <key>id</key>
+    <onDelete>CASCADE</onDelete>
+  </foreignKey>
+
+  <index>
+   <name>UI_property_unit_key</name>
+   <fieldName>property_id</fieldName>
+   <fieldName>unit_id</fieldName>
+   <unique>true</unique>
+ </index>
+
+</table>
