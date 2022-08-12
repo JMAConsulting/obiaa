@@ -12,12 +12,14 @@ pushd /var/www/$1/htdocs
 wp db import /var/www/obiaa.jmaconsulting.biz/htdocs/obiaa_wp_backup.sql
 CIVICRM_CREDS=`wp civicrm sql-connect`
 cat /var/www/obiaa.jmaconsulting.biz/htdocs/obiaa_civicrm_backup.sql | sed -e 's/DEFINER[ ]*=[ ]*[^*]*\*/\*/' | $CIVICRM_CREDS
+echo "UPDATE civicrm_setting SET value = 's:49:\"/var/www/bia1.mainstreetrm.com/htdocs/wp-load.php\"' WHERE name='wpLoadPhp'" | $CIVICRM_CREDS
 # Replace URLs with the new domain
-wp search-replace 'obiaa.jmaconsulting.biz' $1
+wp search-replace 'obiaa.jmaconsulting.biz' $BIA_HOSTNAME
+wp civicrm api system.flush
 # Remove all contacts that aren't for user accounts or the domain contact
-wp civicrm sql-query "DELETE FROM civicrm_contact WHERE id NOT IN (SELECT contact_id FROM civicrm_uf_match) AND id NOT IN (SELECT contact_id FROM civicrm_domain)"
+echo "DELETE FROM civicrm_contact WHERE id NOT IN (SELECT contact_id FROM civicrm_uf_match) AND id NOT IN (SELECT contact_id FROM civicrm_domain)" | $CIVICRM_CREDS
 # Update Domain Contact with correct information.
-wp civicrm api contact.create organization_name='My Bia1' id=1 contact_type='Organization' contact_sub_type='BIA'
+wp civicrm api contact.create organization_name="My Bia $2" id=1 contact_type='Organization' contact_sub_type='BIA'
 # update site title
 wp option update blogname $2
 popd
