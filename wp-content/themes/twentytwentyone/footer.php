@@ -39,7 +39,6 @@
 				</ul><!-- .footer-navigation-wrapper -->
 			</nav><!-- .footer-navigation -->
 		<?php endif; ?>
-		<!--
 		<div class="site-info">
 			<div class="site-name">
 				<?php if ( has_custom_logo() ) : ?>
@@ -53,7 +52,7 @@
 						<?php endif; ?>
 					<?php endif; ?>
 				<?php endif; ?>
-			</div>
+			</div><!-- .site-name -->
 
 			<?php
 			if ( function_exists( 'the_privacy_policy_link' ) ) {
@@ -69,11 +68,9 @@
 					'<a href="' . esc_url( __( 'https://wordpress.org/', 'twentytwentyone' ) ) . '">WordPress</a>'
 				);
 				?>
-			</div>
+			</div><!-- .powered-by -->
 
-		</div>
--->
-
+		</div><!-- .site-info -->
 	</footer><!-- #colophon -->
 
 </div><!-- #page -->
