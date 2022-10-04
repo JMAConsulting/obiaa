@@ -1,0 +1,16 @@
+<div af-fieldset="">
+  <div class="af-container af-layout-inline">
+    <af-field name="business_id" defn="{label: 'Business', input_attrs: {}}" />
+    <af-field name="UnitBusiness_Unit_unit_id_01_Unit_Address_address_id_01.street_unit" defn="{label: 'Unit #', input_attrs: {}}" />
+    <af-field name="UnitBusiness_Unit_unit_id_01_Unit_Address_address_id_01.street_address" defn="{label: 'Address', input_attrs: {}}" />
+  </div>
+<br/>
+  <crm-search-display-table search-name="Find_Business" display-name="Find_Business"></crm-search-display-table>
+</div>
+<script>
+  <![CDATA[
+  jQuery(document).ready(function ($) {
+    $('.breadcrumb').hide();
+  });
+]]>
+</script>

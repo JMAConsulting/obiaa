@@ -1,0 +1,18 @@
+<div af-fieldset="">
+  <div class="af-container af-layout-cols af-layout-inline">
+    <af-field name="name" />
+    <af-field name="property_address" />
+    <af-field name="roll_no" defn="{label: 'Roll #', input_attrs: {}}" />
+    <af-field name="city" />
+    <af-field name="postal_code" />
+  </div>
+<br/>
+  <crm-search-display-table search-name="Find_Properties" display-name="Find_Properties"></crm-search-display-table>
+</div>
+<br />
+<br />
+<script>
+  jQuery(document).ready(function ($) {
+    $('.breadcrumb').hide();
+  });
+</script>

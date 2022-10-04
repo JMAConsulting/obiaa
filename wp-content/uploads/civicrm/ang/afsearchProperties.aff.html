@@ -1,5 +1,9 @@
+<div class="btn-group">
+    <a class="btn btn-primary crm-popup" ng-href="{{ crmUrl('civicrm/existing/property?', {reset: 1, action: 'add', context: 'create', oid: options.contact_id}) }}">
+    <i class="crm-i fa-plus-circle"></i>
+    {{:: ts('Add/Buy Property') }}
+  </a>
+</div>
 <div af-fieldset="">
-  <af-field name="id" defn="{label: 'Property ID', input_attrs: {}}" />
-  <af-field name="Property_PropertyOwner_property_id_01.id" defn="{label: 'Owner', input_attrs: {}, required: false}" />
-  <crm-search-display-table search-name="Property" display-name="Property_Table_1"></crm-search-display-table>
+  <crm-search-display-table search-name="Property" display-name="Property_Table_1" filters="{'Property_PropertyOwner_property_id_01_PropertyOwner_Contact_owner_id_01.id': options.contact_id}"></crm-search-display-table>
 </div>

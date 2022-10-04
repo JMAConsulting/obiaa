@@ -1,0 +1,24 @@
+<div af-fieldset="">
+<div class="af-container af-layout-cols">
+  <div class="af-container af-layout-inline">
+    <af-field name="owner_id" defn="{label: 'Owner', input_attrs: {}}" />
+    <af-field name="PropertyOwner_Property_property_id_01.name" defn="{label: 'Property Name', input_attrs: {}}" />
+    <af-field name="PropertyOwner_Property_property_id_01.property_address" defn="{label: 'Address', input_attrs: {}}" />
+  </div>
+ </div>
+  <div class="af-markup">
+    
+    
+    
+    <br/>
+  
+  
+  
+  </div>
+  <crm-search-display-table search-name="Find_Owners" display-name="Find_Owners"></crm-search-display-table>
+</div>
+<script>
+  jQuery(document).ready(function ($) {
+    $('.breadcrumb').hide();
+  });
+</script>

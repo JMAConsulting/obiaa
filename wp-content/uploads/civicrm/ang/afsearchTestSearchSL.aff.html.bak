@@ -1,0 +1,3 @@
+<div af-fieldset="">
+  <crm-search-display-table search-name="Units" display-name="Units_Table_1_1"></crm-search-display-table>
+</div>

@@ -1,0 +1,6 @@
+{
+    "type": "search",
+    "title": "Test Search - SL",
+    "server_route": "civicrm/test-search",
+    "permission": "access CiviCRM"
+}

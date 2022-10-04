@@ -1,0 +1,17 @@
+<div class="crm-summary-row  primary">
+<div class="crm-label">
+  Work Address
+</div>
+<div class="crm-content">
+<div af-fieldset="">
+  <crm-search-display-list search-name="Businesses" display-name="Businesses" filters="{'UnitBusiness_Contact_business_id_01.id': options.contact_id}"></crm-search-display-list>
+</div>
+</div>
+</div>
+<script>
+  <![CDATA[
+  jQuery(document).ready(function ($) {
+    $('.crm-address-block').hide();
+  });
+]]>
+</script>
