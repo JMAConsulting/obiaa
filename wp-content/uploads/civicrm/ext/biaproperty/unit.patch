@@ -1,0 +1,58 @@
+diff --git a/CRM/Biaproperty/Form/Unit.php b/CRM/Biaproperty/Form/Unit.php
+index 1bb287b..a3a8290 100644
+--- a/CRM/Biaproperty/Form/Unit.php
++++ b/CRM/Biaproperty/Form/Unit.php
+@@ -49,11 +49,19 @@ class CRM_Biaproperty_Form_Unit extends CRM_Core_Form {
+ 
+     $this->_action = CRM_Utils_Request::retrieve('action', 'String', $this);
+     $this->assign('action', $this->_action);
+-
++    $session = CRM_Core_Session::singleton();
+     $this->_id = CRM_Utils_Request::retrieve('id', 'Positive', $this, FALSE);
+     $this->_bid = CRM_Utils_Request::retrieve('bid', 'Positive', $this, FALSE);
++    $context = CRM_Utils_Request::retrieve('context', 'Alphanumeric', $this, FALSE);
+     if (empty($this->_id)) {
+       $this->_pid = CRM_Utils_Request::retrieve('pid', 'Positive', $this, TRUE);
++      if (!empty($this->_pid)) {
++	$property = Property::get()->addWhere('id', '=', $this->_pid)->execute()->first();
++	$session->replaceUserContext(CRM_Utils_System::url('civicrm/biaunits') . '#?pid=' . $this->_pid . '&title=' . (!empty($property['name']) ? $property['name'] . ' - ' : '') . $property['property_address']);
++      }
++      else {
++        $session->replaceUserContext(CRM_Utils_System::url('civicrm/contact/view', ['cid' => $this->_bid, 'reset' => 1, 'selectedChild' => 'afsearchUnit1']));
++      }
+     }
+     CRM_Utils_System::setTitle('Add Unit');
+     if ($this->_id) {
+@@ -66,7 +74,13 @@ class CRM_Biaproperty_Form_Unit extends CRM_Core_Form {
+       $this->_pid = $this->_unit['property_id'];
+       $this->assign('unit', $this->_unit);
+       $session = CRM_Core_Session::singleton();
+-      $session->replaceUserContext(CRM_Utils_System::url('civicrm/unit/form', ['id' => $this->getEntityId(), 'action' => 'update']));
++      if ($context === 'propertyView') {
++	$property = Property::get()->addWhere('id', '=', $this->_pid)->execute()->first();
++	$session->replaceUserContext(CRM_Utils_System::url('civicrm/biaunits') . '#?pid=' . $this->_pid . '&title=' . (!empty($property['name']) ? $property['name'] . ' - ' : '') . $property['property_address']);
++      }
++      else {
++        $session->replaceUserContext(CRM_Utils_System::url('civicrm/unit/form', ['id' => $this->getEntityId(), 'action' => 'update']));
++      }
+     }
+   }
+ 
+@@ -104,7 +118,7 @@ class CRM_Biaproperty_Form_Unit extends CRM_Core_Form {
+           $this->addUploadElement($element);
+           continue;
+         }
+-        elseif ($element == 'business_id') {
++	elseif ($element == 'business_id') {
+           $element = $this->addEntityRef($element, $label, ['placeholder' => '- Select Business -', 'create' => TRUE, 'multiple' => TRUE, 'api' => [
+             'params' => ['contact_type' => 'Organization'],
+       	  ]]);
+@@ -164,7 +178,7 @@ class CRM_Biaproperty_Form_Unit extends CRM_Core_Form {
+     if (!empty($fields['unit_status']) && $fields['unit_status'] == 1 && empty($fields['business_id'])) {
+       $errors['business_id'] = ts('Please select a business.');
+     }
+-    if (!empty($fields['address_id']) && empty($form->_id)) {
++    if (!empty($fields['address_id']) && !empty($form->_id)) {
+       $count = Unit::get(FALSE)->addWhere('address_id', '=', $fields['address_id'])->execute()->count();
+       if ($count > 0) {
+         $errors['address_id'] = ts('There is a existing property unit at this mailing address. Please choose a different unit address.');

@@ -1,0 +1,7 @@
+{
+    "type": "search",
+    "title": "Work Address",
+    "contact_summary": "block",
+    "server_route": "",
+    "permission": "access CiviCRM"
+}

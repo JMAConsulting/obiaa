@@ -12,6 +12,10 @@
  * @access public
  */
 function civicrm_api3_property_get($params) {
+  if (isset($params['id'])) {
+    $params['return'] = isset($params['return']) ? array_merge($params['return'], ['property_address']) : [];
+    return _civicrm_api3_basic_get(_civicrm_api3_get_BAO(__FUNCTION__), $params, TRUE, 'Property');
+  }
   return civicrm_api3_create_success(CRM_Biaproperty_BAO_Property::retrieve($params), $params, 'Property', 'get');
 }
 
@@ -22,7 +26,7 @@ function _civicrm_api3_property_getlist_output ($result, $request, $entity, $fie
     foreach ($result['values'] as $key => $row) {
       $data = [
         'id' => $row['id'],
-        'label' => $row['address_id.name']  ? $row['address_id.name'] . ' - ' . $row['address_id.street_address'] : $row['address_id.street_address'],
+        'label' => $row['name']  ? $row['name'] . ' - ' . $row['property_address'] : $row['property_address'],
       ];
       $output[] = $data;
     }

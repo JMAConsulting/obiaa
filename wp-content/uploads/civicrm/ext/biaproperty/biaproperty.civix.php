@@ -31,94 +31,6 @@ class CRM_Biaproperty_ExtensionUtil {
     return ts($text, $params);
   }
 
-  public static function closeProperty() {
-    $id = CRM_Utils_Type::escape($_GET['id'], 'Positive');
-    if (!$id) {
-      CRM_Core_Error::statusBounce(ts('Missing property ID'));
-    }
-
-    $property = CRM_Core_DAO::executeQuery("SELECT name, street_address FROM civicrm_property p INNER JOIN civicrm_address a ON a.id = p.address_id WHERE p.id = " . $id)->fetchAll()[0];
-    $title = (!empty($property['name'])) ? $property['name'] . ' - ' . $property['street_address'] : $property['street_address'];
-
-    $propertyOwners = \Civi\Api4\PropertyOwner::get(FALSE)
-      ->addWhere('property_id', '=', $id)
-      ->execute();
-    foreach ($propertyOwners as $propertyOwner) {
-      \Civi\Api4\PropertyOwner::delete(FALSE)
-        ->addWhere('id', '=', $propertyOwner['id'])
-	->execute();
-    $cid = $propertyOwner['owner_id'];
-    \Civi\Api4\Activity::create(FALSE)
-      ->addValue('activity_type_id:name', 'Property closed')
-      ->addValue('target_contact_id', $cid)
-      ->addValue('assignee_contact_id', $cid)
-      ->addValue('source_contact_id', $cid)
-      ->addValue('source_record_id', $id)
-      ->addValue('status_id:name', 'Completed')
-      ->addValue('subject', 'Closed property - ' . $title)
-      ->execute();
-    }
-    CRM_Utils_System::redirect(CRM_Core_Session::singleton()->readUserContext());
-  }
-
-  public static function closeBusiness() {
-    $bid = CRM_Utils_Type::escape($_GET['bid'], 'Positive');
-    if (!$bid) {
-      CRM_Core_Error::statusBounce(ts('Missing contact ID'));
-    }
-    $entries = \Civi\Api4\UnitBusiness::get(FALSE)
-        ->addSelect('id')
-        ->addWhere('business_id', '=', $bid)
-        ->execute();
-    foreach ($entries as $entry) {
-      \Civi\Api4\UnitBusiness::delete(FALSE)
-      ->addWhere('id', '=', $entry['id'])
-      ->execute();
-    }
-    $cts = \Civi\Api4\Contact::get(FALSE)
-      ->addSelect('contact_sub_type:name')
-      ->addWhere('id', '=', $cid)
-      ->execute()->first()['contact_sub_type:name'];
-    unset($cts[array_search('Members_Businesses_', $ct)]);
-    \Civi\Api4\Contact::update(FALSE)
-      ->addValue('id', $bid)
-      ->addValue('contact_sub_type', $cts)
-      ->execute();
-    \Civi\Api4\Activity::create(FALSE)
-      ->addValue('activity_type_id:name', 'Close Business')
-      ->addValue('target_contact_id', $bid)
-      ->addValue('assignee_contact_id', $bid)
-      ->addValue('source_contact_id', $bid)
-      ->addValue('subject', 'Close Business')
-      ->execute();
-   CRM_Utils_System::redirect(CRM_Utils_System::url('civicrm/contact/view', 'cid=' . $bid));
-  }
-
-  public static function assignVote() {
-   $oid =  CRM_Utils_Type::escape($_GET['oid'], 'Positive');
-   $pid =  CRM_Utils_Type::escape($_GET['pid'], 'Positive');
-   $title = CRM_Utils_Type::escape($_GET['title'], 'String');
-    if (!$pid || !$oid) {
-      CRM_Core_Session::setStatus('', ts('Missing essential property id and/or owner id.'), 'error');
-      CRM_Utils_System::civiExit(1);
-    }
-    \Civi\Api4\PropertyOwner::update(FALSE)
-      ->addValue('is_voter', 0)
-      ->addWhere('is_voter', '=', 1)
-      ->addWhere('property_id', '=', $pid)
-      ->execute();
-    $id = \Civi\Api4\PropertyOwner::get(FALSE)
-      ->addSelect('id')
-      ->addWhere('property_id', '=', $pid)
-      ->addWhere('owner_id', '=', $oid)
-      ->execute()->first()['id'];
-    \Civi\Api4\PropertyOwner::update(FALSE)
-      ->addValue('is_voter', 1)
-      ->addWhere('id', '=', $id)
-      ->execute();
-    CRM_Utils_System::redirect(CRM_Utils_System::url('/civicrm/biaunits#?pid=' . $pid . '&title=' . $title ));
-  }
-
   /**
    * Get the URL of a resource file (in this extension).
    *
@@ -402,11 +314,6 @@ function _biaproperty_civix_civicrm_entityTypes(&$entityTypes) {
       'name' => 'PropertyOwner',
       'class' => 'CRM_Biaproperty_DAO_PropertyOwner',
       'table' => 'civicrm_property_owner',
-    ],
-    'CRM_Biaproperty_DAO_PropertyUnit' => [
-      'name' => 'PropertyUnit',
-      'class' => 'CRM_Biaproperty_DAO_PropertyUnit',
-      'table' => 'civicrm_property_unit',
     ],
     'CRM_Biaproperty_DAO_Unit' => [
       'name' => 'Unit',

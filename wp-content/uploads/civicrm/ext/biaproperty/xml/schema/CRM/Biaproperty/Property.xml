@@ -27,12 +27,18 @@
     <length>255</length>
     <comment>Roll #</comment>
     <required>false</required>
+    <html>
+      <type>Text</type>
+    </html>
   </field>
 
   <field>
     <name>created_id</name>
     <type>int unsigned</type>
     <comment>FK to Contact</comment>
+    <html>
+      <type>EntityRef</type>
+    </html>
   </field>
   <foreignKey>
     <name>created_id</name>
@@ -42,27 +48,53 @@
   </foreignKey>
 
   <field>
-    <name>address_id</name>
-    <type>int unsigned</type>
-    <comment>FK to Address</comment>
+    <name>property_address</name>
+    <type>varchar</type>
+    <length>255</length>
+    <comment>Property Tax Roll Address</comment>
   </field>
-  <foreignKey>
-    <name>address_id</name>
-    <table>civicrm_address</table>
-    <key>id</key>
-    <onDelete>CASCADE</onDelete>
-  </foreignKey>
-
   <index>
-    <name>UI_address_id</name>
-    <fieldName>address_id</fieldName>
+    <name>UI_property_address</name>
+    <fieldName>property_address</fieldName>
     <unique>true</unique>
   </index>
+  <field>
+    <name>name</name>
+    <type>varchar</type>
+    <length>255</length>
+    <comment>Property Name</comment>
+    <html>
+      <type>Text</type>
+    </html>
+  </field>
+
+  <field>
+    <name>city</name>
+    <type>varchar</type>
+    <length>64</length>
+    <comment>City this property is in</comment>
+    <html>
+      <type>Text</type>
+    </html>
+  </field>
+
+  <field>
+    <name>postal_code</name>
+    <type>varchar</type>
+    <length>64</length>
+    <comment>postal code this property is in</comment>
+    <html>
+      <type>Text</type>
+    </html>
+  </field>
 
   <field>
     <name>modified_id</name>
     <type>int unsigned</type>
     <comment>FK to Contact</comment>
+    <html>
+      <type>EntityRef</type>
+    </html>
   </field>
   <foreignKey>
     <name>modified_id</name>

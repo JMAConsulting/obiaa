@@ -25,6 +25,9 @@
     <name>unit_id</name>
     <type>int unsigned</type>
     <comment>FK to Unit</comment>
+    <html>
+      <type>EntityRef</type>
+    </html>
   </field>
   <foreignKey>
     <name>unit_id</name>
@@ -37,36 +40,21 @@
     <name>business_id</name>
     <type>int unsigned</type>
     <comment>FK to Contact</comment>
+    <html>
+      <type>EntityRef</type>
+    </html>
   </field>
   <foreignKey>
     <name>business_id</name>
     <table>civicrm_contact</table>
     <key>id</key>
-    <onDelete>CASCADE</onDelete>
-  </foreignKey>
-
-  <index>
-    <name>UI_business_id</name>
-    <fieldName>business_id</fieldName>
-    <unique>true</unique>
-  </index>
-
-  <field>
-    <name>property_id</name>
-    <type>int unsigned</type>
-    <comment>FK to Unit</comment>
-  </field>
-  <foreignKey>
-    <name>property_id</name>
-    <table>civicrm_property</table>
-    <key>id</key>
-    <onDelete>CASCADE</onDelete>
+    <onDelete>SET NULL</onDelete>
   </foreignKey>
 
   <index>
    <name>UI_property_unit_key</name>
-   <fieldName>property_id</fieldName>
    <fieldName>unit_id</fieldName>
+   <fieldName>business_id</fieldName>
    <unique>true</unique>
  </index>
 

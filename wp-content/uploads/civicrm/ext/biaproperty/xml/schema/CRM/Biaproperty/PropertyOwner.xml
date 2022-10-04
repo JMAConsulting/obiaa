@@ -25,6 +25,9 @@
     <name>property_id</name>
     <type>int unsigned</type>
     <comment>FK to Property</comment>
+    <html>
+      <type>EntityRef</type>
+    </html>
   </field>
   <foreignKey>
     <name>property_id</name>
@@ -37,6 +40,9 @@
     <name>owner_id</name>
     <type>int unsigned</type>
     <comment>FK to Contact</comment>
+    <html>
+      <type>EntityRef</type>
+    </html>
   </field>
   <foreignKey>
     <name>owner_id</name>
@@ -47,8 +53,12 @@
 
   <field>
     <name>is_voter</name>
-    <type>int unsigned</type>
+    <type>boolean</type>
     <comment>Is Vote?</comment>
+    <default>0</default>
+    <html>
+      <type>Radio</type>
+    </html>
   </field>
 
   <index>

@@ -15,7 +15,6 @@
 
 SET FOREIGN_KEY_CHECKS=0;
 
-DROP TABLE IF EXISTS `civicrm_property_unit`;
 DROP TABLE IF EXISTS `civicrm_unit_business`;
 DROP TABLE IF EXISTS `civicrm_unit`;
 DROP TABLE IF EXISTS `civicrm_property_owner`;

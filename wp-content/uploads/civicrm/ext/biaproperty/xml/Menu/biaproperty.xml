@@ -19,24 +19,43 @@
     <access_arguments>access CiviCRM</access_arguments>
   </item>
   <item>
-    <path>civicrm/buisness</path>
+    <path>civicrm/add-business</path>
     <page_callback>CRM_Biaproperty_Form_AddBuisness</page_callback>
     <title>AddBuisness</title>
     <access_arguments>access CiviCRM</access_arguments>
   </item>
   <item>
-     <path>civicrm/assign/vote</path>
-     <page_callback>CRM_Biaproperty_ExtensionUtil::assignVote</page_callback>
-     <access_callback>1</access_callback>
+    <path>civicrm/assign/vote</path>
+    <page_callback>CRM_Biaproperty_Utils::assignVote</page_callback>
+    <access_callback>1</access_callback>
   </item>
   <item>
-     <path>civicrm/close-business</path>
-     <page_callback>CRM_Biaproperty_ExtensionUtil::closeBusiness</page_callback>
-     <access_callback>1</access_callback>
+    <path>civicrm/close-business</path>
+    <page_callback>CRM_Biaproperty_Utils::closeBusiness</page_callback>
+    <access_callback>1</access_callback>
   </item>
   <item>
-     <path>civicrm/close-property</path>
-     <page_callback>CRM_Biaproperty_ExtensionUtil::closeProperty</page_callback>
+    <path>civicrm/close-property</path>
+    <page_callback>CRM_Biaproperty_Form_SellProperty</page_callback>
+    <title>SellProperty</title>
+    <access_arguments>access CiviCRM</access_arguments>
+  </item>
+  <item>
+    <path>civicrm/unit-address</path>
+    <page_callback>CRM_Biaproperty_Form_UnitAddress</page_callback>
+    <title>UnitAddress</title>
+    <access_arguments>access CiviCRM</access_arguments>
+  </item>
+  <item>
+     <path>civicrm/ajax/jqUnit</path>
+     <page_callback>CRM_Biaproperty_Utils::jqUnit</page_callback>
      <access_callback>1</access_callback>
+     <is_public>true</is_public>
+  </item>
+  <item>
+     <path>civicrm/ajax/jqUnit</path>
+     <page_callback>CRM_Biaproperty_Utils::jqUnit</page_callback>
+     <access_callback>1</access_callback>
+     <is_public>true</is_public>
   </item>
 </menu>

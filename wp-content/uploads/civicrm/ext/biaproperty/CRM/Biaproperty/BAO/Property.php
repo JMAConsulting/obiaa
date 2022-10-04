@@ -7,9 +7,7 @@ class CRM_Biaproperty_BAO_Property extends CRM_Biaproperty_DAO_Property {
 public static function retrieve(array $params) {
      $options = [];
      $properties = \Civi\Api4\Property::get(FALSE)
-      ->addSelect('id', 'address_id.name', 'address_id.street_address')
-      ->addJoin('PropertyOwner AS property_owner', 'LEFT', ['property_owner.property_id', '=', 'id'])
-      ->addClause('OR', ['property_owner.owner_id', 'IS NULL'], ['property_owner.owner_id', '!=', $params['owner_id']['!=']])
+     ->addClause('OR', ['name', 'LIKE', $params['name']['LIKE']], ['property_address', 'LIKE', $params['name']['LIKE']])
       //->addClause('address_id.name', 'LIKE', $params['name']['LIKE'])
       ->setLimit(100)
       ->execute();

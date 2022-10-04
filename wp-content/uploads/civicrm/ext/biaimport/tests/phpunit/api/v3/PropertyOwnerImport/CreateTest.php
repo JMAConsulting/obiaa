@@ -63,7 +63,7 @@ class api_v3_PropertyOwnerImport_CreateTest extends \PHPUnit\Framework\TestCase 
     $params = [
       'roll_no' => '20144562400000',
       'property_name' => 'Jackson Square Mall',
-      'street_address' => '2 King St W',
+      'property_address' => '2 King St W',
       'city' => 'Hamilton',
       'postal_code' => 'L8P 1A1',
       'owner_1_first_name' => 'Sandra',
@@ -79,21 +79,15 @@ class api_v3_PropertyOwnerImport_CreateTest extends \PHPUnit\Framework\TestCase 
       'property_manager_email' => 'edsel.lopez+testproperty@jmaconsulting.biz',
     ];
     $this->callAPISuccess('PropertyOwnerImport', 'create', $params);
-    $address = $this->callAPISuccess('Address', 'get', [
-      'street_address' => $params['street_address'],
-      'city' => $params['city'],
-      'postal_code' => $params['postal_code'],
-    ]);
     $property = $this->callAPISuccess('Property', 'get', [
        'version' => 4,
-       'address_id' => $address['id'],
+       'property_address' => $params['property_address'],
        'roll_no' => '20144562400000',
      ]);
      $propertyOwner = $this->callAPISuccess('PropertyOwner', 'get', [
        'version' => 4,
        'property_id' => key($property['values']),
      ]);
-     $this->assertEquals($address['id'], $property['values'][key($property['values'])]['address_id']);
      $this->assertCount(1, $propertyOwner['values']);
      $propertyOwnerKey = key($propertyOwner['values']);
      $this->assertEquals(1, $propertyOwner['values'][$propertyOwnerKey]['is_voter']);
@@ -114,7 +108,7 @@ class api_v3_PropertyOwnerImport_CreateTest extends \PHPUnit\Framework\TestCase 
     $params = [
       'roll_no' => '20144562400000',
       'property_name' => 'Jackson Square Mall',
-      'street_address' => '2 King St W',
+      'property_address' => '2 King St W',
       'city' => 'Hamilton',
       'postal_code' => 'L8P 1A1',
       'owner_1_first_name' => 'Sandra',
@@ -138,7 +132,7 @@ class api_v3_PropertyOwnerImport_CreateTest extends \PHPUnit\Framework\TestCase 
     $params = [
       'roll_no' => '20144562400000',
       'property_name' => 'Jackson Square Mall',
-      'street_address' => '2 King St W',
+      'property_address' => '2 King St W',
       'city' => 'Hamilton',
       'postal_code' => 'L8P 1A1',
       'owner_1_first_name' => 'Sandra',

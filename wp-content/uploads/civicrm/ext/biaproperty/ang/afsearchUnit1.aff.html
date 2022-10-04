@@ -1,0 +1,9 @@
+<div class="btn-group">
+    <a class="btn btn-primary crm-popup" ng-href="{{ crmUrl('civicrm/unit/form?', {reset: 1, action: 'add', context: 'create', pid : 0, bid: options.contact_id}) }}">
+    <i class="crm-i fa-plus-circle"></i>
+    {{:: ts('Add Unit') }}
+  </a>
+</div>
+<div af-fieldset="">
+  <crm-search-display-table search-name="Contact_Unit" display-name="Contact_Unit" filters="{'Unit_UnitBusiness_unit_id_01_UnitBusiness_Contact_business_id_01.id': options.contact_id}"></crm-search-display-table>
+</div>

@@ -17,7 +17,6 @@
 
 SET FOREIGN_KEY_CHECKS=0;
 
-DROP TABLE IF EXISTS `civicrm_property_unit`;
 DROP TABLE IF EXISTS `civicrm_unit_business`;
 DROP TABLE IF EXISTS `civicrm_unit`;
 DROP TABLE IF EXISTS `civicrm_property_owner`;
@@ -41,13 +40,15 @@ CREATE TABLE `civicrm_property` (
   `id` int unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Property ID',
   `roll_no` varchar(255) NULL COMMENT 'Roll #',
   `created_id` int unsigned COMMENT 'FK to Contact',
-  `address_id` int unsigned COMMENT 'FK to Address',
+  `property_address` varchar(255) COMMENT 'Property Tax Roll Address',
+  `name` varchar(255) COMMENT 'Property Name',
+  `city` varchar(64) COMMENT 'City this property is in',
+  `postal_code` varchar(64) COMMENT 'postal code this property is in',
   `modified_id` int unsigned COMMENT 'FK to Contact',
   `modified_date` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'When was the property was created or modified or deleted.',
   PRIMARY KEY (`id`),
-  UNIQUE INDEX `UI_address_id`(address_id),
+  UNIQUE INDEX `UI_property_address`(property_address),
   CONSTRAINT FK_civicrm_property_created_id FOREIGN KEY (`created_id`) REFERENCES `civicrm_contact`(`id`) ON DELETE CASCADE,
-  CONSTRAINT FK_civicrm_property_address_id FOREIGN KEY (`address_id`) REFERENCES `civicrm_address`(`id`) ON DELETE CASCADE,
   CONSTRAINT FK_civicrm_property_modified_id FOREIGN KEY (`modified_id`) REFERENCES `civicrm_contact`(`id`) ON DELETE CASCADE
 )
 ENGINE=InnoDB;
@@ -63,7 +64,7 @@ CREATE TABLE `civicrm_property_owner` (
   `id` int unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique PropertyOwner ID',
   `property_id` int unsigned COMMENT 'FK to Property',
   `owner_id` int unsigned COMMENT 'FK to Contact',
-  `is_voter` int unsigned COMMENT 'Is Vote?',
+  `is_voter` tinyint DEFAULT 0 COMMENT 'Is Vote?',
   PRIMARY KEY (`id`),
   UNIQUE INDEX `UI_property_owner_key`(property_id, owner_id),
   CONSTRAINT FK_civicrm_property_owner_property_id FOREIGN KEY (`property_id`) REFERENCES `civicrm_property`(`id`) ON DELETE CASCADE,
@@ -80,16 +81,20 @@ ENGINE=InnoDB;
 -- *******************************************************/
 CREATE TABLE `civicrm_unit` (
   `id` int unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Unit ID',
-  `unit_no` varchar(128) unsigned NULL COMMENT 'Unit #',
-  `unit_size` decimal NULL COMMENT 'Unit Size',
-  `unit_price` decimal NULL COMMENT 'Unit Price',
+  `unit_size` decimal(20,2) NULL COMMENT 'Unit Size',
+  `unit_price` decimal(20,2) NULL COMMENT 'Unit Price',
   `unit_status` int unsigned NULL COMMENT 'Unit Status',
   `mls_listing_link` varchar(255) NULL COMMENT 'Unit Status',
   `unit_photo` int unsigned NULL COMMENT 'Unit Photo',
   `unit_location` varchar(255) NULL COMMENT 'Unit Location',
+  `address_id` int unsigned COMMENT 'FK to Address',
+  `property_id` int unsigned NOT NULL COMMENT 'FK to civicrm_property',
   PRIMARY KEY (`id`),
+  UNIQUE INDEX `UI_address_id`(address_id),
   CONSTRAINT FK_civicrm_unit_unit_status FOREIGN KEY (`unit_status`) REFERENCES `civicrm_option_value`(`id`),
-  CONSTRAINT FK_civicrm_unit_unit_photo FOREIGN KEY (`unit_photo`) REFERENCES `civicrm_file`(`id`) ON DELETE CASCADE
+  CONSTRAINT FK_civicrm_unit_unit_photo FOREIGN KEY (`unit_photo`) REFERENCES `civicrm_file`(`id`) ON DELETE CASCADE,
+  CONSTRAINT FK_civicrm_unit_address_id FOREIGN KEY (`address_id`) REFERENCES `civicrm_address`(`id`) ON DELETE SET NULL,
+  CONSTRAINT FK_civicrm_unit_property_id FOREIGN KEY (`property_id`) REFERENCES `civicrm_property`(`id`) ON DELETE CASCADE
 )
 ENGINE=InnoDB;
 
@@ -104,30 +109,9 @@ CREATE TABLE `civicrm_unit_business` (
   `id` int unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique UnitBusiness ID',
   `unit_id` int unsigned COMMENT 'FK to Unit',
   `business_id` int unsigned COMMENT 'FK to Contact',
-  `property_id` int unsigned COMMENT 'FK to Unit',
   PRIMARY KEY (`id`),
-  UNIQUE INDEX `UI_business_id`(business_id),
-  UNIQUE INDEX `UI_property_unit_key`(property_id, unit_id),
+  UNIQUE INDEX `UI_property_unit_key`(unit_id, business_id),
   CONSTRAINT FK_civicrm_unit_business_unit_id FOREIGN KEY (`unit_id`) REFERENCES `civicrm_unit`(`id`) ON DELETE CASCADE,
-  CONSTRAINT FK_civicrm_unit_business_business_id FOREIGN KEY (`business_id`) REFERENCES `civicrm_contact`(`id`) ON DELETE CASCADE,
-  CONSTRAINT FK_civicrm_unit_business_property_id FOREIGN KEY (`property_id`) REFERENCES `civicrm_property`(`id`) ON DELETE CASCADE
-)
-ENGINE=InnoDB;
-
--- /*******************************************************
--- *
--- * civicrm_property_unit
--- *
--- * FIXME
--- *
--- *******************************************************/
-CREATE TABLE `civicrm_property_unit` (
-  `id` int unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique PropertyUnit ID',
-  `property_id` int unsigned COMMENT 'FK to Property',
-  `unit_id` int unsigned COMMENT 'FK to Unit',
-  PRIMARY KEY (`id`),
-  UNIQUE INDEX `UI_property_id_unnit_id`(property_id, unit_id),
-  CONSTRAINT FK_civicrm_property_unit_property_id FOREIGN KEY (`property_id`) REFERENCES `civicrm_property`(`id`) ON DELETE CASCADE,
-  CONSTRAINT FK_civicrm_property_unit_unit_id FOREIGN KEY (`unit_id`) REFERENCES `civicrm_unit`(`id`) ON DELETE CASCADE
+  CONSTRAINT FK_civicrm_unit_business_business_id FOREIGN KEY (`business_id`) REFERENCES `civicrm_contact`(`id`) ON DELETE SET NULL
 )
 ENGINE=InnoDB;

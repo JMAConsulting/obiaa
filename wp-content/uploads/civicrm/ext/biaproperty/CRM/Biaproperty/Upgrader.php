@@ -61,13 +61,64 @@ class CRM_Biaproperty_Upgrader extends CRM_Biaproperty_Upgrader_Base {
    * @return TRUE on success
    * @throws Exception
    */
-  // public function upgrade_4200(): bool {
-  //   $this->ctx->log->info('Applying update 4200');
-  //   CRM_Core_DAO::executeQuery('UPDATE foo SET bar = "whiz"');
-  //   CRM_Core_DAO::executeQuery('DELETE FROM bang WHERE willy = wonka(2)');
-  //   return TRUE;
-  // }
+  public function upgrade_1100(): bool {
+    $this->ctx->log->info('Applying update 1100 modify schema as per revised discussion');
+    CRM_Core_DAO::executeQuery("ALTER TABLE civicrm_property ADD COLUMN property_address varchar(255) COMMENT 'Property Tax Roll Address'");
+    CRM_Core_DAO::executeQuery("ALTER TABLE civicrm_property ADD UNIQUE INDEX `UI_property_address`(`property_address`)");
+    CRM_Core_DAO::executeQuery("ALTER TABLE civicrm_property ADD COLUMN city varchar(64) COMMENT 'City this property is in'");
+    CRM_Core_DAO::executeQuery("ALTER TABLE civicrm_property ADD COLUMN postal_code varchar(64) COMMENT 'postal code this property is in'");
+    CRM_Core_DAO::executeQuery("ALTER TABLE civicrm_property ADD COLUMN name varchar(255) COMMENT 'Property Name'");
+    CRM_Core_DAO::executeQuery("UPDATE civicrm_property cp
+      INNER JOIN civicrm_address ca ON ca.id = cp.address_id
+      SET cp.name = ca.name, cp.property_address = ca.street_address, cp.city = ca.city, cp.postal_code = ca.postal_code");
+    CRM_Core_BAO_SchemaHandler::dropIndexIfExists('civicrm_property', 'UI_address_id');
+    CRM_Core_BAO_SchemaHandler::dropIndexIfExists('civicrm_unit_business', 'UI_business_id');
+    CRM_Core_BAO_SchemaHandler::dropIndexIfExists('civicrm_unit_business', 'UI_property_unit_key');
+    CRM_Core_DAO::executeQuery("ALTER TABLE civicrm_unit_business ADD UNIQUE INDEX `UI_property_unit_key` (`property_id`, `unit_id`, `business_id`)");
+    CRM_Core_BAO_SchemaHandler::dropColumn('civicrm_property', 'address_id');
+    CRM_Core_BAO_SchemaHandler::dropColumn('civicrm_unit', 'unit_no');
+    CRM_Core_DAO::executeQuery("ALTER TABLE civicrm_unit ADD COLUMN address_id int unsigned DEFAULT NULL");
+    CRM_Core_DAO::executeQuery("ALTER TABLE civicrm_unit ADD CONSTRAINT `FK_civicrm_unit_address_id` FOREIGN KEY `address_id` REFERENCES `civicrm_address`(`id`) ON DELETE CASCADE");
+    CRM_Core_DAO::executeQuery("ALTER TABLE civicrm_unit ADD UNIQUE INDEX `UI_address_id` (`adddress_id`)");
+    return TRUE;
+  }
 
+  public function upgrade_1200(): bool {
+    $this->ctx->log->info('Applying update 1200 : drop civicrm_unit_business.property_id and add civicrm_unit.property_id');
+    CRM_Core_DAO::executeQuery("ALTER TABLE civicrm_unit ADD COLUMN property_id int unsigned NOT NULL COMMENT 'Property ID'");
+    CRM_Core_DAO::executeQuery("UPDATE civicrm_unit cu INNER JOIN civicrm_property_unit up ON up.unit_id = cu.id SET cu.property_id = up.property_id");
+    CRM_Core_DAO::executeQuery("ALTER TABLE civicrm_unit ADD CONSTRAINT `FK_civicrm_unit_property_id` FOREIGN KEY `property_id` REFERENCES `civicrm_property`(`id`) ON DELETE CASCADE");
+    CRM_Core_DAO::executeQuery("SET FOREIGN_KEY_CHECKS = 0");
+    CRM_Core_DAO::executeQuery("ALTER TABLE `civicrm_unit_business` DROP INDEX `UI_property_unit_key`");
+    CRM_Core_DAO::executeQuery("ALTER TABLE `civicrm_unit_business` DROP `property_id`");
+    CRM_Core_DAO::executeQuery("ALTER TABLE `civicrm_unit_business` ADD UNIQUE `UI_unit_business_key` (`unit_id`, `business_id`)");
+    CRM_Core_DAO::executeQuery("DROP TABLE civicrm_property_unit");
+    CRM_Core_DAO::executeQuery("SET FOREIGN_KEY_CHECKS = 1");
+    return TRUE;
+  }
+
+  public function upgrade_1300(): bool {
+    $this->ctx->log->info('Applying Update 1300 : Fixing is_voter on property owner field');
+    CRM_Core_DAO::executeQuery("ALTER TABLE civicrm_property_owner CHANGE `is_voter` `is_voter` tinyint DEFAULT 0 COMMENT 'Is Vote?'");
+    return TRUE;
+  }
+
+  public function upgrade_1400(): bool {
+    $this->ctx->log->info('Applying update 1400: Set street_unit to null if the contents were \'sole property\'');
+    CRM_Core_DAO::executeQuery("Update civicrm_address SET street_unit = NULL WHERE street_unit = 'sole property'");
+    return TRUE;
+  }
+  
+  public function upgrade_1500(): bool {
+    $this->ctx->log->info('Applying update 1500: Set civicrm_unit_business.business_id and civicrm_unit.address_id NULL on delete');
+    CRM_Core_DAO::executeQuery("SET FOREIGN_KEY_CHECKS = 0");
+    CRM_Core_DAO::executeQuery("ALTER TABLE `civicrm_unit_business` DROP FOREIGN KEY `FK_civicrm_unit_business_business_id`");
+    CRM_Core_DAO::executeQuery("ALTER TABLE `civicrm_unit_business` ADD CONSTRAINT FOREIGN KEY (`business_id`) REFERENCES `civicrm_contact`(`id`) ON DELETE SET NULL");
+    CRM_Core_DAO::executeQuery("ALTER TABLE `civicrm_unit` DROP FOREIGN KEY `FK_civicrm_unit_address_id`");
+    CRM_Core_DAO::executeQuery("ALTER TABLE `civicrm_unit` ADD CONSTRAINT `FK_civicrm_unit_address_id` FOREIGN KEY (`address_id`) REFERENCES `civicrm_address`(`id`) ON DELETE SET NULL");
+    CRM_Core_DAO::executeQuery("SET FOREIGN_KEY_CHECKS = 1");
+    return TRUE;
+  }
 
   /**
    * Example: Run an external SQL script.

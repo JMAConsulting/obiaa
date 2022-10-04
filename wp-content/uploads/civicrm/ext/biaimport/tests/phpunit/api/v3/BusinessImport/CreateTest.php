@@ -37,7 +37,7 @@ class api_v3_BusinessImport_CreateTest extends \PHPUnit\Framework\TestCase imple
     $params = [
       'roll_no' => rand(),
       'property_name' => 'Jackson Square Mall',
-      'street_address' => $this->propertyNumber . ' King St W',
+      'property_address' => $this->propertyNumber . ' King St W',
       'city' => 'Hamilton',
       'postal_code' => 'L8P 1A1',
       'owner_1_first_name' => 'Business Import',
@@ -953,6 +953,8 @@ class api_v3_BusinessImport_CreateTest extends \PHPUnit\Framework\TestCase imple
   public function testBusinessImport() {
     $importParams = [
       'property_address' => $this->propertyNumber . ' King St W',
+      'property_street_address' => $this->propertyNumber . 'King St',
+      'property_tax_roll_unit' => $this->propertyNumber . 'King St W #7',
       'property_unit' => '#7',
       'unit_size' => '80.50',
       'unit_price' => '150.50',
@@ -982,6 +984,11 @@ class api_v3_BusinessImport_CreateTest extends \PHPUnit\Framework\TestCase imple
     $unit = $this->callAPISuccess('Unit', 'get', ['unit_size' => '80.50', 'version' => 4]);
     $unitId = key($unit['values']);
     $unitRecord = $unit['values'][$unitId];
+    $addressRecord = $this->callAPISuccess('Address', 'get', ['id' => $unitRecord['address_id']])['values'][$unitRecord['address_id']];
+    $this->assertEquals('#7', $addressRecord['street_unit']);
+    $this->assertEquals($this->propertyNumber . 'King St', $addressRecord['street_address']);
+    $propertyRecord = $this->callAPISuccess('Property', 'get', ['id' => $unitRecord['property_id'], 'version' => 4])['values'][$unitRecord['property_id']];
+    $this->assertEquals($this->propertyNumber . ' King St W', $propertyRecord['property_address']);
     $this->assertEquals('150.50', $unitRecord['unit_price']);
     $this->assertEquals(1, $unitRecord['unit_status']);
     $this->assertEquals('Floor #2', $unitRecord['unit_location']);

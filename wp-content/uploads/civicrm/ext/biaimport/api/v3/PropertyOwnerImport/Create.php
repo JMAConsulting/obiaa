@@ -25,7 +25,7 @@ function _civicrm_api3_property_owner_import_create_spec(&$spec) {
     'title' => E::ts('Property Name'),
     'type' => CRM_Utils_Type::T_STRING,
   ];
-  $spec['street_address'] = [
+  $spec['property_address'] = [
     'title' => E::ts('Property Address'),
     'type' => CRM_Utils_Type::T_STRING,
     'api.required' => 1,
@@ -129,24 +129,15 @@ function civicrm_api3_property_owner_import_create($params) {
   $votingContactId = 0;
   // Try and find a property based on the property address otherwise create it
   $property = Property::get(FALSE)
-    ->addJoin('Address AS address', 'INNER', ['address.id', '=', 'address_id'])
-    ->addWhere('address.street_address', '=', $params['street_address'])
-    ->addWhere('address.city', '=', $params['city'])
-    ->addWhere('address.postal_code', '=', $params['postal_code'])
+    ->addWhere('property_address', '=', $params['property_address'])
     ->execute()
     ->first();
   if (empty($property)) {
-    $address = Address::create(FALSE)
-      ->addValue('street_address', $params['street_address'])
+    $property = Property::create(FALSE)
+      ->addValue('roll_no', $params['roll_no'])
+      ->addValue('property_address', $params['property_address'])
       ->addValue('city', $params['city'])
       ->addValue('postal_code', $params['postal_code'])
-      ->addValue('name', $params['property_name'])
-      ->addValue('state_province_id:label', 'Ontario')
-      ->addValue('country_id:label', 'Canada')
-      ->execute();
-    $property = Property::create(FALSE)
-      ->addValue('address_id', $address[0]['id'])
-      ->addValue('roll_no', $params['roll_no'])
       ->addValue('created_id', (int) CRM_Core_Session::getLoggedInContactID())
       ->addValue('modified_id', (int) CRM_Core_Session::getLoggedInContactID())
       ->execute()

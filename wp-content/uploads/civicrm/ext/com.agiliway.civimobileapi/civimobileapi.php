@@ -195,7 +195,7 @@ function civimobileapi_civicrm_apiWrappers(&$wrappers, $apiRequest) {
   }
   elseif ($apiRequest['entity'] == 'EntityTag') {
     if ($apiRequest['action'] == 'get') {
-      $wrappers[] = new CRM_CiviMobileAPI_ApiWrapper_EntityTag_Get();
+//      $wrappers[] = new CRM_CiviMobileAPI_ApiWrapper_EntityTag_Get();
     }
   } elseif ($apiRequest['entity'] == 'Survey') {
     if ($apiRequest['action'] == 'getsingle') {

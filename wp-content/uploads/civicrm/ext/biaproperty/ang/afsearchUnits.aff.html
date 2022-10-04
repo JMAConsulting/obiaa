@@ -1,15 +1,113 @@
+<style>
+  :root {
+    --primary-blue: #008fc9;
+    --secondary-grey: #141414;
+    --white: #ffffff;
+    --grey: rgb(218, 218, 218);
+  }
+
+  .tab-titles {
+    display: flex;
+    align-items: flex-end;
+  }
+
+  .tab-titles > * {
+    margin: 0;
+  }
+
+  .tab-titles > a {
+    background-color: var(--grey) !important;
+    padding: 10px 20px;
+    border-radius: 3px 3px 0 0;
+    margin: 0;
+    cursor: pointer;
+    margin: 0;
+    display: block;
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: 500;
+  }
+
+  .tab-titles .active {
+    background-color: var(--white) !important;
+    box-shadow: 5 0 15px 0px rgba(0, 0, 0, 0.12);
+  }
+
+  .tab-titles > a:hover,
+  .tab-titles > a:focus,
+  .tab-titles > a:active {
+    background-color: var(--white) !important;
+    text-decoration: none;
+  }
+
+  .tab-content {
+    background-color: var(--white) !important;
+    padding: 30px 15px;
+  }
+
+  .tab-content .contents {
+    display: none;
+  }
+
+  .af-title {
+    visibility: hidden;
+    position: absolute;
+    z-index: -1;
+    opacity: 0;
+  }
+
+  .btn.btn-primary {
+    background-color: var(--primary-blue) !important;
+    border-color: var(--primary-blue) !important;
+    margin-bottom: 20px !important;
+  }
+
+  .btn.btn-primary:hover,
+  .btn.btn-primary:active,
+  .btn.btn-primary:focus {
+    background-color: var(--secondary-grey) !important;
+    border-color: var(--secondary-grey) !important;
+  }
+</style>
 <h3 crm-page-title>{{routeParams.title}}</h3>
-<div af-fieldset="" af-title="Owners">
-  <crm-search-display-table search-name="Owners" display-name="Owners" filters="{'PropertyOwner_Property_property_id_01.id': routeParams.pid}"></crm-search-display-table>
+<div class="tab-titles">
+  <a href="#?pid={{routeParams.pid}}&title={{routeParams.title}}" class="active">Owners</a>
+  <a href="#?pid={{routeParams.pid}}&title={{routeParams.title}}" >Units</a>
 </div>
-<div af-fieldset="" af-title="Units">
-<div class="btn-group">
-    <a class="btn btn-primary crm-popup" ng-href="{{ crmUrl('civicrm/unit/form?', {reset: 1, action: 'add', context: 'create', pid: routeParams.pid}) }}">
-    <i class="crm-i fa-plus-circle"></i>
-    {{:: ts('Add Unit') }}
-  </a>
-</div>
-  <crm-search-display-table search-name="Units" display-name="Units_Table_1_1" filters="{'Unit_PropertyUnit_unit_id_01_PropertyUnit_Property_property_id_01.id': routeParams.pid}"></crm-search-display-table>
+<div class="tab-content">
+  <div class="contents">
+    <div af-fieldset="" af-title="Owners">
+      <crm-search-display-table search-name="Owners" display-name="Owners" filters="{'PropertyOwner_Property_property_id_01.id': routeParams.pid}"></crm-search-display-table>
+    </div>
+  </div>
+  <div class="contents">
+    <div af-fieldset="" af-title="Units">
+      <div class="btn-group">
+        <a class="btn btn-primary crm-popup" ng-href="{{ crmUrl('civicrm/unit/form?', {reset: 1, action: 'add', context: 'create', pid: routeParams.pid}) }}">
+          <i class="crm-i fa-plus-circle"></i>
+          {{:: ts('Add Unit') }}
+        </a>
+      </div>
+      <crm-search-display-table search-name="Units" display-name="Units_Table_1_1" filters="{'property_id': routeParams.pid}"></crm-search-display-table>
+    </div>
+  </div>
 </div>
 <script>
+  jQuery(document).ready(function ($) {
+    const tabTitles = document.querySelectorAll(".tab-titles > a");
+    const tabContent = document.querySelectorAll(".tab-content .contents");
+
+    $(tabContent[0]).show();
+    document.getElementsByTagName("h1")[0].innerHTML = '';
+    $('.breadcrumb').hide();
+
+    tabTitles.forEach((item, index) => {
+      item.addEventListener("click", function (e) {
+        $(item).siblings().removeClass("active");
+        item.classList.add("active");
+        $(tabContent[index]).siblings().hide();
+        $(tabContent[index]).show();
+      });
+    });
+  });
 </script>

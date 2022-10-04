@@ -1,13 +1,15 @@
 <?php
 
 use CRM_Biaproperty_ExtensionUtil as E;
+use Civi\Api4\PropertyOwner;
+use Civi\Api4\Unit;
 
 /**
  * Form controller class
  *
  * @see https://docs.civicrm.org/dev/en/latest/framework/quickform/
  */
-class CRM_BiaProperty_Form_Property extends CRM_Core_Form {
+class CRM_Biaproperty_Form_Property extends CRM_Core_Form {
 
   protected $_id;
 
@@ -46,13 +48,15 @@ class CRM_BiaProperty_Form_Property extends CRM_Core_Form {
     CRM_Utils_System::setTitle('Add Property');
     if ($this->_id) {
       CRM_Utils_System::setTitle('Edit Property');
-      $entities = civicrm_api4('Property', 'get', ['where' => [['id', '=', $this->_id]], 'limit' => 1]);
-      $this->_property = reset($entities);
+      $entities = civicrm_api4('Property', 'get', ['where' => [['id', '=', $this->_id]], 'limit' => 1])->first();
+      $this->_property = $entities;
 
       $this->assign('property', $this->_property);
 
-      $session = CRM_Core_Session::singleton();
-      $session->replaceUserContext(CRM_Utils_System::url('civicrm/property/form', ['id' => $this->getEntityId(), 'action' => 'update']));
+      if ($this->_action != CRM_Core_Action::DELETE) {
+        $session = CRM_Core_Session::singleton();
+        $session->replaceUserContext(CRM_Utils_System::url('civicrm/property/form', ['id' => $this->getEntityId(), 'action' => 'update']));
+      }
     }
   }
 
@@ -62,18 +66,23 @@ class CRM_BiaProperty_Form_Property extends CRM_Core_Form {
     $this->add('hidden', 'id');
     if ($this->_action != CRM_Core_Action::DELETE) {
       $elements = [
-        'address_name' => 'Property Name',
+        'name' => 'Property Name',
         'roll_no' => 'Roll #',
-        'street_address' => 'Address',
-        'supplemental_address_1' => 'Supplemental Address',
-        'city' => 'City',
-        'postal_code' => 'Postal Code',
-        'country_id' => 'Country',
-        'state_province_id' => 'State/Province',
-        'is_voter' => 'Vote?',
+        'property_address' => 'Tax Roll Address'
       ];
-      if (empty($this->_oid)) {
-        unset($elements['is_voter']);
+      if (!$this->_id) {
+        $elements = array_merge($elements, [
+          'street_address' => 'Address',
+          'supplemental_address_1' => 'Supplemental Address',
+          'city' => 'City',
+          'postal_code' => 'Postal Code',
+          'country_id' => 'Country',
+          'state_province_id' => 'State/Province',
+        ]);
+      }
+
+      if (!empty($this->_oid)) {
+        $elements['is_voter'] = 'Vote?';
       }
       foreach ($elements as $element => $label) {
         if ($element == 'country_id') {
@@ -86,20 +95,28 @@ class CRM_BiaProperty_Form_Property extends CRM_Core_Form {
           $this->addChainSelect($element, ['label' => E::ts($label)]);
         }
         else {
-          $this->add('text', $element, E::ts($label));
+          $required = in_array($element, ['street_address', 'roll_no', 'property_address']);
+          $this->add('text', $element, E::ts($label), NULL, $required);
         }
       }
-
       $this->assign('elements', $elements);
 
       $this->addButtons([
         [
           'type' => 'upload',
-          'name' => E::ts('Submit'),
+          'name' => $this->_id ? E::ts('Update') : E::ts('Submit'),
           'isDefault' => TRUE,
         ],
+        [
+          'type' => 'cancel',
+          'name' => E::ts('Cancel'),
+        ],
       ]);
-    } else {
+    }
+    else {
+      CRM_Utils_System::setTitle('Delete Property');
+      $title = (!empty($this->_property['name'])) ? $this->_property['name'] . ' - ' . $this->_property['property_address'] : $this->_property['property_address'];
+      $this->assign('title', $title);
       $this->addButtons([
         ['type' => 'submit', 'name' => E::ts('Delete'), 'isDefault' => TRUE],
         ['type' => 'cancel', 'name' => E::ts('Cancel')]
@@ -116,20 +133,19 @@ class CRM_BiaProperty_Form_Property extends CRM_Core_Form {
    *   reference to the array of default values
    */
   public function setDefaultValues() {
+    $defaults = [];
     if ($this->_property) {
-      $address = \Civi\Api4\Address::get(FALSE)
-        ->addWhere('id', '=', $this->_property['address_id'])
-        ->execute()->first();
-      $defaults = $address;
+      $defaults = $this->_property;
       if ($this->_oid) {
-      $defaults['is_voter'] = \Civi\Api4\PropertyOwner::get(FALSE)
-        ->addSelect('is_voter')
-        ->addWhere('property_id', '=', $this->_id)
-        ->addWhere('owner_id', '=', $this->_oid)
-        ->execute()->first()['is_voter'];
+        $defaults['is_voter'] = PropertyOwner::get(FALSE)
+          ->addSelect('is_voter')
+          ->addWhere('property_id', '=', $this->_id)
+          ->addWhere('owner_id', '=', $this->_oid)
+          ->execute()->first()['is_voter'];
       }
     }
     else {
+     $defaults['is_voter'] = 1;
      $defaults['country_id'] = CRM_Core_Config::singleton()->defaultContactCountry;
      $defaults['state_province_id'] = CRM_Core_Config::singleton()->defaultContactStateProvince;
     }
@@ -138,45 +154,78 @@ class CRM_BiaProperty_Form_Property extends CRM_Core_Form {
 
   public function postProcess() {
     if ($this->_action == CRM_Core_Action::DELETE) {
+      $units = Unit::get(FALSE)->addWhere('property_id', '=', $this->_id)->execute();
+      foreach ($units as $unit) {
+        // not able to execute due to foreign key constraint error, commented out for now
+        civicrm_api4('Address', 'delete', ['where' => [['id', '=', $unit['address_id']]]]);
+        civicrm_api4('Unit', 'delete', ['where' => [['id', '=', $unit['id']]]]);
+      }
       civicrm_api4('Property', 'delete', ['where' => [['id', '=', $this->_id]]]);
       CRM_Core_Session::setStatus(E::ts('Removed Property'), E::ts('Property'), 'success');
-    } else {
+    }
+    else {
       $values = $this->controller->exportValues();
-      $params = [];
-      if ($this->getEntityId()) {
-        // Update the address.
-        $addressId = \Civi\Api4\Property::get()
-          ->addSelect('address_id')
-          ->addWhere('id', '=', $this->getEntityId())
-          ->execute()->first()[0]['address_id'];
-        $values['id'] = $addressId;
-        $address = civicrm_api4('Address', 'update', [
-          'values' => $values,
-        ])->first()['id'];
-        $params['id'] = $this->getEntityId();
-        $params['address_id'] = $address;
-        $action = 'update';
+      $params = $unitParams = [];
+      foreach (['name', 'property_address', 'roll_no'] as $element) {
+        if (!empty($values[$element])) {
+          $params[$element] = $values[$element];
+        }
+        else {
+          $params[$element] = '';
+        }
       }
-      else {
+
+      if (!$this->getEntityId()) {
         unset($values['id']);
         $action = 'create';
         $address = civicrm_api4('Address', 'create', [
-          'values' => $values,
+          'values' => [
+            'street_address' => $values['street_address'],
+            'postal_code' => $values['postal_code'],
+            'city' => $values['city'],
+            'country_id' => $values['country_id'],
+            'state_province_id' => $values['state_province_id'],
+          ],
         ])->first()['id'];
-        $params['address_id'] = $address;
-        $params['roll_no'] = $values['roll_no'];
+        $unitParams['address_id'] = $address;
         $params['created_id'] = CRM_Core_Session::singleton()->getLoggedInContactID();
+        $params['city'] = $values['city'];
+        $params['postal_code'] = $values['postal_code'];
       }
-      $propertyID = civicrm_api4('Property', $action, [
-        'values' => $params,
-      ])->first()['id'];
+      else {
+        $action = 'update';
+      }
+      $apiParams = ['values' => $params];
+      if ($action == 'update') {
+        $apiParams['where'] = [];
+        $apiParams['where'][] = ['id', '=', $this->_id];
+      }
+
+      $propertyID = civicrm_api4('Property', $action, $apiParams)->first()['id'];
+
+      if (!$this->getEntityId()) {
+        $unitParams['property_id'] = $propertyID;
+        $unitParams['unit_status'] = 2;
+        civicrm_api4('Unit', 'create', [
+          'values' => $unitParams,
+        ]);
+      }
+
       if (!empty($this->_oid)) {
-      \Civi\Api4\PropertyOwner::create(FALSE)
-        ->addValue('property_id', $propertyID)
-        ->addValue('owner_id', $this->_oid)
-        ->addValue('is_voter', $values['is_voter'])
-        ->execute();
+        $propetyOwnerCheck = PropertyOwner::get()->addWhere('property_id', '=', $propertyID)->execute();
+        // If there is no other owners set ensure that this owner is set to be the voter
+        $vote = count($propertyOwnerCheck) == 0 ? 1 : $values['is_voter'];
+        PropertyOwner::create(FALSE)
+          ->addValue('property_id', $propertyID)
+          ->addValue('owner_id', $this->_oid)
+          ->addValue('is_voter', $vote)
+          ->execute();
       }
+
+      $property = CRM_Core_DAO::executeQuery("SELECT name, property_address FROM civicrm_property p WHERE p.id = " . $propertyID)->fetchAll()[0];
+      $this->ajaxResponse['label'] = $title = (!empty($property['name'])) ? $property['name'] . ' - ' . $property['property_address'] : $property['property_address'];
+      $this->ajaxResponse['id'] = $propertyID;
+//      CRM_Utils_System::redirect(CRM_Utils_System::url('/civicrm/biaunits#?pid=' . $this->_id . '&title=' . $title));
     }
     parent::postProcess();
   }

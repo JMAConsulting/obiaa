@@ -22,17 +22,6 @@
   </primaryKey>
 
   <field>
-    <name>unit_no</name>
-    <type>varchar</type>
-    <comment>Unit #</comment>
-    <length>255</length>
-    <required>false</required>
-    <html>
-      <type>Number</type>
-    </html>
-  </field>
-
-  <field>
     <name>unit_size</name>
     <type>decimal</type>
     <comment>Unit Size</comment>
@@ -107,5 +96,40 @@
       <type>Text</type>
     </html>
   </field>
+  <field>
+    <name>address_id</name>
+    <type>int unsigned</type>
+    <comment>FK to Address</comment>
+    <html>
+      <type>EntityRef</type>
+    </html>
+  </field>
+  <foreignKey>
+    <name>address_id</name>
+    <table>civicrm_address</table>
+    <key>id</key>
+    <onDelete>SET NULL</onDelete>
+  </foreignKey>
+
+  <index>
+    <name>UI_address_id</name>
+    <fieldName>address_id</fieldName>
+    <unique>true</unique>
+  </index>
+  <field>
+    <name>property_id</name>
+    <type>int unsigned</type>
+    <comment>FK to civicrm_property</comment>
+    <required>true</required>
+    <html>
+      <type>EntityRef</type>
+    </html>
+  </field>
+  <foreignKey>
+    <name>property_id</name>
+    <table>civicrm_property</table>
+    <key>id</key>
+    <onDelete>CASCADE</onDelete>
+  </foreignKey>
 
 </table>

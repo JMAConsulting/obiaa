@@ -1,0 +1,30 @@
+:root {
+  --primary: #008fc9;
+  --primary-light: #65b2e4;
+  --secondary: #141414;
+  --dark: #141414;
+  --white: #ffffff;
+  --black: #000;
+}
+
+legend {
+  width: 100% !important;
+}
+
+.crm-container .crm-submit-buttons button,
+.crm-container .crm-submit-buttons input[type="submit"] {
+  background-color: var(--primary);
+  color: var(--white);
+  padding: 10px 20px;
+  border: none;
+  height: auto;
+}
+
+.crm-container .crm-submit-buttons button:hover,
+.crm-container .crm-submit-buttons button:active,
+.crm-container .crm-submit-buttons button:focus,
+.crm-container .crm-submit-buttons input[type="submit"]:hover,
+.crm-container .crm-submit-buttons input[type="submit"]:active,
+.crm-container .crm-submit-buttons input[type="submit"]:focus {
+  background-color: var(--secondary);
+}
