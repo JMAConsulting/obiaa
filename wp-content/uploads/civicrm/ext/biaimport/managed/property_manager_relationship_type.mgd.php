@@ -1,5 +1,6 @@
 <?php
 use CRM_Biaimport_ExtensionUtil as E;
+
 if (defined('CIVICRM_TEST')) {
   return [
     [

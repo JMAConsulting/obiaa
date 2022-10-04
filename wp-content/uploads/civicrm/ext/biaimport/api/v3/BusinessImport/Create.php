@@ -249,6 +249,8 @@ function civicrm_api3_business_import_Create($params) {
     ->addWhere('address.street_unit', '=', $params['property_unit'])
     ->addWhere('property_id', '=', $property['id'])
     ->execute()->first();
+  // If no unit status is provided set it to be unavailable for rent.
+  $params['unit_status'] = !empty($params['unit_status']) ? $params['unit_status'] : 'Vacant (unavailable for rent and/or derelict)';
   $unitStatus = OptionValue::get(FALSE)->addWhere('option_group_id:name', '=', $optionGroups['unit_status'])->addWhere('label', '=', $params['unit_status'])->execute()->first()['value'];
   if (empty($unit)) {
     // Ok no unit record found lt us create it.
