@@ -182,7 +182,7 @@ class Groups_Sync {
             'role' =>  get_option('default_role'),
           ];
 	  $user_id = wp_insert_user($user_data);
-	  wp_new_user_notification($user_id, '', 'user');
+          wp_new_user_notification($user_id, '', 'user');
 	  }
 	  else {
             $user_id = $wpUser->ID;
