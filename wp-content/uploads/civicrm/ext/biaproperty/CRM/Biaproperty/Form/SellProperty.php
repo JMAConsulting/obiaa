@@ -133,13 +133,6 @@ class CRM_Biaproperty_Form_SellProperty extends CRM_Core_Form {
             PropertyOwner::delete(FALSE)
               ->addWhere('id', '=', $propertyOwner['id'])
               ->execute();
-            $contactSubTypes = Contact::get(FALSE)->addWhere('id', '=', $this->_cid)->execute()->first()['contact_sub_type'] ?? [];
-            $key = array_search('Members_Property_Owners_', $contactSubTypes);
-            unset($contactSubTypes[$key]);
-            Contact::update(FALSE)
-              ->addValue('contact_sub_type', $contactSubTypes)
-              ->addWhere('id', '=', $this->_cid)
-              ->execute();
             $targetContactID = $this->_cid;
             $sourceRecordID = $propertyOwner['id'];
           }
@@ -161,6 +154,16 @@ class CRM_Biaproperty_Form_SellProperty extends CRM_Core_Form {
         }
       }
     }
+
+   if (PropertyOwner::get(FALSE)->addWhere('owner_id', '=', $this->_cid)->execute()->count() == 0) {
+     $contactSubTypes = Contact::get(FALSE)->addWhere('id', '=', $this->_cid)->execute()->first()['contact_sub_type'] ?? [];
+     $key = array_search('Members_Property_Owners_', $contactSubTypes);
+     unset($contactSubTypes[$key]);
+     Contact::update(FALSE)
+        ->addValue('contact_sub_type', $contactSubTypes)
+        ->addWhere('id', '=', $this->_cid)
+        ->execute();
+   }
 
     Activity::create(FALSE)
       ->addValue('activity_type_id:name', 'Property sold')

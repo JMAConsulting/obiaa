@@ -11,35 +11,45 @@ class CRM_Biaproperty_Utils {
 
   public static function closeBusiness() {
     $bid = CRM_Utils_Type::escape($_GET['bid'], 'Positive');
+    $uid = CRM_Utils_Type::escape($_GET['uid'], 'Positive');
     if (!$bid) {
       CRM_Core_Error::statusBounce(ts('Missing contact ID'));
     }
     $entries = UnitBusiness::get(FALSE)
-        ->addSelect('id')
+        ->addSelect('id', 'unit_id', 'address.*')
+        ->addJoin('Unit AS unit', 'LEFT', ['unit_id', '=', 'unit.id'])
+        ->addJoin('Address AS address', 'LEFT', ['unit.address_id', '=', 'address.id'])
         ->addWhere('business_id', '=', $bid)
         ->execute();
+
     foreach ($entries as $entry) {
+      if ($uid && $entry['unit_id'] != $uid) { continue; }
       UnitBusiness::delete(FALSE)
       ->addWhere('id', '=', $entry['id'])
       ->execute();
+
+      Activity::create(FALSE)
+        ->addValue('activity_type_id:name', 'Business closed')
+        ->addValue('target_contact_id', $bid)
+        ->addValue('assignee_contact_id', $bid)
+        ->addValue('source_contact_id', CRM_Core_Session::getLoggedInContactID())
+        ->addValue('status_id:name', 'Completed')
+        ->addValue('subject', 'Business closed')
+        ->addValue('details', 'Business closed at Unit - ' . (!empty($entry['address.street_unit']) ? '#' . $entry['address.street_unit'] . ', ' : '') . $entry['address.street_address'] . ')')
+        ->execute();
     }
-    $cts = Contact::get(FALSE)
-      ->addSelect('contact_sub_type:name')
-      ->addWhere('id', '=', $cid)
-      ->execute()->first()['contact_sub_type:name'];
-    unset($cts[array_search('Members_Businesses_', $ct)]);
-    Contact::update(FALSE)
-      ->addValue('id', $bid)
-      ->addValue('contact_sub_type', $cts)
-      ->execute();
-    Activity::create(FALSE)
-      ->addValue('activity_type_id:name', 'Business closed')
-      ->addValue('target_contact_id', $bid)
-      ->addValue('assignee_contact_id', $bid)
-      ->addValue('source_contact_id', CRM_Core_Session::getLoggedInContactID())
-      ->addValue('status_id:name', 'Completed')
-      ->addValue('subject', 'Business closed')
-      ->execute();
+
+    if (UnitBusiness::get(FALSE)->addWhere('business_id', '=', $bid)->execute()->count() == 0) {
+      $cts = Contact::get(FALSE)
+        ->addSelect('contact_sub_type:name')
+        ->addWhere('id', '=', $cid)
+        ->execute()->first()['contact_sub_type:name'];
+      unset($cts[array_search('Members_Businesses_', $ct)]);
+      Contact::update(FALSE)
+        ->addValue('id', $bid)
+        ->addValue('contact_sub_type', $cts)
+        ->execute();
+    }
     CRM_Core_Session::setStatus(ts('Business closed successfully'), ts('Business closed'), 'success');
     CRM_Utils_System::redirect(CRM_Utils_System::url('civicrm/contact/view', 'cid=' . $bid));
   }

@@ -108,26 +108,12 @@ class CRM_Biaproperty_Form_ExistingProperty extends CRM_Core_Form {
           ->execute()->first();
       $subTypes = (array) $contact['contact_sub_type'];
       $contactType = $contact['contact_type'];
-
       $contactUpdate = \Civi\Api4\Contact::update()->addWhere('id', '=', $this->_oid);
       if (!in_array('Members_Property_Owners_', $subTypes)) {
         $subTypes[] = 'Members_Property_Owners_';
-        $contactUpdate->addValue('contact_sub_type', $subtypes);
+        $contactUpdate->addValue('contact_sub_type', $subTypes);
+        $contactUpdate->execute();
       }
-      if ($contactType == 'Individual') {
-        $contactUpdate->addValue('contact_sub_type', ['Members_Businesses_']);
-        $contactUpdate->addValue('organization_name', $contact['display_name']);
-        \Civi\Api4\Activity::create(FALSE)
-          ->addValue('activity_type_id:name', 'Contact type changed')
-          ->addValue('target_contact_id', $this->_oid)
-          ->addValue('assignee_contact_id', $this->_oid)
-          ->addValue('source_contact_id', CRM_Core_Session::getLoggedInContactID())
-          ->addValue('status_id:name', 'Completed')
-          ->addValue('subject', 'Business contact type changed from Individual to Organization')
-          ->execute();
-      }
-
-      $contactUpdate->execute();
     }
 
     if (!empty($values['is_voter']) && $values['is_voter'] == 1) {
@@ -135,11 +121,10 @@ class CRM_Biaproperty_Form_ExistingProperty extends CRM_Core_Form {
       CRM_Core_DAO::executeQuery('UPDATE civicrm_property_owner SET is_voter = 0 WHERE is_voter = 1 AND property_id = ' . $values['property_id']);
     }
     else {
-      $propetyOwnerCheck = \Civi\Api4\PropertyOwner::get()->addWhere('property_id', '=', $values['property_id'])->execute();
+      $propetyOwnerCheck = \Civi\Api4\PropertyOwner::get()->addWhere('property_id', '=', $values['property_id'])->execute()->count();
       // If there is no other owners set ensure that this owner is set to be the voter
-      $values['is_voter'] = count($propertyOwnerCheck) == 0 ? 1 : $values['is_voter'];
+      $values['is_voter'] = $propertyOwnerCheck === 0 ? 1 : $values['is_voter'];
     }
-
     \Civi\Api4\PropertyOwner::create(FALSE)
       ->addValue('property_id', $values['property_id'])
       ->addValue('owner_id', $this->_oid)

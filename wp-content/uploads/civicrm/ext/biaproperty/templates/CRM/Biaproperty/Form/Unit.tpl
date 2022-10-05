@@ -3,7 +3,7 @@
   {* Are you sure to delete form *}
   <h3>{ts}Delete Entity{/ts}</h3>
   <div class="crm-block crm-form-block">
-    <div class="crm-section">{ts}Are you sure you wish to delete this property?{/ts}</div>
+    <div class="crm-section">{ts}Are you sure you wish to delete this unit?{/ts}</div>
   </div>
 
   <div class="crm-submit-buttons">
@@ -31,6 +31,9 @@
   <script type="text/javascript">
     {literal}
       (function($) {
+        if ($('#unit_status').attr('type') == 'hidden') {
+           $('#unit_status').parent().parent().parent().hide();
+        }
         $('#address_id').on('change', function(e) {
           if ($('#edit-unit-address').length != -1) {
              $('#edit-unit-address').attr('href', CRM.url('civicrm/unit-address', 'reset=1&id=' + $(this).val()));

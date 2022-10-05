@@ -50,6 +50,12 @@ class CRM_Biaproperty_Form_AddBuisness extends CRM_Core_Form {
       if (!$this->_changeTitle && !empty($this->_bid) && $status == 1) {
         CRM_Utils_System::redirect(CRM_Utils_System::url('civicrm/contact/view',  ['reset' => 1, 'cid' => $this->_bid, 'selectedChild' => 'afsearchUnit1']));
       }
+      if (!empty($this->_bid)) {
+        $subTypes = Contact::get(FALSE)->addSelect('contact_sub_type:label')->addWhere('id', '=', $this->_bid)->execute()->first()['contact_sub_type:label'];
+        if (in_array('BIA Staff', $subTypes) || in_array('Government Staff/Member', $subTypes)) {
+          CRM_Core_Error::statusBounce(E::ts('You cannot choose business contact of type Staff or Government Staff/Member'));
+        }
+      }
 
       $this->assign('action', $this->_action);
       $this->addFormRule([__CLASS__, 'formRule'], $this);
@@ -71,6 +77,13 @@ class CRM_Biaproperty_Form_AddBuisness extends CRM_Core_Form {
           $errors['unit_id'] = E::ts('Chosen contact already has a business at given property\'s unit. Please choose a different unit.');
         }
       }
+      if (!empty($fields['business_id'])) {
+         $subTypes = Contact::get(FALSE)->addSelect('contact_sub_type:label')->addWhere('id', '=', $fields['business_id'])->execute()->first()['contact_sub_type:label'];
+         if (in_array('BIA Staff', $subTypes) || in_array('Government Staff/Member', $subTypes)) {
+           $errors['business_id'] = E::ts('You cannot choose business contact of type Staff or Government Staff/Member');
+         }
+      }
+
       return $errors;
     }
 
@@ -79,7 +92,7 @@ class CRM_Biaproperty_Form_AddBuisness extends CRM_Core_Form {
       $defaults = [];
       if ($this->_changeTitle && $this->_bid) {
         $unitBusinesses = UnitBusiness::get(FALSE)
-          ->addSelect('id', 'address_id.street_unit', 'address_id.street_address', 'unit_id')
+          ->addSelect('id', 'address.*')
           ->addJoin('Unit AS unit', 'INNER', ['unit_id', '=', 'unit.id'])
           ->addJoin('Address AS address', 'INNER', ['unit.address_id', '=', 'address.id'])
           ->addWhere('business_id', '=', $this->_bid)
@@ -112,17 +125,15 @@ class CRM_Biaproperty_Form_AddBuisness extends CRM_Core_Form {
         'data-callback' => 'civicrm/ajax/jqUnit',
       ];
       $unitElement = $this->add('select', 'unit_id', E::ts('Unit #'), NULL, TRUE, $params);
-      $businessElement = $this->addEntityRef('business_id', E::ts('Business'), ['placeholder' => '- Select Business -', 'create' => TRUE, 'api' => [
-        'params' => ['contact_type' => 'Organization'],
-      ]], empty($this->_bid));
+      $businessElement = $this->addEntityRef('business_id', E::ts('Business'), ['placeholder' => '- Select Business -', 'create' => TRUE], empty($this->_bid));
       if (!empty($this->_uid) && !$this->_changeTitle) {
         $unit = Unit::get(FALSE)
           ->addSelect('address_id.street_address', 'address_id.street_unit', 'property_id')
           ->addWhere('id', '=', $this->_uid)
           ->execute()->first();
         $this->getElement('unit_id')->addOption(!empty($unit['address_id.street_unit']) ? '#' . $unit['address_id.street_unit'] . ' - ' . $unit['address_id.street_address'] : $unit['address_id.street_address'], $this->_uid);
-	$defaults['unit_id'] = $this->_uid;
-	$defaults['property_id'] = $unit['property_id'];
+        $defaults['unit_id'] = $this->_uid;
+        $defaults['property_id'] = $unit['property_id'];
       }
       if (!empty($this->_bid)) {
         $defaults['business_id'] = $this->_bid;
@@ -132,7 +143,7 @@ class CRM_Biaproperty_Form_AddBuisness extends CRM_Core_Form {
       // if we have a business id we are either moving or looking for a unit to add this business to it.
       if (!empty($this->_bid)) {
         $businessElement->freeze();
-	$hideBusinessField = 'true';
+        $hideBusinessField = 'true';
       }
       elseif (!empty($this->_uid)) {
         // ok we have come from the unit listing and are linking a vacant unit to a business.

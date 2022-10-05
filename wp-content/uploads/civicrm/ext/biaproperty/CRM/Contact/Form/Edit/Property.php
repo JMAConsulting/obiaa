@@ -65,7 +65,7 @@ class CRM_Contact_Form_Edit_Property extends CRM_Core_Form {
         ->execute()
         ->count();
         if ($count == 0) {
-          $errors['is_voter'] = ts('For \'Vote?\' please select Yes');
+          $errors['is_voter'] = ts('Since you have created a new property, please select "Yes". You can change the voting member later when you add other property owners');
         }
       }
 

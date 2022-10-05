@@ -6,6 +6,7 @@ use Civi\Api4\Property;
 use Civi\Api4\UnitBusiness;
 use Civi\Api4\Unit;
 use Civi\Api4\Activity;
+use Civi\Api4\Contact;
 
 /**
  * Form controller class
@@ -86,16 +87,28 @@ class CRM_Biaproperty_Form_Unit extends CRM_Core_Form {
         $session->replaceUserContext(CRM_Utils_System::url('civicrm/unit/form', ['id' => $this->getEntityId(), 'action' => 'update']));
       }
     }
+
+    if (!empty($this->_bid)) {
+      $subTypes = Contact::get(FALSE)->addSelect('contact_sub_type:label')->addWhere('id', '=', $this->_bid)->execute()->first()['contact_sub_type:label'];
+      if (in_array('BIA Staff', $subTypes) || in_array('Government Staff/Member', $subTypes)) {
+        CRM_Core_Error::statusBounce(E::ts('You cannot choose business contact of type Staff or Government Staff/Member'));
+      }
+    }
   }
 
 
   public function buildQuickForm() {
+    if ($this->_pid && $this->_action == CRM_Core_Action::DELETE) {
+      if (Unit::get(FALSE)->addWhere('property_id', '=', $this->_pid)->execute()->count() == 1) {
+        CRM_Core_Error::statusBounce(E::ts('You cannot delete this sole property unit.'));
+      }
+    }
     $this->assign('id', $this->getEntityId());
     $this->add('hidden', 'id');
     $this->assign('propertyID', $this->_pid);
     $this->assign('addressAutocomplete', TRUE);
     $addressElements = [];
-    if ($this->_pid >= 0) {
+    if ($this->_pid >= 0 && $this->_action != CRM_Core_Action::DELETE) {
       $element = $this->addEntityRef('property_id',  E::ts('Property'), [
         'create' => TRUE,
         'entity' => 'Property',
@@ -154,9 +167,7 @@ class CRM_Biaproperty_Form_Unit extends CRM_Core_Form {
           continue;
         }
         elseif ($element == 'business_id') {
-          $element = $this->addEntityRef($element, $label, ['placeholder' => '- Select Business -', 'create' => TRUE, 'multiple' => TRUE, 'api' => [
-            'params' => ['contact_type' => 'Organization'],
-      	  ]]);
+          $element = $this->addEntityRef($element, $label, ['placeholder' => '- Select Business -', 'create' => TRUE, 'multiple' => TRUE]);
           if ($this->_pid == 0 && $this->_bid) {$element->freeze();}
           continue;
         }
@@ -170,10 +181,11 @@ class CRM_Biaproperty_Form_Unit extends CRM_Core_Form {
         $required = (in_array($element, ['unit_status']));
         $ele = $this->addField($element, array_merge(['label' => $label], $attr), $required, FALSE);
         // if we are only creating new unit, then set status to 'Vacant (available for rent)'
-        if ($element == 'unit_status' && $this->_bid === 0) {
+        if ($element == 'unit_status' && ($this->_bid === 0 || empty($this->_id))) {
           $this->setDefaults(['unit_status' => 2]);
           $ele->freeze();
         }
+        elseif (empty($this->_id) && $element == 'unit_status') {$ele->freeze();}
       }
 
       if (!empty($this->_unit['file.uri'])) {
@@ -242,6 +254,13 @@ class CRM_Biaproperty_Form_Unit extends CRM_Core_Form {
         $errors['street_address'] = E::ts('Unit Address already exists in the database');
       }
     }
+
+    if (!empty($fields['business_id'])) {
+       $subTypes = Contact::get(FALSE)->addSelect('contact_sub_type:label')->addWhere('id', '=', $fields['business_id'])->execute()->first()['contact_sub_type:label'];
+       if (in_array('BIA Staff', $subTypes) || in_array('Government Staff/Member', $subTypes)) {
+         $errors['business_id'] = E::ts('You cannot choose business contact of type Staff or Government Staff/Member');
+       }
+    }
     return $errors;
   }
 
@@ -277,6 +296,7 @@ class CRM_Biaproperty_Form_Unit extends CRM_Core_Form {
 
   public function postProcess() {
     if ($this->_action == CRM_Core_Action::DELETE) {
+      civicrm_api4('Address', 'delete', ['where' => [['id', '=', $this->_unit['address_id']]]]);
       civicrm_api4('Unit', 'delete', ['where' => [['id', '=', $this->_id]]]);
       CRM_Core_Session::setStatus(E::ts('Removed Unit'), E::ts('Unit'), 'success');
     }
