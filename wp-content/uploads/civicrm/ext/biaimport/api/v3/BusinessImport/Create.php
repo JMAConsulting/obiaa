@@ -27,32 +27,26 @@ function _civicrm_api3_business_import_Create_spec(&$spec) {
   ];
   $spec['property_tax_roll_unit'] = [
     'title' => E::ts('Tax Roll Unit'),
-    'api.required' => 1,
     'type' => CRM_Utils_Type::T_STRING,
   ];
   $spec['property_street_address'] = [
     'title' => E::ts('Business Mailing Address'),
-    'api.required' => 1,
     'type' => CRM_Utils_Type::T_STRING,
   ];
   $spec['property_unit'] = [
     'title' => E::ts('Business Mailing Unit/Suite'),
-    'api.required' => 1,
     'type' => CRM_Utils_Type::T_STRING,
   ];
   $spec['unit_size'] = [
     'title' => E::ts('Unit Size (Sq Ft)'),
-    'api.required' => 1,
     'type' => CRM_Utils_Type::T_INT,
   ];
   $spec['unit_price'] = [
     'title' => E::ts('Unit Price per Sq Ft'),
-    'api.required' => 1,
     'type' => CRM_Utils_Type::T_MONEY,
   ];
   $spec['unit_status'] = [
     'title' => E::ts('Unit Status'),
-    'api.required' => 1,
     'type' => CRM_Utils_Type::T_STRING,
   ];
   $spec['unit_location'] = [
@@ -181,6 +175,29 @@ function civicrm_api3_business_import_Create($params) {
   if (empty($property)) {
     throw new \CRM_Core_Exception('Property must be created first');
   }
+  $params['unit_status'] = !empty($params['unit_status']) ? $params['unit_status'] : 'Vacant (unavailable for rent and/or derelict)';
+  $unitStatus = OptionValue::get(FALSE)->addWhere('option_group_id:name', '=', $optionGroups['unit_status'])->addWhere('label', '=', $params['unit_status'])->execute()->first()['value'];
+  if (empty($params['property_street_address']) && (empty($params['property_unit']) || $params['property_unit'] === 'Ghost')) {
+    $addressCheck = Address::get(FALSE)->addWhere('street_address', '=', $params['property_address'])->addWhere('street_unit', 'IS NULL', '')->execute();
+    if (count($addressCheck) == 0) {
+      $unitAddress = Address::create(FALSE)
+        ->addValue('street_address', $params['property_address'])
+        ->addValue('city', $property['city'])
+        ->addValue('postal_code', $property['postal_code'])
+        ->addValue('is_primary', 1)
+        ->execute();
+      $unit = Unit::create(FALSE)
+        ->addValue('property_id', $property['id'])
+        ->addValue('address_id', $unitAddress[0]['id'])
+        ->addValue('unit_status', $unitStatus)
+        ->execute();
+     }
+  }
+  // If for instance we have no organization name, first name etc just move onto the next record.
+  if (empty($params['organization_name']) && empty($params['first_name']) && empty($params['last_name'])) {
+    return;
+  }
+  $unitStreetAddress = empty($params['property_street_address']) ? $params['property_address'] : $params['property_street_address'];
   // Try and Find matching business (member) record.
   $organizationName = !empty($params['organization_name']) ? $params['organization_name'] : $params['first_name'] . '  ' . $params['last_name'];
   $organizationNameFieldDefinition = Contact::getFields(FALSE)->addWhere('name', '=', 'organization_name')->execute()->first();
@@ -194,13 +211,15 @@ function civicrm_api3_business_import_Create($params) {
   ];
   $duplicates = CRM_Contact_BAO_Contact::getDuplicateContacts($dedupeParams, 'Organization');
   // if we have not found a matching business create.
+  $unitOp = empty($params['property_unit']) ? 'IS NULL' : '=';
+  $unitValue = empty($params['property_unit']) ? '' : $params['property_unit'];
   if (count($duplicates) == 0) {
     // Now check for duplicate units
     $units = Unit::get(FALSE)
       ->addJoin('UnitBusiness AS unit_business', 'INNER', ['unit_business.unit_id', '=', 'id'])
       ->addJoin('Address AS address', 'INNER', ['address.id', '=', 'address_id'])
-      ->addWhere('address.street_unit', '=', $params['property_unit'])
-      ->addWhere('address.street_address', '=', $params['property_street_address'])
+      ->addWhere('address.street_unit', $unitOp, $unitValue)
+      ->addWhere('address.street_address', '=', $unitStreetAddress)
       ->addWhere('property_id', '=', $property['id'])
       ->addWhere('unit_business.business_id', 'IS NOT NULL', '')
       ->execute();
@@ -216,8 +235,8 @@ function civicrm_api3_business_import_Create($params) {
       ->addSelect('*')->addSelect('unit_business.*')
       ->addJoin('UnitBusiness AS unit_business', 'INNER', ['unit_business.unit_id', '=', 'id'])
       ->addJoin('Address AS address', 'INNER', ['address.id', '=', 'address_id'])
-      ->addWhere('address.street_unit', '=', $params['property_unit'])
-      ->addWhere('address.street_address', '=', $params['property_street_address'])
+      ->addWhere('address.street_unit', $unitOp, $unitValue)
+      ->addWhere('address.street_address', '=', $unitStreetAddress)
       ->addWhere('property_id', '=', $property['id'])
       ->addWhere('unit_business.business_id', 'IN', $duplicates)
       ->execute();
@@ -230,8 +249,8 @@ function civicrm_api3_business_import_Create($params) {
       $units = Unit::get(FALSE)
         ->addJoin('UnitBusiness AS unit_business', 'INNER', ['unit_business.unit_id', '=', 'id'])
         ->addJoin('Address AS address', 'INNER', ['address.id', '=', 'address_id'])
-        ->addWhere('address.street_unit', '=', $params['property_unit'])
-        ->addWhere('address.street_address', '=', $params['property_street_address'])
+        ->addWhere('address.street_unit', $unitOp, $unitValue)
+        ->addWhere('address.street_address', '=', $unitStreetAddress)
         ->addWhere('property_id', '=', $property['id'])
         ->addWhere('unit_business.business_id', 'IS NOT NULL', '')
         ->execute();
@@ -245,8 +264,8 @@ function civicrm_api3_business_import_Create($params) {
     ->addSelect('*')->addSelect('unit_business.*')
     ->addJoin('UnitBusiness AS unit_business', 'INNER', ['unit_business.unit_id', '=', 'id'])
     ->addJoin('Address AS address', 'INNER', ['address.id', '=', 'address_id'])
-    ->addWhere('address.street_address', '=', $params['property_street_address'])
-    ->addWhere('address.street_unit', '=', $params['property_unit'])
+    ->addWhere('address.street_address', '=', $unitStreetAddress)
+    ->addWhere('address.street_unit', $unitOp, $unitValue)
     ->addWhere('property_id', '=', $property['id'])
     ->execute()->first();
   // If no unit status is provided set it to be unavailable for rent.
@@ -255,8 +274,8 @@ function civicrm_api3_business_import_Create($params) {
   if (empty($unit)) {
     // Ok no unit record found lt us create it.
     $unitAddress = Address::create(FALSE)
-      ->addValue('street_address', $params['property_street_address'])
-      ->addValue('street_unit', $params['property_unit'])
+      ->addValue('street_address', $unitStreetAddress)
+      ->addValue('street_unit', (empty($params['property_unit']) ? NULL : $params['property_unit']))
       ->addValue('city', $property['city'])
       ->addValue('postal_code', $property['postal_code'])
       ->execute()

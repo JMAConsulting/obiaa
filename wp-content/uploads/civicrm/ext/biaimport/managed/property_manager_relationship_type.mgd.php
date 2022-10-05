@@ -1,7 +1,7 @@
 <?php
 use CRM_Biaimport_ExtensionUtil as E;
 
-if (defined('CIVICRM_TEST')) {
+if (CIVICRM_UF === 'UnitTests') {
   return [
     [
       'name' => 'property_onwers_members_contact_type',
