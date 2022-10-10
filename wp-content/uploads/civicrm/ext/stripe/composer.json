@@ -1,0 +1,7 @@
+{
+    "name": "civicrm/stripe",
+    "description": "Stripe Payment Processor",
+    "require": {
+        "stripe/stripe-php": "^7"
+    }
+}
