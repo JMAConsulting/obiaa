@@ -136,6 +136,7 @@ function civicrm_api3_property_owner_import_create($params) {
     $property = Property::create(FALSE)
       ->addValue('roll_no', $params['roll_no'])
       ->addValue('property_address', $params['property_address'])
+      ->addValue('name', $params['property_name'])
       ->addValue('city', $params['city'])
       ->addValue('postal_code', $params['postal_code'])
       ->addValue('created_id', (int) CRM_Core_Session::getLoggedInContactID())
