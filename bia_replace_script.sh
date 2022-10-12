@@ -14,7 +14,7 @@ CIVICRM_CREDS=`wp civicrm sql-connect`
 cat /var/www/obiaa.jmaconsulting.biz/htdocs/obiaa_civicrm_backup.sql | sed -e 's/DEFINER[ ]*=[ ]*[^*]*\*/\*/' | $CIVICRM_CREDS
 echo "UPDATE civicrm_setting SET value = 's:49:\"/var/www/$1/htdocs/wp-load.php\"' WHERE name='wpLoadPhp'" | $CIVICRM_CREDS
 # Replace URLs with the new domain
-wp search-replace 'obiaa.jmaconsulting.biz' $BIA_HOSTNAME
+wp search-replace --all-tables-with-prefix 'obiaa.jmaconsulting.biz' $BIA_HOSTNAME
 wp civicrm api system.flush
 # Remove all contacts that aren't for user accounts or the domain contact
 echo "DELETE FROM civicrm_contact WHERE id NOT IN (SELECT contact_id FROM civicrm_uf_match) AND id NOT IN (SELECT contact_id FROM civicrm_domain)" | $CIVICRM_CREDS
