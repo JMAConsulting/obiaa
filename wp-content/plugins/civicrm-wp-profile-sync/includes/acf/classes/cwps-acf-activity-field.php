@@ -68,7 +68,6 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Field {
 		'source_contact_id' => 'civicrm_activity_creator',
 		'target_contact_id' => 'civicrm_activity_target',
 		'assignee_contact_id' => 'civicrm_activity_assignee',
-		'activity_type_id' => 'select',
 	];
 
 	/**

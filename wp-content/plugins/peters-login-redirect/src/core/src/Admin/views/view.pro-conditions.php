@@ -10,6 +10,9 @@ $pro_conditions = [
         esc_html__('Active User Subscription', 'peters-login-redirect'),
         esc_html__('Active Membership Plan', 'peters-login-redirect')
     ],
+    'ProfilePress'         => [
+        esc_html__('Subscribed Membership Plan', 'peters-login-redirect')
+    ],
     'MemberPress'          => [
         esc_html__('Subscribed Membership', 'peters-login-redirect')
     ],
@@ -20,8 +23,14 @@ $pro_conditions = [
         esc_html__('Enrolled Course', 'peters-login-redirect'),
         esc_html__('Enrolled Membership', 'peters-login-redirect')
     ],
-    'TutorLMS'            => [
+    'TutorLMS'             => [
         esc_html__('Enrolled Course', 'peters-login-redirect')
+    ],
+    'WPML'                 => [
+        esc_html__('Website Current Language', 'peters-login-redirect')
+    ],
+    'Polylang'             => [
+        esc_html__('Website Current Language', 'peters-login-redirect')
     ]
 ];
 ?>

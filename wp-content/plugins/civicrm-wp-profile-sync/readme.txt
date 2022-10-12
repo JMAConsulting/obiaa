@@ -3,9 +3,9 @@ Contributors: needle, cuny-academic-commons, kcristiano, tadpolecc
 Donate link: https://www.paypal.me/interactivist
 Tags: civicrm, user, buddypress, acf, profile, xprofile, sync
 Requires at least: 4.9
-Tested up to: 5.9
+Tested up to: 6.0
 Requires PHP: 7.1
-Stable tag: 0.5.8a
+Stable tag: 0.6.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -85,6 +85,21 @@ I'll say it again: test early, test often and - above all - test on a developmen
 
 
 == Changelog ==
+
+= 0.6.0 =
+
+* Fixes missing fields in Form Actions for ACF Extended Forms.
+
+= 0.5.9 =
+
+* Refines deduping in Contact Action for ACF Extended Forms.
+* Fixes fatal error in Event Action for ACF Extended Forms.
+
+= 0.5.8 =
+
+* Fixes PHP 8 notices
+* Fixes Contact Image uploads
+* Enables basic support for "Advanced Filter" in Contact Ref Fields
 
 = 0.5.7 =
 

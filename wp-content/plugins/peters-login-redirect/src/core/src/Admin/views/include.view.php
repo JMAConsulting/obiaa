@@ -48,7 +48,7 @@ if ( ! defined('LOGINWP_DETACH_LIBSODIUM')) {
     });
 }
 
-do_action('add_meta_boxes', 'ptrloginwpredirection', '');
+do_action('add_meta_boxes', 'ptrloginwpredirection', new WP_Post(new stdClass()));
 
 ?>
 <div style="padding-top: 0">

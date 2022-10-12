@@ -143,8 +143,8 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Custom_Field {
 		// Always register Mapper hooks.
 		$this->register_mapper_hooks();
 
-		// Intercept Post synced from Contact events.
-		add_action( 'cwps/acf/post/contact_sync_to_post', [ $this, 'contact_sync_to_post' ], 10 );
+		// Intercept Post-Contact sync event.
+		add_action( 'cwps/acf/post/contact/sync', [ $this, 'contact_sync_to_post' ], 10 );
 
 		/*
 		// Intercept Post synced from Activity events.
@@ -932,6 +932,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Custom_Field {
 			case 'ContactReference':
 
 				// Test for a numeric value.
+				// phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedIf
 				if ( ! is_numeric( $value ) ) {
 
 					/*
@@ -1953,17 +1954,6 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Custom_Field {
 			return $field;
 		}
 
-		/*
-		$e = new \Exception();
-		$trace = $e->getTraceAsString();
-		error_log( print_r( array(
-			'method' => __METHOD__,
-			'field' => $field,
-			'field_group' => $field_group,
-			//'backtrace' => $trace,
-		), true ) );
-		*/
-
 		// Skip if the CiviCRM Field key isn't there or isn't populated.
 		$key = $this->civicrm->acf_field_key_get();
 		if ( ! array_key_exists( $key, $field ) || empty( $field[ $key ] ) ) {
@@ -1998,18 +1988,6 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Custom_Field {
 	 * @return array $filtered_fields The modified array of filtered Custom Fields.
 	 */
 	public function file_settings_filter( $filtered_fields, $custom_fields, $field ) {
-
-		/*
-		$e = new \Exception();
-		$trace = $e->getTraceAsString();
-		error_log( print_r( array(
-			'method' => __METHOD__,
-			'filtered_fields' => $filtered_fields,
-			//'custom_fields' => $custom_fields,
-			'field' => $field,
-			//'backtrace' => $trace,
-		), true ) );
-		*/
 
 		// Bail early if not our Field Type.
 		if ( 'file' !== $field['type'] ) {

@@ -328,14 +328,30 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 
 		// Build the choices for the Relationship Types.
 		$choices = [];
+		$all = __( 'All Contacts', 'civicrm-wp-profile-sync' );
 		$relationship_types = $this->civicrm->relationship->types_get_all();
 		foreach ( $relationship_types as $relationship ) {
-			if ( $relationship['label_a_b'] !== $relationship['label_b_a'] ) {
-				$choices[ $relationship['contact_type_a'] ][ $relationship['id'] . '_ab' ] = esc_html( $relationship['label_a_b'] );
-				$choices[ $relationship['contact_type_b'] ][ $relationship['id'] . '_ba' ] = esc_html( $relationship['label_b_a'] );
+
+			// If undefined, the Contact Type is "all".
+			if ( empty( $relationship['contact_type_a'] ) ) {
+				$contact_type_a = $all;
 			} else {
-				$choices[ $relationship['contact_type_a'] ][ $relationship['id'] . '_equal' ] = esc_html( $relationship['label_a_b'] );
+				$contact_type_a = $relationship['contact_type_a'];
 			}
+			if ( empty( $relationship['contact_type_b'] ) ) {
+				$contact_type_b = $all;
+			} else {
+				$contact_type_b = $relationship['contact_type_b'];
+			}
+
+			// Now assign to ACF array.
+			if ( $relationship['label_a_b'] !== $relationship['label_b_a'] ) {
+				$choices[ $contact_type_a ][ $relationship['id'] . '_ab' ] = esc_html( $relationship['label_a_b'] );
+				$choices[ $contact_type_b ][ $relationship['id'] . '_ba' ] = esc_html( $relationship['label_b_a'] );
+			} else {
+				$choices[ $contact_type_a ][ $relationship['id'] . '_equal' ] = esc_html( $relationship['label_a_b'] );
+			}
+
 		}
 
 		// Assign to a property.
@@ -376,15 +392,12 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 	 */
 	public function load( $form, $current_post_id, $action ) {
 
-		// Check if this Action is loading values.
-		$autoload_enabled = get_sub_field( $this->field_key . 'autoload_enabled' );
-
-		// Skip if not.
-		if ( ! $autoload_enabled ) {
+		// Skip if this Action is not auto-filling values.
+		if ( ! $this->action_is_autoload() ) {
 			return $form;
 		}
 
-		// Init Contact and Relationships.
+		// Init Contact.
 		$contact = [];
 
 		// Try finding the Contact ID.
@@ -395,12 +408,24 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 			$contact_id = $this->form_contact_id_get_existing( $form, $current_post_id, $action );
 		}
 
-		// Get the Relationships.
-		$relationships = $this->form_relationship_data( $form, $current_post_id, $action, $contact_id );
+		// Parse Relationships.
+		$relationships = [];
+		if ( ! $this->action_is_submitter() ) {
 
-		// Try finding the Contact ID by Relationship.
-		if ( ! $contact_id ) {
-			$contact_id = $this->form_contact_id_get_related( $relationships );
+			// Get the Relationships from the Form data.
+			$relationship_data = $this->form_relationship_data( $form, $current_post_id, $action );
+			if ( ! empty( $relationship_data ) ) {
+
+				// Get the parsed Relationships.
+				$relationships = $this->form_relationship_load( $action, $relationship_data, $contact_id );
+
+				// Try finding the Contact ID by Relationship.
+				if ( ! $contact_id ) {
+					$contact_id = $this->form_contact_id_get_related( $relationships );
+				}
+
+			}
+
 		}
 
 		// Maybe get the Contact.
@@ -497,86 +522,89 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 			}
 		}
 
-		// Get the raw Relationship Actions.
-		$relationship_actions = get_sub_field( $this->field_key . 'relationship_repeater' );
-		if ( ! empty( $relationship_actions ) ) {
-			foreach ( $relationship_actions as $relationship_action ) {
+		// Get the raw Relationship Actions when not loading Submitter.
+		if ( ! $this->action_is_submitter() ) {
+			$relationship_actions = get_sub_field( $this->field_key . 'relationship_repeater' );
+			if ( ! empty( $relationship_actions ) ) {
+				foreach ( $relationship_actions as $relationship_action ) {
 
-				// Try and get the Relationship Record.
-				$relationship = [];
-				foreach ( $relationships as $relationship_data ) {
-					$relationship_type = $relationship_action[ $this->field_name . 'relationship_type' ];
-					$relationship_array = explode( '_', $relationship_type );
-					$type_id = (int) $relationship_array[0];
-					$direction = $relationship_array[1];
-					if ( (int) $relationship_data['relationship_type_id'] !== (int) $type_id ) {
+					// Try and get the Relationship Record.
+					$relationship = [];
+					foreach ( $relationships as $relationship_record ) {
+						$relationship_type = $relationship_action[ $this->field_name . 'relationship_type' ];
+						$relationship_array = explode( '_', $relationship_type );
+						$type_id = (int) $relationship_array[0];
+						$direction = $relationship_array[1];
+						if ( (int) $relationship_record['relationship_type_id'] !== (int) $type_id ) {
+							continue;
+						}
+						$relationship = $relationship_record;
+						break;
+					}
+
+					if ( empty( $relationship ) ) {
 						continue;
 					}
-					$relationship = $relationship_data;
-					break;
-				}
 
-				if ( empty( $relationship ) ) {
-					continue;
-				}
-
-				// Populate the Relationship Fields.
-				foreach ( $this->relationship_fields as $relationship_field ) {
-					$field = $relationship_action[ $this->field_name . 'map_' . $relationship_field['name'] ];
-					$field = acfe_form_map_field_value_load( $field, $current_post_id, $form );
-					if ( acf_is_field_key( $field ) && ! empty( $relationship[ $relationship_field['name'] ] ) ) {
-						$form['map'][ $field ]['value'] = $relationship[ $relationship_field['name'] ];
-					}
-				}
-
-				// Get the Relationship "Is Current Employee" Group.
-				$field_name = 'is_current_employee';
-				$group_field = $relationship_action[ $this->field_name . $field_name . '_group_' . $field_name ];
-
-				// Populate the Relationship "Is Current Employee" Field.
-				$field = $group_field[ $this->field_name . 'map_' . $field_name ];
-				$field = acfe_form_map_field_value_load( $field, $current_post_id, $form );
-				if ( acf_is_field_key( $field ) ) {
-					if ( $this->civicrm->relationship->is_employer_employee( $relationship ) ) {
-						$form['map'][ $field ]['value'] = 1;
-					}
-				}
-
-				// Get the Relationship "Is Current Employer" Group.
-				$field_name = 'is_current_employer';
-				$group_field = $relationship_action[ $this->field_name . $field_name . '_group_' . $field_name ];
-
-				// Populate the Relationship "Is Current Employer" Field.
-				$field = $group_field[ $this->field_name . 'map_' . $field_name ];
-				$field = acfe_form_map_field_value_load( $field, $current_post_id, $form );
-				if ( acf_is_field_key( $field ) ) {
-					if ( $this->civicrm->relationship->is_employer_employee( $relationship ) ) {
-						$form['map'][ $field ]['value'] = 1;
-					}
-				}
-
-				// Handle population of Relationship Custom Fields.
-				foreach ( $this->relationship_custom_fields as $key => $custom_group ) {
-
-					// Get the Group Field.
-					$custom_group_field = $relationship_action[ $this->field_name . 'relationship_custom_group_' . $custom_group['id'] ];
-
-					// Populate the Relationship Custom Fields.
-					foreach ( $custom_group['api.CustomField.get']['values'] as $custom_field ) {
-						$code = 'custom_' . $custom_field['id'];
-						$field = $custom_group_field[ $this->field_name . 'map_' . $code ];
+					// Populate the Relationship Fields.
+					foreach ( $this->relationship_fields as $relationship_field ) {
+						$field = $relationship_action[ $this->field_name . 'map_' . $relationship_field['name'] ];
 						$field = acfe_form_map_field_value_load( $field, $current_post_id, $form );
-						if ( acf_is_field_key( $field ) ) {
-							// Allow (string) "0" as valid data.
-							if ( empty( $relationship[ $code ] ) && $relationship[ $code ] !== '0' ) {
-								continue;
-							}
-							$form['map'][ $field ]['value'] = $relationship[ $code ];
+						if ( acf_is_field_key( $field ) && ! empty( $relationship[ $relationship_field['name'] ] ) ) {
+							$form['map'][ $field ]['value'] = $relationship[ $relationship_field['name'] ];
 						}
 					}
 
-				}
+					// Get the Relationship "Is Current Employee" Group.
+					$field_name = 'is_current_employee';
+					$group_field = $relationship_action[ $this->field_name . $field_name . '_group_' . $field_name ];
 
+					// Populate the Relationship "Is Current Employee" Field.
+					$field = $group_field[ $this->field_name . 'map_' . $field_name ];
+					$field = acfe_form_map_field_value_load( $field, $current_post_id, $form );
+					if ( acf_is_field_key( $field ) ) {
+						if ( $this->civicrm->relationship->is_employer_employee( $relationship ) ) {
+							$form['map'][ $field ]['value'] = 1;
+						}
+					}
+
+					// Get the Relationship "Is Current Employer" Group.
+					$field_name = 'is_current_employer';
+					$group_field = $relationship_action[ $this->field_name . $field_name . '_group_' . $field_name ];
+
+					// Populate the Relationship "Is Current Employer" Field.
+					$field = $group_field[ $this->field_name . 'map_' . $field_name ];
+					$field = acfe_form_map_field_value_load( $field, $current_post_id, $form );
+					if ( acf_is_field_key( $field ) ) {
+						if ( $this->civicrm->relationship->is_employer_employee( $relationship ) ) {
+							$form['map'][ $field ]['value'] = 1;
+						}
+					}
+
+					// Handle population of Relationship Custom Fields.
+					foreach ( $this->relationship_custom_fields as $key => $custom_group ) {
+
+						// Get the Group Field.
+						$group_field_identifier = $this->field_name . 'relationship_custom_group_' . $custom_group['id'];
+						$custom_group_field = $relationship_action[ $group_field_identifier ];
+
+						// Populate the Relationship Custom Fields.
+						foreach ( $custom_group['api.CustomField.get']['values'] as $custom_field ) {
+							$code = 'custom_' . $custom_field['id'];
+							$field = $custom_group_field[ $this->field_name . 'map_' . $code ];
+							$field = acfe_form_map_field_value_load( $field, $current_post_id, $form );
+							if ( acf_is_field_key( $field ) ) {
+								// Allow (string) "0" as valid data.
+								if ( empty( $relationship[ $code ] ) && $relationship[ $code ] !== '0' ) {
+									continue;
+								}
+								$form['map'][ $field ]['value'] = $relationship[ $code ];
+							}
+						}
+
+					}
+
+				}
 			}
 		}
 
@@ -795,14 +823,52 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 			'id' => false,
 		];
 
-		// Populate Contact, Email, Relationship and Custom Field data arrays.
+		// Populate Contact data array.
 		$contact = $this->form_contact_data( $form, $current_post_id, $action );
-		$contact_custom_fields = $this->form_custom_data( $form, $current_post_id, $action );
+
+		// Bail early if the Contact Conditional Reference Field has a value.
+		if ( $this->form_contact_skip( $contact ) ) {
+			// Save an array for the Contact in case of access.
+			$args['contact'] = [ 'id' => false ];
+			// Save the results of this Action for later use.
+			$this->make_action_save( $action, $args );
+			return;
+		}
+
+		// Populate Email and Custom Field data arrays.
 		$emails = $this->form_email_data( $form, $current_post_id, $action );
-		$relationships = $this->form_relationship_data( $form, $current_post_id, $action );
+		$contact_custom_fields = $this->form_custom_data( $form, $current_post_id, $action );
+
+		// Get the Contact ID with the data from the Form.
+		$contact_id = $this->form_contact_id_get( $contact, $emails );
+
+		// Parse Relationships.
+		$relationship_data = [];
+		$relationships = [];
+		if ( ! $this->action_is_submitter() ) {
+			$relationship_data = $this->form_relationship_data( $form, $current_post_id, $action );
+			if ( $this->action_is_autoload() && $this->action_is_autoupdate() ) {
+				$relationships = $this->form_relationship_load( $action, $relationship_data, $contact_id );
+			}
+		}
+
+		// If there's no Contact ID and this is not the "Submitter Contact" Action.
+		if ( empty( $contact_id ) && ! $this->action_is_submitter() ) {
+
+			// Check "Related Contact" only when auto-filling and auto-updating.
+			if ( $this->action_is_autoload() && $this->action_is_autoupdate() ) {
+				$contact_id = $this->form_contact_id_get_related( $relationships );
+			}
+
+		}
+
+		// Maybe add Contact ID.
+		if ( ! empty( $contact_id ) ) {
+			$contact['id'] = $contact_id;
+		}
 
 		// Save the Contact with the data from the Form.
-		$args['contact'] = $this->form_contact_save( $contact, $emails, $relationships, $contact_custom_fields );
+		$args['contact'] = $this->form_contact_save( $contact, $emails, $contact_custom_fields );
 
 		// If we get a Contact.
 		if ( $args['contact'] !== false ) {
@@ -810,9 +876,15 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 			// Post-process Custom Fields now that we have a Contact.
 			$this->form_custom_post_process( $form, $current_post_id, $action, $args['contact'] );
 
-			// Save the Email(s) and Relationship(s).
+			// Save the Email(s).
 			$args['emails'] = $this->form_email_save( $args['contact'], $emails );
-			$args['relationships'] = $this->form_relationship_save( $args['contact'], $relationships );
+
+			// Save the Relationship(s) after assessing parsed Relationship(s).
+			$args['relationships'] = false;
+			if ( ! $this->action_is_submitter() ) {
+				$relationships = $this->form_relationship_compare( $action, $args['contact'], $relationships, $relationship_data );
+				$args['relationships'] = $this->form_relationship_save( $args['contact'], $relationships );
+			}
 
 			// Save the Address(es) with the data from the Form.
 			$addresses = $this->form_address_data( $form, $current_post_id, $action );
@@ -858,6 +930,71 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 
 		// Save the results of this Action for later use.
 		$this->make_action_save( $action, $args );
+
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Checks if this Action is auto-filling values.
+	 *
+	 * @since 0.5.9
+	 *
+	 * @return bool True when auto-fill is enabled, false otherwise.
+	 */
+	public function action_is_autoload() {
+
+		// Check the Field to see if this Action is loading values.
+		$autoload_enabled = get_sub_field( $this->field_key . 'autoload_enabled' );
+		if ( $autoload_enabled ) {
+			return true;
+		} else {
+			return false;
+		}
+
+	}
+
+	/**
+	 * Checks if this Action is updating values for an auto-filled Contact.
+	 *
+	 * When the Action is set to auto-fill, the loaded Contact will be edited -
+	 * unless this Field is set to "Off".
+	 *
+	 * When set to "Off", a new Contact will be created unless Dedupe Rules find
+	 * the Contact to be edited.
+	 *
+	 * @since 0.5.9
+	 *
+	 * @return bool True when autoupdate is enabled, false otherwise.
+	 */
+	public function action_is_autoupdate() {
+
+		// Check the Field to see if this Action is loading values.
+		$autoupdate_enabled = get_sub_field( $this->field_key . 'autoupdate_enabled' );
+		if ( $autoupdate_enabled ) {
+			return true;
+		} else {
+			return false;
+		}
+
+	}
+
+	/**
+	 * Checks if this Action is the "Submitting Contact" Action.
+	 *
+	 * @since 0.5.9
+	 *
+	 * @return bool True when this is the Submitting Contact Action, false otherwise.
+	 */
+	public function action_is_submitter() {
+
+		// Check the Field to see if this Action is the "Submitting Contact" Action.
+		$submitter_contact = get_sub_field( $this->field_key . 'submitting_contact' );
+		if ( $submitter_contact ) {
+			return true;
+		} else {
+			return false;
+		}
 
 	}
 
@@ -1079,6 +1216,44 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 			],
 		];
 
+		// "Auto-update Enabled" Field.
+		$autoupdate_enabled = [
+			[
+				'key' => $this->field_key . 'autoupdate_enabled',
+				'label' => __( 'Update auto-filled Contact', 'civicrm-wp-profile-sync' ),
+				'name' => $this->field_name . 'autoupdate_enabled',
+				'type' => 'true_false',
+				'instructions' => __( 'When auto-filling, the loaded Contact will be edited. Disable to create a new Contact - or let Dedupe Rules find the Contact to be edited.', 'civicrm-wp-profile-sync' ),
+				'required' => 0,
+				'conditional_logic' => [
+					[
+						[
+							'field' => $this->field_key . 'autoload_enabled',
+							'operator' => '==',
+							'value' => '1',
+						],
+						[
+							'field' => $this->field_key . 'submitting_contact',
+							'operator' => '==',
+							'value' => '0',
+						],
+					],
+				],
+				'wrapper' => [
+					'width' => '',
+					'class' => '',
+					'id' => '',
+					'data-instruction-placement' => 'field',
+				],
+				'acfe_permissions' => '',
+				'message' => '',
+				'default_value' => 0,
+				'ui' => 1,
+				'ui_on_text' => '',
+				'ui_off_text' => '',
+			],
+		];
+
 		// Build Contact Details Accordion.
 		$mapping_contact_accordion = $this->tab_mapping_accordion_contact_add();
 
@@ -1119,6 +1294,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 		$fields = array_merge(
 			$mapping_tab_header,
 			$autoload_enabled,
+			$autoupdate_enabled,
 			$mapping_contact_accordion,
 			$mapping_custom_accordion,
 			$mapping_email_accordion,
@@ -3559,23 +3735,35 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 		// Get the Contact.
 		$contact = $this->form_contact_data( $form, $current_post_id, $action );
 
-		// Skip validation if the Contact Conditional Reference Field has a value.
-		if ( ! empty( $contact['contact_conditional_ref'] ) ) {
-			// And the Contact Conditional Field has no value.
-			if ( empty( $contact['contact_conditional'] ) ) {
-				return true;
-			}
+		// Skip if the Contact Conditional Reference Field has a value.
+		if ( $this->form_contact_skip( $contact ) ) {
+			return true;
 		}
 
+		// Get the Emails.
 		$emails = $this->form_email_data( $form, $current_post_id, $action );
-		$relationships = $this->form_relationship_data( $form, $current_post_id, $action );
 
 		// Get the Contact ID with the data from the Form.
-		$contact_id = $this->form_contact_id_get( $contact, $emails, $relationships );
+		$contact_id = $this->form_contact_id_get( $contact, $emails );
 
 		// All's well if we get a Contact ID.
 		if ( ! empty( $contact_id ) ) {
 			return true;
+		}
+
+		// Check "Related Contact" when autoloading, autoupdating and not the "Submitter Contact" Action.
+		if ( $this->action_is_autoload() && $this->action_is_autoupdate() && ! $this->action_is_submitter() ) {
+
+			// Parse Relationships.
+			$relationship_data = $this->form_relationship_data( $form, $current_post_id, $action );
+			$relationships = $this->form_relationship_load( $action, $relationship_data );
+
+			// Okay, try the "Related Contact".
+			$contact_id = $this->form_contact_id_get_related( $relationships );
+			if ( ! empty( $contact_id ) ) {
+				return true;
+			}
+
 		}
 
 		// Check if we have the minimum data necessary to create a Contact.
@@ -3624,31 +3812,47 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 	}
 
 	/**
+	 * Checks if the CiviCRM Contact should be skipped.
+	 *
+	 * This is determined by whether the Contact Action's Conditional Reference
+	 * Field has a non-empty value. If it does, then skip.
+	 *
+	 * @since 0.5.9
+	 *
+	 * @param array $contact_data The array of Contact data.
+	 * @return bool $contact The Contact data array, or false on failure.
+	 */
+	public function form_contact_skip( $contact_data ) {
+
+		// TODO: People may put a value in the contact_conditional Field.
+
+		// Skip if the Contact Conditional Reference Field has a value.
+		if ( ! empty( $contact_data['contact_conditional_ref'] ) ) {
+			// And the Contact Conditional Field has no value.
+			if ( empty( $contact_data['contact_conditional'] ) ) {
+				return true;
+			}
+		}
+
+		// Do not skip.
+		return false;
+
+	}
+
+	/**
 	 * Saves the CiviCRM Contact given data from mapped Fields.
 	 *
 	 * @since 0.5
 	 *
 	 * @param array $contact_data The array of Contact data.
 	 * @param array $email_data The array of Email data.
-	 * @param array $relationship_data The array of Relationship data.
 	 * @param array $custom_data The array of Custom Field data.
 	 * @return array|bool $contact The Contact data array, or false on failure.
 	 */
-	public function form_contact_save( $contact_data, $email_data, $relationship_data, $custom_data ) {
+	public function form_contact_save( $contact_data, $email_data, $custom_data ) {
 
 		// Init return.
 		$contact = false;
-
-		// Skip if the Contact Conditional Reference Field has a value.
-		if ( ! empty( $contact_data['contact_conditional_ref'] ) ) {
-			// And the Contact Conditional Field has no value.
-			if ( empty( $contact_data['contact_conditional'] ) ) {
-				return $contact;
-			}
-		}
-
-		// Get the Contact ID with the data from the Form.
-		$contact_id = $this->form_contact_id_get( $contact_data, $email_data, $relationship_data );
 
 		// Add Custom Field data if present.
 		if ( ! empty( $custom_data ) ) {
@@ -3667,7 +3871,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 		$contact_data = $this->form_data_prepare( $contact_data );
 
 		// Create or update depending on the presence of an ID.
-		if ( $contact_id === false ) {
+		if ( empty( $contact_data['id'] ) ) {
 
 			/*
 			 * Check if we have the minimum data necessary to create a Contact.
@@ -3718,13 +3922,15 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 				return $contact;
 			}
 
+			// If we have a Contact Image we will have the Attachment ID.
+			if ( ! empty( $contact_data['image_URL'] ) ) {
+				$contact_data['image_URL'] = $this->acf_loader->acf->field->image_value_get( $contact_data['image_URL'] );
+			}
+
 			// Okay, we should be good to create the Contact.
 			$result = $this->plugin->civicrm->contact->create( $contact_data );
 
 		} else {
-
-			// Use the Contact ID to update.
-			$contact_data['id'] = $contact_id;
 
 			/*
 			 * We need to ensure any existing Contact Sub-types are retained.
@@ -3766,6 +3972,11 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 
 			}
 
+			// If we have a Contact Image we will have the Attachment ID.
+			if ( ! empty( $contact_data['image_URL'] ) ) {
+				$contact_data['image_URL'] = $this->acf_loader->acf->field->image_value_get( $contact_data['image_URL'] );
+			}
+
 			// Okay, we're good to update now.
 			$result = $this->plugin->civicrm->contact->update( $contact_data );
 
@@ -3797,19 +4008,12 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 	 *
 	 * @param array $contact_data The array of Contact data.
 	 * @param array $email_data The array of Email data.
-	 * @param array $relationship_data The array of Relationship data.
 	 * @return integer|bool $contact_id The numeric ID of the Contact, or false if not found.
 	 */
-	public function form_contact_id_get( $contact_data, $email_data, $relationship_data ) {
+	public function form_contact_id_get( $contact_data, $email_data ) {
 
 		// Init return.
 		$contact_id = false;
-
-		// Try the "Form Submitter".
-		$submitter = $this->form_contact_id_get_submitter();
-		if ( $submitter ) {
-			return $submitter;
-		}
 
 		// Try the "Contact ID" Field.
 		$from_field = $this->form_contact_id_get_from_field( $contact_data );
@@ -3817,16 +4021,16 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 			return $from_field;
 		}
 
-		// Try the "Related Contact".
-		$related = $this->form_contact_id_get_related( $relationship_data );
-		if ( $related ) {
-			return $related;
-		}
-
 		// Try the "Deduped Contact".
 		$deduped = $this->form_contact_id_get_deduped( $contact_data, $email_data );
 		if ( $deduped ) {
 			return $deduped;
+		}
+
+		// Try the "Form Submitter".
+		$submitter = $this->form_contact_id_get_submitter();
+		if ( $submitter ) {
+			return $submitter;
 		}
 
 		// --<
@@ -3846,18 +4050,23 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 		// Init return.
 		$contact_id = false;
 
-		// Check the "Form Submitter" Contact Field.
-		$submitter_contact = get_sub_field( $this->field_key . 'submitting_contact' );
+		// Bail if not "Submitter Contact" Action.
+		if ( ! $this->action_is_submitter() ) {
+			return $contact_id;
+		}
 
-		// Bail if not Submitting Contact Action.
-		if ( ! $submitter_contact ) {
+		// Bail if not auto-filling - we must use Form Fields.
+		if ( ! $this->action_is_autoload() ) {
 			return $contact_id;
 		}
 
 		// First look for a Contact specified by a checksum.
 		$contact_id = $this->civicrm->contact->get_id_by_checksum();
+		if ( ! empty( $contact_id ) ) {
+			return $contact_id;
+		}
 
-		// If there is a logged-in User, prefer their details.
+		// Then look for a logged-in User.
 		if ( is_user_logged_in() ) {
 			$contact_id = $this->civicrm->contact->get_for_current_user();
 		}
@@ -3908,9 +4117,6 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 		// Init return.
 		$contact_id = false;
 
-		// On load, the Form Actions array may already be populated.
-		$alias = get_sub_field( $this->field_key . 'custom_alias' );
-
 		// Get the existing Form Actions.
 		$form_actions = acfe_form_get_actions();
 
@@ -3918,6 +4124,9 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 		if ( empty( $form_actions ) ) {
 			return $contact_id;
 		}
+
+		// On load, the Form Actions array may already be populated.
+		$alias = get_sub_field( $this->field_key . 'custom_alias' );
 
 		// Bail if there's no entry for this alias.
 		if ( ! array_key_exists( $alias, $form_actions ) ) {
@@ -3950,11 +4159,8 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 		// Init return.
 		$contact_id = false;
 
-		// Check the "Form Submitter" Contact Field.
-		$submitter_contact = get_sub_field( $this->field_key . 'submitting_contact' );
-
-		// Bail if Submitting Contact Action.
-		if ( $submitter_contact ) {
+		// Bail if "Submitter Contact" Action.
+		if ( $this->action_is_submitter() ) {
 			return $contact_id;
 		}
 
@@ -4003,7 +4209,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 	}
 
 	/**
-	 * Finds the Contact ID given data from mapped Fields.
+	 * Finds the Contact ID using Dedupe Rules given data from mapped Fields.
 	 *
 	 * @since 0.5
 	 *
@@ -4016,25 +4222,35 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 		// Init return.
 		$contact_id = false;
 
-		// Add the Primary Email.
-		$primary_email = '';
-		foreach ( $email_data as $email_array ) {
-			if ( $email_array['is_primary'] ) {
-				$contact_data['email'] = $email_array['email'];
+		// Dedupe on each available Email.
+		foreach ( $email_data as $email ) {
+
+			// Skip when there's no Email.
+			if ( empty( $email['email'] ) ) {
+				continue;
+			}
+
+			// Make a copy of the Contact data and add Email.
+			$dedupe = $contact_data;
+			$dedupe['email'] = $email['email'];
+
+			// Get the chosen Dedupe Rule.
+			$dedupe_rule_id = get_sub_field( $this->field_key . 'dedupe_rules' );
+
+			// If a Dedupe Rule is selected, use it.
+			if ( ! empty( $dedupe_rule_id ) ) {
+				$contact_id = $this->civicrm->contact->get_by_dedupe_rule( $dedupe, $dedupe['contact_type'], $dedupe_rule_id );
+			} else {
+				// Use the default unsupervised rule.
+				// NOTE: We need the Email Address to use the default unsupervised rule.
+				$contact_id = $this->civicrm->contact->get_by_dedupe_unsupervised( $dedupe, $dedupe['contact_type'] );
+			}
+
+			// Go no further when we get a Contact ID.
+			if ( ! empty( $contact_id ) ) {
 				break;
 			}
-		}
 
-		// Get the chosen Dedupe Rule.
-		$dedupe_rule_id = get_sub_field( $this->field_key . 'dedupe_rules' );
-
-		// If a Dedupe Rule is selected, use it.
-		if ( ! empty( $dedupe_rule_id ) ) {
-			$contact_id = $this->civicrm->contact->get_by_dedupe_rule( $contact_data, $contact_data['contact_type'], $dedupe_rule_id );
-		} else {
-			// Use the default unsupervised rule.
-			// NOTE: We need the Email Address to use the default unsupervised rule.
-			$contact_id = $this->civicrm->contact->get_by_dedupe_unsupervised( $contact_data, $contact_data['contact_type'] );
 		}
 
 		// --<
@@ -4408,13 +4624,17 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 	 * @param array $form The array of Form data.
 	 * @param integer $current_post_id The ID of the Post from which the Form has been submitted.
 	 * @param string $action The customised name of the action.
-	 * @param integer $contact_id The numeric ID of the Contact if loaded.
 	 * @return array $relationship_data The array of Relationship data.
 	 */
-	public function form_relationship_data( $form, $current_post_id, $action, $contact_id = false ) {
+	public function form_relationship_data( $form, $current_post_id, $action ) {
 
 		// Init return.
 		$relationship_data = [];
+
+		// Skip if this is the "Submitter Contact" Action.
+		if ( $this->action_is_submitter() ) {
+			return $relationship_data;
+		}
 
 		// Get the Relationship Repeater Field.
 		$relationship_repeater = get_sub_field( $this->field_key . 'relationship_repeater' );
@@ -4466,6 +4686,30 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 
 		}
 
+		// --<
+		return $relationship_data;
+
+	}
+
+	/**
+	 * Builds populated Relationship data array from mapped Fields.
+	 *
+	 * This method is used to discover the "inverse" Relationship(s) for an
+	 * auto-filled Contact Action when that Action is not for the Submitter.
+	 *
+	 * Each Action is assigned the Relationship(s) based on its offset, i.e. the
+	 * third "Child of" Action will receive the third "Child of" Relationship as
+	 * returned by the API call.
+	 *
+	 * @since 0.5.9
+	 *
+	 * @param string $action The customised name of the action.
+	 * @param array $relationship_data The array of Relationship data from the Form.
+	 * @param integer $contact_id The numeric ID of the Contact if loaded.
+	 * @return array $relationship_parsed The array of parsed Relationship data.
+	 */
+	public function form_relationship_load( $action, $relationship_data, $contact_id = false ) {
+
 		// Init parsed array.
 		$relationship_parsed = [];
 
@@ -4501,48 +4745,33 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 		// Let's inspect each of the Action Fields.
 		foreach ( $relationship_data as $field ) {
 
-			// Get the related Contact Action Name.
-			$action_name = $field['action_ref'];
-
-			// We need an Action Name.
-			if ( empty( $action_name ) ) {
-				continue;
-			}
-
-			// Get the Contact data for that Action.
-			$related_contact = acfe_form_get_action( $action_name, 'contact' );
-			if ( empty( $related_contact['id'] ) ) {
-				continue;
-			}
-
-			// Get Relationship to related Contact.
-			$relationship_type = $field['relationship_type'];
-
-			// Get the Relationship Type ID and direction.
-			$relationship_array = explode( '_', $relationship_type );
-			$type_id = (int) $relationship_array[0];
-			$direction = $relationship_array[1];
-
-			// Get the inverse direction.
-			$inverse = 'equal';
-			if ( $direction === 'ab' ) {
-				$inverse = 'ba';
-			}
-			if ( $direction === 'ba' ) {
-				$inverse = 'ab';
-			}
-
 			// Get the directional Relationship(s).
-			$relationships = $this->civicrm->relationship->get_directional( $related_contact['id'], $type_id, $inverse );
+			$relationships = $this->form_relationships_get_related( $field );
 
-			// If there isn't one, build array to create.
-			if ( empty( $relationships ) ) {
+			// Sanity checks.
+			if ( empty( $relationships['action_name'] ) ) {
+				continue;
+			}
+			if ( empty( $relationships['related_contact']['id'] ) ) {
+				continue;
+			}
+			if ( empty( $relationships['type_id'] ) ) {
+				continue;
+			}
+
+			// Extract some variables from the array for brevity.
+			$type_id = (int) $relationships['type_id'];
+			$related_contact_id = (int) $relationships['related_contact']['id'];
+			$inverse = $relationships['inverse'];
+
+			// If there aren't any Relationships, build an array to create one.
+			if ( empty( $relationships['relationships'] ) ) {
 
 				// Set the related Contact ID.
 				if ( $inverse === 'ab' ) {
-					$field['contact_id_a'] = $related_contact['id'];
+					$field['contact_id_a'] = $related_contact_id;
 				} else {
-					$field['contact_id_b'] = $related_contact['id'];
+					$field['contact_id_b'] = $related_contact_id;
 				}
 
 				// Assign extracted Type ID.
@@ -4556,19 +4785,46 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 			}
 
 			// Let's reset the keys since the array is keyed by Relationship ID.
-			$relationships = array_values( $relationships );
+			$relationships_reset = array_values( $relationships['relationships'] );
+
+			// The "Employer/Employee" Relationship needs special handling. Duh.
+			$employer_employee_type_id = $this->civicrm->relationship->type_id_employer_employee_get();
+			if ( $employer_employee_type_id === $type_id ) {
+
+				// When "Current Employer/Employee" is specified.
+				if ( ! empty( $field['is_current_employer'] ) || ! empty( $field['is_current_employee'] ) ) {
+
+					// Try and find the "current" Relationship.
+					$current = [];
+					foreach ( $relationships_reset as $employer_employee ) {
+						$is_current = $this->civicrm->relationship->is_employer_employee( $employer_employee );
+						if ( $is_current === true ) {
+							$current = $employer_employee;
+							break;
+						}
+					}
+
+					// Use it if we find the "current" Relationship.
+					if ( ! empty( $current ) ) {
+						$relationship_parsed[] = $this->form_relationship_fill( $current, $field );
+						continue;
+					}
+
+				}
+
+			}
 
 			// Get the Relationship offset.
-			$offset = $this->form_relationship_offset( $relationships, $type_id, $related_contact['id'], $inverse );
+			$offset = $this->form_relationship_offset( $relationships_reset, $type_id, $related_contact_id, $inverse );
 
 			// If there isn't one, build array to create.
-			if ( ! array_key_exists( $offset, $relationships ) ) {
+			if ( ! array_key_exists( $offset, $relationships_reset ) ) {
 
 				// Set the related Contact ID.
 				if ( $inverse === 'ab' ) {
-					$field['contact_id_a'] = $related_contact['id'];
+					$field['contact_id_a'] = $related_contact_id;
 				} else {
-					$field['contact_id_b'] = $related_contact['id'];
+					$field['contact_id_b'] = $related_contact_id;
 				}
 
 				// Assign extracted Type ID.
@@ -4582,34 +4838,98 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 			}
 
 			// Grab the Relationship with the offset.
-			$relationship = $relationships[ $offset ];
+			$relationship = $relationships_reset[ $offset ];
 
-			// Parse against the incoming data.
-			$relationship_update = [];
-
-			// Overwrite when there is an incoming value.
-			foreach ( $relationship as $key => $value ) {
-				if ( ! empty( $field[ $key ] ) ) {
-					$relationship_update[ $key ] = $field[ $key ];
-				} else {
-					$relationship_update[ $key ] = $value;
-				}
-			}
-
-			// Add in any entries that don't exist.
-			foreach ( $field as $key => $value ) {
-				if ( ! array_key_exists( $key, $relationship ) ) {
-					$relationship_update[ $key ] = $field[ $key ];
-				}
-			}
-
-			// Finally, add to parsed array.
-			$relationship_parsed[] = $relationship_update;
+			// Finally, fill with incoming data and add to parsed array.
+			$relationship_parsed[] = $this->form_relationship_fill( $relationship, $field );
 
 		}
 
 		// --<
 		return $relationship_parsed;
+
+	}
+
+	/**
+	 * Gets the Relationship(s) from a related Contact Action.
+	 *
+	 * @since 0.5.9
+	 *
+	 * @param array $field The ACF Repeater Field for a Relationship.
+	 * @return array $relationships The array of Relationships, or empty on failure.
+	 */
+	public function form_relationships_get_related( $field ) {
+
+		// Init return.
+		$relationships = [
+			'action_name' => false,
+			'related_contact' => false,
+			'relationship_type' => false,
+			'type_id' => false,
+			'direction' => false,
+			'inverse' => false,
+			'relationships' => [],
+		];
+
+		// Get the related Contact Action Name.
+		$action_name = ! empty( $field['action_ref'] ) ? $field['action_ref'] : '';
+		if ( empty( $action_name ) ) {
+			return $relationships;
+		}
+
+		// Overwrite Action name in return.
+		$relationships['action_name'] = $action_name;
+
+		// Get the Contact data for that Action.
+		$related_contact = acfe_form_get_action( $action_name, 'contact' );
+		if ( empty( $related_contact['id'] ) ) {
+			return $relationships;
+		}
+
+		// Overwrite related Contact in return.
+		$relationships['related_contact'] = $related_contact;
+
+		// Get Relationship to related Contact.
+		$relationship_type = ! empty( $field['relationship_type'] ) ? $field['relationship_type'] : '';
+		if ( empty( $relationship_type ) ) {
+			return $relationships;
+		}
+
+		// Overwrite Relationship Type in return.
+		$relationships['relationship_type'] = $relationship_type;
+
+		// Get the Relationship Type ID and direction.
+		$relationship_array = explode( '_', $relationship_type );
+		$type_id = (int) $relationship_array[0];
+		$direction = $relationship_array[1];
+
+		// Overwrite Relationship Type ID and direction in return.
+		$relationships['type_id'] = $type_id;
+		$relationships['direction'] = $direction;
+
+		// Get the inverse direction.
+		$inverse = 'equal';
+		if ( $direction === 'ab' ) {
+			$inverse = 'ba';
+		}
+		if ( $direction === 'ba' ) {
+			$inverse = 'ab';
+		}
+
+		// Overwrite inverse direction in return.
+		$relationships['inverse'] = $inverse;
+
+		// Get the directional Relationship(s).
+		$directional = $this->civicrm->relationship->get_directional( $related_contact['id'], $type_id, $inverse );
+		if ( empty( $directional ) ) {
+			return $relationships;
+		}
+
+		// Overwrite inverse direction in return.
+		$relationships['relationships'] = $directional;
+
+		// --<
+		return $relationships;
 
 	}
 
@@ -4654,7 +4974,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 	 * @since 0.5
 	 *
 	 * @param array $contact The array of Contact data.
-	 * @param array $relationship_data The array of Relationship data.
+	 * @param array $relationship_data The array of parsed Relationship data.
 	 * @return array|bool $relationships The array of Relationships, or false on failure.
 	 */
 	public function form_relationship_save( $contact, $relationship_data ) {
@@ -4680,10 +5000,11 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 
 			// Assign Contact ID when it's a new Relationship.
 			if ( empty( $relationship['id'] ) ) {
-				if ( ! empty( $relationship['contact_id_b'] ) ) {
-					$relationship['contact_id_a'] = $contact['id'];
-				} else {
+				if ( empty( $relationship['contact_id_b'] ) && ! empty( $relationship['contact_id_a'] ) ) {
 					$relationship['contact_id_b'] = $contact['id'];
+				}
+				if ( empty( $relationship['contact_id_a'] ) && ! empty( $relationship['contact_id_b'] ) ) {
+					$relationship['contact_id_a'] = $contact['id'];
 				}
 			}
 
@@ -4793,6 +5114,256 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 
 		// --<
 		return $offset;
+
+	}
+
+	/**
+	 * Gets "inverse" Relationship data array for a Contact Action.
+	 *
+	 * This method is used to discover the "inverse" Relationship(s) for a
+	 * Contact Action when that Action is not for the Submitter.
+	 *
+	 * @since 0.5.9
+	 *
+	 * @param string $action The customised name of the action.
+	 * @param array $relationship_data The array of Relationship data from the Form.
+	 * @param integer $contact_id The numeric ID of the Contact if loaded.
+	 * @return array $relationships_inverse The array of inverse Relationship data.
+	 */
+	public function form_relationship_inverse( $action, $relationship_data, $contact_id = false ) {
+
+		// Init parsed array.
+		$relationships_inverse = [];
+
+		// We may be able to short-circuit if we have a loaded Contact ID.
+		if ( ! empty( $contact_id ) ) {
+
+			// Get the Relationship data for this Action.
+			$relationships = acfe_form_get_action( $action, 'relationships' );
+
+			// Sanity check.
+			if ( ! empty( $relationships ) ) {
+
+				// Build parsed array from saved data.
+				foreach ( $relationships as $key => $relationship ) {
+
+					// Cast as array.
+					if ( is_object( $relationship ) ) {
+						$relationship = (array) $relationship;
+					}
+
+					// Merge into field data and add to parsed array.
+					$relationships_inverse[] = array_merge( $relationship_data[ $key ], $relationship );
+
+				}
+
+				// --<
+				return $relationships_inverse;
+
+			}
+
+		}
+
+		// Let's inspect each of the Action Fields.
+		foreach ( $relationship_data as $field ) {
+
+			// Get the directional Relationship(s).
+			$relationships = $this->form_relationships_get_related( $field );
+
+			// Sanity checks.
+			if ( empty( $relationships['action_name'] ) ) {
+				continue;
+			}
+			if ( empty( $relationships['related_contact']['id'] ) ) {
+				continue;
+			}
+			if ( empty( $relationships['type_id'] ) ) {
+				continue;
+			}
+
+			// Extract some variables from the array for brevity.
+			$type_id = $relationships['type_id'];
+			$related_contact_id = $relationships['related_contact']['id'];
+			$inverse = $relationships['inverse'];
+
+			// If there aren't any Relationships, build an array to create one.
+			if ( empty( $relationships['relationships'] ) ) {
+
+				// Set the Contact IDs.
+				if ( $inverse === 'ab' ) {
+					$field['contact_id_a'] = $related_contact_id;
+					$field['contact_id_b'] = $contact_id;
+				} else {
+					$field['contact_id_b'] = $related_contact_id;
+					$field['contact_id_a'] = $contact_id;
+				}
+
+				// Assign extracted Type ID.
+				$field['relationship_type_id'] = $type_id;
+
+				// Use incoming data.
+				$relationships['relationships'][] = $field;
+				$relationships_inverse[] = $relationships;
+
+				continue;
+
+			}
+
+			// Finally, add to parsed array.
+			$relationships_inverse[] = $relationships;
+
+		}
+
+		// --<
+		return $relationships_inverse;
+
+	}
+
+	/**
+	 * Compares the parsed CiviCRM Relationship(s) with the Contact to assess
+	 * whether new Relationship(s) should be created or whether existing should
+	 * be updated.
+	 *
+	 * Each existing Relationship needs to be checked to see if there's one that
+	 * matches the Contact ID.
+	 *
+	 * * If none exists, build array to create one.
+	 * * If one does exist, build array to update it.
+	 *
+	 * @since 0.5.9
+	 *
+	 * @param string $action The customised name of the action.
+	 * @param array $contact The array of Contact data.
+	 * @param array $relationships_parsed The array of parsed Relationship data.
+	 * @param array $relationship_data The array of Relationship data from the Action.
+	 * @return array $relationships The array of Relationships to save, or empty on failure.
+	 */
+	public function form_relationship_compare( $action, $contact, $relationships_parsed, $relationship_data ) {
+
+		// Init return.
+		$relationships = [];
+
+		// Bail if there's no Relationship data from the Form Action.
+		if ( empty( $relationship_data ) ) {
+			return $relationships;
+		}
+
+		// Get the inverse Relationships for this Contact Action.
+		$relationships_inverse = $this->form_relationship_inverse( $action, $relationship_data, $contact['id'] );
+
+		// Check each Relationship definition.
+		foreach ( $relationship_data as $field ) {
+
+			// Find the inverse Relationship(s) of the matching Type.
+			$existing_data = [];
+			foreach ( $relationships_inverse as $item ) {
+				if ( $item['relationship_type'] === $field['relationship_type'] ) {
+					$existing_data = $item;
+					break;
+				}
+			}
+
+			// Skip if there isn't a related Contact ID.
+			if ( empty( $existing_data['related_contact']['id'] ) ) {
+				continue;
+			}
+
+			// Skip if there isn't a Relationship Type.
+			if ( empty( $existing_data['relationship_type'] ) ) {
+				continue;
+			}
+
+			// Extract relevant variables.
+			$existing = $existing_data['relationships'];
+			$related_contact_id = $existing_data['related_contact']['id'];
+			$inverse = $existing_data['inverse'];
+			$type_id = $existing_data['type_id'];
+
+			// Look for existing Relationship.
+			$existing_relationship = [];
+			foreach ( $existing as $relationship ) {
+
+				// First find "other" Contact ID.
+				if ( (int) $relationship['contact_id_a'] === (int) $related_contact_id ) {
+					$other_contact_id = (int) $relationship['contact_id_b'];
+				} else {
+					$other_contact_id = (int) $relationship['contact_id_a'];
+				}
+
+				// Skip if it's not this Contact ID.
+				if ( $other_contact_id !== (int) $contact['id'] ) {
+					continue;
+				}
+
+				// Okay, it exists - fill with incoming data.
+				$existing_relationship = $this->form_relationship_fill( $relationship, $field );
+
+			}
+
+			// If there isn't an existing Relationship, build an array to create one.
+			if ( empty( $existing_relationship ) ) {
+
+				// Set the related Contact ID.
+				if ( $inverse === 'ab' ) {
+					$field['contact_id_a'] = $related_contact_id;
+					$field['contact_id_b'] = $contact['id'];
+				} else {
+					$field['contact_id_b'] = $related_contact_id;
+					$field['contact_id_a'] = $contact['id'];
+				}
+
+				// Assign extracted Type ID.
+				$field['relationship_type_id'] = $type_id;
+
+				// Use incoming data.
+				$relationships[] = $field;
+
+				continue;
+
+			}
+
+			// Finally, add to return.
+			$relationships[] = $existing_relationship;
+
+		}
+
+		// --<
+		return $relationships;
+
+	}
+
+	/**
+	 * Fills a Relationship array with data from mapped Fields.
+	 *
+	 * @since 0.5
+	 *
+	 * @param array $relationship The array of Relationship data.
+	 * @param array $field The array of ACF Repeater Field data for the Relationship.
+	 * @return array|bool $relationship_filled The array of filled Relationship data, or empty on failure.
+	 */
+	public function form_relationship_fill( $relationship, $field ) {
+
+		// Parse against the incoming data.
+		$relationship_filled = [];
+
+		// Overwrite when there is an incoming value.
+		foreach ( $relationship as $key => $value ) {
+			if ( ! empty( $field[ $key ] ) ) {
+				$relationship_filled[ $key ] = $field[ $key ];
+			} else {
+				$relationship_filled[ $key ] = $value;
+			}
+		}
+
+		// Add in any entries that don't exist.
+		foreach ( $field as $key => $value ) {
+			if ( ! array_key_exists( $key, $relationship ) ) {
+				$relationship_filled[ $key ] = $field[ $key ];
+			}
+		}
+
+		// --<
+		return $relationship_filled;
 
 	}
 

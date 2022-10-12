@@ -383,7 +383,7 @@ class CiviCRM_WP_Profile_Sync_ACF_Geo_Mashup {
 	 *
 	 * @since 0.5.8
 	 *
-	 * @param object $venue The Venue object.
+	 * @param array $address The array of Address data.
 	 * @return array $location The array of Location data.
 	 */
 	public function prepare_from_address( $address ) {
@@ -391,9 +391,14 @@ class CiviCRM_WP_Profile_Sync_ACF_Geo_Mashup {
 		// Init return.
 		$location = [];
 
-		// Convert whatever we can.
-		$location['saved_name']  = isset( $address['field_address_street_address'] ) ? $address['field_address_street_address'] : '';
-		$location['postal_code'] = isset( $address['field_address_postal_code'] ) ? $address['field_address_postal_code'] : '';
+		// Assign "Saved Name" from Address Name or Street Address.
+		$location['saved_name'] = empty( $address['field_address_name'] ) ? '' : $address['field_address_name'];
+		if ( empty( $location['saved_name'] ) ) {
+			$location['saved_name'] = empty( $address['field_address_street_address'] ) ? '' : $address['field_address_street_address'];
+		}
+
+		// Post Code.
+		$location['postal_code'] = empty( $address['field_address_postal_code'] ) ? '' : $address['field_address_postal_code'];
 
 		// Maybe add "State/Province" to array.
 		$state_id = isset( $address['field_address_state_province_id'] ) ? $address['field_address_state_province_id'] : '';
@@ -695,6 +700,12 @@ class CiviCRM_WP_Profile_Sync_ACF_Geo_Mashup {
 			return;
 		}
 
+		// Bail if this is the CiviCRM "Delete Action".
+		$action = $form->getVar( '_action' );
+		if ( isset( $action ) && 8 === (int) $action ) {
+			return;
+		}
+
 		// Get CiviCRM Contact Type.
 		$contact_type = $form->getVar( '_values' );
 
@@ -766,9 +777,9 @@ class CiviCRM_WP_Profile_Sync_ACF_Geo_Mashup {
 		}
 
 		// Insert template block into the page.
-		CRM_Core_Region::instance('page-body')->add([
-			'template' => 'cwps-acf-geo-mashup-compat.tpl'
-		]);
+		CRM_Core_Region::instance( 'page-body' )->add( [
+			'template' => 'cwps-acf-geo-mashup-compat.tpl',
+		] );
 
 	}
 

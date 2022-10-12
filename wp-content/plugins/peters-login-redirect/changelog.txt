@@ -1,5 +1,13 @@
 == Changelog ==
 
+= 3.0.3.0 =
+* Fixed bug with wp list pagination per page not working.
+
+= 3.0.2.0 =
+* Pro: Added [Polylang integration](https://loginwp.com/?utm_source=wprepo&utm_medium=changelog&utm_campaign=3020#pro-conditions)
+* Pro: Added [WPML integration](https://loginwp.com/?utm_source=wprepo&utm_medium=changelog&utm_campaign=3020#pro-conditions)
+* Fixed fatal error caused by other plugin metaboxes.
+
 = 3.0.1.1 =
 * Added logout support to all [Pro conditions](https://loginwp.com/?utm_source=wprepo&utm_medium=changelog&utm_campaign=4011#pro-conditions).
 * [Pro features](https://loginwp.com/pricing/?utm_source=wprepo&utm_medium=changelog&utm_campaign=4011) support for Uncanny Toolkit.
