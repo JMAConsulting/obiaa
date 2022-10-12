@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit81a6e0e2db6df2fcd1924296c2c1b52c
+class ComposerStaticInita9f583478f300f50f350038ebf8720c5
 {
     public static $files = array (
         '7c119350ad5d791b1ae2d87a60e07ace' => __DIR__ . '/../..' . '/src/core/src/MoAdminNotice.php',
@@ -156,9 +156,9 @@ class ComposerStaticInit81a6e0e2db6df2fcd1924296c2c1b52c
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit81a6e0e2db6df2fcd1924296c2c1b52c::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit81a6e0e2db6df2fcd1924296c2c1b52c::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInit81a6e0e2db6df2fcd1924296c2c1b52c::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInita9f583478f300f50f350038ebf8720c5::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInita9f583478f300f50f350038ebf8720c5::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInita9f583478f300f50f350038ebf8720c5::$classMap;
 
         }, null, ClassLoader::class);
     }

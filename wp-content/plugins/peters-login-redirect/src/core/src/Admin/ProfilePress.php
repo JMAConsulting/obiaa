@@ -12,7 +12,7 @@ class ProfilePress
     private $config = array(
         'lite_plugin'       => 'wp-user-avatar/wp-user-avatar.php',
         'lite_download_url' => 'https://downloads.wordpress.org/plugin/wp-user-avatar.latest-stable.zip',
-        'ppress_settings'   => 'admin.php?page=pp-forms',
+        'ppress_settings'   => 'admin.php?page=ppress-forms',
     );
 
     private $output_data = array();

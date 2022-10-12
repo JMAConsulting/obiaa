@@ -402,6 +402,58 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 	// -------------------------------------------------------------------------
 
 	/**
+	 * Checks if there are valid checksum query params.
+	 *
+	 * @since 0.5.9
+	 *
+	 * @return bool True when there is a checksum, false otherwise.
+	 */
+	public function checksum_exists() {
+
+		// Bail if there is no checksum.
+		$checksum = filter_input( INPUT_GET, 'cs' );
+		if ( empty( $checksum ) ) {
+			return false;
+		}
+
+		// The checksum must be accompanied by a Contact ID.
+		$contact_id = filter_input( INPUT_GET, 'cid' );
+		if ( empty( $contact_id ) || ! is_numeric( wp_unslash( $contact_id ) ) ) {
+			return false;
+		}
+
+		// We have valid checksum query params.
+		return true;
+
+	}
+
+	/**
+	 * Gets the checksum data if present.
+	 *
+	 * @since 0.5.9
+	 *
+	 * @return array $checksum The array of checksum data, false otherwise.
+	 */
+	public function checksum_get() {
+
+		// Init return.
+		$checksum = [];
+
+		// Bail if there are no checksum values.
+		if ( ! $this->checksum_exists() ) {
+			return $checksum;
+		}
+
+		// Assign checksum values.
+		$checksum['checksum'] = trim( wp_unslash( filter_input( INPUT_GET, 'cs' ) ) );
+		$checksum['contact_id'] = (int) trim( wp_unslash( filter_input( INPUT_GET, 'cid' ) ) );
+
+		// --<
+		return $checksum;
+
+	}
+
+	/**
 	 * Gets the Contact ID for a given checksum.
 	 *
 	 * @since 0.5
@@ -413,32 +465,26 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 		// Fail by default.
 		$contact_id = false;
 
-		// Bail if there is no checksum.
-		if ( empty( $_GET['cs'] ) ) {
-			return $contact_id;
-		}
-
-		// The checksum must be accompanied by a Contact ID.
-		if ( empty( $_GET['cid'] ) || ! is_numeric( wp_unslash( $_GET['cid'] ) ) ) {
-			return $contact_id;
-		}
-
 		// Try and init CiviCRM.
 		if ( ! $this->civicrm->is_initialised() ) {
 			return $contact_id;
 		}
 
+		// Try and get the checksum.
+		$checksum = $this->checksum_get();
+		if ( empty( $checksum ) ) {
+			return $contact_id;
+		}
+
 		// Bail if no "Edit Contact" permission or not a valid checksum.
-		$cid = (int) trim( wp_unslash( $_GET['cid'] ) );
-		$checksum = trim( wp_unslash( $_GET['cs'] ) );
-		$allowed = CRM_Contact_BAO_Contact_Permission::allow( $cid, CRM_Core_Permission::EDIT );
-		$valid = CRM_Contact_BAO_Contact_Utils::validChecksum( $cid, $checksum );
+		$allowed = CRM_Contact_BAO_Contact_Permission::allow( $checksum['contact_id'], CRM_Core_Permission::EDIT );
+		$valid = CRM_Contact_BAO_Contact_Utils::validChecksum( $checksum['contact_id'], $checksum['checksum'] );
 		if ( ! $allowed && ! $valid ) {
 			return $contact_id;
 		}
 
 		// Okay, looks good.
-		$contact_id = $cid;
+		$contact_id = $checksum['contact_id'];
 
 		// --<
 		return $contact_id;
@@ -476,9 +522,10 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 	 *
 	 * @param string $search The search string to query.
 	 * @param array $args The array of search params to query.
+	 * @param array $advanced The array of "Advanced Filter" search params.
 	 * @return array|bool $contact_data An array of Contact data, or false on failure.
 	 */
-	public function get_by_search_string( $search, $args = [] ) {
+	public function get_by_search_string( $search, $args = [], $advanced = [] ) {
 
 		// Init return.
 		$contact_data = false;
@@ -523,13 +570,18 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 		}
 
 		// Maybe narrow the search to a Contact Sub-type.
-		if ( ! empty( $args['contact_type'] ) && ! empty( $args['contact_subtype'] ) ) {
+		if ( ! empty( $args['contact_sub_type'] ) ) {
 			$params['contact_sub_type'] = $args['contact_sub_type'];
 		}
 
 		// Maybe narrow the search to Group Membership.
 		if ( ! empty( $args['groups'] ) && is_array( $args['groups'] ) ) {
 			$params['group'] = $args['groups'];
+		}
+
+		// Maybe narrow the search to the "Advanced Filter".
+		if ( ! empty( $advanced ) ) {
+			$params = array_merge( $params, $advanced );
 		}
 
 		// Maybe define an offset.
@@ -656,7 +708,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 		$contact_ids = CRM_Dedupe_Finder::dupesByParams( $dedupe_params, $contact_type, 'Unsupervised' );
 
 		// Return the suggested Contact ID if present.
-		$contact_id = 0;
+		$contact_id = false;
 		if ( ! empty( $contact_ids ) ) {
 			$contact_ids = array_reverse( $contact_ids );
 			$contact_id = array_pop( $contact_ids );
@@ -676,7 +728,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 	 * @param integer $dedupe_rule_id The Dedupe Rule ID.
 	 * @return integer|bool $contact_id The numeric Contact ID, or false on failure.
 	 */
-	public function get_by_dedupe_rule( $contact, $contact_type = 'Individual', $dedupe_rule_id ) {
+	public function get_by_dedupe_rule( $contact, $contact_type, $dedupe_rule_id ) {
 
 		// Bail if we have no Contact data.
 		if ( empty( $contact ) ) {
@@ -696,7 +748,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 		$contact_ids = CRM_Dedupe_Finder::dupesByParams( $dedupe_params, $contact_type, null, [], $dedupe_rule_id );
 
 		// Return the suggested Contact ID if present.
-		$contact_id = 0;
+		$contact_id = false;
 		if ( ! empty( $contact_ids ) ) {
 			$contact_ids = array_reverse( $contact_ids );
 			$contact_id = array_pop( $contact_ids );
@@ -870,7 +922,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 			if ( $post_ids === false && $create_post === 'create' ) {
 
 				// Prevent recursion and the resulting unexpected Post creation.
-				if ( doing_action( 'cwps/acf/post/contact_sync_to_post' ) ) {
+				if ( doing_action( 'cwps/acf/post/contact/sync' ) ) {
 					continue;
 				}
 

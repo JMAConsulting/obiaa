@@ -1,21 +1,26 @@
-<?php /*
---------------------------------------------------------------------------------
-Plugin Name: CiviCRM Admin Utilities
-Plugin URI: https://github.com/christianwach/civicrm-admin-utilities
-Description: Optionally modifies CiviCRM's behaviour and appearance in single site and multisite installs.
-Author: Christian Wach
-Version: 0.9.2
-Author URI: http://haystack.co.uk
-Text Domain: civicrm-admin-utilities
-Domain Path: /languages
-Depends: CiviCRM
---------------------------------------------------------------------------------
-*/
+<?php
+/**
+ * Plugin Name: CiviCRM Admin Utilities
+ * Plugin URI: https://github.com/christianwach/civicrm-admin-utilities
+ * GitHub Plugin URI: https://github.com/christianwach/civicrm-admin-utilities
+ * Description: Optionally modifies CiviCRM's behaviour and appearance in single site and multisite installs.
+ * Author: Christian Wach
+ * Version: 0.9.3
+ * Author URI: http://haystack.co.uk
+ * Text Domain: civicrm-admin-utilities
+ * Domain Path: /languages
+ * Depends: CiviCRM
+ *
+ * @package CiviCRM_Admin_Utilities
+ */
+
+// Exit if accessed directly.
+defined( 'ABSPATH' ) || exit;
 
 
 
 // Set our version here.
-define( 'CIVICRM_ADMIN_UTILITIES_VERSION', '0.9.2' );
+define( 'CIVICRM_ADMIN_UTILITIES_VERSION', '0.9.3' );
 
 // Trigger logging of 'civicrm_pre' and 'civicrm_post'.
 if ( ! defined( 'CIVICRM_ADMIN_UTILITIES_DEBUG' ) ) {
@@ -246,6 +251,7 @@ class CiviCRM_Admin_Utilities {
 	public function enable_translation() {
 
 		// Enable translation.
+		// phpcs:ignore WordPress.WP.DeprecatedParameters.Load_plugin_textdomainParam2Found
 		load_plugin_textdomain(
 			'civicrm-admin-utilities', // Unique name.
 			false, // Deprecated argument.
@@ -489,8 +495,10 @@ register_activation_hook( __FILE__, [ civicrm_au(), 'activate' ] );
 // Deactivation.
 register_deactivation_hook( __FILE__, [ civicrm_au(), 'deactivate' ] );
 
-// Uninstall uses the 'uninstall.php' method.
-// See: http://codex.wordpress.org/Function_Reference/register_uninstall_hook
+/*
+ * Uninstall uses the 'uninstall.php' method.
+ * @see http://codex.wordpress.org/Function_Reference/register_uninstall_hook
+ */
 
 
 

@@ -405,7 +405,9 @@ class CiviCRM_Admin_Utilities_Multisite {
 
 		// Maybe switch to main site for Shortcuts Menu.
 		// TODO: Are there any situations where we'd like to switch?
+		// phpcs:ignore Squiz.Commenting.InlineComment.InvalidEndChar
 		//add_action( 'civicrm_admin_utilities_menu_before', [ $this, 'shortcuts_menu_switch_to' ] );
+		// phpcs:ignore Squiz.Commenting.InlineComment.InvalidEndChar
 		//add_action( 'civicrm_admin_utilities_menu_after', [ $this, 'shortcuts_menu_switch_back' ] );
 
 	}
@@ -441,11 +443,15 @@ class CiviCRM_Admin_Utilities_Multisite {
 			[ $this, 'page_network_settings' ] // Callback.
 		);
 
+		// Register our form submit hander.
+		add_action( 'load-' . $this->network_parent_page, [ $this, 'settings_update_router' ] );
+
 		// Add help text.
 		add_action( 'admin_head-' . $this->network_parent_page, [ $this, 'network_admin_head' ], 50 );
 
 		// Add scripts and styles.
 		add_action( 'admin_print_scripts-' . $this->network_parent_page, [ $this, 'page_network_settings_js' ] );
+		// phpcs:ignore Squiz.Commenting.InlineComment.InvalidEndChar
 		//add_action( 'admin_print_styles-' . $this->network_parent_page, [ $this, 'page_network_settings_css' ] );
 
 		// Add "Network Settings" sub-page.
@@ -458,6 +464,9 @@ class CiviCRM_Admin_Utilities_Multisite {
 			[ $this, 'page_network_settings' ] // Callback.
 		);
 
+		// Register our form submit hander.
+		add_action( 'load-' . $this->network_settings_page, [ $this, 'settings_update_router' ] );
+
 		// Ensure correct menu item is highlighted.
 		add_action( 'admin_head-' . $this->network_settings_page, [ $this, 'network_menu_highlight' ], 50 );
 
@@ -466,6 +475,7 @@ class CiviCRM_Admin_Utilities_Multisite {
 
 		// Add scripts and styles.
 		add_action( 'admin_print_scripts-' . $this->network_settings_page, [ $this, 'page_network_settings_js' ] );
+		// phpcs:ignore Squiz.Commenting.InlineComment.InvalidEndChar
 		//add_action( 'admin_print_styles-' . $this->network_settings_page, [ $this, 'page_network_settings_css' ] );
 
 		// Add "Site Settings" sub-page.
@@ -478,6 +488,9 @@ class CiviCRM_Admin_Utilities_Multisite {
 			[ $this, 'page_network_site_settings' ] // Callback.
 		);
 
+		// Register our form submit hander.
+		add_action( 'load-' . $this->network_site_settings_page, [ $this, 'settings_update_router' ] );
+
 		// Ensure correct menu item is highlighted.
 		add_action( 'admin_head-' . $this->network_site_settings_page, [ $this, 'network_menu_highlight' ], 50 );
 
@@ -485,11 +498,10 @@ class CiviCRM_Admin_Utilities_Multisite {
 		add_action( 'admin_head-' . $this->network_site_settings_page, [ $this, 'network_admin_head' ], 50 );
 
 		// Add scripts and styles.
+		// phpcs:ignore Squiz.Commenting.InlineComment.InvalidEndChar
 		//add_action( 'admin_print_scripts-' . $this->network_site_settings_page, [ $this, 'page_network_settings_js' ] );
+		// phpcs:ignore Squiz.Commenting.InlineComment.InvalidEndChar
 		//add_action( 'admin_print_styles-' . $this->network_site_settings_page, [ $this, 'page_network_settings_css' ] );
-
-		// Try and update options.
-		$saved = $this->settings_update_router();
 
 	}
 
@@ -626,6 +638,7 @@ class CiviCRM_Admin_Utilities_Multisite {
 	 */
 	public function network_menu_highlight() {
 
+		// We need to override these to highlight the correct item.
 		global $plugin_page, $submenu_file;
 
 		// Define subpages.
@@ -646,8 +659,10 @@ class CiviCRM_Admin_Utilities_Multisite {
 
 		// This tweaks the Settings subnav menu to show only one menu item.
 		if ( in_array( $plugin_page, $subpages ) ) {
+			// phpcs:disable WordPress.WP.GlobalVariablesOverride.Prohibited
 			$plugin_page = 'cau_network_parent';
 			$submenu_file = 'cau_network_parent';
+			// phpcs:enable WordPress.WP.GlobalVariablesOverride.Prohibited
 		}
 
 	}
@@ -858,21 +873,6 @@ class CiviCRM_Admin_Utilities_Multisite {
 			'core' // Vertical placement: options are 'core', 'high', 'low'.
 		);
 
-		// If CiviCRM has not been fixed.
-		if ( ! $this->plugin->single->access_form_fixed() ) {
-
-			// Create CiviCRM WordPress Access Control metabox.
-			add_meta_box(
-				'civicrm_au_access_form',
-				__( 'CiviCRM WordPress Access Control', 'civicrm-admin-utilities' ),
-				[ $this, 'meta_box_access_form_render' ], // Callback.
-				$screen_id, // Screen ID.
-				'normal', // Column: options are 'normal' and 'side'.
-				'core' // Vertical placement: options are 'core', 'high', 'low'.
-			);
-
-		}
-
 		// Create Admin Bar Options metabox.
 		add_meta_box(
 			'civicrm_au_admin_bar',
@@ -1047,26 +1047,6 @@ class CiviCRM_Admin_Utilities_Multisite {
 
 
 	/**
-	 * Render CiviCRM WordPress Access Control meta box on Admin screen.
-	 *
-	 * @since 0.8.1
-	 */
-	public function meta_box_access_form_render() {
-
-		// Init access form checkbox.
-		$prettify_access = '';
-		if ( $this->setting_get( 'prettify_access', '0' ) == '1' ) {
-			$prettify_access = ' checked="checked"';
-		}
-
-		// Include template file.
-		include CIVICRM_ADMIN_UTILITIES_PATH . 'assets/templates/metaboxes/site-metabox-access-form.php';
-
-	}
-
-
-
-	/**
 	 * Render Admin Bar Options meta box on Admin screen.
 	 *
 	 * @since 0.8.1
@@ -1199,7 +1179,8 @@ class CiviCRM_Admin_Utilities_Multisite {
 			'civicrm_admin_utilities_network_settings_js',
 			plugins_url( 'assets/js/civicrm-admin-utilities-network-settings.js', CIVICRM_ADMIN_UTILITIES_FILE ),
 			[ 'jquery' ],
-			CIVICRM_ADMIN_UTILITIES_VERSION // Version.
+			CIVICRM_ADMIN_UTILITIES_VERSION, // Version.
+			true
 		);
 
 	}
@@ -1384,14 +1365,15 @@ class CiviCRM_Admin_Utilities_Multisite {
 	 */
 	public function page_submit_url_get() {
 
-		// Sanitise admin page url.
-		$target_url = $_SERVER['REQUEST_URI'];
-		$url_array = explode( '&', $target_url );
-
-		// Strip flag, if present, and rebuild.
-		if ( ! empty( $url_array ) ) {
-			$url_raw = str_replace( '&amp;updated=true', '', $url_array[0] );
-			$target_url = htmlentities( $url_raw . '&updated=true' );
+		// Sanitise admin page URL.
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		$target_url = isset( $_SERVER['REQUEST_URI'] ) ? wp_unslash( $_SERVER['REQUEST_URI'] ) : '';
+		if ( ! empty( $target_url ) ) {
+			$url_array = explode( '&', $target_url );
+			if ( ! empty( $url_array ) ) {
+				$url_raw = str_replace( '&amp;updated=true', '', $url_array[0] );
+				$target_url = htmlentities( $url_raw . '&updated=true' );
+			}
 		}
 
 		// --<
@@ -1644,12 +1626,6 @@ class CiviCRM_Admin_Utilities_Multisite {
 		// Do not fix Contact Soft Delete by default to keep existing behaviour.
 		$settings['fix_soft_delete'] = '0';
 
-		// Fix WordPress Access Control table.
-		$settings['prettify_access'] = '1';
-
-		// Do not assume WordPress Access Control table is fixed.
-		$settings['access_fixed'] = '0';
-
 		// Add menu to admin bar.
 		$settings['admin_bar'] = '1';
 
@@ -1718,11 +1694,13 @@ class CiviCRM_Admin_Utilities_Multisite {
 		$result = false;
 
 		// Was the "Network Settings" form submitted?
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
 		if ( isset( $_POST['cau_network_settings_submit'] ) ) {
 			return $this->settings_network_update();
 		}
 
 		// Was the "Site Settings" form submitted?
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
 		if ( isset( $_POST['cau_network_site_submit'] ) ) {
 			return $this->settings_site_update();
 		}
@@ -1753,6 +1731,7 @@ class CiviCRM_Admin_Utilities_Multisite {
 		$civicrm_admin_utilities_restrict_administer = '';
 
 		// Get variables.
+		// phpcs:ignore WordPress.PHP.DontExtract.extract_extract
 		extract( $_POST );
 
 		// Should we remove the visible traces of CiviCRM on sub-sites?
@@ -1829,13 +1808,12 @@ class CiviCRM_Admin_Utilities_Multisite {
 		$civicrm_admin_utilities_email_suppress = '';
 		$civicrm_admin_utilities_fix_soft_delete = '';
 
-		$civicrm_admin_utilities_access = '';
-
 		$civicrm_admin_utilities_admin_bar = '';
 		$civicrm_admin_utilities_admin_bar_groups = '';
 		$civicrm_admin_utilities_post_types = [];
 
 		// Get variables.
+		// phpcs:ignore WordPress.PHP.DontExtract.extract_extract
 		extract( $_POST );
 
 		// Did we ask to hide CiviCRM?
@@ -1920,13 +1898,6 @@ class CiviCRM_Admin_Utilities_Multisite {
 			$this->setting_set( 'fix_soft_delete', '1' );
 		} else {
 			$this->setting_set( 'fix_soft_delete', '0' );
-		}
-
-		// Did we ask to fix the access form?
-		if ( $civicrm_admin_utilities_access == '1' ) {
-			$this->setting_set( 'prettify_access', '1' );
-		} else {
-			$this->setting_set( 'prettify_access', '0' );
 		}
 
 		// Did we ask to add the shortcuts menu to the admin bar?

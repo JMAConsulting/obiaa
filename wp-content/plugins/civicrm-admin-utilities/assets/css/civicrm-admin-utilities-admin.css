@@ -3922,6 +3922,12 @@ tbody.scrollContent tr.alternateRow {
 	padding-left: 5px;
 }
 
+.crm-custom-image-popup,
+.crm-contact_image.crm-contact_image-block
+{
+	background: #ddd;
+}
+
 
 
 /* deprecated autocomplete styles */
@@ -5175,6 +5181,19 @@ body #crm-container #existing-dashlets-col-1.dash-column .ui-sortable-placeholde
 	 padding: 0 0 36px 0;
 	 vertical-align: middle;
 	 width: 75% !important;
+}
+
+
+
+/*
+--------------------------------------------------------------------------------
+Manage Events overrides
+--------------------------------------------------------------------------------
+*/
+
+button#_qf_SearchEvent_refresh {
+	float: left;
+	margin-bottom: 8px;
 }
 
 

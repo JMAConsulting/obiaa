@@ -114,7 +114,9 @@ abstract class AbstractSettingsPage
             'Uncanny Toolkit',
             'Paid Membership Pro',
             'User Registration (WPEverest)',
-            'Theme My Login'
+            'Theme My Login',
+            'WPML',
+            'Polylang'
         ];
 
         $upsell_url = 'https://loginwp.com/pricing/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=sidebar_upsell';

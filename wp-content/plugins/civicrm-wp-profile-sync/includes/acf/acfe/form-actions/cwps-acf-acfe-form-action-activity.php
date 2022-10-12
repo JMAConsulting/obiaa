@@ -1063,11 +1063,12 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Activity extends CiviCRM_Profile
 				$fields[ $field['name'] ] = get_sub_field( $this->field_key . 'map_' . $field['name'] );
 			}
 		}
-		// Get the Activity Type & Status.
-		$data['activity_type_id'] = get_sub_field( $this->field_key . 'activity_types' );
 
 		// Populate data array with values of mapped Fields.
 		$data = acfe_form_map_vs_fields( $fields, $fields, $current_post_id, $form );
+
+		// Get the Activity Type & Status.
+		$data['activity_type_id'] = get_sub_field( $this->field_key . 'activity_types' );
 		$data['status_id'] = get_sub_field( $this->field_key . 'activity_status_id' );
 
 		// Get the Activity Contacts.

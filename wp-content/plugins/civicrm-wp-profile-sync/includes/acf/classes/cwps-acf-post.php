@@ -285,7 +285,7 @@ class CiviCRM_Profile_Sync_ACF_Post {
 		// Create CiviCRM Settings and Sync metabox.
 		add_meta_box(
 			'cwps_acf_metabox',
-			__( 'CiviCRM ACF Integration', 'civicrm-wp-profile-sync' ),
+			__( 'CiviCRM', 'civicrm-wp-profile-sync' ),
 			[ $this, 'meta_box_link_render' ], // Callback.
 			$post_type, // Post Type.
 			'side', // Column: options are 'normal' and 'side'.
@@ -751,14 +751,30 @@ class CiviCRM_Profile_Sync_ACF_Post {
 		// Get the Post ID for this Contact.
 		$post_id = $this->acf_loader->civicrm->contact->is_mapped_to_post( $args['objectRef'], $post_type );
 
+		// Add our data to the params.
+		$args['post_type'] = $post_type;
+		$args['post_id'] = $post_id;
+
 		/**
 		 * Broadcast that a WordPress Post is about to be synced from Contact details.
+		 *
+		 * This action is now deprecated in favour of "cwps/acf/post/contact/sync/pre"
+		 * for hook naming consistency.
 		 *
 		 * @since 0.4
 		 *
 		 * @param array $args The array of CiviCRM and discovered params.
 		 */
 		do_action( 'cwps/acf/post/contact_sync_to_post/pre', $args );
+
+		/**
+		 * Broadcast that a WordPress Post is about to be synced from Contact details.
+		 *
+		 * @since 0.5.9
+		 *
+		 * @param array $args The array of CiviCRM and discovered params.
+		 */
+		do_action( 'cwps/acf/post/contact/sync/pre', $args );
 
 		// Remove WordPress callbacks to prevent recursion.
 		$this->acf_loader->mapper->hooks_wordpress_remove();
@@ -773,9 +789,20 @@ class CiviCRM_Profile_Sync_ACF_Post {
 		// Reinstate WordPress callbacks.
 		$this->acf_loader->mapper->hooks_wordpress_add();
 
-		// Add our data to the params.
-		$args['post_type'] = $post_type;
+		// Overwrite Post ID.
 		$args['post_id'] = $post_id;
+
+		/**
+		 * Broadcast that a WordPress Post has been synced from Contact details.
+		 *
+		 * This action is now deprecated in favour of "cwps/acf/post/contact/sync"
+		 * for hook naming consistency.
+		 *
+		 * @since 0.4
+		 *
+		 * @param array $args The array of CiviCRM and discovered params.
+		 */
+		do_action( 'cwps/acf/post/contact_sync_to_post', $args );
 
 		/**
 		 * Broadcast that a WordPress Post has been synced from Contact details.
@@ -785,11 +812,11 @@ class CiviCRM_Profile_Sync_ACF_Post {
 		 * * Update the ACF Fields for the WordPress Post.
 		 * * Update the Terms for the WordPress Post.
 		 *
-		 * @since 0.4
+		 * @since 0.5.9
 		 *
 		 * @param array $args The array of CiviCRM and discovered params.
 		 */
-		do_action( 'cwps/acf/post/contact_sync_to_post', $args );
+		do_action( 'cwps/acf/post/contact/sync', $args );
 
 	}
 
@@ -1295,6 +1322,19 @@ class CiviCRM_Profile_Sync_ACF_Post {
 		// Get the Post ID for this Activity.
 		$post_id = $this->acf_loader->civicrm->activity->is_mapped_to_post( $args['objectRef'], $post_type );
 
+		// Add our data to the params.
+		$args['post_type'] = $post_type;
+		$args['post_id'] = $post_id;
+
+		/**
+		 * Broadcast that a WordPress Post is about to be synced from Activity details.
+		 *
+		 * @since 0.5.9
+		 *
+		 * @param array $args The array of CiviCRM and discovered params.
+		 */
+		do_action( 'cwps/acf/post/activity/sync/pre', $args );
+
 		// Create the WordPress Post if it doesn't exist, otherwise update.
 		if ( $post_id === false ) {
 			$post_id = $this->create_from_activity( $args['objectRef'], $post_type );
@@ -1302,8 +1342,7 @@ class CiviCRM_Profile_Sync_ACF_Post {
 			$this->update_from_activity( $args['objectRef'], $post_id );
 		}
 
-		// Add our data to the params.
-		$args['post_type'] = $post_type;
+		// Overwrite Post ID.
 		$args['post_id'] = $post_id;
 
 		/**
@@ -1763,6 +1802,19 @@ class CiviCRM_Profile_Sync_ACF_Post {
 		// Get the Post ID for this Participant.
 		$post_id = $this->acf_loader->civicrm->participant->is_mapped_to_post( $args['objectRef'], $post_type );
 
+		// Add our data to the params.
+		$args['post_type'] = $post_type;
+		$args['post_id'] = $post_id;
+
+		/**
+		 * Broadcast that a WordPress Post is about to be synced from Participant details.
+		 *
+		 * @since 0.5.9
+		 *
+		 * @param array $args The array of CiviCRM and discovered params.
+		 */
+		do_action( 'cwps/acf/post/participant/sync/pre', $args );
+
 		// Create the WordPress Post if it doesn't exist, otherwise update.
 		if ( $post_id === false ) {
 			$post_id = $this->create_from_participant( $args['objectRef'], $post_type );
@@ -1770,8 +1822,7 @@ class CiviCRM_Profile_Sync_ACF_Post {
 			$this->update_from_participant( $args['objectRef'], $post_id );
 		}
 
-		// Add our data to the params.
-		$args['post_type'] = $post_type;
+		// Overwrite Post ID.
 		$args['post_id'] = $post_id;
 
 		/**

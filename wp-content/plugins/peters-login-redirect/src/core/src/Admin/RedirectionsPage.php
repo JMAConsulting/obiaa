@@ -22,6 +22,16 @@ class RedirectionsPage extends AbstractSettingsPage
         add_action('admin_init', [$this, 'save_redirect_rule_changes']);
         add_action('admin_init', [$this, 'save_other_settings_changes']);
         add_action('loginwp_admin_settings_page_rules', [$this, 'redirections_admin_page_callback']);
+
+        if (loginwp_var($_GET, 'page') == PTR_LOGINWP_REDIRECTION_PAGE_SLUG) {
+            add_filter('set-screen-option', [$this, 'set_screen'], 10, 3);
+            add_filter('set_screen_option_rules_per_page', [$this, 'set_screen'], 10, 3);
+        }
+    }
+
+    public static function set_screen($status, $option, $value)
+    {
+        return $value;
     }
 
     public function register_menu_page()

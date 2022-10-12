@@ -2,9 +2,9 @@
 # This file is distributed under the same license as the LoginWP (Formerly Peter's Login Redirect) package.
 msgid ""
 msgstr ""
-"Project-Id-Version: LoginWP (Formerly Peter's Login Redirect) 3.0.1.1\n"
+"Project-Id-Version: LoginWP (Formerly Peter's Login Redirect) 3.0.3.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/peters-login-redirect\n"
-"POT-Creation-Date: 2022-06-16 16:41:07+00:00\n"
+"POT-Creation-Date: 2022-09-06 20:19:07+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -36,32 +36,32 @@ msgstr ""
 msgid "Need Support?"
 msgstr ""
 
-#: src/core/src/Admin/AbstractSettingsPage.php:124
+#: src/core/src/Admin/AbstractSettingsPage.php:126
 msgid "Enhance the power of LoginWP with the Pro version featuring integrations with many plugins. %sLearn more%s"
 msgstr ""
 
-#: src/core/src/Admin/AbstractSettingsPage.php:131
+#: src/core/src/Admin/AbstractSettingsPage.php:133
 msgid "Redirect to referrer or previous page"
 msgstr ""
 
-#: src/core/src/Admin/AbstractSettingsPage.php:132
+#: src/core/src/Admin/AbstractSettingsPage.php:134
 msgid "Redirect to currently viewing page"
 msgstr ""
 
-#: src/core/src/Admin/AbstractSettingsPage.php:140
-#: src/core/src/Admin/views/view.pro-conditions.php:37
+#: src/core/src/Admin/AbstractSettingsPage.php:142
+#: src/core/src/Admin/views/view.pro-conditions.php:46
 msgid "Get LoginWP Pro →"
 msgstr ""
 
-#: src/core/src/Admin/AbstractSettingsPage.php:158
+#: src/core/src/Admin/AbstractSettingsPage.php:160
 msgid "Whether you need help or have a new feature request, let us know. %sRequest Support%s"
 msgstr ""
 
-#: src/core/src/Admin/AbstractSettingsPage.php:166
+#: src/core/src/Admin/AbstractSettingsPage.php:168
 msgid "Detailed documentation is also available on the plugin website. %sView Knowledge Base%s"
 msgstr ""
 
-#: src/core/src/Admin/AbstractSettingsPage.php:174
+#: src/core/src/Admin/AbstractSettingsPage.php:176
 msgid "If you are enjoying LoginWP and find it useful, please consider leaving a ★★★★★ review on WordPress.org. %sLeave a Review%s"
 msgstr ""
 
@@ -106,7 +106,7 @@ msgstr ""
 msgid "Support"
 msgstr ""
 
-#: src/core/src/Admin/Admin.php:165 src/core/src/Admin/RedirectionsPage.php:479
+#: src/core/src/Admin/Admin.php:165 src/core/src/Admin/RedirectionsPage.php:489
 msgid "Upgrade to PRO"
 msgstr ""
 
@@ -344,117 +344,117 @@ msgstr ""
 msgid "Condition Value"
 msgstr ""
 
-#: src/core/src/Admin/RedirectionsPage.php:33
+#: src/core/src/Admin/RedirectionsPage.php:43
 msgid "Redirections - LoginWP"
 msgstr ""
 
-#: src/core/src/Admin/RedirectionsPage.php:36
+#: src/core/src/Admin/RedirectionsPage.php:46
 msgid "Redirection "
 msgstr ""
 
-#: src/core/src/Admin/RedirectionsPage.php:42
+#: src/core/src/Admin/RedirectionsPage.php:52
 msgid "Redirections"
 msgstr ""
 
-#: src/core/src/Admin/RedirectionsPage.php:58
-#: src/core/src/Admin/RedirectionsPage.php:121
+#: src/core/src/Admin/RedirectionsPage.php:68
+#: src/core/src/Admin/RedirectionsPage.php:131
 msgid "Rules"
 msgstr ""
 
-#: src/core/src/Admin/RedirectionsPage.php:66
+#: src/core/src/Admin/RedirectionsPage.php:76
 msgid "Standard"
 msgstr ""
 
-#: src/core/src/Admin/RedirectionsPage.php:80
+#: src/core/src/Admin/RedirectionsPage.php:90
 msgid "Username"
 msgstr ""
 
-#: src/core/src/Admin/RedirectionsPage.php:87
+#: src/core/src/Admin/RedirectionsPage.php:97
 msgid "User Role"
 msgstr ""
 
-#: src/core/src/Admin/RedirectionsPage.php:94
+#: src/core/src/Admin/RedirectionsPage.php:104
 msgid "User Capability"
 msgstr ""
 
-#: src/core/src/Admin/RedirectionsPage.php:136
+#: src/core/src/Admin/RedirectionsPage.php:146
 msgid "Add New"
 msgstr ""
 
-#: src/core/src/Admin/RedirectionsPage.php:140
+#: src/core/src/Admin/RedirectionsPage.php:150
 msgid "Go Back"
 msgstr ""
 
-#: src/core/src/Admin/RedirectionsPage.php:153
+#: src/core/src/Admin/RedirectionsPage.php:163
 msgid "Redirection Rules"
 msgstr ""
 
-#: src/core/src/Admin/RedirectionsPage.php:209
+#: src/core/src/Admin/RedirectionsPage.php:219
 msgid "Select..."
 msgstr ""
 
-#: src/core/src/Admin/RedirectionsPage.php:253
+#: src/core/src/Admin/RedirectionsPage.php:263
 msgid "Redirect rule saved successfully"
 msgstr ""
 
-#: src/core/src/Admin/RedirectionsPage.php:256
+#: src/core/src/Admin/RedirectionsPage.php:266
 msgid "Changes saved"
 msgstr ""
 
-#: src/core/src/Admin/RedirectionsPage.php:265
+#: src/core/src/Admin/RedirectionsPage.php:275
 msgid "Redirect rule deleted"
 msgstr ""
 
-#: src/core/src/Admin/RedirectionsPage.php:282
+#: src/core/src/Admin/RedirectionsPage.php:292
 msgid "ERROR: Condition value not specified"
 msgstr ""
 
-#: src/core/src/Admin/RedirectionsPage.php:286
+#: src/core/src/Admin/RedirectionsPage.php:296
 msgid "ERROR: No Login or Logout URL specified"
 msgstr ""
 
-#: src/core/src/Admin/RedirectionsPage.php:290
+#: src/core/src/Admin/RedirectionsPage.php:300
 msgid "ERROR: Non-existent username submitted"
 msgstr ""
 
-#: src/core/src/Admin/RedirectionsPage.php:294
+#: src/core/src/Admin/RedirectionsPage.php:304
 msgid "ERROR: Non-existent role submitted"
 msgstr ""
 
-#: src/core/src/Admin/RedirectionsPage.php:298
+#: src/core/src/Admin/RedirectionsPage.php:308
 msgid "ERROR: Non-existent level submitted"
 msgstr ""
 
-#: src/core/src/Admin/RedirectionsPage.php:331
+#: src/core/src/Admin/RedirectionsPage.php:341
 msgid "ERROR: Unknown error editing redirect rule"
 msgstr ""
 
-#: src/core/src/Admin/RedirectionsPage.php:355
+#: src/core/src/Admin/RedirectionsPage.php:365
 msgid "ERROR: Unknown error when adding the redirect rule"
 msgstr ""
 
-#: src/core/src/Admin/RedirectionsPage.php:386
-#: src/core/src/Admin/RedirectionsPage.php:409
+#: src/core/src/Admin/RedirectionsPage.php:396
+#: src/core/src/Admin/RedirectionsPage.php:419
 msgid "ERROR: Unknown problem updating URL"
 msgstr ""
 
-#: src/core/src/Admin/RedirectionsPage.php:456
+#: src/core/src/Admin/RedirectionsPage.php:466
 msgid "User ID of user"
 msgstr ""
 
-#: src/core/src/Admin/RedirectionsPage.php:457
+#: src/core/src/Admin/RedirectionsPage.php:467
 msgid "Username of user"
 msgstr ""
 
-#: src/core/src/Admin/RedirectionsPage.php:458
+#: src/core/src/Admin/RedirectionsPage.php:468
 msgid "Author URL slug or user nicename"
 msgstr ""
 
-#: src/core/src/Admin/RedirectionsPage.php:459
+#: src/core/src/Admin/RedirectionsPage.php:469
 msgid "Website URL"
 msgstr ""
 
-#: src/core/src/Admin/RedirectionsPage.php:474
+#: src/core/src/Admin/RedirectionsPage.php:484
 msgid "With %sLoginWP PRO%s, you can redirect users to the current page they are logging in from or back to the previous (referrer) page after login."
 msgstr ""
 
@@ -541,7 +541,7 @@ msgid "Redirect Settings"
 msgstr ""
 
 #: src/core/src/Admin/views/view.bottom-settings.php:86
-msgid "Allow a POST or GET &#34;redirect_to&#34; variable to take redirect precedence"
+msgid "Allow a POST or GET &#34;redirect_to&#34; login variable to take redirect precedence"
 msgstr ""
 
 #: src/core/src/Admin/views/view.bottom-settings.php:92
@@ -567,8 +567,8 @@ msgid "Order"
 msgstr ""
 
 #: src/core/src/Admin/views/view.pro-conditions.php:4
-#: src/core/src/Admin/views/view.pro-conditions.php:20
-#: src/core/src/Admin/views/view.pro-conditions.php:24
+#: src/core/src/Admin/views/view.pro-conditions.php:23
+#: src/core/src/Admin/views/view.pro-conditions.php:27
 msgid "Enrolled Course"
 msgstr ""
 
@@ -593,15 +593,24 @@ msgid "Active Membership Plan"
 msgstr ""
 
 #: src/core/src/Admin/views/view.pro-conditions.php:14
-msgid "Subscribed Membership"
+msgid "Subscribed Membership Plan"
 msgstr ""
 
 #: src/core/src/Admin/views/view.pro-conditions.php:17
+msgid "Subscribed Membership"
+msgstr ""
+
+#: src/core/src/Admin/views/view.pro-conditions.php:20
 msgid "Active Membership Level"
 msgstr ""
 
-#: src/core/src/Admin/views/view.pro-conditions.php:21
+#: src/core/src/Admin/views/view.pro-conditions.php:24
 msgid "Enrolled Membership"
+msgstr ""
+
+#: src/core/src/Admin/views/view.pro-conditions.php:30
+#: src/core/src/Admin/views/view.pro-conditions.php:33
+msgid "Website Current Language"
 msgstr ""
 
 #: src/core/src/Functions.php:17

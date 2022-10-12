@@ -170,7 +170,8 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact_Field {
 		// Intercept Post created, updated (or synced) from Contact events.
 		add_action( 'cwps/acf/post/created', [ $this, 'post_edited' ], 10 );
 		add_action( 'cwps/acf/post/edited', [ $this, 'post_edited' ], 10 );
-		add_action( 'cwps/acf/post/contact_sync_to_post', [ $this, 'contact_sync_to_post' ], 10 );
+		// Intercept Post-Contact sync event.
+		add_action( 'cwps/acf/post/contact/sync', [ $this, 'contact_sync_to_post' ], 10 );
 
 		// Some Contact "Text" Fields need their own validation.
 		// phpcs:ignore Squiz.Commenting.InlineComment.InvalidEndChar
@@ -1350,8 +1351,8 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact_Field {
 		$dir = wp_get_upload_dir();
 		$path = $url;
 
-		$site_url = parse_url( $dir['url'] );
-		$image_path = parse_url( $path );
+		$site_url = wp_parse_url( $dir['url'] );
+		$image_path = wp_parse_url( $path );
 
 		// Force the protocols to match if needed.
 		if ( isset( $image_path['scheme'] ) && ( $image_path['scheme'] !== $site_url['scheme'] ) ) {
@@ -1455,21 +1456,25 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact_Field {
 		}
 
 		// Bail if GET doesn't contain the path we want.
-		if ( empty( $_GET['q'] ) || $_GET['q'] != 'civicrm/contact/image' ) {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( empty( $_GET['q'] ) || $_GET['q'] !== 'civicrm/contact/image' ) {
 			return;
 		}
 
 		// Bail if GET doesn't contain the matching Contact ID.
-		if ( empty( $_GET['cid'] ) || $_GET['cid'] != $objectRef->id ) {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( empty( $_GET['cid'] ) || $_GET['cid'] !== $objectRef->id ) {
 			return;
 		}
 
 		// Bail if GET doesn't contain the delete action.
-		if ( empty( $_GET['action'] ) || $_GET['action'] != 'delete' ) {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( empty( $_GET['action'] ) || $_GET['action'] !== 'delete' ) {
 			return;
 		}
 
 		// Bail if GET doesn't contain the confirmed flag.
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		if ( empty( $_GET['confirmed'] ) || $_GET['confirmed'] != 1 ) {
 			return;
 		}

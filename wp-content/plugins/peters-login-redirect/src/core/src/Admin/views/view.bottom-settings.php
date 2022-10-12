@@ -83,7 +83,7 @@ $modal_title = esc_html__('View Available Placeholders', 'peters-login-redirect'
             <tr>
                 <td>
                     <p>
-                        <strong><?php _e('Allow a POST or GET &#34;redirect_to&#34; variable to take redirect precedence', 'peters-login-redirect'); ?></strong>
+                        <strong><?php _e('Allow a POST or GET &#34;redirect_to&#34; login variable to take redirect precedence', 'peters-login-redirect'); ?></strong>
                     </p>
                 </td>
                 <td>

@@ -153,8 +153,8 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Relationship extends CiviCRM_Profile_Sync
 		// Add any Relationship Fields attached to a Post.
 		add_filter( 'cwps/acf/fields_get_for_post', [ $this, 'acf_fields_get_for_post' ], 10, 3 );
 
-		// Intercept Post synced from Contact events.
-		add_action( 'cwps/acf/post/contact_sync_to_post', [ $this, 'contact_sync_to_post' ], 10 );
+		// Intercept Post-Contact sync event.
+		add_action( 'cwps/acf/post/contact/sync', [ $this, 'contact_sync_to_post' ], 10 );
 
 	}
 
@@ -1442,12 +1442,15 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Relationship extends CiviCRM_Profile_Sync
 	 */
 	public function type_id_employer_employee_get() {
 
-		// Init return.
-		$relationship_type_id = false;
+		// Only do this once.
+		static $relationship_type_id;
+		if ( isset( $relationship_type_id ) ) {
+			return $relationship_type_id;
+		}
 
 		// Try and init CiviCRM.
 		if ( ! $this->civicrm->is_initialised() ) {
-			return $relationship_type_id;
+			return false;
 		}
 
 		// Construct API query.
@@ -1462,27 +1465,27 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Relationship extends CiviCRM_Profile_Sync
 
 		// Bail if there's an error.
 		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
-			return $relationship_type_id;
+			return false;
 		}
 
 		// Bail if there are no results.
 		if ( empty( $result['values'] ) ) {
-			return $relationship_type_id;
+			return false;
 		}
 
 		// The result set should contain only one item.
 		$relationship = array_pop( $result['values'] );
 
 		// We only want the ID.
-		$relationship_type_id = $relationship['id'];
+		$relationship_type_id = (int) $relationship['id'];
 
 		// --<
-		return (int) $relationship_type_id;
+		return $relationship_type_id;
 
 	}
 
 	/**
-	 * Checks an CiviCRM Employer/Employee Relationship for "Is Current" status.
+	 * Checks a CiviCRM Employer/Employee Relationship for "Is Current" status.
 	 *
 	 * @since 0.5.7
 	 *
@@ -1770,6 +1773,59 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Relationship extends CiviCRM_Profile_Sync
 				'or' => [
 					[ 'contact_type_a', 'contact_type_b' ],
 				],
+			],
+		];
+
+		// Call the CiviCRM API.
+		$result = civicrm_api( 'RelationshipType', 'get', $params );
+
+		// Extract the result set if we can.
+		if ( empty( $result['is_error'] ) && ! empty( $result['values'] ) ) {
+			$relationships = $result['values'];
+		}
+
+		// Maybe append the "all-to-all" Relationships.
+		$all = $this->relationships_get_all_to_all();
+		if ( ! empty( $all ) ) {
+			foreach ( $all as $item ) {
+				$relationships[] = $item;
+			}
+		}
+
+		// --<
+		return $relationships;
+
+	}
+
+	/**
+	 * Get "all-to-all" Relationship Types.
+	 *
+	 * @since 0.5.8
+	 *
+	 * @return array $relationships The array of Relationships.
+	 */
+	public function relationships_get_all_to_all() {
+
+		// Init return.
+		$relationships = [];
+
+		// Try and init CiviCRM.
+		if ( ! $this->civicrm->is_initialised() ) {
+			return $relationships;
+		}
+
+		// Query for those Relationships which are "all-to-all".
+		$params = [
+			'version' => 3,
+			'sequential' => 1,
+			'contact_type_a' => [
+				'IS NULL' => 1,
+			],
+			'contact_type_b' => [
+				'IS NULL' => 1,
+			],
+			'options' => [
+				'limit' => 0,
 			],
 		];
 

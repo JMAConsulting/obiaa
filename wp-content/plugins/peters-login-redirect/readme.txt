@@ -5,7 +5,7 @@ Tags: login, logout, redirect, login form, user registration, admin, administrat
 Requires at least: 4.7
 Requires PHP: 5.6
 Tested up to: 6.0
-Stable tag: 3.0.1.1
+Stable tag: 3.0.3.0
 License: GPL-2.0+
 
 Redirect users to different locations after they log in, log out and register based on different conditions.
@@ -49,7 +49,7 @@ This is the lite version that works with the default WordPress login page and li
 
 If you like this plugin, then consider checking out our other products:
 
-* <a href="https://profilepress.net/?utm_source=wprepo&utm_medium=link&utm_campaign=loginwp">ProfilePress</a> - The perfect user registration, login form, user profile & membership plugin.
+* <a href="https://profilepress.com/?utm_source=wprepo&utm_medium=link&utm_campaign=loginwp">ProfilePress</a> - The perfect user registration, login form, user profile & membership plugin.
 * <a href="https://mailoptin.io/?utm_source=wprepo&utm_medium=link&utm_campaign=loginwp" title="MailOptin">MailOptin</a> - Create popups and optin forms for capturing email newsletter subscribers. Integrates with Mailchimp, ConvertKit, Infusionsoft, ActiveCampaign, Campaign Monitor, Constant Contact & more.
 
 == Installation ==
@@ -76,6 +76,14 @@ Login redirects not working? This plugin uses WordPress's standard login_redirec
 
 == Changelog ==
 
+= 3.0.3.0 =
+* Fixed bug with wp list pagination per page not working.
+
+= 3.0.2.0 =
+* Pro: Added [Polylang integration](https://loginwp.com/?utm_source=wprepo&utm_medium=changelog&utm_campaign=3020#pro-conditions)
+* Pro: Added [WPML integration](https://loginwp.com/?utm_source=wprepo&utm_medium=changelog&utm_campaign=3020#pro-conditions)
+* Fixed fatal error caused by other plugin metaboxes.
+
 = 3.0.1.1 =
 * Added logout support to all [Pro conditions](https://loginwp.com/?utm_source=wprepo&utm_medium=changelog&utm_campaign=4011#pro-conditions).
 * [Pro features](https://loginwp.com/pricing/?utm_source=wprepo&utm_medium=changelog&utm_campaign=4011) support for Uncanny Toolkit.
@@ -83,21 +91,5 @@ Login redirects not working? This plugin uses WordPress's standard login_redirec
 = 3.0.1.0 =
 * Added [TutorLMS integration](https://loginwp.com/?utm_source=wprepo&utm_medium=changelog&utm_campaign=4010#pro-conditions).
 * Improved admin page loading speed.
-
-= 3.0.0.8 =
-* Added noncache to temporary redirects.
-* Added user_id placeholder.
-* Added wp_logout() redirection support
-
-= 3.0.0.7 =
-* Fix site and website url placeholder bug in multisite.
-
-= 3.0.0.6 =
-* Compatibility with WP 5.9.
-* Pro: Added [LearnDash](https://loginwp.com/?utm_source=wprepo&utm_medium=changelog&utm_campaign=3006#pro-conditions) Enrolled Course and User Group redirect conditions.
-* Pro: Added [WooCommerce](https://loginwp.com/?utm_source=wprepo&utm_medium=changelog&utm_campaign=3006#pro-conditions) Purchased Product, Purchased Product Category, Active User Subscription, Active Membership Plan redirect conditions.
-* Pro: Added [MemberPress](https://loginwp.com/?utm_source=wprepo&utm_medium=changelog&utm_campaign=3006#pro-conditions) Subscribed Membership redirect condition.
-* Pro: Added [Restrict Content Pro](https://loginwp.com/?utm_source=wprepo&utm_medium=changelog&utm_campaign=3006#pro-conditions) Has Membership redirect condition.
-* Pro: Added [LifterLMS](https://loginwp.com/?utm_source=wprepo&utm_medium=changelog&utm_campaign=3006#pro-conditions) Enrolled Course and Enrolled Membership redirect conditions.
 
 See the [changelog file](https://plugins.svn.wordpress.org/peters-login-redirect/trunk/changelog.txt) for full changelog information.
