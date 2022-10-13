@@ -1,4 +1,4 @@
-<div class="crm-summary-row  primary">
+<div class="crm-summary-row afsearchWorkAddress">
   <div class="crm-label">
     Work Address
   </div>
@@ -8,3 +8,13 @@
     </div>
   </div>
 </div>
+<script>
+  jQuery(document).ready(function ($) {
+    if ($('.crm-contact_type_label').text().indexOf('Member (Business)') != -1) {
+      $('.crm-address-block').hide();
+    }
+    else {
+      $('.afsearchWorkAddress').hide();
+    }
+  });
+</script>
