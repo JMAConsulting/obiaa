@@ -9,6 +9,13 @@ Releases use the following numbering system:
 
 * **[BC]**: Items marked with [BC] indicate a breaking change that will require updates to your code if you are using that code in your extension.
 
+## Release 1.2.9 (2022-09-14)
+
+* Add psr0 classloader to info.xml.
+* Don't update (set update to never) Paymentprocessorwebhooks managed job (stops it re-enabling automatically).
+* Upgrade civix.
+* Fix [#18](https://lab.civicrm.org/extensions/mjwshared/-/issues/18) Don't add refund link if no payment processor.
+
 ## Release 1.2.8 (2022-08-19)
 
 * Multiple participants: Handle 100% discount. Fix [Stripe#372](https://lab.civicrm.org/extensions/stripe/-/issues/372) etc. when additional participant amount is more than first participant.

@@ -14,6 +14,7 @@ return [
   [
     'name' => 'ProcessPaymentProcessorWebhooks',
     'entity' => 'Job',
+    'update' => 'never',
     'params' =>
     [
       'version' => 3,
