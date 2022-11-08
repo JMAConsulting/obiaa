@@ -64,6 +64,11 @@ class CRM_Biaproperty_Form_Property extends CRM_Core_Form {
   public function buildQuickForm() {
     $this->assign('id', $this->getEntityId());
     $this->add('hidden', 'id');
+    if ($this->_action == CRM_Core_Action::DELETE) {
+     if (Unit::get(FALSE)->addWhere('property_id', '=', $this->_id)->addWhere('unit_status', '=', 1)->execute()->count() > 0) {
+        CRM_Core_Error::statusBounce(E::ts('You cannot delete this property with occupied unit.'));
+      }
+    }
     if ($this->_action != CRM_Core_Action::DELETE) {
       $elements = [
         'name' => 'Property Name',
@@ -157,10 +162,20 @@ class CRM_Biaproperty_Form_Property extends CRM_Core_Form {
       $units = Unit::get(FALSE)->addWhere('property_id', '=', $this->_id)->execute();
       foreach ($units as $unit) {
         // not able to execute due to foreign key constraint error, commented out for now
-        civicrm_api4('Address', 'delete', ['where' => [['id', '=', $unit['address_id']]]]);
+        $count = civicrm_api4('Unit', 'get', ['where' => [['address_id', '=', $unit['address_id']], ['id', '!=', $unit['id']]]])->count();
+        if ($count === 0) {civicrm_api4('Address', 'delete', ['where' => [['id', '=', $unit['address_id']]]]);}
         civicrm_api4('Unit', 'delete', ['where' => [['id', '=', $unit['id']]]]);
       }
       civicrm_api4('Property', 'delete', ['where' => [['id', '=', $this->_id]]]);
+      $title = empty($this->_property['name']) ? $this->_property['property_address'] : $this->_property['name'] . ' ' . $this->_property['property_address'];
+      \Civi\Api4\Activity::create(FALSE)
+        ->addValue('activity_type_id:name', 'Property deleted')
+        ->addValue('target_contact_id', CRM_Core_Session::getLoggedInContactID())
+        ->addValue('assignee_contact_id', CRM_Core_Session::getLoggedInContactID())
+        ->addValue('source_contact_id', CRM_Core_Session::getLoggedInContactID())
+        ->addValue('status_id:name', 'Completed')
+        ->addValue('subject', $title)
+        ->execute();
       CRM_Core_Session::setStatus(E::ts('Removed Property'), E::ts('Property'), 'success');
     }
     else {

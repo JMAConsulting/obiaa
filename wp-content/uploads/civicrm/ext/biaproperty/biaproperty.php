@@ -326,7 +326,6 @@ function biaproperty_civicrm_validateForm($formName, &$fields, &$files, &$form, 
   }
 }
 
-
 // --- Functions below this ship commented out. Uncomment as required. ---
 
 /**

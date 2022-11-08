@@ -1,5 +1,8 @@
 <?php
 
+function civicrm_api3_property_create($params) {
+  return _civicrm_api3_basic_create(_civicrm_api3_get_BAO(__FUNCTION__), $params, 'Property');
+}
 
 /**
  * Returns array of assignments matching a set of one or more group properties
@@ -12,7 +15,7 @@
  * @access public
  */
 function civicrm_api3_property_get($params) {
-  if (isset($params['id'])) {
+  if (isset($params['id']) || isset($params['source_record_id'])) {
     $params['return'] = isset($params['return']) ? array_merge($params['return'], ['property_address']) : [];
     return _civicrm_api3_basic_get(_civicrm_api3_get_BAO(__FUNCTION__), $params, TRUE, 'Property');
   }

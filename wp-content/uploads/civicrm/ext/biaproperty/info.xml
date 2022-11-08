@@ -23,10 +23,11 @@
   <comments>This is a new, undeveloped module</comments>
   <classloader>
     <psr4 prefix="Civi\" path="Civi"/>
+    <psr0 prefix="CRM_" path="."/>
   </classloader>
   <civix>
     <namespace>CRM/Biaproperty</namespace>
-    <format>22.05.2</format>
+    <format>22.10.0</format>
     <angularModule>crmBiaproperty</angularModule>
   </civix>
   <mixins>

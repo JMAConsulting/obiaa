@@ -52,6 +52,9 @@
     <type>varchar</type>
     <length>255</length>
     <comment>Property Tax Roll Address</comment>
+    <html>
+      <type>Text</type>
+    </html>
   </field>
   <index>
     <name>UI_property_address</name>
@@ -114,6 +117,22 @@
     </html>
     <readonly>true</readonly>
   </field>
+
+  <field>
+    <name>source_record_id</name>
+    <type>varchar</type>
+    <length>512</length>
+    <comment>Field used to handle sync processes</comment>
+    <default>NULL</default>
+    <html>
+      <type>Text</type>
+    </html>
+  </field>
+  <index>
+    <name>UI_source_record_id</name>
+    <fieldName>source_record_id</fieldName>
+    <unique>true</unique>
+  </index>
 
   <paths>
     <add>civicrm/property/form?reset=1&amp;action=add</add>

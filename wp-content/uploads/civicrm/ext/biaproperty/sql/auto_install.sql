@@ -46,8 +46,10 @@ CREATE TABLE `civicrm_property` (
   `postal_code` varchar(64) COMMENT 'postal code this property is in',
   `modified_id` int unsigned COMMENT 'FK to Contact',
   `modified_date` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'When was the property was created or modified or deleted.',
+  `source_record_id` varchar(512) DEFAULT NULL COMMENT 'Field used to handle sync processes',
   PRIMARY KEY (`id`),
   UNIQUE INDEX `UI_property_address`(property_address),
+  UNIQUE INDEX `UI_source_record_id`(source_record_id),
   CONSTRAINT FK_civicrm_property_created_id FOREIGN KEY (`created_id`) REFERENCES `civicrm_contact`(`id`) ON DELETE CASCADE,
   CONSTRAINT FK_civicrm_property_modified_id FOREIGN KEY (`modified_id`) REFERENCES `civicrm_contact`(`id`) ON DELETE CASCADE
 )
@@ -89,8 +91,10 @@ CREATE TABLE `civicrm_unit` (
   `unit_location` varchar(255) NULL COMMENT 'Unit Location',
   `address_id` int unsigned COMMENT 'FK to Address',
   `property_id` int unsigned NOT NULL COMMENT 'FK to civicrm_property',
+  `source_record_id` varchar(512) DEFAULT NULL COMMENT 'Field used to handle sync processes',
   PRIMARY KEY (`id`),
   UNIQUE INDEX `UI_address_id`(address_id),
+  UNIQUE INDEX `UI_source_record_id`(source_record_id),
   CONSTRAINT FK_civicrm_unit_unit_status FOREIGN KEY (`unit_status`) REFERENCES `civicrm_option_value`(`id`),
   CONSTRAINT FK_civicrm_unit_unit_photo FOREIGN KEY (`unit_photo`) REFERENCES `civicrm_file`(`id`) ON DELETE CASCADE,
   CONSTRAINT FK_civicrm_unit_address_id FOREIGN KEY (`address_id`) REFERENCES `civicrm_address`(`id`) ON DELETE SET NULL,

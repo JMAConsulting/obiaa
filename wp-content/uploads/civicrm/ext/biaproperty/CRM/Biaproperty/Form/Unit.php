@@ -298,6 +298,8 @@ class CRM_Biaproperty_Form_Unit extends CRM_Core_Form {
     if ($this->_action == CRM_Core_Action::DELETE) {
       civicrm_api4('Address', 'delete', ['where' => [['id', '=', $this->_unit['address_id']]]]);
       civicrm_api4('Unit', 'delete', ['where' => [['id', '=', $this->_id]]]);
+      $count = civicrm_api4('Unit', 'get', ['where' => [['address_id', '=', $this->_unit['address_id']], ['id', '!=', $this->_id]]])->count();
+      if ($count === 0) {civicrm_api4('Address', 'delete', ['where' => [['id', '=', $this->_unit['address_id']]]]);}
       CRM_Core_Session::setStatus(E::ts('Removed Unit'), E::ts('Unit'), 'success');
     }
     else {
