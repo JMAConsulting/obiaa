@@ -13,7 +13,7 @@ use CRM_CiviMobileAPI_ExtensionUtil as E;
 function civicrm_api3_civi_mobile_confirm_token_run($params) {
   _civicrm_api3_confirm_token_check_permission();
   $config = &CRM_Core_Config::singleton();
-  $baseUrl = $config->userFrameworkBaseURL;
+  $baseUrl = str_replace('/administrator/', '', $config->userFrameworkBaseURL);
 
   $awgWordpressApiAccessToken = '06fb687ffd4bfb1965035adcc757f5e8c1835facbc18d104e099580314b41554459';
   $awgWordpressDomain = 'https://civimobile.org';

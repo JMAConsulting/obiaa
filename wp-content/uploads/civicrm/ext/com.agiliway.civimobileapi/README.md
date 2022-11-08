@@ -39,7 +39,7 @@ The latest CiviMobile application can be downloaded from [AppStore](https://itun
 
 ## Requirements
 
-- CiviCRM v4.7.x+
+- CiviCRM v5.14.x+
 - PHP v5.4+
 - Drupal 7.x, 8.x
 - Joomla 3.x (CiviCRM 5.1+)

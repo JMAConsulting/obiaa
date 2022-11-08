@@ -19,7 +19,19 @@ class CRM_CiviMobileAPI_ApiWrapper_Contribution implements API_Wrapper {
       }
       $apiRequest['params']['return'] = array_unique(array_merge($apiRequest['params']['return'], ['currency', 'financial_type_id']));
     }
+
     if (is_mobile_request()) {
+      if (isset($apiRequest['params']['currency'])) {
+        $contributionsIds = $this->getIdsByCurrency($apiRequest['params']['currency']);
+
+        if (!empty($contributionsIds)) {
+          $apiRequest['params']['contribution_id'] = ['IN' => $contributionsIds];
+        } else {
+          $apiRequest['params']['contribution_id'] = ['IS NULL' => 1];
+        }
+        unset($apiRequest['params']['currency']);
+      }
+
       if ($apiRequest['params']['contact_display_name']
         || $apiRequest['params']['contact_type']
         || $apiRequest['params']['contact_tags']
@@ -202,4 +214,27 @@ class CRM_CiviMobileAPI_ApiWrapper_Contribution implements API_Wrapper {
     }
   }
 
+  /**
+   * @param string $currency
+   *
+   * @return array
+   */
+  public function getIdsByCurrency($currency) {
+    $table = CRM_Contribute_DAO_Contribution::getTableName();
+    $sql =  "SELECT id as contribution_id FROM $table WHERE currency = %1";
+    $params = [
+      1 => [$currency, 'String']
+    ];
+    $contributionsByCurrenciesList = [];
+    try {
+      $dao = CRM_Core_DAO::executeQuery($sql, $params);
+      while ($dao->fetch()) {
+        $contributionsByCurrenciesList[] = $dao->contribution_id;
+      }
+    } catch (Exception $e) {
+      $contributionsByCurrenciesList = [];
+    }
+
+    return $contributionsByCurrenciesList;
+  }
 }

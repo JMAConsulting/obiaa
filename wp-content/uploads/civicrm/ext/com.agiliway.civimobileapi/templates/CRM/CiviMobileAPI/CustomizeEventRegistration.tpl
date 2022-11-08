@@ -20,6 +20,11 @@
     cj('#pricesetTotal, #pricesetTotal *').show();
     cj('.event_info_link-section').hide();
     cj('.location.vcard').parent().find('a').css('display','none');
+
+    if($('#page').length === 0) {
+      $('body').attr('id', 'page');
+    }
+
   });
 </script>
 
@@ -156,7 +161,7 @@
     }
     #page .crm-submit-buttons {
       display: flex;
-      height: auto;
+      height: 35px;
     }
     #page .crm-submit-buttons .crm-button {
       background: #5589B7;

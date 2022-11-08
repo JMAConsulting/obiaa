@@ -52,6 +52,7 @@ class CRM_CiviMobileAPI_Page_PublicSettings extends CRM_Core_Page {
         ],
         'tabs' => CRM_CiviMobileAPI_Utils_Extension::getActiveCiviMobileTabs(),
         'permissions' => CRM_CiviMobileAPI_Utils_Permission::getAnonymous(),
+        'currencies' => CRM_CiviMobileAPI_Utils_CiviCRM::getCurrencies(),
       ];
 
       JsonResponse::sendSuccessResponse($settings);

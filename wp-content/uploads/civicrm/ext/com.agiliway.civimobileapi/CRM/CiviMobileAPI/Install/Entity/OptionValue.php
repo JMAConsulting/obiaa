@@ -27,10 +27,7 @@ class CRM_CiviMobileAPI_Install_Entity_OptionValue extends CRM_CiviMobileAPI_Ins
   const TAB_NOTES = 'civi_mobile_tab_notes';
   const TAB_GROUPS = 'civi_mobile_tab_groups';
   const TAB_TAGS = 'civi_mobile_tab_tags';
-  const TAB_NEWS = 'civi_mobile_tab_news';
   const TAB_SURVEYS = 'civi_mobile_tab_surveys';
-  const TAB_PETITIONS = 'civi_mobile_tab_petitions';
-  const TAB_DONATIONS = 'civi_mobile_tab_donations';
 
   /**
    * Params for checking Entity existence
@@ -127,30 +124,6 @@ class CRM_CiviMobileAPI_Install_Entity_OptionValue extends CRM_CiviMobileAPI_Ins
         'name' => self::TAB_SURVEYS,
         'value' => self::TAB_SURVEYS,
         'weight' => 12,
-      ],
-      [
-        'option_group_id' => CRM_CiviMobileAPI_Install_Entity_OptionGroup::TABS,
-        'label' => E::ts('News'),
-        'name' => self::TAB_NEWS,
-        'value' => self::TAB_NEWS,
-        'weight' => 13,
-        'is_active' => 0
-      ],
-      [
-        'option_group_id' => CRM_CiviMobileAPI_Install_Entity_OptionGroup::TABS,
-        'label' => E::ts('Petitions'),
-        'name' => self::TAB_PETITIONS,
-        'value' => self::TAB_PETITIONS,
-        'weight' => 14,
-        'is_active' => 0
-      ],
-      [
-        'option_group_id' => CRM_CiviMobileAPI_Install_Entity_OptionGroup::TABS,
-        'label' => E::ts('Donations'),
-        'name' => self::TAB_DONATIONS,
-        'value' => self::TAB_DONATIONS,
-        'weight' => 15,
-        'is_active' => 0
       ],
     ];
   }

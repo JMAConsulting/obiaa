@@ -4,6 +4,10 @@ require_once 'civimobileapi.civix.php';
 require_once 'lib/PHPQRCode.php';
 \PHPQRCode\Autoloader::register();
 
+use Civi\CiviMobileAPI\PushNotification\Entity\ActivityPushNotification;
+use Civi\CiviMobileAPI\PushNotification\Entity\CasePushNotification;
+use Civi\CiviMobileAPI\PushNotification\Entity\ParticipantPushNotification;
+use Civi\CiviMobileAPI\PushNotification\Entity\RelationshipPushNotification;
 use CRM_CiviMobileAPI_ExtensionUtil as E;
 
 /**
@@ -145,8 +149,6 @@ function civimobileapi_civicrm_apiWrappers(&$wrappers, $apiRequest) {
     if ($apiRequest['action'] == 'get') {
       $wrappers[] = new CRM_CiviMobileAPI_ApiWrapper_Activity_Get();
     }
-
-    $wrappers[] = new CRM_CiviMobileAPI_ApiWrapper_Activity_Notification();
   }
   elseif ($apiRequest['entity'] == 'Case' && ($apiRequest['action'] == 'getsingle' || $apiRequest['action'] == 'get')) {
     $wrappers[] = new CRM_CiviMobileAPI_ApiWrapper_Case();
@@ -195,7 +197,7 @@ function civimobileapi_civicrm_apiWrappers(&$wrappers, $apiRequest) {
   }
   elseif ($apiRequest['entity'] == 'EntityTag') {
     if ($apiRequest['action'] == 'get') {
-//      $wrappers[] = new CRM_CiviMobileAPI_ApiWrapper_EntityTag_Get();
+      $wrappers[] = new CRM_CiviMobileAPI_ApiWrapper_EntityTag_Get();
     }
   } elseif ($apiRequest['entity'] == 'Survey') {
     if ($apiRequest['action'] == 'getsingle') {
@@ -366,8 +368,8 @@ function civimobileapi_secret_validation() {
  */
 function is_mobile_request() {
   $null = NULL;
-  $civimobile = CRM_Utils_Request::retrieve('civimobile', 'Int', $null, FALSE, FALSE, 'GET');
-  return $civimobile;
+
+  return CRM_Utils_Request::retrieve('civimobile', 'Int', $null, FALSE, FALSE, 'GET');
 }
 
 function civimobileapi_civicrm_post($op, $objectName, $objectId, &$objectRef) {
@@ -405,14 +407,13 @@ function civimobileapi_civicrm_post($op, $objectName, $objectId, &$objectRef) {
   }
 
   /**
-   * This hook run only when create Case or make relationship to Case. And send
-   * notification if contact or relation contact haves token.
+   * Send push notification if contact or relation contact haves token.
    */
-  $notificationFactory = new CRM_CiviMobileAPI_PushNotification_Utils_NotificationFactory($op, $objectName, $objectId, $objectRef, "post");
-  $notificationManager = $notificationFactory->getPushNotificationManager();
-  if (isset($notificationManager)) {
-    $notificationManager->sendNotification();
-  }
+  (new CasePushNotification($op, $objectName, $objectId, $objectRef))->handlePostHook();
+  (new ActivityPushNotification($op, $objectName, $objectId, $objectRef))->handlePostHook();
+  (new RelationshipPushNotification($op, $objectName, $objectId, $objectRef))->handlePostHook();
+  (new ParticipantPushNotification($op, $objectName, $objectId, $objectRef))->handlePostHook();
+
   /**
    * Rebuild venue after changing event location data.
    */
@@ -453,23 +454,16 @@ function civimobileapi_civicrm_postProcess($formName, &$form) {
   }
 
   /**
-   * This hook run only when create or update Activity from WEB,
-   * if it has made by API notification will send
-   * in 'CRM_CiviMobileAPI_ApiWrapper_Activity_Notification'.
+   * This hook run only when delete Activity from WEB
    */
-  $action = CRM_CiviMobileAPI_PushNotification_Utils_NotificationFactory::convertPostProcessAction($form);
-  $formName = CRM_CiviMobileAPI_PushNotification_Utils_NotificationFactory::convertPostProcessFormName($formName);
-
-  $objectId = null;
-  if ($formName == 'ActivityInCase' && $action == 'delete') {
-    $objectId = (isset($form->_caseId[0])) ? $form->_caseId[0] : null;
+  $action = $form->getAction();
+  if ($action == CRM_Core_Action::DELETE) {
+    $action = "delete";
   }
 
-  $notificationFactory = new CRM_CiviMobileAPI_PushNotification_Utils_NotificationFactory($action, $formName, $objectId, $form, "postProcess");
-  $notificationManager = $notificationFactory->getPushNotificationManager();
-
-  if (isset($notificationManager)) {
-    $notificationManager->sendNotification();
+  $objectId = null;
+  if ($formName == 'CRM_Case_Form_Activity' && $action == 'delete') {
+    $objectId = (isset($form->_caseId[0])) ? $form->_caseId[0] : null;
   }
 
   if ($formName == 'CRM_Event_Form_Participant' && $action == 'create') {
@@ -486,11 +480,9 @@ function civimobileapi_civicrm_pre($op, $objectName, $id, &$params) {
   /**
    * Send notification in delete process
    */
-  $notificationFactory = new CRM_CiviMobileAPI_PushNotification_Utils_NotificationFactory($op, $objectName, $id, $params, "pre");
-  $notificationManager = $notificationFactory->getPushNotificationManager();
-  if (isset($notificationManager)) {
-    $notificationManager->sendNotification();
-  }
+  (new CasePushNotification($op, $objectName, $id, $params))->handlePreHook();
+  (new ActivityPushNotification($op, $objectName, $id, $params))->handlePreHook();
+  (new ParticipantPushNotification($op, $objectName, $id, $params))->handlePreHook();
 }
 
 /**
@@ -620,7 +612,7 @@ if (!function_exists('is_writable_r')) {
 function civimobileapi_civicrm_navigationMenu(&$menu) {
   $civiMobile = [
     'name' => E::ts('CiviMobile'),
-    'permission' => 'administer payments',
+    'permission' => 'administer CiviCRM',
     'operator' => NULL,
     'separator' => NULL,
   ];

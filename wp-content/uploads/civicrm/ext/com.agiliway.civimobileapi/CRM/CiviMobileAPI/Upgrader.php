@@ -7,7 +7,7 @@ class CRM_CiviMobileAPI_Upgrader extends CRM_CiviMobileAPI_Upgrader_Base {
 
   public function upgrade_0001() {
     $this->ctx->log->info('Applying update 0001');
-    CRM_CiviMobileAPI_PushNotification_Helper::deleteCustomGroup("contact_push_notification");
+    CRM_CiviMobileAPI_Utils_CustomGroup::deleteCustomGroup("contact_push_notification");
 
     return TRUE;
   }
@@ -39,7 +39,8 @@ class CRM_CiviMobileAPI_Upgrader extends CRM_CiviMobileAPI_Upgrader_Base {
   public function upgrade_0005() {
     try {
       $this->executeSql('ALTER TABLE civicrm_contact_push_notification_messages ADD invoke_contact_id INT(10) UNSIGNED NULL');
-    } catch (Exception $e) {}
+    } catch (Exception $e) {
+    }
 
     return TRUE;
   }
@@ -47,7 +48,8 @@ class CRM_CiviMobileAPI_Upgrader extends CRM_CiviMobileAPI_Upgrader_Base {
   public function upgrade_0006() {
     try {
       $this->executeSql('ALTER TABLE civicrm_contact_push_notification_messages ADD message_title varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL');
-    } catch (Exception $e) {}
+    } catch (Exception $e) {
+    }
 
     return TRUE;
   }
@@ -209,11 +211,40 @@ class CRM_CiviMobileAPI_Upgrader extends CRM_CiviMobileAPI_Upgrader_Base {
 
   public function upgrade_0023() {
     try {
-    $this->executeSql('ALTER TABLE civicrm_contact_push_notification_messages DROP COLUMN message');
-    } catch (Exception $e) {}
-    
-    return TRUE;
+      $this->executeSql('ALTER TABLE civicrm_contact_push_notification_messages DROP COLUMN message');
+    } catch (Exception $e) {
     }
+
+    return TRUE;
+  }
+
+  public function upgrade_0024() {
+    try {
+      $unusedOptions = civicrm_api3('OptionValue', 'get', [
+        'sequential' => 1,
+        'name' => ['IN' => ["civi_mobile_tab_news", "civi_mobile_tab_petitions", "civi_mobile_tab_donations"]],
+      ]);
+      foreach ($unusedOptions['values'] as $getIds) {
+        civicrm_api3('OptionValue', 'delete', [
+          'id' => $getIds['id']
+        ]);
+      }
+    } catch (Exception $e) {
+    }
+    return TRUE;
+  }
+
+  /**
+   * Clears cache to use classloader
+   *
+   * @return bool
+   */
+  public function upgrade_0025() {
+    $config = CRM_Core_Config::singleton();
+    $config->cleanupCaches();
+
+    return TRUE;
+  }
 
   /**
    * Installs scheduled job
@@ -231,7 +262,7 @@ class CRM_CiviMobileAPI_Upgrader extends CRM_CiviMobileAPI_Upgrader_Base {
 
     CRM_CiviMobileAPI_Settings_Calendar::setCalendarIsAllowToUseCiviCalendarSettings(
       CRM_CiviMobileAPI_Utils_Calendar::isCiviCalendarEnable()
-      && CRM_CiviMobileAPI_Utils_Calendar::isCiviCalendarCompatible()
+        && CRM_CiviMobileAPI_Utils_Calendar::isCiviCalendarCompatible()
     );
 
     self::setDefaultMobileEventRegistration();
@@ -317,5 +348,4 @@ class CRM_CiviMobileAPI_Upgrader extends CRM_CiviMobileAPI_Upgrader_Base {
       ]);
     }
   }
-
 }

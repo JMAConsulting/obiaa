@@ -42,7 +42,7 @@ class CRM_CiviMobileAPI_Utils_CiviCRM {
 
       if ($currentCMS == CRM_CiviMobileAPI_Utils_CmsUser::CMS_JOOMLA) {
         $url = preg_replace('/administrator\//', 'index.php', $url);
-      } elseif ($currentCMS == CRM_CiviMobileAPI_Utils_CmsUser::CMS_WORDPRESS ) {
+      } elseif ($currentCMS == CRM_CiviMobileAPI_Utils_CmsUser::CMS_WORDPRESS) {
         $url = str_replace("wp-admin/admin.php", "index.php", $url);
       }
 
@@ -52,4 +52,15 @@ class CRM_CiviMobileAPI_Utils_CiviCRM {
     return '';
   }
 
+  /**
+   * @return array
+   * @throws Exception
+   */
+  public static function getCurrencies() {
+    $currencies = CRM_Core_OptionGroup::values('currencies_enabled');
+    if(!empty($currencies)) {
+      return array_keys($currencies);
+    }
+    return [];
+  }
 }
