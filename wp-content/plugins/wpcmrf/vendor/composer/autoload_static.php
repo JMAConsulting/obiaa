@@ -11,15 +11,20 @@ class ComposerStaticInit5872b090330e93926ee6927ceea955a8
         array (
             'CMRF' => 
             array (
-                0 => __DIR__ . '/..' . '/CiviMRF/CMRF_Abstract_Core',
+                0 => __DIR__ . '/..' . '/civimrf/cmrf_abstract_core',
             ),
         ),
+    );
+
+    public static $classMap = array (
+        'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
     );
 
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
             $loader->prefixesPsr0 = ComposerStaticInit5872b090330e93926ee6927ceea955a8::$prefixesPsr0;
+            $loader->classMap = ComposerStaticInit5872b090330e93926ee6927ceea955a8::$classMap;
 
         }, null, ClassLoader::class);
     }
