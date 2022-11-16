@@ -53,9 +53,12 @@ class CRM_Biaproperty_Form_Property extends CRM_Core_Form {
 
       $this->assign('property', $this->_property);
 
+      $session = CRM_Core_Session::singleton();
       if ($this->_action != CRM_Core_Action::DELETE) {
-        $session = CRM_Core_Session::singleton();
         $session->replaceUserContext(CRM_Utils_System::url('civicrm/property/form', ['id' => $this->getEntityId(), 'action' => 'update']));
+      }
+      else {
+        $session->replaceUserContext(CRM_Utils_System::url('civicrm/find/properties'));
       }
     }
   }
@@ -163,7 +166,12 @@ class CRM_Biaproperty_Form_Property extends CRM_Core_Form {
       foreach ($units as $unit) {
         // not able to execute due to foreign key constraint error, commented out for now
         $count = civicrm_api4('Unit', 'get', ['where' => [['address_id', '=', $unit['address_id']], ['id', '!=', $unit['id']]]])->count();
-        if ($count === 0) {civicrm_api4('Address', 'delete', ['where' => [['id', '=', $unit['address_id']]]]);}
+        if ($count === 0) {
+          civicrm_api4('Address', 'delete', [
+            'join' => [['LocBlock AS loc_block', 'LEFT', ['id', '=', 'loc_block.address_id']]],
+            'where' => [['id', '=', $unit['address_id']], ['contact_id', 'IS NULL'], ['loc_block.address_id', 'IS NULL']]
+          ]);
+        }
         civicrm_api4('Unit', 'delete', ['where' => [['id', '=', $unit['id']]]]);
       }
       civicrm_api4('Property', 'delete', ['where' => [['id', '=', $this->_id]]]);

@@ -11,7 +11,7 @@ class CRM_Biaproperty_Utils {
 
   public static function closeBusiness() {
     $bid = CRM_Utils_Type::escape($_GET['bid'], 'Positive');
-    $uid = CRM_Utils_Type::escape($_GET['uid'], 'Positive');
+    $uid = CRM_Utils_Type::escape($_GET['uid'], 'Positive', FALSE);
     if (!$bid) {
       CRM_Core_Error::statusBounce(ts('Missing contact ID'));
     }
@@ -42,9 +42,9 @@ class CRM_Biaproperty_Utils {
     if (UnitBusiness::get(FALSE)->addWhere('business_id', '=', $bid)->execute()->count() == 0) {
       $cts = Contact::get(FALSE)
         ->addSelect('contact_sub_type:name')
-        ->addWhere('id', '=', $cid)
+        ->addWhere('id', '=', $bid)
         ->execute()->first()['contact_sub_type:name'];
-      unset($cts[array_search('Members_Businesses_', $ct)]);
+      unset($cts[array_search('Members_Businesses_', $cts)]);
       Contact::update(FALSE)
         ->addValue('id', $bid)
         ->addValue('contact_sub_type', $cts)

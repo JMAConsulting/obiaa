@@ -168,7 +168,7 @@ class CRM_Biaproperty_Form_Unit extends CRM_Core_Form {
         }
         elseif ($element == 'business_id') {
           $element = $this->addEntityRef($element, $label, ['placeholder' => '- Select Business -', 'create' => TRUE, 'multiple' => TRUE]);
-          if ($this->_pid == 0 && $this->_bid) {$element->freeze();}
+          if ($this->_bid > 0) {$element->freeze();}
           continue;
         }
         elseif ($element === 'address_id') {
@@ -183,7 +183,7 @@ class CRM_Biaproperty_Form_Unit extends CRM_Core_Form {
         // if we are only creating new unit, then set status to 'Vacant (available for rent)'
         if ($element == 'unit_status' && ($this->_bid === 0 || empty($this->_id))) {
           $this->setDefaults(['unit_status' => 2]);
-          $ele->freeze();
+          if ($this->_bid > 0) {$ele->freeze();}
         }
         elseif (empty($this->_id) && $element == 'unit_status') {$ele->freeze();}
       }
@@ -193,14 +193,6 @@ class CRM_Biaproperty_Form_Unit extends CRM_Core_Form {
       }
       $elements = array_merge($addressElements, $elements);
       if ($this->_pid >= 0) {
-        $elements = array_merge(['property_id' => 'Property'], $elements);
-      }
-
-      if ($this->_pid == 0) {
-        $elements = array_merge(['property_id' => 'Property'], $elements);
-      }
-
-      if ($this->_pid == 0) {
         $elements = array_merge(['property_id' => 'Property'], $elements);
       }
 
@@ -299,7 +291,6 @@ class CRM_Biaproperty_Form_Unit extends CRM_Core_Form {
       civicrm_api4('Address', 'delete', ['where' => [['id', '=', $this->_unit['address_id']]]]);
       civicrm_api4('Unit', 'delete', ['where' => [['id', '=', $this->_id]]]);
       $count = civicrm_api4('Unit', 'get', ['where' => [['address_id', '=', $this->_unit['address_id']], ['id', '!=', $this->_id]]])->count();
-      if ($count === 0) {civicrm_api4('Address', 'delete', ['where' => [['id', '=', $this->_unit['address_id']]]]);}
       CRM_Core_Session::setStatus(E::ts('Removed Unit'), E::ts('Unit'), 'success');
     }
     else {
