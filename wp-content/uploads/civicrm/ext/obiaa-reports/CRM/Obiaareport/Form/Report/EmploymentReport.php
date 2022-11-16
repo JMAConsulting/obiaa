@@ -93,6 +93,9 @@ class CRM_Obiaareport_Form_Report_EmploymentReport extends CRM_Report_Form {
   }
 
   public function alterDisplay(&$rows) {
+    foreach ($this->_noDisplay as $noDisplayField) {
+       unset($this->_columnHeaders[$noDisplayField]);
+    }
     $options = CRM_Core_OptionGroup::values('business_category_employees_at_', TRUE, FALSE, FALSE, NULL, 'name');
     // custom code to alter rows
     $total = 0;
