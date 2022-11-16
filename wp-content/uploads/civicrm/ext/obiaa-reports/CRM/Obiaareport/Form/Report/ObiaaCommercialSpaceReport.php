@@ -34,7 +34,7 @@ class CRM_Obiaareport_Form_Report_ObiaaCommercialSpaceReport extends CRM_Report_
           'percentage' => [
             'required' => TRUE,
             'title' => E::ts('Percentage of Units'),
-            'dbAlias' => "(COUNT(u.id) / $totalCount) * 100",
+            'dbAlias' => "((COUNT(u.id) / $totalCount) * 100)",
             'no_display' => TRUE,
           ],
           'unit_size' => [

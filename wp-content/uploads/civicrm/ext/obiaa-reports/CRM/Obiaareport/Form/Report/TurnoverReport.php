@@ -92,6 +92,9 @@ class CRM_Obiaareport_Form_Report_TurnoverReport extends CRM_Report_Form {
   }
 
   public function alterDisplay(&$rows) {
+    foreach ($this->_noDisplay as $noDisplayField) {
+       unset($this->_columnHeaders[$noDisplayField]);
+    }
     $years = [];
     // custom code to alter rows
     $newRows = [];
