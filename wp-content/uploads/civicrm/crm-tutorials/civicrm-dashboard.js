@@ -11,52 +11,31 @@
             "icon": ""
         },
         {
-            "target": "#crm-qsearch",
-            "title": ts("Search for a Contact"),
+            "target": "#civicrm-menu li[data-name=\"Contacts\"]",
+            "title": ts("Creating Contacts"),
             "placement": "bottom",
-            "content": ts("You can quickly find a contact by typing in this quicksearch field. By default it will search by Last Name or Email."),
+            "content": ts("Click here to Create new contacts.\nYou can create new contacts for Individuals or Organizations which include Businesses that do not pay a levy or tax exempt businesses"),
             "icon": ""
         },
         {
-            "target": "#civicrm-menu &gt; li[data-name='Search']",
-            "title": ts("Search Tools"),
+            "target": "#civicrm-menu li[data-name=\"Mailings\"]",
+            "title": ts("Send Mailings"),
             "placement": "bottom",
-            "content": ts("You can also explore the other search tools. If you would like to see a list of all contacts, go to Search > Find Contacts, then click the Search button."),
+            "content": ts("Click here to Create a new mailing to send to mailing groups within the BIA"),
             "icon": ""
         },
         {
-            "target": "#civicrm-menu &gt; li[data-name='Contacts']",
-            "title": ts("Create New Contacts"),
+            "target": "#civicrm-menu li[data-name=\"Reports\"]",
+            "title": ts("Reports"),
             "placement": "bottom",
-            "content": ts("To create new Indivuals, click on the Contacts menu, then New Individual."),
+            "content": ts("Click here to expand the list ad then click on BIA Reports to access reports set up for the BIA"),
             "icon": ""
         },
         {
-            "target": ".show-refresh",
-            "title": ts("Refreshing Dashboard Data"),
-            "placement": "left",
-            "content": ts("Back to the dashboard! You may notice that the dashboard will periodically refresh automatically. You can also force a refresh by clicking on this link."),
-            "icon": ""
-        },
-        {
-            "target": "#civicrm-menu li[data-name=\"Contributions\"]",
-            "title": ts("Find Payments"),
+            "target": "#civicrm-menu li[data-name=\"BIA Administration\"]",
+            "title": ts("BIA Administration"),
             "placement": "bottom",
-            "content": ts("You can find payments by clicking on \"Payments\" and selecting \"Find Payments\" from the dropdown menu options.\nYou can also view reports on payments that have been made by clicking on Payment Reports"),
-            "icon": ""
-        },
-        {
-            "target": "#civicrm-menu li[data-name=\"Contributions\"]",
-            "title": ts("Payments Dashboard"),
-            "placement": "bottom",
-            "content": ts("You can get an overview of the peyments by selectin Dashboard from the dropdown options."),
-            "icon": ""
-        },
-        {
-            "target": "#civicrm-menu &gt; li[data-name='Support']",
-            "title": ts("Learn more!"),
-            "placement": "bottom",
-            "content": ts("There are many resources to help learn CiviCRM. When on a new screen, you can click here to see if a tutorial is available"),
+            "content": ts("Click here to set up local BIA Headings"),
             "icon": ""
         }
     ],
