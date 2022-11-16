@@ -13,7 +13,7 @@ class CRM_Obiaareport_Form_Report_ObiaaCommercialSpaceReport extends CRM_Report_
 
   public function __construct() {
     $totalCount = CRM_Core_DAO::singleValueQuery("SELECT COUNT(DISTINCT id) FROM civicrm_unit");
-    $sum = CRM_Core_DAO::singleValueQuery("SELECT SUM(unit_size) FROM civicrm_unit");
+    $sum = CRM_Core_DAO::singleValueQuery("SELECT SUM(unit_size) FROM civicrm_unit") ?? 0;
     $cfFilter = \Civi\Api4\CustomField::get()->addWhere('name', '=', 'What_region_is_this_BIA_in_')->execute()->first();
     $this->_columns = [
       'civicrm_unit' => [
@@ -47,7 +47,7 @@ class CRM_Obiaareport_Form_Report_ObiaaCommercialSpaceReport extends CRM_Report_
 
             'required' => TRUE,
             'title' => E::ts('Percentage of Space'),
-            'dbAlias' => "(SUM(u.unit_size) / $sum) * 100",
+            'dbAlias' => "( (SUM(u.unit_size) / $sum) * 100 )",
             'no_display' => TRUE,
           ],
         ],
