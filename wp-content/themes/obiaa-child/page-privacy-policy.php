@@ -8,7 +8,7 @@ $biaName = Civi\Api4\Contact::get(FALSE)
   ->execute()->first();
 
 $group = \Civi\Api4\Group::get(FALSE)
-  ->addWhere('name', '=', 'Privacy Officers')
+  ->addWhere('title', '=', 'Privacy Officers')
   ->execute()->first()['id'];
 
 $privacyOfficer = \Civi\Api4\Contact::get(FALSE)
