@@ -6,5 +6,5 @@ $vendorDir = dirname(dirname(__FILE__));
 $baseDir = dirname($vendorDir);
 
 return array(
-    'CMRF' => array($vendorDir . '/CiviMRF/CMRF_Abstract_Core'),
+    'CMRF' => array($vendorDir . '/civimrf/cmrf_abstract_core'),
 );
