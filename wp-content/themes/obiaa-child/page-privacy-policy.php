@@ -66,7 +66,7 @@ $privacyOfficer = \Civi\Api4\Contact::get(FALSE)
         <br><br>
         All correspondence should be sent to the following address:
         <br>
-		<?php echo esc_html($privacyOfficer['first_name']);?> <?php echo esc_html($privacyOfficer['last_name']);?>, <?php echo esc_html($privacyOfficer['job_title']);?> <?php echo esc_html($biaName); ?>
+		<?php echo esc_html($privacyOfficer['first_name']);?> <?php echo esc_html($privacyOfficer['last_name']);?>, <?php echo esc_html($privacyOfficer['job_title']);?>, <?php echo esc_html($biaName); ?>
         <br>
         Privacy Officer
 		<br>
