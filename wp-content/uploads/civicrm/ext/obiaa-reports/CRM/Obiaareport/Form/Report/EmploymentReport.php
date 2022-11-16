@@ -106,18 +106,25 @@ class CRM_Obiaareport_Form_Report_EmploymentReport extends CRM_Report_Form {
       foreach ($rows as $row) {
         if (!empty($row['civicrm_unit_emp_range']) && isset($row['civicrm_unit_' . $row['civicrm_unit_emp_range']])) {
           if ($key == 'civicrm_unit_number'){
-            $newRows[$key]['civicrm_unit_' . $row['civicrm_unit_emp_range']] =  $row['civicrm_unit_emp_count'];
+            $newRows[$key]['civicrm_unit_' . $row['civicrm_unit_emp_range']] =  (int) $row['civicrm_unit_emp_count'];
             $total += (int) $row['civicrm_unit_emp_count'];
           }
           else {
             $newRows[$key]['civicrm_unit_' . $row['civicrm_unit_emp_range']] = (($options[$row['civicrm_unit_emp_range']] + $row['full_time_employees']) * $row['civicrm_unit_emp_count']) + ($row['civicrm_unit_sole_proprietor_58'] ?? 0);
             $total += $newRows[$key]['civicrm_unit_' . $row['civicrm_unit_emp_range']];
           }
-         }
+        }
       }
       $newRows[$key]['civicrm_unit_total'] = $total;
     }
     $rows = $newRows;
+    foreach (array_keys($this->_columnHeaders) as $header) {
+      foreach ($rows as $key => $row) {
+        if (!isset($row[$header])) {
+          $rows[$key][$header] = '0';
+        }
+      }
+    }
   }
 
 }

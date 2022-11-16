@@ -29,12 +29,14 @@ class CRM_Obiaareport_Form_Report_TurnoverReport extends CRM_Report_Form {
           ),
           'count' => array(
             'required' => TRUE,
+            'no_display' => TRUE,
             'title' => E::ts('New Business Openings'),
-            'dbAlias' => 'COUNT(DISTINCT a.id)',
+            'dbAlias' => 'COUNT(DISTINCT unit_civireport.id)',
           ),
         ),
         'filters' => [
           'activity_date_time' => [
+            'type' => CRM_Utils_Type::T_DATE,
             'title' => E::ts('Period date'),
             'default' => 'this.year',
             'operatorType' => CRM_Report_Form::OP_DATE,
@@ -42,13 +44,29 @@ class CRM_Obiaareport_Form_Report_TurnoverReport extends CRM_Report_Form {
         ],
       ),
     );
-    foreach ([date("Y",strtotime("-1 year")), date("Y")] as $date) {
-      $this->_columns['civicrm_unit']['fields'][$date] = [
-        'required' => TRUE,
-        'title' => $date,
-        'dbAlias' => '0',
-      ];
+
+    if ((!empty($_POST['activity_date_time_relative']) || !empty($_POST['activity_date_time_from']) || !empty($_POST['activity_date_time_to']))) {
+      [$from, $to] = $this->getFromTo($_POST['activity_date_time_relative'], $_POST['activity_date_time_from'], $_POST['activity_date_time_to']);
+      $from = substr($from, 0, 4);
+      $to = substr($to, 0, 4);
+      for ($i = $from; $i <= $to; $i++) {
+        if ($this->_columns['civicrm_unit']['fields'][$i]) {continue;}
+        $this->_columns['civicrm_unit']['fields'][$i] = [
+          'required' => TRUE,
+          'title' => $i,
+          'dbAlias' => '0',
+        ];
+      }
     }
+    else {
+      foreach ([date("Y",strtotime("-1 year")), date("Y")] as $date) {
+        $this->_columns['civicrm_unit']['fields'][$date] = [
+          'required' => TRUE,
+          'title' => $date,
+          'dbAlias' => '0',
+        ];
+      }
+   }
     parent::__construct();
   }
 
@@ -58,11 +76,12 @@ class CRM_Obiaareport_Form_Report_TurnoverReport extends CRM_Report_Form {
   }
 
   public function from() {
-    $this->_from = " FROM  civicrm_activity a ";
+    $this->_from = " FROM  civicrm_activity unit_civireport ";
   }
 
   public function where() {
-   $this->_where = sprintf('WHERE a.activity_type_id IN (%s)' , implode(', ', [
+   parent::where();
+   $this->_where .= sprintf(' AND activity_type_id IN (%s)' , implode(', ', [
      CRM_Core_PseudoConstant::getKey('CRM_Activity_BAO_Activity', 'activity_type_id', 'Business opened'),
      CRM_Core_PseudoConstant::getKey('CRM_Activity_BAO_Activity', 'activity_type_id', 'Business closed'),
    ]));
@@ -73,6 +92,7 @@ class CRM_Obiaareport_Form_Report_TurnoverReport extends CRM_Report_Form {
   }
 
   public function alterDisplay(&$rows) {
+    $years = [];
     // custom code to alter rows
     $newRows = [];
     foreach ([
@@ -82,18 +102,26 @@ class CRM_Obiaareport_Form_Report_TurnoverReport extends CRM_Report_Form {
     ] as $key => $label) {
       $newRows[$key] = ['civicrm_unit_year' => '<b>' . $label . '</b>'];
       foreach ($rows as $row) {
+        if (!array_search($row['civicrm_unit_year'], $years)) {$years[$row['civicrm_unit_year']] = $row['civicrm_unit_year'];}
         if ($key == 'civicrm_unit_turnover') {
           $newRows[$key]['civicrm_unit_' . $row['civicrm_unit_year']] = ($newRows['civicrm_unit_close']['civicrm_unit_' . $row['civicrm_unit_year']] ?: 0) - ($newRows['civicrm_unit_open']['civicrm_unit_' . $row['civicrm_unit_year']] ?: 0);
         }
         elseif ($key == 'civicrm_unit_open' && $row['civicrm_unit_activity_type_id'] == CRM_Core_PseudoConstant::getKey('CRM_Activity_BAO_Activity', 'activity_type_id', 'Business opened')) {
-          $newRows[$key]['civicrm_unit_' . $row['civicrm_unit_year']] = $row['civicrm_unit_count'];
+          $newRows[$key]['civicrm_unit_' . $row['civicrm_unit_year']] = $row['civicrm_unit_count'] ?? 0;
         }
         elseif ($key == 'civicrm_unit_close' && $row['civicrm_unit_activity_type_id'] == CRM_Core_PseudoConstant::getKey('CRM_Activity_BAO_Activity', 'activity_type_id', 'Business closed')) {
-          $newRows[$key]['civicrm_unit_' . $row['civicrm_unit_year']] = $row['civicrm_unit_count'];
+          $newRows[$key]['civicrm_unit_' . $row['civicrm_unit_year']] = $row['civicrm_unit_count'] ?? 0;
         }
       }
     }
     $rows = $newRows;
+    foreach (array_keys($this->_columnHeaders) as $header) {
+      foreach ($rows as $key => $row) {
+        if (!isset($row[$header])) {
+          $rows[$key][$header] = '0';
+        }
+      }
+    }
   }
 
 }

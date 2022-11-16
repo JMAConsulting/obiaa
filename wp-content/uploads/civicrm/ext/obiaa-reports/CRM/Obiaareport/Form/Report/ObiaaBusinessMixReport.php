@@ -82,6 +82,7 @@ class CRM_Obiaareport_Form_Report_ObiaaBusinessMixReport extends CRM_Report_Form
   }
 
   function where() {
+    parent::where();
     $this->_where = '';
   }
 
@@ -91,8 +92,9 @@ class CRM_Obiaareport_Form_Report_ObiaaBusinessMixReport extends CRM_Report_Form
     parent::beginPostProcess();
     $this->setParams($this->controller->exportValues($this->_name));
   }
+
   function alterDisplay(&$rows) {
-   $totalCount = CRM_Core_DAO::singleValueQuery("SELECT COUNT(temp.count) {$this->_from}");
+   $totalCount = CRM_Core_DAO::singleValueQuery("SELECT SUM(temp.count) {$this->_from}") ?? 0;
     $newRows = [];
     foreach ([
       'civicrm_unit_business_number_of_businesses' => 'Number of Businesses',
@@ -101,7 +103,7 @@ class CRM_Obiaareport_Form_Report_ObiaaBusinessMixReport extends CRM_Report_Form
       $newRows[$key] = ['civicrm_unit_business_type' =>  $label];
       foreach ($rows as $row) {
         if ($key == 'civicrm_unit_business_percentage_of_businesses') {
-          $row[$key] = round((($row[$key] / $totalCount) * 100), 2) . '%';
+          $row[$key] = $row[$key] ? round((($row[$key] / $totalCount) * 100), 2) . '%' : '0.00%';
         }
         $newRows[$key]['civicrm_unit_business_' . str_replace(' ', '_', $row['civicrm_unit_business_ownership_type'])] = $row[$key];
       }
