@@ -19,17 +19,12 @@ class CRM_CiviMobileAPI_Install_Entity_ApplicationQrCode implements CRM_CiviMobi
 
   public function generateQrCode() {
     $config = CRM_Core_Config::singleton();
-    $currentCMS = CRM_CiviMobileAPI_Utils_CmsUser::getInstance()->getSystem();
     $directoryName = $config->uploadDir . DIRECTORY_SEPARATOR . 'qr';
     CRM_Utils_File::createDir($directoryName);
     $imageName = self::FILE_NAME;
     $path = $directoryName . DIRECTORY_SEPARATOR . $imageName;
+    $siteUrl = CRM_CiviMobileAPI_Utils_Cms::getPublicBaseUrl();
 
-    if ($currentCMS == CRM_CiviMobileAPI_Utils_CmsUser::CMS_JOOMLA ) {
-      $siteUrl = str_replace("/administrator/", "/", $config->userFrameworkBaseURL);
-    } else {
-      $siteUrl = $config->userFrameworkBaseURL;
-    }
     $params = [
       'attachFile_1' => [
         'uri' => $path,

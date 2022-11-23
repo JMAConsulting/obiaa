@@ -23,6 +23,7 @@ function civicrm_api3_civi_mobile_permission_get() {
     $viewAllActivities = CRM_Core_Permission::check('view all activities');
     $editAllCase = CRM_Core_Permission::check('access all cases and activities');
     $editMyCase = CRM_Core_Permission::check('access my cases and activities');
+    $deleteCases = CRM_Core_Permission::check('delete in CiviCase');
     $accessCiviEvent = CRM_Core_Permission::check('access CiviEvent');
     $viewAllEvent = CRM_Core_Permission::check('view event info');
     $editAllEvents = CRM_Core_Permission::check('edit all events');
@@ -94,6 +95,9 @@ function civicrm_api3_civi_mobile_permission_get() {
       'edit' => [
         'all' => $accessToCiviCrm && $viewMyContact && $editAllCase && $editMyCase && ($viewAllContacts || $editAllContacts) ? 1 : 0,
         'my' => $accessToCiviCrm && $viewMyContact && $editMyCase ? 1 : 0,
+      ],
+      'delete' => [
+        'my' => $accessToCiviCrm && $viewMyContact && $deleteCases ? 1 : 0,
       ],
       'activity' => [
         'view' => [

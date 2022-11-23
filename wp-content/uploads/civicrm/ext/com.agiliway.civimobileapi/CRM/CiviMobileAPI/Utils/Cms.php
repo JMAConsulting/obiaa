@@ -19,8 +19,7 @@ class CRM_CiviMobileAPI_Utils_Cms {
       return JFactory::getConfig()->get('sitename');
     } elseif ($currentCMS == CRM_CiviMobileAPI_Utils_CmsUser::CMS_DRUPAL6 || $currentCMS == CRM_CiviMobileAPI_Utils_CmsUser::CMS_DRUPAL7) {
       return variable_get('site_name', '');
-    }
-    elseif ($currentCMS == CRM_CiviMobileAPI_Utils_CmsUser::CMS_DRUPAL8) {
+    } elseif ($currentCMS == CRM_CiviMobileAPI_Utils_CmsUser::CMS_DRUPAL8) {
       return \Drupal::config('system.site')->get("name");
     }
 
@@ -40,8 +39,7 @@ class CRM_CiviMobileAPI_Utils_Cms {
       return get_feed_link('rss2');
     } elseif ($currentCMS == CRM_CiviMobileAPI_Utils_CmsUser::CMS_JOOMLA) {
       return str_replace("/administrator/", "/", $config->userFrameworkBaseURL) . "?format=feed&type=rss";
-    }
-    elseif ($currentCMS == CRM_CiviMobileAPI_Utils_CmsUser::CMS_DRUPAL6 || $currentCMS == CRM_CiviMobileAPI_Utils_CmsUser::CMS_DRUPAL7 || $currentCMS == CRM_CiviMobileAPI_Utils_CmsUser::CMS_DRUPAL8) {
+    } elseif ($currentCMS == CRM_CiviMobileAPI_Utils_CmsUser::CMS_DRUPAL6 || $currentCMS == CRM_CiviMobileAPI_Utils_CmsUser::CMS_DRUPAL7 || $currentCMS == CRM_CiviMobileAPI_Utils_CmsUser::CMS_DRUPAL8) {
       return $config->userFrameworkBaseURL . "rss.xml";
     }
 
@@ -72,4 +70,19 @@ class CRM_CiviMobileAPI_Utils_Cms {
     return date('Z') / 3600;
   }
 
+  /**
+   * @return array|FALSE|mixed|string|string[]
+   */
+  public static function getPublicBaseUrl() {
+    $currentCMS = CRM_CiviMobileAPI_Utils_CmsUser::getInstance()->getSystem();
+    $config = CRM_Core_Config::singleton();
+
+    if ($currentCMS == CRM_CiviMobileAPI_Utils_CmsUser::CMS_WORDPRESS) {
+      return Civi::paths()->getUrl('[wp.frontend.base]/', 'absolute');
+    } else if ($currentCMS == CRM_CiviMobileAPI_Utils_CmsUser::CMS_JOOMLA) {
+      return str_replace("/administrator/", "/", $config->userFrameworkBaseURL);
+    }
+
+    return $config->userFrameworkBaseURL;
+  }
 }

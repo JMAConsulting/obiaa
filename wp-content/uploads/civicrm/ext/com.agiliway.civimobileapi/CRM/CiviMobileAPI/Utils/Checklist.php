@@ -196,7 +196,7 @@ class CRM_CiviMobileAPI_Utils_Checklist {
    * Checks is Cron running
    */
   public function _checkCron() {
-    $checkCron = CRM_Utils_Check_Component_Env::checkLastCron();
+    $checkCron = (new CRM_Utils_Check_Component_Env())->checkLastCron();
     $this->checkedItems['last_cron']['title'] = 'Is CRON running correctly?';
 
     switch ($checkCron[0]->getLevel()) {

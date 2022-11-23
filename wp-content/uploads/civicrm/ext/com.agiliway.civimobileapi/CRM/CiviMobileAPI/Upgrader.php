@@ -247,6 +247,17 @@ class CRM_CiviMobileAPI_Upgrader extends CRM_CiviMobileAPI_Upgrader_Base {
   }
 
   /**
+   * New url for creating QRcodes
+   *
+   * @return bool
+   */
+  public function upgrade_0026() {
+    (new CRM_CiviMobileAPI_Install_Entity_ApplicationQrCode())->install();
+
+    return TRUE;
+  }
+
+  /**
    * Installs scheduled job
    *
    * @throws \Exception

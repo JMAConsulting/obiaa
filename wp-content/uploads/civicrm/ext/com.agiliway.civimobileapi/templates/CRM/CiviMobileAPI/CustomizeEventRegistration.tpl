@@ -13,6 +13,8 @@
     cj("head").append('<link rel="stylesheet" type="text/css" href="{/literal}{$absURL}{literal}/css/civicrm.css"/>');
 
     cj('#Register').parents().siblings().hide();
+    cj('#Participant_1').parents().siblings().hide();
+    cj('#Participant_2').parents().siblings().hide();
     cj('#Confirm').parents().siblings().hide();
     cj('#ThankYou').parents().siblings().hide();
     cj('#Register').find('#priceset, #priceset *').hide();

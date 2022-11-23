@@ -12,7 +12,7 @@ class CRM_CiviMobileAPI_Hook_BuildForm_Register {
    */
   public function run($formName, &$form) {
     // remove $cmbHash if we are not using call from mobile application
-    if (($formName != 'CRM_Event_Form_Registration_Confirm' && $formName != 'CRM_Event_Form_Registration_Register' && $formName != 'CRM_Financial_Form_Payment')
+    if (($formName != 'CRM_Event_Form_Registration_Confirm' && $formName != 'CRM_Event_Form_Registration_Register' && $formName != 'CRM_Financial_Form_Payment' && $formName != 'CRM_Event_Form_Registration_AdditionalParticipant')
       || $formName == 'CRM_Event_Form_Registration_ThankYou') {
       $session = CRM_Core_Session::singleton();
       $cmbHash = $session->get('cmbHash');
@@ -114,6 +114,7 @@ class CRM_CiviMobileAPI_Hook_BuildForm_Register {
       'CRM_Event_Form_Registration_Confirm',
       'CRM_Event_Form_Registration_Register',
       'CRM_Financial_Form_Payment',
+      'CRM_Event_Form_Registration_AdditionalParticipant',
       'CRM_Event_Form_Registration_ThankYou',
     ];
 
