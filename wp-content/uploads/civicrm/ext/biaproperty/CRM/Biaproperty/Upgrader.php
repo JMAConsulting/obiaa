@@ -129,6 +129,41 @@ class CRM_Biaproperty_Upgrader extends CRM_Biaproperty_Upgrader_Base {
     return TRUE;
   }
 
+  public function upgrade_1700(): bool {
+    $this->ctx->log->info('Applying update 1700: Add in fields to handle sync to central bia');
+    CRM_Core_DAO::executeQuery("ALTER TABLE civicrm_unit DROP INDEX `UI_source_record_id`");
+    CRM_Core_DAO::executeQuery("ALTER TABLE civicrm_unit ADD COLUMN source_record varchar(512) DEFAULT NULL COMMENT 'Field used to handle sync processes'");
+    $units = CRM_Core_DAO::executeQuery("SELECT id, source_record_id FROM civicrm_unit");
+    while ($units->fetch()) {
+      if (empty($units->source_record_id)) {
+        continue;
+      }
+      $parts = explode('-', $units->source_record_id);
+      CRM_Core_DAO::executeQuery("UPDATE civicrm_unit SET source_record_id = %1, source_record = %2 WHERE id = %3", [
+        1 => [trim($parts[0]), 'Positive'],
+        2 => [trim($parts[1]), 'String'],
+        3 => [$units->id, 'Positive'],
+      ]);
+    }
+    CRM_CORE_DAO::executeQuery("ALTER TABLE civicrm_unit ADD UNIQUE INDEX UI_source_record_id (source_record_id, source_record)");
+    CRM_Core_DAO::executeQuery("ALTER TABLE civicrm_property DROP INDEX `UI_source_record_id`");
+    CRM_Core_DAO::executeQuery("ALTER TABLE civicrm_property ADD COLUMN source_record varchar(512) DEFAULT NULL COMMENT 'Field used to handle sync processes'");
+    $properties = CRM_Core_DAO::executeQuery("SELECT id, source_record_id FROM civicrm_property");
+    while ($properties->fetch()) {
+      if (empty($properties->source_record_id)) {
+        continue;
+      }
+      $parts = explode('-', $properties->source_record_id);
+      CRM_Core_DAO::executeQuery("UPDATE civicrm_property SET source_record_id = %1, source_record = %2 WHERE id = %3", [
+        1 => [trim($parts[0]), 'Positive'],
+        2 => [trim($parts[1]), 'String'],
+        3 => [$properties->id, 'Positive'],
+      ]);
+    }
+    CRM_CORE_DAO::executeQuery("ALTER TABLE civicrm_property ADD UNIQUE INDEX UI_source_record_id (source_record_id, source_record)");
+    return TRUE;
+  }
+
   /**
    * Example: Run an external SQL script.
    *
