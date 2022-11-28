@@ -164,6 +164,15 @@ class CRM_Biaproperty_Upgrader extends CRM_Biaproperty_Upgrader_Base {
     return TRUE;
   }
 
+  public function upgrade_1800(): bool {
+    $this->ctx->log->info('Applying update 1800: Fix fields to handle sync to central bia');
+    CRM_Core_DAO::executeQuery("ALTER TABLE civicrm_unit CHANGE source_record source_record varchar(255) DEFAULT NULL COMMENT 'Field used to handle sync processes'");
+    CRM_Core_DAO::executeQuery("ALTER TABLE civicrm_unit CHANGE source_record_id source_record_id int unsigned DEFAULT NULL COMMENT 'Field used to handle sync processes'");
+    CRM_Core_DAO::executeQuery("ALTER TABLE civicrm_property CHANGE source_record source_record varchar(255) DEFAULT NULL COMMENT 'Field used to handle sync processes'");
+    CRM_Core_DAO::executeQuery("ALTER TABLE civicrm_property CHANGE source_record_id source_record_id int unsigned DEFAULT NULL COMMENT 'Field used to handle sync processes'");
+    return TRUE;
+  }
+
   /**
    * Example: Run an external SQL script.
    *
