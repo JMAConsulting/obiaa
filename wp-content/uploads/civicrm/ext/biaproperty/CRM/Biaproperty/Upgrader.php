@@ -11,10 +11,10 @@ class CRM_Biaproperty_Upgrader extends CRM_Biaproperty_Upgrader_Base {
 
   /**
    * Example: Run an external SQL script when the module is installed.
-   *
-  public function install() {
-    $this->executeSqlFile('sql/myinstall.sql');
-  }
+   */
+  //public function install() {
+  //  $this->executeSqlFile('sql/myinstall.sql');
+  //}
 
   /**
    * Example: Work with entities usually not available during the install step.
@@ -108,7 +108,7 @@ class CRM_Biaproperty_Upgrader extends CRM_Biaproperty_Upgrader_Base {
     CRM_Core_DAO::executeQuery("Update civicrm_address SET street_unit = NULL WHERE street_unit = 'sole property'");
     return TRUE;
   }
-  
+
   public function upgrade_1500(): bool {
     $this->ctx->log->info('Applying update 1500: Set civicrm_unit_business.business_id and civicrm_unit.address_id NULL on delete');
     CRM_Core_DAO::executeQuery("SET FOREIGN_KEY_CHECKS = 0");
@@ -170,6 +170,27 @@ class CRM_Biaproperty_Upgrader extends CRM_Biaproperty_Upgrader_Base {
     CRM_Core_DAO::executeQuery("ALTER TABLE civicrm_unit CHANGE source_record_id source_record_id int unsigned DEFAULT NULL COMMENT 'Field used to handle sync processes'");
     CRM_Core_DAO::executeQuery("ALTER TABLE civicrm_property CHANGE source_record source_record varchar(255) DEFAULT NULL COMMENT 'Field used to handle sync processes'");
     CRM_Core_DAO::executeQuery("ALTER TABLE civicrm_property CHANGE source_record_id source_record_id int unsigned DEFAULT NULL COMMENT 'Field used to handle sync processes'");
+    return TRUE;
+  }
+
+  public function upgrade_1900(): bool {
+    $this->ctx->log->info('Applying update 1900: add in managed entities records for various activity types related to properties');
+    $entities = [
+      'OptionValue_Move Business within BIA' => 'Move Business within BIA',
+      'OptionValue_Business closed' => 'Business closed',
+      'OptionValue_Property sold' => 'Property sold',
+      'OptionValue_Property deleted' => 'Property deleted',
+      'OptionValue_Business opened' => 'Business opened',
+    ];
+    foreach ($entities as $managedEntityName => $optionValueName) {
+      $currentEntity = \Civi\Api4\OptionValue::get(FALSE)->addWhere('option_group_id:name', '=', 'activity_type')->addWhere('name', '=', $optionValueName)->execute()->first();
+      if (!empty($currentEntity)) {
+        CRM_Core_DAO::executeQuery("INSERT INTO civicrm_managed (module, name, entity_type, entity_id, cleanup) VALUES ('biaproperty', %1, 'OptionValue', %2, 'unused')", [
+          1 => [$managedEntityName, 'String'],
+          2 => [$currentEntity['id'], 'Positive'],
+        ]);
+      }
+    }
     return TRUE;
   }
 
