@@ -36,7 +36,7 @@ class CRM_Obiaareport_Form_Report_ObiaaBusinessMixReport extends CRM_Report_Form
         ],
       ],
     ];
-    $result = CRM_Core_DAO::executeQuery("SELECT ov.value, ov.label, ov.name FROM civicrm_option_value ov INNER JOIN civicrm_option_group og ON og.id = ov.option_group_id AND og.id = 108 ")->fetchAll();    
+    $result = CRM_Core_DAO::executeQuery("SELECT ov.value, ov.label, ov.name FROM civicrm_option_value ov INNER JOIN civicrm_option_group og ON og.id = ov.option_group_id AND og.id = 108 ")->fetchAll();
     $this->_columns['civicrm_unit_business']['fields']['type'] = [
       'required' => TRUE,
       'title' => E::ts('Business Type'),
@@ -50,8 +50,9 @@ class CRM_Obiaareport_Form_Report_ObiaaBusinessMixReport extends CRM_Report_Form
       ];
     }
     parent::__construct();
-    $this->_columns['civicrm_unit_business']['filters'] =  $this->_columns['civicrm_value_business_cate_4']['filters'];
+    $this->_columns['civicrm_unit_business']['filters'] = $this->_columns['civicrm_value_business_cate_4']['filters'];
     unset($this->_columns['civicrm_value_business_cate_4']);
+    CRM_Obiaareport_Utils::addMembershipFilter($this->_columns['filters']);
     $this->setVar('_params', $this->_submitValues);
   }
 
@@ -69,11 +70,13 @@ class CRM_Obiaareport_Form_Report_ObiaaBusinessMixReport extends CRM_Report_Form
     parent::where();
     $result = CRM_Core_DAO::executeQuery("SELECT ov.value, ov.label, ov.name FROM civicrm_option_value ov INNER JOIN civicrm_option_group og ON og.id = ov.option_group_id AND og.id = 108 ")->fetchAll();
     $sqlParts = [];
+    $join = CRM_Obiaareport_Utils::addMembershipTableJoin('Business');
     foreach ($result as $option) {
       $sqlParts[] = "(SELECT COUNT(DISTINCT ub.business_id) as count, '{$option['value']}' as val
         FROM civicrm_unit_business ub
         LEFT JOIN civicrm_value_business_deta_5 cf ON ub.business_id = cf.entity_id
         LEFT JOIN civicrm_value_ownership_dem_25 value_ownership_dem_25_civireport ON ub.business_id = value_ownership_dem_25_civireport.entity_id
+        {$join}
         {$this->_where} AND ownership_type_16 REGEXP '([[:cntrl:]]|^){$option['value']}([[:cntrl:]]|$)'
       )";
     }
@@ -98,7 +101,7 @@ class CRM_Obiaareport_Form_Report_ObiaaBusinessMixReport extends CRM_Report_Form
     $newRows = [];
     foreach ([
       'civicrm_unit_business_number_of_businesses' => 'Number of Businesses',
-      'civicrm_unit_business_percentage_of_businesses' => '% of Businesses',      
+      'civicrm_unit_business_percentage_of_businesses' => '% of Businesses',
     ] as $key => $label) {
       $newRows[$key] = ['civicrm_unit_business_type' =>  $label];
       foreach ($rows as $row) {

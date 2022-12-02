@@ -12,7 +12,7 @@ class CRM_Obiaareport_Form_Report_ObiaaAnchorsReport extends CRM_Report_Form {
   protected $_customGroupGroupBy = FALSE;
 
   function __construct() {
-    $cfFilter = \Civi\Api4\CustomField::get()->addWhere('name', '=', 'What_region_is_this_BIA_in_')->execute()->first();
+    $cfFilter = \Civi\Api4\CustomField::get(FALSE)->addWhere('name', '=', 'What_region_is_this_BIA_in_')->execute()->first();
     $this->_columns = [
       'civicrm_unit_business' => [
         'doa' => 'CRM_Biaproperty_DAO_Unit_Business',
@@ -21,24 +21,15 @@ class CRM_Obiaareport_Form_Report_ObiaaAnchorsReport extends CRM_Report_Form {
             'required' => TRUE,
             'title' => E::ts('Number of Anchors'),
             'dbAlias' => 'COUNT(DISTINCT a.business_id)',
-          ],          
-        ],
-        'filters' => [
-          $cfFilter['column_name'] => [
-            'title' => $cfFilter['label'],
-            'type' => CRM_Utils_Type::T_STRING,
-            'operatorType' => CRM_Report_Form::OP_MULTISELECT,
-            'options' => CRM_Core_OptionGroup::values('Region_What_region_is_this_BIA_in_'),
-            'dbAlias' => 'cf.' . $cfFilter['column_name'],
           ],
         ],
+        'filters' => [],
       ],
     ];
-      
-   
+    CRM_Obiaareport_Utils::addMembershipFilter($this->_columns['filters']);
     parent::__construct();
   }
-    
+
   function preProcess() {
     $this->assign('reportTitle', E::ts('Number of Anchors Report'));
     parent::preProcess();
@@ -47,13 +38,14 @@ class CRM_Obiaareport_Form_Report_ObiaaAnchorsReport extends CRM_Report_Form {
   function from() {
     parent::where();
     $join = empty($this->_whereClauses) ? 'LEFT' : 'INNER';
+    $filter = CRM_Obiaareport_Utils::addMembershipTableJoin('Business');
 
     $this->_from = "
       FROM civicrm_unit_business a
       LEFT JOIN civicrm_contact b ON a.business_id = b.id
-      LEFT JOIN civicrm_value_business_deta_5 c ON b.id =  c.entity_id
-      {$join} JOIN (SELECT business_id FROM civicrm_unit_business ub INNER JOIN civicrm_value_region_27 cf ON cf.entity_id = ub.business_id {$this->_where} GROUP BY business_id) temp ON temp.business_id = a.business_id
-          ";    
+      LEFT JOIN civicrm_value_business_deta_5 c ON b.id = c.entity_id
+      {$filter}
+      ";
   }
 
   function where() {
@@ -63,11 +55,8 @@ class CRM_Obiaareport_Form_Report_ObiaaAnchorsReport extends CRM_Report_Form {
       AND b.is_deleted = 0";
   }
   function alterDisplay(&$rows) {
-    
-    
+
+
   }
 
 }
-
-
-
