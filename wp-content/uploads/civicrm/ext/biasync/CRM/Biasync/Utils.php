@@ -29,10 +29,10 @@ class CRM_Biasync_Utils {
       if ($field['name'] == 'BIA_Contact_Reference') {
         $biaRef = $field['id'];
       }
-      if ($field['name'] === 'BIA_Activity_Source') {
+      if ($field['name'] == 'BIA_Activity_Source') {
         $activityBiaSource = $field['id'];
       }
-      if ($field['name'] === 'BIA_Activity_Source_ID') {
+      if ($field['name'] == 'BIA_Activity_Source_ID') {
         $activityBiaId = $field['id'];
       }
     }
@@ -152,7 +152,7 @@ class CRM_Biasync_Utils {
           }
         }
         $ff = wpcmrf_api('Contact', 'create', $contactParams, $options, WPCMRF_ID)->getReply();
-        self::syncActivities($contact['id'], $ff['id']);
+        self::syncActivities($contact['id'], $ff['id'], $activityBiaSource, $activityBiaId);
         if (!empty($contactAddress)) {
           unset($contactAddress['id']);
           $contactAddress['contact_id'] = $ff['id'];
@@ -212,7 +212,7 @@ class CRM_Biasync_Utils {
           }
         }
         wpcmrf_api('Contact', 'create', $contactParams, $options, WPCMRF_ID)->getReply();
-        self::syncActivities($contact['id'], $biaContact['id']);
+        self::syncActivities($contact['id'], $biaContact['id'], $activityBiaSource, $activityBiaId);
         if (!empty($contactAddress)) {
           $biaAddress = wpcmrf_api('Address', 'get', ['contact_id' => $biaContact['id'], 'is_primary' => 1], $options, WPCMRF_ID)->getReply();
           if (!empty($biaAddress['values'])) {
@@ -260,7 +260,7 @@ class CRM_Biasync_Utils {
     $parts = explode('.', str_replace('https://', '', $cmsURL));
     $salt = $parts[0];
     $salt = str_pad($salt, 22, 0);
-    return password_hash($str, PASSWORD_BCRYPT, ['salt' => $salt]);
+    return password_hash($str, PASSWORD_BCRYPT);
   }
 
   protected static function syncProperties() {
@@ -302,11 +302,11 @@ class CRM_Biasync_Utils {
           $unitArray = (array) $unit;
           $unitIds[] = $unit['id'];
           $unitAddress = civicrm_api3('Address', 'get', ['id' => $unit['address_id']])['values'][$unit['address_id']];
-          $remoteUnit = wpcmrf_api('Unit', 'get', ['source_record_id' => $unit['id'], 'source_record' => get_bloginfo( 'name' )], $options, WPCMRF_ID)->getReply();
+          $remoteUnit = wpcmrf_api('Unit', 'get', ['source_record_id' => $unit['id'], 'source_record' => get_bloginfo( 'name' ), 'sequential' => 1], $options, WPCMRF_ID)->getReply();
           // If we have a remote unit replace the id field in unitArray and the id of the unitAddress array with the relevant id from the remote unit record.
           $unitAddress['contact_id'] = 'Null';
           if (!empty($remoteUnit['values'])) {
-            $unitAddress['id'] = $remoteUnit['values'][$remoteUnit['id']]['address_id'];
+            $unitAddress['id'] = $remoteUnit['values'][0]['address_id'];
             $unitArray['id'] = $remoteUnit['id'];
           }
           else {
@@ -315,7 +315,7 @@ class CRM_Biasync_Utils {
             unset($unitArray['id']);
           }
           $unitArray['property_id'] = $propertyCheck['id'];
-          $remoteAddress = wpcmrf_api('Address', 'create', $unitAddress, $options, WPCMRF_ID)->getReply();
+	  $remoteAddress = wpcmrf_api('Address', 'create', $unitAddress, $options, WPCMRF_ID)->getReply();
           $unitArray['address_id'] = $remoteAddress['id'];
 	  $unitArray['source_record_id'] = $unit['id'];
           $unitArray['source_record'] = get_bloginfo( 'name' );
@@ -344,24 +344,25 @@ class CRM_Biasync_Utils {
     }
   }
 
-  protected static function syncActivities($biaSourceContactId, $centralBiaContactId) {
+  protected static function syncActivities($biaSourceContactId, $centralBiaContactId, $activityBiaSource, $activityBiaId) {
+    \Civi::log()->debug('sync activities called', ['sourceContactId' => $biaSourceContactId, 'centralBiaContactId' => $centralBiaContactId]);
     $activities = civicrm_api3('Activity', 'get', [
       'target_contact_id' => $biaSourceContactId,
       'activity_type_id' => ['IN' => [82, 83, 84, 86, 87]],
       'options' => ['limit' => 0],
     ]);
     foreach ($activities['values'] as $activity) {
-      $check = wpcmrf_api('Activity', 'get', ['custom_' . $activityBiaSource => get_bloginfo( 'name' ), 'custom_' . $activityBiaId], $options, WPCMRF_ID)->getReply();
+      $check = wpcmrf_api('Activity', 'get', ['custom_' . $activityBiaSource => get_bloginfo( 'name' ), 'custom_' . $activityBiaId => $activity['id']], $options, WPCMRF_ID)->getReply();
       if ($check['count'] > 0) {
         continue;
       }
       $activity['target_contact_id'] = $centralBiaContactId;
       $activity['source_contact_id'] = 'user_contact_id';
       unset($activity['source_contact_name']);
-      $activity['custom_' . $activityBiaSource] = get_bloginfo( 'name' );
+      $activity['custom_' . $activityBiaSource] = get_bloginfo('name');
       $activity['custom_' . $activityBiaId] = $activity['id'];
       unset($activity['id']);
-      wpcmrf_api('Activity', 'create', $activity, $options, WPCMRF_ID);
+      wpcmrf_api('Activity', 'create', $activity, $options, WPCMRF_ID)->getReply();
     }
   }
 
