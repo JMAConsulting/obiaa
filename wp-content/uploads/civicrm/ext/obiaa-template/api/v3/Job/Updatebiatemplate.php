@@ -43,7 +43,7 @@ function civicrm_api3_job_Updatebiatemplate($params) {
       'to_url' => \Civi::paths()->getVariable('cms.root', 'url'),
     ])['values'];
     CRM_Core_DAO::executeQuery("UPDATE civicrm_mosaico_template SET content = replace(content, 'http://wpmaster.localhost/', %1) WHERE title = 'BIA Newsletter'", [
-      1 => [\Civi::paths()->getVariable('cms.root', 'url') . '/', 'String'],
+      1 => [\Civi::paths()->getVariable('cms.root', 'url') . '/sites/' . str_replace('https://', '', \Civi::paths()->getVariable('cms.root', 'url')) . '/', 'String'],
     ]);
   }
 
