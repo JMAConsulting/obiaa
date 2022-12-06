@@ -66,7 +66,8 @@ class CRM_Obiaareport_Form_Report_TurnoverReport extends CRM_Report_Form {
           'dbAlias' => '0',
         ];
       }
-   }
+    }
+    CRM_Obiaareport_Utils::addMembershipFilter($this->_columns['civicrm_unit']['filters']);
     parent::__construct();
   }
 
@@ -76,7 +77,11 @@ class CRM_Obiaareport_Form_Report_TurnoverReport extends CRM_Report_Form {
   }
 
   public function from() {
-    $this->_from = " FROM  civicrm_activity unit_civireport ";
+    $filter = CRM_Obiaareport_Utils::addMembershipTableJoin('ActivityContact', 'ac');
+    $this->_from = " FROM  civicrm_activity unit_civireport
+    INNER JOIN civicrm_activity_contact ac ON ac.activity_id = unit_civireport.id AND record_type_id = 3
+    {$filter}
+     ";
   }
 
   public function where() {
@@ -93,7 +98,7 @@ class CRM_Obiaareport_Form_Report_TurnoverReport extends CRM_Report_Form {
 
   public function alterDisplay(&$rows) {
     foreach ($this->_noDisplay as $noDisplayField) {
-       unset($this->_columnHeaders[$noDisplayField]);
+      unset($this->_columnHeaders[$noDisplayField]);
     }
     $years = [];
     // custom code to alter rows

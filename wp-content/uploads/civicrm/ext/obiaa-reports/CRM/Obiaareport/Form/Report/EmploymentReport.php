@@ -67,6 +67,7 @@ class CRM_Obiaareport_Form_Report_EmploymentReport extends CRM_Report_Form {
       'title' => E::ts('Total'),
       'dbAlias' => "0",
     ];
+    CRM_Obiaareport_Utils::addMembershipFilter($this->_columns['civicrm_unit']['filters']);
     parent::__construct();
   }
 
@@ -78,14 +79,11 @@ class CRM_Obiaareport_Form_Report_EmploymentReport extends CRM_Report_Form {
   public function from() {
     $this->_from = "
   FROM civicrm_value_business_deta_5 cg
+  LEFT JOIN civicrm_value_membership_st_12 member ON member.entity_id = cg.entity_id
   LEFT JOIN civicrm_option_value ov ON ov.value = cg.{$this->_customFieldColumnName}
     LEFT  JOIN civicrm_option_group AS og
                         ON og.id = ov.option_group_id AND og.name = 'business_category_employees_at_'
     ";
-  }
-
-  public function where() {
-   $this->_where = '';
   }
 
   public function groupBy() {
@@ -94,7 +92,7 @@ class CRM_Obiaareport_Form_Report_EmploymentReport extends CRM_Report_Form {
 
   public function alterDisplay(&$rows) {
     foreach ($this->_noDisplay as $noDisplayField) {
-       unset($this->_columnHeaders[$noDisplayField]);
+      unset($this->_columnHeaders[$noDisplayField]);
     }
     $options = CRM_Core_OptionGroup::values('business_category_employees_at_', TRUE, FALSE, FALSE, NULL, 'name');
     // custom code to alter rows
