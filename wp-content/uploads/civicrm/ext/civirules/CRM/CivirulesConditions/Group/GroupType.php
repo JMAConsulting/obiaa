@@ -86,6 +86,65 @@ class CRM_CivirulesConditions_Group_GroupType extends CRM_Civirules_Condition {
   }
 
   /**
+   * Returns condition data as an array and ready for export.
+   * E.g. replace ids for names.
+   *
+   * @return array
+   */
+  public function exportConditionParameters() {
+    $params = parent::exportConditionParameters();
+    if (!empty($params['group_type_id']) && is_array($params['group_type_id'])) {
+      foreach($params['group_type_id'] as $i => $j) {
+        $params['group_type_id'][$i] = civicrm_api3('OptionValue', 'getvalue', [
+          'return' => 'name',
+          'value' => $j,
+          'option_group_id' => 'group_type',
+        ]);
+      }
+    } elseif (!empty($params['group_type_id'])) {
+      try {
+        $params['group_type_id'] = civicrm_api3('OptionValue', 'getvalue', [
+          'return' => 'name',
+          'value' => $params['group_type_id'],
+          'option_group_id' => 'group_type',
+        ]);
+      } catch (\CiviCRM_Api3_Exception $e) {
+        // Do nothing.
+      }
+    }
+    return $params;
+  }
+
+  /**
+   * Returns condition data as an array and ready for import.
+   * E.g. replace name for ids.
+   *
+   * @return string
+   */
+  public function importConditionParameters($condition_params = NULL) {
+    if (!empty($condition_params['group_type_id']) && is_array($condition_params['group_type_id'])) {
+      foreach($condition_params['group_type_id'] as $i => $j) {
+        $condition_params['group_type_id'][$i] = civicrm_api3('OptionValue', 'getvalue', [
+          'return' => 'name',
+          'value' => $j,
+          'option_group_id' => 'group_type',
+        ]);
+      }
+    } elseif (!empty($condition_params['group_type_id'])) {
+      try {
+        $condition_params['group_type_id'] = civicrm_api3('OptionValue', 'getvalue', [
+          'return' => 'value',
+          'name' => $condition_params['group_type_id'],
+          'option_group_id' => 'group_type',
+        ]);
+      } catch (\CiviCRM_Api3_Exception $e) {
+        // Do nothing.
+      }
+    }
+    return parent::importConditionParameters($condition_params);
+  }
+
+  /**
    * @return array
    * @throws \CiviCRM_API3_Exception
    */

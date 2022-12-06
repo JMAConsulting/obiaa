@@ -53,6 +53,32 @@ abstract class CRM_Civirules_Condition {
   }
 
   /**
+   * Returns condition data as an array and ready for export.
+   * E.g. replace ids for names.
+   *
+   * @return array
+   */
+  public function exportConditionParameters() {
+    if (!empty($this->ruleCondition['condition_params'])) {
+      return unserialize($this->ruleCondition['condition_params']);
+    }
+    return [];
+  }
+
+  /**
+   * Returns condition data as an array and ready for import.
+   * E.g. replace name for ids.
+   *
+   * @return string
+   */
+  public function importConditionParameters($condition_params=null) {
+    if (!empty($condition_params)) {
+      return serialize($condition_params);
+    }
+    return '';
+  }
+
+  /**
    * Returns an array with required entity names
    *
    * When returning false we assume the doesWorkWithTrigger does the validation.

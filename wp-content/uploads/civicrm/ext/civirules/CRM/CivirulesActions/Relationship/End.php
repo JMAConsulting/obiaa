@@ -153,6 +153,41 @@ class CRM_CivirulesActions_Relationship_End extends CRM_Civirules_Action {
   }
 
   /**
+   * Returns condition data as an array and ready for export.
+   * E.g. replace ids for names.
+   *
+   * @return array
+   */
+  public function exportActionParameters() {
+    $action_params = parent::exportActionParameters();
+    try {
+      $action_params['relationship_type_id'] = civicrm_api3('RelationshipType', 'getvalue', [
+        'return' => 'name_a_b',
+        'id' => $action_params['relationship_type_id'],
+      ]);
+    } catch (CiviCRM_API3_Exception $e) {
+    }
+    return $action_params;
+  }
+
+  /**
+   * Returns condition data as an array and ready for import.
+   * E.g. replace name for ids.
+   *
+   * @return string
+   */
+  public function importActionParameters($action_params = NULL) {
+    try {
+      $action_params['relationship_type_id'] = civicrm_api3('RelationshipType', 'getvalue', [
+        'return' => 'id',
+        'name_a_b' => $action_params['relationship_type_id'],
+      ]);
+    } catch (CiviCRM_API3_Exception $e) {
+    }
+    return parent::importActionParameters($action_params);
+  }
+
+  /**
    * Method to get the relationship type label based on contact_a or contact_b
    *
    * @param $relationshipTypeId

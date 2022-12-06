@@ -45,6 +45,7 @@ class CRM_CivirulesCronTrigger_CaseActivity extends CRM_Civirules_Trigger_Cron {
     $sql = "SELECT c.*
             FROM `civicrm_case` `c`
             WHERE c.status_id = 1
+            AND `c`.`is_deleted` = 0
             ";
     $this->dao = CRM_Core_DAO::executeQuery($sql, array(), true, 'CRM_Case_DAO_Case');
 

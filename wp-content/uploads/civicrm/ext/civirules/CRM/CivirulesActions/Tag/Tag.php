@@ -129,6 +129,65 @@ abstract class CRM_CivirulesActions_Tag_Tag extends CRM_CivirulesActions_Generic
   }
 
   /**
+   * Returns condition data as an array and ready for export.
+   * E.g. replace ids for names.
+   *
+   * @return array
+   */
+  public function exportActionParameters() {
+    $action_params = parent::exportActionParameters();
+    if (!empty($params['tag_id'])) {
+      try {
+        $action_params['tag_id'] = civicrm_api3('Tag', 'getvalue', [
+          'return' => 'name',
+          'id' => $action_params['tag_id'],
+        ]);
+      } catch (CiviCRM_API3_Exception $e) {
+      }
+    } elseif (!empty($params['tag_ids']) && is_array($params['tag_ids'])) {
+      foreach ($action_params['tag_ids'] as $i => $j) {
+        try {
+          $action_params['tag_ids'][$i] = civicrm_api3('Tag', 'getvalue', [
+            'return' => 'name',
+            'id' => $j,
+          ]);
+        } catch (CiviCRM_API3_Exception $e) {
+        }
+      }
+    }
+    return $action_params;
+  }
+
+  /**
+   * Returns condition data as an array and ready for import.
+   * E.g. replace name for ids.
+   *
+   * @return string
+   */
+  public function importActionParameters($action_params = NULL) {
+    if (!empty($params['tag_id'])) {
+      try {
+        $action_params['tag_id'] = civicrm_api3('Tag', 'getvalue', [
+          'return' => 'id',
+          'name' => $action_params['tag_id'],
+        ]);
+      } catch (CiviCRM_API3_Exception $e) {
+      }
+    } elseif (!empty($params['tag_ids']) && is_array($params['tag_ids'])) {
+      foreach ($action_params['tag_ids'] as $i => $j) {
+        try {
+          $action_params['tag_ids'][$i] = civicrm_api3('Tag', 'getvalue', [
+            'return' => 'id',
+            'name' => $j,
+          ]);
+        } catch (CiviCRM_API3_Exception $e) {
+        }
+      }
+    }
+    return parent::importActionParameters($action_params);
+  }
+
+  /**
    * Method to set the api entity
    *
    * @return string

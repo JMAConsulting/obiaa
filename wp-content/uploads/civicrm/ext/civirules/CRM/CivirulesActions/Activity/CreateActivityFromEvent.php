@@ -99,6 +99,145 @@ class CRM_CivirulesActions_Activity_CreateActivityFromEvent extends CRM_Civirule
   }
 
   /**
+   * Returns condition data as an array and ready for export.
+   * E.g. replace ids for names.
+   *
+   * @return array
+   */
+  public function exportActionParameters() {
+    $action_params = parent::exportActionParameters();
+    try {
+      $action_params['status_id'] = civicrm_api3('OptionValue', 'getvalue', [
+        'return' => 'name',
+        'value' => $action_params['status_id'],
+        'option_group_id' => 'activity_status',
+      ]);
+    } catch (CiviCRM_API3_Exception $e) {
+    }
+    try {
+      $action_params['activity_type_id'] = civicrm_api3('OptionValue', 'getvalue', [
+        'return' => 'name',
+        'value' => $action_params['activity_type_id'],
+        'option_group_id' => 'activity_type',
+      ]);
+    } catch (CiviCRM_API3_Exception $e) {
+    }
+
+    if (!empty($action_params['event_id_custom_field'])) {
+      try {
+        $customField = civicrm_api3('CustomField', 'getsingle', [
+          'id' => $action_params['event_id_custom_field'],
+        ]);
+        $customGroup = civicrm_api3('CustomGroup', 'getsingle', [
+          'id' => $customField['custom_group_id'],
+        ]);
+        $action_params['event_id_custom_group'] = $customGroup['name'];
+        $action_params['event_id_custom_field'] = $customField['name'];
+      } catch (\CiviCRM_Api3_Exception $e) {
+        // Do nothing.
+      }
+    }
+
+    if (!empty($action_params['event_start_date_custom_field'])) {
+      try {
+        $customField = civicrm_api3('CustomField', 'getsingle', [
+          'id' => $action_params['event_start_date_custom_field'],
+        ]);
+        $customGroup = civicrm_api3('CustomGroup', 'getsingle', [
+          'id' => $customField['custom_group_id'],
+        ]);
+        $action_params['event_start_date_custom_group'] = $customGroup['name'];
+        $action_params['event_start_date_custom_field'] = $customField['name'];
+      } catch (\CiviCRM_Api3_Exception $e) {
+        // Do nothing.
+      }
+    }
+
+    if (!empty($action_params['event_end_date_custom_field'])) {
+      try {
+        $customField = civicrm_api3('CustomField', 'getsingle', [
+          'id' => $action_params['event_end_date_custom_field'],
+        ]);
+        $customGroup = civicrm_api3('CustomGroup', 'getsingle', [
+          'id' => $customField['custom_group_id'],
+        ]);
+        $action_params['event_end_date_custom_group'] = $customGroup['name'];
+        $action_params['event_end_date_custom_field'] = $customField['name'];
+      } catch (\CiviCRM_Api3_Exception $e) {
+        // Do nothing.
+      }
+    }
+
+    return $action_params;
+  }
+
+  /**
+   * Returns condition data as an array and ready for import.
+   * E.g. replace name for ids.
+   *
+   * @return string
+   */
+  public function importActionParameters($action_params = NULL) {
+    try {
+      $action_params['status_id'] = civicrm_api3('OptionValue', 'getvalue', [
+        'return' => 'value',
+        'name' => $action_params['status_id'],
+        'option_group_id' => 'activity_status',
+      ]);
+    } catch (CiviCRM_API3_Exception $e) {
+    }
+    try {
+      $action_params['activity_type_id'] = civicrm_api3('OptionValue', 'getvalue', [
+        'return' => 'value',
+        'name' => $action_params['activity_type_id'],
+        'option_group_id' => 'activity_type',
+      ]);
+    } catch (CiviCRM_API3_Exception $e) {
+    }
+
+    if (!empty($action_params['event_id_custom_group'])) {
+      try {
+        $customField = civicrm_api3('CustomField', 'getsingle', [
+          'name' => $action_params['event_id_custom_field'],
+          'custom_group_id' => $action_params['event_id_custom_group'],
+        ]);
+        $action_params['event_id_custom_field'] = $customField['id'];
+        unset($action_params['event_id_custom_group']);
+      } catch (\CiviCRM_Api3_Exception $e) {
+        // Do nothing.
+      }
+    }
+
+    if (!empty($action_params['event_start_date_custom_group'])) {
+      try {
+        $customField = civicrm_api3('CustomField', 'getsingle', [
+          'name' => $action_params['event_start_date_custom_field'],
+          'custom_group_id' => $action_params['event_start_date_custom_group'],
+        ]);
+        $action_params['event_start_date_custom_field'] = $customField['id'];
+        unset($action_params['event_start_date_custom_group']);
+      } catch (\CiviCRM_Api3_Exception $e) {
+        // Do nothing.
+      }
+    }
+
+    if (!empty($action_params['event_end_date_custom_group'])) {
+      try {
+        $customField = civicrm_api3('CustomField', 'getsingle', [
+          'name' => $action_params['event_end_date_custom_field'],
+          'custom_group_id' => $action_params['event_end_date_custom_group'],
+        ]);
+        $action_params['event_end_date_custom_field'] = $customField['id'];
+        unset($action_params['event_end_date_custom_group']);
+      } catch (\CiviCRM_Api3_Exception $e) {
+        // Do nothing.
+      }
+    }
+
+    return parent::importActionParameters($action_params);
+  }
+
+  /**
    * Process the action
    *
    * @param CRM_Civirules_TriggerData_TriggerData $triggerData

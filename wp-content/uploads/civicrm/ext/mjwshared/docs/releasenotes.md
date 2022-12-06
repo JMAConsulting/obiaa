@@ -9,7 +9,15 @@ Releases use the following numbering system:
 
 * **[BC]**: Items marked with [BC] indicate a breaking change that will require updates to your code if you are using that code in your extension.
 
-## Release 1.2.9 (2022-09-14)
+## Release 1.2.10 (2022-11-22)
+
+* Make sure calculateTaxAmount always returns a valid float.
+* Stop recommending installation of minifier extension (it can cause problems with some angularjs scripts).
+* Check both frontend/backend URL for AJAX requests.
+* Add indexes to civicrm_paymentprocessor_webhook - see [Stripe#395](https://lab.civicrm.org/extensions/stripe/-/issues/395).
+* Fix translation [!31](https://lab.civicrm.org/extensions/mjwshared/-/merge_requests/31).
+
+## Release 1.2.9 (2022-10-14)
 
 * Add psr0 classloader to info.xml.
 * Don't update (set update to never) Paymentprocessorwebhooks managed job (stops it re-enabling automatically).

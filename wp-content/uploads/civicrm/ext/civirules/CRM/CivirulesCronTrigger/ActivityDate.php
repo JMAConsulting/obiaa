@@ -36,6 +36,7 @@ class CRM_CivirulesCronTrigger_ActivityDate extends CRM_CivirulesCronTrigger_Act
             LEFT JOIN `civicrm_case_activity` ca ON a.id = ca.activity_id
             LEFT JOIN `civirule_rule_log` `rule_log` ON `rule_log`.entity_table = 'civicrm_activity' AND `rule_log`.entity_id = a.id AND `rule_log`.`contact_id` = `ac`.`contact_id` AND DATE(`rule_log`.`log_date`) = DATE(NOW())  AND `rule_log`.`rule_id` = %3
             WHERE `a`.`activity_type_id` = %1 AND a.status_id = %2 AND a.activity_date_time <= NOW()
+            AND `a`.`is_deleted` = 0
             AND `rule_log`.`id` IS NULL
             {$activityContactWhereClause}
             {$activityCaseWhereClause}

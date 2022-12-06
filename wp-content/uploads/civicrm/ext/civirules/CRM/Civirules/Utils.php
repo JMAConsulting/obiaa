@@ -770,35 +770,17 @@ class CRM_Civirules_Utils {
    * @return array
    */
   public static function getGroupList() {
-    $groups = [];
-    if (function_exists('civicrm_api4')) {
-      try {
-        $apiGroups = \Civi\Api4\Group::get()
-          ->addSelect('title')
-          ->addWhere('is_active', '=', TRUE)
-          ->execute();
-        foreach ($apiGroups as $apiGroup) {
-          $groups[$apiGroup['id']] = $apiGroup['title'];
-        }
-      }
-      catch (API_Exception $ex) {
-      }
+    $groups = \Civi\Api4\Group::get(FALSE)
+      ->addSelect('id', 'title')
+      ->addWhere('is_active', '=', TRUE)
+      ->addWhere('is_hidden', '=', FALSE)
+      ->execute();
+    $groupList = [];
+    foreach ($groups as $group) {
+      $groupList[$group['id']] = $group['title'];
     }
-    else {
-      try {
-        $apiGroups = civicrm_api3('Group', 'get', [
-          'return' => ['title'],
-           'is_active' => TRUE,
-          'options' => ['limit' => 0],
-        ]);
-        foreach ($apiGroups['result'] as $groupId => $groupData) {
-          $groups[$groupId] = $groupData['title'];
-        }
-      }
-      catch (CiviCRM_API3_Exception $ex) {
-      }
-    }
-    return $groups;
+    asort($groupList);
+    return $groupList;
   }
 
   /**

@@ -38,9 +38,9 @@ class CRM_CivirulesConditions_Contact_HasActivityInCampaign extends CRM_Civirule
     $return = FALSE;
     $contactId = $triggerData->getContactId();
     if ($contactId) {
-      $this->_query = 'SELECT COUNT(*) 
+      $this->_query = 'SELECT COUNT(*)
       FROM civicrm_activity AS act
-      JOIN civicrm_activity_contact AS contact ON act.id = contact.activity_id AND contact.record_type_id = %1 
+      JOIN civicrm_activity_contact AS contact ON act.id = contact.activity_id AND contact.record_type_id = %1
       WHERE act.is_test = %2 AND contact.contact_id = %3';
       $this->_queryParams = array(
         1 => array(3, 'Integer'),
@@ -139,6 +139,69 @@ class CRM_CivirulesConditions_Contact_HasActivityInCampaign extends CRM_Civirule
 
     }
     return $text;
+  }
+
+  /**
+   * Returns condition data as an array and ready for export.
+   * E.g. replace ids for names.
+   *
+   * @return array
+   */
+  public function exportConditionParameters() {
+    $params = parent::exportConditionParameters();
+    if (!empty($params['campaign_id'])) {
+      try {
+        $params['campaign_id'] = civicrm_api3('Campaign', 'getvalue', [
+          'return' => 'name',
+          'id' => $params['campaign_id']
+        ]);
+      } catch (\CiviCRM_Api3_Exception $e) {
+        // Do nothing.
+      }
+    }
+    if (!empty($params['activity_type_id'])) {
+      try {
+        $params['activity_type_id'] = civicrm_api3('OptionValue', 'getvalue', [
+          'return' => 'name',
+          'value' => $params['activity_type_id'],
+          'option_group_id' => 'activity_type',
+        ]);
+      } catch (\CiviCRM_Api3_Exception $e) {
+        // Do nothing.
+      }
+    }
+    return $params;
+  }
+
+  /**
+   * Returns condition data as an array and ready for import.
+   * E.g. replace name for ids.
+   *
+   * @return string
+   */
+  public function importConditionParameters($condition_params = NULL) {
+    if (!empty($condition_params['campaign_id'])) {
+      try {
+        $condition_params['campaign_id'] = civicrm_api3('Campaign', 'getvalue', [
+          'return' => 'id',
+          'name' => $condition_params['campaign_id']
+        ]);
+      } catch (\CiviCRM_Api3_Exception $e) {
+        // Do nothing.
+      }
+    }
+    if (!empty($condition_params['activity_type_id'])) {
+      try {
+        $condition_params['activity_type_id'] = civicrm_api3('OptionValue', 'getvalue', [
+          'return' => 'value',
+          'name' => $condition_params['activity_type_id'],
+          'option_group_id' => 'activity_type',
+        ]);
+      } catch (\CiviCRM_Api3_Exception $e) {
+        // Do nothing.
+      }
+    }
+    return parent::importConditionParameters($condition_params);
   }
 
 }

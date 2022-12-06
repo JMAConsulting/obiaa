@@ -1,9 +1,26 @@
 # CHANGELOG
 
-## Version 2.44 (not yet released)
+## Version 2.45
+* add xmlMenu function to civirules.php (mixin issue with older CiviCRM versions)
+* !190: Don't crash if contact ID does not exist (eg. was deleted) and code cleanup caseaddrole
 
-* Fixed #177: "Event reached date" trigger fires prematurely when setting a "before" offset
-* Fixed #178: "Event reached date" trigger fires daily on the same participants
+## Version 2.44
+
+* Fixes #189: action on activity AddToCase ignores deleted cases
+* !180 Replace deprecated function getTimeRaw().
+* Fixed #177: "Event reached date" trigger fires prematurely when setting a "before" offset.
+* Fixed #178: "Event reached date" trigger fires daily on the same participants.
+* Implemented integration with config item extension. For importing and exporting civirules configuration.
+* Fix !178: Api4 tag remove/add action for non-admins.
+* !179: Add an Activity Subject condition.
+* !181: Show label for 'Field value comparison' description. Add description to SetCustomField action.
+* !182: Support multiple membership types for "Contact has active membership of type".
+* Fix #182 by !183: Domain conditional selection shows a maximum of 25 domains.
+* Fix #183 by !184: Only show active/visible groups in group conditions / actions.
+* Changed date format for comparison value to YmdHis to fix #186 by !185
+* Always use ymd format for dates in field value comparisons  by !186
+* #188 activity action: condition target/assignee on relationship contacts by !187
+* !188 For CRON date triggers don't trigger on deleted(is_deleted=1) or disabled (is_active=0) cases,activities,events.
 
 ## Version 2.43
 

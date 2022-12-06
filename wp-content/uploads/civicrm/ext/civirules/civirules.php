@@ -18,6 +18,7 @@ use CRM_Civirules_ExtensionUtil as E;
  * @throws \CRM_Core_Exception
  */
 function civirules_civicrm_container(\Symfony\Component\DependencyInjection\ContainerBuilder $container) {
+  $container->addCompilerPass(new \Civi\ConfigItems\CiviRulesCompilerPass());
   if (version_compare(CRM_Utils_System::version(), '5.34', '>=')) {
     // Add the symfony listeners.
     // We can do this after CiviCRM 5.34 because we need the eventID parameter on the
@@ -61,17 +62,6 @@ function civirules_civicrm_container(\Symfony\Component\DependencyInjection\Cont
  */
 function civirules_civicrm_config(&$config) {
   _civirules_civix_civicrm_config($config);
-}
-
-/**
- * Implementation of hook_civicrm_xmlMenu
- *
- * @param $files array(string)
- *
- * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_xmlMenu
- */
-function civirules_civicrm_xmlMenu(&$files) {
-  _civirules_civix_civicrm_xmlMenu($files);
 }
 
 /**
@@ -150,7 +140,6 @@ function civirules_civicrm_managed(&$entities) {
   CRM_Civirules_Utils_Upgrader::insertTriggersFromJson(E::path('sql/triggers.json'));
   CRM_Civirules_Utils_Upgrader::insertActionsFromJson(E::path('sql/actions.json'));
   CRM_Civirules_Utils_Upgrader::insertConditionsFromJson(E::path('sql/conditions.json'));
-  _civirules_civix_civicrm_managed($entities);
 }
 
 /**
@@ -183,28 +172,6 @@ function _civirules_upgrade_to_2x_backup() {
       INNER JOIN `civirule_condition` ON `civirule_rule_condition`.`condition_id` = `civirule_condition`.`id`
     ");
   }
-}
-
-/**
- * Implementation of hook_civicrm_caseTypes
- *
- * Generate a list of case-types
- *
- * Note: This hook only runs in CiviCRM 4.4+.
- *
- * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_caseTypes
- */
-function civirules_civicrm_caseTypes(&$caseTypes) {
-  _civirules_civix_civicrm_caseTypes($caseTypes);
-}
-
-/**
- * Implementation of hook_civicrm_alterSettingsFolders
- *
- * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_alterSettingsFolders
- */
-function civirules_civicrm_alterSettingsFolders(&$metaDataFolders = NULL) {
-  _civirules_civix_civicrm_alterSettingsFolders($metaDataFolders);
 }
 
 /**
@@ -384,10 +351,7 @@ function civirules_trigger_postinsert($event) {
  * @param \Civi\Core\DAO\Event\PreUpdate $event
  */
 function civirules_trigger_preupdate(\Civi\Core\DAO\Event\PreUpdate $event) {
-  try {    
-    if (!class_exists('CRM_Civirules_Utils')) {
-      return;
-    }    
+  try {
     $objectName = CRM_Civirules_Utils::getObjectNameFromObject($event->object);
     $objectId = $event->object->id;
     $eventID = $event->eventID ?? 1;
@@ -406,9 +370,6 @@ function civirules_trigger_preupdate(\Civi\Core\DAO\Event\PreUpdate $event) {
  * @param $event
  */
 function civirules_trigger_postupdate($event) {
-  if (!class_exists('CRM_Civirules_Utils')) {
-    return;
-  }    
   $objectName = CRM_Civirules_Utils::getObjectNameFromObject($event->object);
   $eventID = $event->eventID ?? 1;
   if (!civirules_use_posthook('edit', $objectName, $event->object->id, $event->object)) {
@@ -576,5 +537,17 @@ function civirules_civicrm_entityTypes(&$entityTypes) {
 function civirules_civicrm_apiWrappers(&$wrappers, $apiRequest) {
   if ($apiRequest['entity'] == 'Contact' && $apiRequest['action'] == 'create') {
     $wrappers[] = new CRM_Civirules_TrashRestoreApiWrapper();
+  }
+}
+
+/**
+ * Implements hook_civicrm_xmlMenu().
+ *
+ * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_xmlMenu
+ * (fix for mixin issue with older versions of CiviCRM)
+ */
+function civirules_civicrm_xmlMenu(&$files) {
+  foreach (glob(__DIR__ . '/xml/Menu/*.xml') as $file) {
+    $files[] = $file;
   }
 }

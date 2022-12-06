@@ -43,7 +43,7 @@ class CRM_Mjwshared_Check {
    */
   public function checkRequirements() {
     $this->checkExtensionWorldpay();
-    $this->checkExtensionMinifier();
+    // $this->checkExtensionMinifier();
     $this->checkExtensionContributiontransactlegacy();
     $this->checkIfSeparateMembershipPaymentEnabled();
     $this->checkExtensionSweetalert();

@@ -100,6 +100,59 @@ class CRM_CivirulesActions_Activity_Edit extends CRM_CivirulesActions_Activity_A
   }
 
   /**
+   * Returns condition data as an array and ready for export.
+   * E.g. replace ids for names.
+   *
+   * @return array
+   */
+  public function exportActionParameters() {
+    $action_params = parent::exportActionParameters();
+    try {
+      $action_params['status_id'] = civicrm_api3('OptionValue', 'getvalue', [
+        'return' => 'name',
+        'value' => $action_params['status_id'],
+        'option_group_id' => 'activity_status',
+      ]);
+    } catch (CiviCRM_API3_Exception $e) {
+    }
+    try {
+      $action_params['activity_type_id'] = civicrm_api3('OptionValue', 'getvalue', [
+        'return' => 'name',
+        'value' => $action_params['activity_type_id'],
+        'option_group_id' => 'activity_type',
+      ]);
+    } catch (CiviCRM_API3_Exception $e) {
+    }
+    return $action_params;
+  }
+
+  /**
+   * Returns condition data as an array and ready for import.
+   * E.g. replace name for ids.
+   *
+   * @return string
+   */
+  public function importActionParameters($action_params = NULL) {
+    try {
+      $action_params['status_id'] = civicrm_api3('OptionValue', 'getvalue', [
+        'return' => 'value',
+        'name' => $action_params['status_id'],
+        'option_group_id' => 'activity_status',
+      ]);
+    } catch (CiviCRM_API3_Exception $e) {
+    }
+    try {
+      $action_params['activity_type_id'] = civicrm_api3('OptionValue', 'getvalue', [
+        'return' => 'value',
+        'name' => $action_params['activity_type_id'],
+        'option_group_id' => 'activity_type',
+      ]);
+    } catch (CiviCRM_API3_Exception $e) {
+    }
+    return parent::importActionParameters($action_params);
+  }
+
+  /**
    * Returns a redirect url to extra data input from the user after adding a action
    *
    * Return false if you do not need extra data input

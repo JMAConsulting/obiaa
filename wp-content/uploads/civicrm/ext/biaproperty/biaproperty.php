@@ -126,7 +126,7 @@ function biaproperty_civicrm_links($op, $objectName, $objectId, &$links, &$mask,
       ->addSelect('contact_sub_type:label', 'contact_sub_type:name', 'contact_type:name')
       ->addWhere('id', '=', $objectId)
       ->execute()->first();
-    $subTypes = $contactDetails['contact_sub_type:label'];
+    $subTypes = (array) $contactDetails['contact_sub_type:label'];
     $contactType = $contactDetails['contact_type:name'];
     // 'Add / Buy Property' should be available for all types of contact
     $links[] = [

@@ -9,20 +9,9 @@
 class CRM_CivirulesConditions_Form_Contact_InGroup extends CRM_CivirulesConditions_Form_Form {
 
   /**
-   * Method to get groups
-   *
-   * @return array
-   * @access protected
-   */
-  protected function getGroups() {
-    return CRM_Contact_BAO_GroupContact::getGroupList();
-  }
-
-  /**
    * Method to get operators
    *
    * @return array
-   * @access protected
    */
   protected function getOperators() {
     return CRM_CivirulesConditions_Contact_InGroup::getOperatorOptions();
@@ -31,27 +20,24 @@ class CRM_CivirulesConditions_Form_Contact_InGroup extends CRM_CivirulesConditio
   /**
    * Overridden parent method to build form
    *
-   * @access public
    */
   public function buildQuickForm() {
     $this->add('hidden', 'rule_condition_id');
-
-    $group = $this->add('select', 'group_ids', ts('Groups'), $this->getGroups(), TRUE);
+    $group = $this->add('select', 'group_ids', ts('Groups'), CRM_Civirules_Utils::getGroupList(), TRUE);
     $group->setMultiple(TRUE);
     $this->add('select', 'operator', ts('Operator'), $this->getOperators(), TRUE);
     $this->addYesNo('check_group_tree', ts('Check Group Tree?'), FALSE, TRUE);
 
     $this->addButtons([
-      ['type' => 'next', 'name' => ts('Save'), 'isDefault' => TRUE,],
+      ['type' => 'next', 'name' => ts('Save'), 'isDefault' => TRUE],
       ['type' => 'cancel', 'name' => ts('Cancel')],
-      ]);
+    ]);
   }
 
   /**
    * Overridden parent method to set default values
    *
    * @return array $defaultValues
-   * @access public
    */
   public function setDefaultValues() {
     $defaultValues = parent::setDefaultValues();
@@ -72,7 +58,6 @@ class CRM_CivirulesConditions_Form_Contact_InGroup extends CRM_CivirulesConditio
    * Overridden parent method to process form data after submission
    *
    * @throws Exception when rule condition not found
-   * @access public
    */
   public function postProcess() {
     $data['group_ids'] = $this->_submitValues['group_ids'];
@@ -83,4 +68,5 @@ class CRM_CivirulesConditions_Form_Contact_InGroup extends CRM_CivirulesConditio
 
     parent::postProcess();
   }
+
 }

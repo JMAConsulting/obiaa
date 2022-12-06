@@ -18,6 +18,60 @@ class CRM_CivirulesActions_Activity_Add extends CRM_CivirulesActions_Generic_Api
   protected $asignedContacts = [];
 
   /**
+   * Returns condition data as an array and ready for export.
+   * E.g. replace ids for names.
+   *
+   * @return array
+   */
+  public function exportActionParameters() {
+    $action_params = parent::exportActionParameters();
+    try {
+      $action_params['status_id'] = civicrm_api3('OptionValue', 'getvalue', [
+        'return' => 'name',
+        'value' => $action_params['status_id'],
+        'option_group_id' => 'activity_status',
+      ]);
+    } catch (CiviCRM_API3_Exception $e) {
+    }
+    try {
+      $action_params['activity_type_id'] = civicrm_api3('OptionValue', 'getvalue', [
+        'return' => 'name',
+        'value' => $action_params['activity_type_id'],
+        'option_group_id' => 'activity_type',
+      ]);
+    } catch (CiviCRM_API3_Exception $e) {
+    }
+    return $action_params;
+  }
+
+  /**
+   * Returns condition data as an array and ready for import.
+   * E.g. replace name for ids.
+   *
+   * @return string
+   */
+  public function importActionParameters($action_params = NULL) {
+    try {
+      $action_params['status_id'] = civicrm_api3('OptionValue', 'getvalue', [
+        'return' => 'value',
+        'name' => $action_params['status_id'],
+        'option_group_id' => 'activity_status',
+      ]);
+    } catch (CiviCRM_API3_Exception $e) {
+    }
+    try {
+      $action_params['activity_type_id'] = civicrm_api3('OptionValue', 'getvalue', [
+        'return' => 'value',
+        'name' => $action_params['activity_type_id'],
+        'option_group_id' => 'activity_type',
+      ]);
+    } catch (CiviCRM_API3_Exception $e) {
+    }
+    return parent::importActionParameters($action_params);
+  }
+
+
+  /**
    * Returns an array with parameters used for processing an action
    *
    * @param array $params
@@ -53,13 +107,19 @@ class CRM_CivirulesActions_Activity_Add extends CRM_CivirulesActions_Generic_Api
       if (count($assignee)) {
         $params['assignee_contact_id'] = $action_params['assignee_contact_id'];
       } else {
-        $params['assignee_contact_id'] = '';
+        $params['assignee_contact_id'] = [];
       }
 
       // Store the assigned contacts to send a notification email
       if (!empty($params['assignee_contact_id'])) {
         $this->asignedContacts = (array)$params['assignee_contact_id'];
       }
+    }
+
+    // #188 If selecting a relationship contact assignee, append to assignee array
+    if (!empty($params['relationship_contact_assignee'])) {
+      $entityData = $triggerData->getEntityData('Relationship');
+      $params['assignee_contact_id'][] = $this->asignedContacts[] = $entityData[$params['relationship_contact_assignee']];
     }
 
     // issue #127: no activity date time if set to null
@@ -75,6 +135,12 @@ class CRM_CivirulesActions_Activity_Add extends CRM_CivirulesActions_Generic_Api
           }
         }
       }
+    }
+
+    // #188 If selecting a specific contact via relationship, pass necessary details to API params
+    if (!empty($params['relationship_contact']) && $params['relationship_contact'] != 'both') {
+      $entityData = $triggerData->getEntityData('Relationship');
+      $params['relationship_contact_id'] = $entityData[$params['relationship_contact']];
     }
 
     // Issue #152: when a rule is trigger from a public page then source contact id
@@ -102,7 +168,7 @@ class CRM_CivirulesActions_Activity_Add extends CRM_CivirulesActions_Generic_Api
 
     // Check if we need to send any emails
     if (!empty($this->apiParams['send_email']) && !empty($this->activityId) && !empty($this->asignedContacts)) {
-      foreach ($this->asignedContacts as $contactId) {
+      foreach (array_unique($this->asignedContacts) as $contactId) {
 
         $contact = civicrm_api3('Contact', 'getsingle', ['id' => $contactId]);
 
@@ -128,6 +194,14 @@ class CRM_CivirulesActions_Activity_Add extends CRM_CivirulesActions_Generic_Api
    * @throws Exception on api error
    */
   protected function executeApiAction($entity, $action, $parameters) {
+    // #188 relationship contact filter; return if target does not match
+    if (!empty($parameters['relationship_contact']) &&
+      $parameters['relationship_contact'] != 'both' &&
+      $parameters['target_contact_id'] != $parameters['relationship_contact_id']
+    ) {
+      return;
+    }
+
     try {
       $activity = civicrm_api3($entity, $action, $parameters);
       $this->activityId = $activity['id'];
@@ -189,7 +263,17 @@ class CRM_CivirulesActions_Activity_Add extends CRM_CivirulesActions_Generic_Api
       $return .= "<br>";
       $return .= ts("Subject: %1", array(1 => $subject));
     }
-    if (!empty($params['assignee_contact_id'])) {
+    // #188 relationship based target selection
+    $relContactMap = [
+      'both' => ts('Both Contacts'),
+      'contact_id_a' => ts('Contact A'),
+      'contact_id_b' => ts('Contact B'),
+    ];
+    if (!empty($params['relationship_contact'])) {
+      $return .= "<br>";
+      $return .= ts("Relationship Contact: %1", [1 => $relContactMap[$params['relationship_contact']]]);
+    }
+    if (!empty($params['assignee_contact_id']) && !empty($params['assignee_contact_id'][0])) {
       if (!is_array($params['assignee_contact_id'])) {
         $params['assignee_contact_id'] = array($params['assignee_contact_id']);
       }
@@ -210,7 +294,12 @@ class CRM_CivirulesActions_Activity_Add extends CRM_CivirulesActions_Generic_Api
 
       $return .= '<br>';
       $return .= ts("Assignee(s): %1", array(1 => $assignees));
+    }
 
+    // #188 assignee by relationship
+    if (!empty($params['relationship_contact_assignee'])) {
+      $return .= "<br>";
+      $return .= ts("Assignee (by relationship): %1", [1 => $relContactMap[$params['relationship_contact_assignee']]]);
     }
 
     if (!empty($params['activity_date_time'])) {

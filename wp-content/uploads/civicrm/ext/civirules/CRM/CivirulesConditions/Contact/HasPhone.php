@@ -83,4 +83,67 @@ class CRM_CivirulesConditions_Contact_HasPhone extends CRM_Civirules_Condition {
     return $phoneTypeLabel . ts(' and ').$locationTypeLabel;
   }
 
+  /**
+   * Returns condition data as an array and ready for export.
+   * E.g. replace ids for names.
+   *
+   * @return array
+   */
+  public function exportConditionParameters() {
+    $params = parent::exportConditionParameters();
+    if (!empty($params['phone_type'])) {
+      try {
+        $params['phone_type'] = civicrm_api3('OptionValue', 'getvalue', [
+          'return' => 'name',
+          'value' => $params['phone_type'],
+          'option_group_id' => 'phone_type',
+        ]);
+      } catch (\CiviCRM_Api3_Exception $e) {
+        // Do nothing.
+      }
+    }
+    if (!empty($params['location_type'])) {
+      try {
+        $params['location_type'] = civicrm_api3('LocationType', 'getvalue', [
+          'return' => 'name',
+          'id' => $params['location_type'],
+        ]);
+      } catch (\CiviCRM_Api3_Exception $e) {
+        // Do nothing.
+      }
+    }
+    return $params;
+  }
+
+  /**
+   * Returns condition data as an array and ready for import.
+   * E.g. replace name for ids.
+   *
+   * @return string
+   */
+  public function importConditionParameters($condition_params = NULL) {
+    if (!empty($condition_params['phone_type'])) {
+      try {
+        $condition_params['phone_type'] = civicrm_api3('OptionValue', 'getvalue', [
+          'return' => 'value',
+          'name' => $condition_params['phone_type'],
+          'option_group_id' => 'phone_type',
+        ]);
+      } catch (\CiviCRM_Api3_Exception $e) {
+        // Do nothing.
+      }
+    }
+    if (!empty($condition_params['location_type'])) {
+      try {
+        $condition_params['location_type'] = civicrm_api3('LocationType', 'getvalue', [
+          'return' => 'id',
+          'name' => $condition_params['location_type'],
+        ]);
+      } catch (\CiviCRM_Api3_Exception $e) {
+        // Do nothing.
+      }
+    }
+    return parent::importConditionParameters($condition_params);
+  }
+
 }

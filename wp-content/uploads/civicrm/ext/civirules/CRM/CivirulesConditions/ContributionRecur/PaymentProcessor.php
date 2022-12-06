@@ -134,6 +134,49 @@ LEFT JOIN civicrm_contribution_recur ccr ON ccr.id = cm.contribution_recur_id WH
   }
 
   /**
+   * Returns condition data as an array and ready for export.
+   * E.g. replace ids for names.
+   *
+   * @return array
+   */
+  public function exportConditionParameters() {
+    $params = parent::exportConditionParameters();
+    if (!empty($params['payment_processor_id']) && is_array($params['payment_processor_id'])) {
+      foreach($params['payment_processor_id'] as $i => $gid) {
+        try {
+          $params['payment_processor_id'][$i] = civicrm_api3('PaymentProcessor', 'getvalue', [
+            'return' => 'name',
+            'id' => $gid,
+          ]);
+        } catch (CiviCRM_API3_Exception $e) {
+        }
+      }
+    }
+    return $params;
+  }
+
+  /**
+   * Returns condition data as an array and ready for import.
+   * E.g. replace name for ids.
+   *
+   * @return string
+   */
+  public function importConditionParameters($condition_params = NULL) {
+    if (!empty($condition_params['payment_processor_id']) && is_array($condition_params['payment_processor_id'])) {
+      foreach($condition_params['payment_processor_id'] as $i => $gid) {
+        try {
+          $condition_params['payment_processor_id'][$i] = civicrm_api3('PaymentProcessor', 'getvalue', [
+            'return' => 'id',
+            'name' => $gid,
+          ]);
+        } catch (CiviCRM_API3_Exception $e) {
+        }
+      }
+    }
+    return parent::importConditionParameters($condition_params);
+  }
+
+  /**
    * Method to get operators
    *
    * @return array

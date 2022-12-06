@@ -9,7 +9,7 @@ class CRM_CivirulesActions_Tag_EntityTag {
   public static function getApi4Tags($table) {
     $tags = [];
     try {
-      $apiTags = \Civi\Api4\Tag::get()
+      $apiTags = \Civi\Api4\Tag::get(FALSE)
         ->addSelect('name')
         ->addWhere('used_for', 'LIKE', '%' . $table . '%')
         ->execute();
@@ -86,7 +86,7 @@ class CRM_CivirulesActions_Tag_EntityTag {
       return;
     }
     try {
-      \Civi\Api4\EntityTag::create()
+      \Civi\Api4\EntityTag::create(FALSE)
         ->addValue('entity_table', $entityTable)
         ->addValue('entity_id', $entityId)
         ->addValue('tag_id', $tagId)
@@ -109,7 +109,7 @@ class CRM_CivirulesActions_Tag_EntityTag {
       return;
     }
     try {
-      \Civi\Api4\EntityTag::delete()
+      \Civi\Api4\EntityTag::delete(FALSE)
         ->addWhere('entity_table', '=', $entityTable)
         ->addWhere('entity_id', '=', $entityId)
         ->addWhere('tag_id', '=', $tagId)

@@ -34,8 +34,57 @@ class CRM_CivirulesActions_Contact_SetCustomField extends CRM_Civirules_Action {
     $field_id = $action_params['field_id'];
     civicrm_api3('Contact', 'create', [
       'id'                 => $contactId,
-      "custom_{$field_id}" => $new_value]
-    );
+      "custom_{$field_id}" => $new_value
+    ]);
+  }
+
+  /**
+   * Returns condition data as an array and ready for export.
+   * E.g. replace ids for names.
+   *
+   * @return array
+   */
+  public function exportActionParameters() {
+    $action_params = parent::exportActionParameters();
+    if (!empty($action_params['field_id'])) {
+      try {
+        $customField = civicrm_api3('CustomField', 'getsingle', [
+          'id' => $action_params['field_id'],
+        ]);
+        $customGroup = civicrm_api3('CustomGroup', 'getsingle', [
+          'id' => $customField['custom_group_id'],
+        ]);
+        unset($action_params['field_id']);
+        $action_params['custom_group'] = $customGroup['name'];
+        $action_params['custom_field'] = $customField['name'];
+      } catch (\CiviCRM_Api3_Exception $e) {
+        // Do nothing.
+      }
+    }
+    return $action_params;
+  }
+
+  /**
+   * Returns condition data as an array and ready for import.
+   * E.g. replace name for ids.
+   *
+   * @return string
+   */
+  public function importActionParameters($action_params = NULL) {
+    if (!empty($action_params['custom_group'])) {
+      try {
+        $customField = civicrm_api3('CustomField', 'getsingle', [
+          'name' => $action_params['custom_field'],
+          'custom_group_id' => $action_params['custom_group'],
+        ]);
+        $action_params['field_id'] = $customField['id'];
+        unset($action_params['custom_group']);
+        unset($action_params['custom_field']);
+      } catch (\CiviCRM_Api3_Exception $e) {
+        // Do nothing.
+      }
+    }
+    return parent::importActionParameters($action_params);
   }
 
   /**
@@ -49,4 +98,24 @@ class CRM_CivirulesActions_Contact_SetCustomField extends CRM_Civirules_Action {
   public function getExtraDataInputUrl($ruleActionId) {
     return CRM_Utils_System::url('civicrm/civirule/form/action/contact/setcustomvalue', 'rule_action_id='.$ruleActionId);
   }
+
+  /**
+   * Returns a user friendly text explaining the condition params
+   * e.g. 'Older than 65'
+   *
+   * @return string
+   * @access public
+   * @throws \CiviCRM_API3_Exception
+   */
+  public function userFriendlyConditionParams() {
+    $params = $this->getActionParameters();
+
+    $customField = \Civi\Api4\CustomField::get(FALSE)
+      ->addWhere('id', '=', $params['field_id'])
+      ->execute()
+      ->first();
+
+    return "Set '{$customField['label']}' to '{$params['value']}'";
+  }
+
 }

@@ -452,6 +452,12 @@
     <access_arguments>administer CiviCRM</access_arguments>
   </item>
   <item>
+    <path>civicrm/civirule/form/condition/activity_subject</path>
+    <page_callback>CRM_CivirulesConditions_Form_Activity_Subject</page_callback>
+    <title>Activity Subject</title>
+    <access_arguments>administer CiviCRM</access_arguments>
+  </item>
+  <item>
     <path>civicrm/civirule/form/condition/activity_contact_record_type</path>
     <page_callback>CRM_CivirulesConditions_Form_Activity_RecordType</page_callback>
     <title>Activity Contact Record Type</title>

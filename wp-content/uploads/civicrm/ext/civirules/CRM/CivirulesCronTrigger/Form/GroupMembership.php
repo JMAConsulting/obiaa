@@ -6,17 +6,9 @@
  * @license AGPL-3.0
  */
 
-class CRM_CivirulesCronTrigger_Form_GroupMembership extends CRM_CivirulesTrigger_Form_Form {
+use CRM_Civirules_ExtensionUtil as E;
 
-  /**
-   * Method to get groups
-   *
-   * @return array
-   * @access protected
-   */
-  protected function getGroups() {
-    return CRM_Contact_BAO_GroupContact::getGroupList();
-  }
+class CRM_CivirulesCronTrigger_Form_GroupMembership extends CRM_CivirulesTrigger_Form_Form {
 
   /**
    * Overridden parent method to build form
@@ -25,13 +17,13 @@ class CRM_CivirulesCronTrigger_Form_GroupMembership extends CRM_CivirulesTrigger
    */
   public function buildQuickForm() {
     $this->add('hidden', 'rule_id');
-
-    $group = $this->add('select', 'group_id', ts('Groups'), $this->getGroups(), true);
+    $group = $this->add('select', 'group_id', E::ts('Groups'), CRM_Civirules_Utils::getGroupList(), TRUE);
     $group->setMultiple(TRUE);
 
-    $this->addButtons(array(
-      array('type' => 'next', 'name' => ts('Save'), 'isDefault' => TRUE,),
-      array('type' => 'cancel', 'name' => ts('Cancel'))));
+    $this->addButtons([
+      ['type' => 'next', 'name' => E::ts('Save'), 'isDefault' => TRUE],
+      ['type' => 'cancel', 'name' => E::ts('Cancel')]
+    ]);
   }
 
   /**
@@ -45,7 +37,7 @@ class CRM_CivirulesCronTrigger_Form_GroupMembership extends CRM_CivirulesTrigger
     $data = unserialize($this->rule->trigger_params);
     if (!empty($data['group_id'])) {
       if (!is_array($data['group_id'])) {
-        $data['group_id'] = array($data['group_id']);
+        $data['group_id'] = [$data['group_id']];
       }
       $defaultValues['group_id'] = $data['group_id'];
     }

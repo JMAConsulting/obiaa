@@ -55,6 +55,47 @@ class CRM_CivirulesConditions_File_HasTag extends CRM_Civirules_Condition {
   }
 
   /**
+   * Returns condition data as an array and ready for export.
+   * E.g. replace ids for names.
+   *
+   * @return array
+   */
+  public function exportConditionParameters() {
+    $generic = new CRM_CivirulesConditions_Generic_HasTag();
+    $generic->setEntityTable('civicrm_file');
+    $tags = $generic->getEntityTags();
+    $params = parent::exportConditionParameters();
+    if (!empty($params['tag_ids']) && is_array($params['tag_ids'])) {
+      foreach($params['tag_ids'] as $i => $j) {
+        $params['tag_ids'][$i] = $tags[$j];
+      }
+    } elseif (!empty($params['tag_ids'])) {
+      $params['tag_ids'] = $tags[$params['tag_ids']];
+    }
+    return $params;
+  }
+
+  /**
+   * Returns condition data as an array and ready for import.
+   * E.g. replace name for ids.
+   *
+   * @return string
+   */
+  public function importConditionParameters($condition_params = NULL) {
+    $generic = new CRM_CivirulesConditions_Generic_HasTag();
+    $generic->setEntityTable('civicrm_file');
+    $tags = array_flip($generic->getEntityTags());
+    if (!empty($condition_params['tag_ids']) && is_array($condition_params['tag_ids'])) {
+      foreach($condition_params['tag_ids'] as $i => $j) {
+        $condition_params['tag_ids'][$i] = $tags[$j];
+      }
+    } elseif (!empty($condition_params['tag_ids'])) {
+      $condition_params['tag_ids'] = $tags[$condition_params['tag_ids']];
+    }
+    return parent::importConditionParameters($condition_params);
+  }
+
+  /**
    * Returns a redirect url to extra data input from the user after adding a condition
    *
    * Return FALSE if you do not need extra data input

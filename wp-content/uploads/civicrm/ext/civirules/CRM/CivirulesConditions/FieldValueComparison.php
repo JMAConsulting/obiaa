@@ -98,8 +98,14 @@ class CRM_CivirulesConditions_FieldValueComparison extends CRM_CivirulesConditio
     if ($value === null) {
       return null;
     }
-
     //@todo normalize value based on the field
+
+    $entity = $this->conditionParams['entity'];
+    $field = $this->conditionParams['field'];  
+    if ( $this->isDateField( $entity, $field ) ) {
+      $value = Date('Ymd', strtotime($value));
+    }
+
     return $value;
   }
 
@@ -128,10 +134,70 @@ class CRM_CivirulesConditions_FieldValueComparison extends CRM_CivirulesConditio
       $value = implode(", ", $value);
     }
     $field = $this->conditionParams['field'];
+    if (substr($field, 0, 7) === 'custom_') {
+      $fieldID = substr($field, 7);
+      try {
+        $field = civicrm_api3('CustomField', 'getvalue', ['id' => $fieldID, 'return' => 'label']);
+      }
+      catch (Exception $e) {}
+    }
+
     if (!empty($this->conditionParams['original_data'])) {
       $field .= ' (original value)';
     }
-    return htmlentities($this->conditionParams['entity'].'.'.$field.' '.($this->getOperator())).' '.htmlentities($value);;
+    return htmlentities($this->conditionParams['entity']. '.' . $field . ' ' . ($this->getOperator())) . ' ' . htmlentities($value);
+  }
+
+  /**
+   * Returns condition data as an array and ready for export.
+   * E.g. replace ids for names.
+   *
+   * @return array
+   */
+  public function exportConditionParameters() {
+    $params = parent::exportConditionParameters();
+    if (!empty($params['field']) && (substr($params['field'], 0, 7) === 'custom_')) {
+      try {
+        $fieldID = substr($params['field'], 7);
+        $customField = civicrm_api3('CustomField', 'getsingle', [
+          'id' => $fieldID,
+        ]);
+        $customGroup = civicrm_api3('CustomGroup', 'getsingle', [
+          'id' => $customField['custom_group_id'],
+        ]);
+        unset($params['field']);
+        $params['custom_field'] = $customGroup['name'];
+        $params['custom_group'] = $customField['name'];
+      } catch (\CiviCRM_Api3_Exception $e) {
+        // Do nothing.
+      }
+    }
+    return $params;
+  }
+
+  /**
+   * Returns condition data as an array and ready for import.
+   * E.g. replace name for ids.
+   *
+   * @return string
+   */
+  public function importConditionParameters($condition_params = NULL) {
+    if (!empty($condition_params['custom_group']) && !empty($condition_params['custom_field'])) {
+      try {
+        $customField = civicrm_api3('CustomField', 'getsingle', [
+          'name' => $condition_params['custom_field'],
+          'custom_group_id' => $condition_params['custom_group'],
+        ]);
+
+
+        $condition_params['field'] = 'custom_'.$customField['id'];
+        unset($condition_params['custom_field']);
+        unset($condition_params['custom_group']);
+      } catch (\CiviCRM_Api3_Exception $e) {
+        // Do nothing.
+      }
+    }
+    return parent::importConditionParameters($condition_params);
   }
 
 }

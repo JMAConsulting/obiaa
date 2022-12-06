@@ -59,6 +59,51 @@ class CRM_CivirulesConditions_Contribution_PaidBy extends CRM_Civirules_Conditio
   }
 
   /**
+   * Returns condition data as an array and ready for export.
+   * E.g. replace ids for names.
+   *
+   * @return array
+   */
+  public function exportConditionParameters() {
+    $params = parent::exportConditionParameters();
+    if (!empty($params['payment_instrument_id']) && is_array($params['payment_instrument_id'])) {
+      foreach($params['payment_instrument_id'] as $i => $gid) {
+        try {
+          $params['payment_instrument_id'][$i] = civicrm_api3('OptionValue', 'getvalue', [
+            'return' => 'name',
+            'id' => $gid,
+            'option_group_id' => 'payment_instrument'
+          ]);
+        } catch (CiviCRM_API3_Exception $e) {
+        }
+      }
+    }
+    return $params;
+  }
+
+  /**
+   * Returns condition data as an array and ready for import.
+   * E.g. replace name for ids.
+   *
+   * @return string
+   */
+  public function importConditionParameters($condition_params = NULL) {
+    if (!empty($condition_params['payment_instrument_id']) && is_array($condition_params['payment_instrument_id'])) {
+      foreach($condition_params['payment_instrument_id'] as $i => $gid) {
+        try {
+          $condition_params['payment_instrument_id'][$i] = civicrm_api3('OptionValue', 'getvalue', [
+            'return' => 'id',
+            'name' => $gid,
+            'option_group_id' => 'payment_instrument'
+          ]);
+        } catch (CiviCRM_API3_Exception $e) {
+        }
+      }
+    }
+    return parent::importConditionParameters($condition_params);
+  }
+
+  /**
    * Returns a user friendly text explaining the condition params
    * e.g. 'Older than 65'
    *

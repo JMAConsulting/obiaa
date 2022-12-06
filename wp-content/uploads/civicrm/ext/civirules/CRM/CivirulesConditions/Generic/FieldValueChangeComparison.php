@@ -271,4 +271,52 @@ abstract class CRM_CivirulesConditions_Generic_FieldValueChangeComparison extend
       htmlentities(($this->getOperator())).' '.htmlentities($comparisonValue);
   }
 
+  /**
+   * Returns condition data as an array and ready for export.
+   * E.g. replace ids for names.
+   *
+   * @return array
+   */
+  public function exportConditionParameters() {
+    $options = $this->getFieldOptionsNames();
+    $params = parent::exportConditionParameters();
+    if (!is_array($options)) {
+      return $params;
+    }
+    foreach(['value', 'multi_value', 'original_value', 'original_multi_value'] as $key) {
+      if (isset($params[$key]) && is_array($params[$key])) {
+        foreach ($params[$key] as $i => $j) {
+          $params[$key][$i] = $options[$j];
+        }
+      } elseif (isset($params[$key])) {
+        $params[$key] = $options[$params[$key]];
+      }
+    }
+    return $params;
+  }
+
+  /**
+   * Returns condition data as an array and ready for import.
+   * E.g. replace name for ids.
+   *
+   * @return string
+   */
+  public function importConditionParameters($condition_params = NULL) {
+    $options = $this->getFieldOptionsNames();
+    if (!is_array($options)) {
+      return $condition_params;
+    }
+    $options = array_flip($options);
+    foreach(['value', 'multi_value', 'original_value', 'original_multi_value'] as $key) {
+      if (isset($condition_params[$key]) && is_array($condition_params[$key])) {
+        foreach ($condition_params[$key] as $i => $j) {
+          $condition_params[$key][$i] = $options[$j];
+        }
+      } elseif (isset($condition_params[$key])) {
+        $condition_params[$key] = $options[$condition_params[$key]];
+      }
+    }
+    return parent::importConditionParameters($condition_params);
+  }
+
 }

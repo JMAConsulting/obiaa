@@ -104,6 +104,10 @@ class CRM_Civirules_Utils_Upgrader {
         'label' => 'Activity Details',
         'name' => 'contact_has_activity_with_details',
       ),
+      'CRM_CivirulesConditions_Activity_Subject' => array(
+        'label' => 'Activity Subject',
+        'name' => 'contact_has_activity_with_subject',
+      ),
       'CRM_CivirulesConditions_Activity_OnlyOnce' => array(
         'label' => 'Execute Action only Once for Activity',
         'name' => 'once_for_activity',

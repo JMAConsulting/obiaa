@@ -31,15 +31,6 @@ function firewall_civicrm_container(\Symfony\Component\DependencyInjection\Conta
 }
 
 /**
- * Implements hook_civicrm_xmlMenu().
- *
- * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_xmlMenu
- */
-function firewall_civicrm_xmlMenu(&$files) {
-  _firewall_civix_civicrm_xmlMenu($files);
-}
-
-/**
  * Implements hook_civicrm_install().
  *
  * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_install
@@ -91,41 +82,6 @@ function firewall_civicrm_disable() {
  */
 function firewall_civicrm_upgrade($op, CRM_Queue_Queue $queue = NULL) {
   return _firewall_civix_civicrm_upgrade($op, $queue);
-}
-
-/**
- * Implements hook_civicrm_managed().
- *
- * Generate a list of entities to create/deactivate/delete when this module
- * is installed, disabled, uninstalled.
- *
- * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_managed
- */
-function firewall_civicrm_managed(&$entities) {
-  _firewall_civix_civicrm_managed($entities);
-}
-
-/**
- * Implements hook_civicrm_angularModules().
- *
- * Generate a list of Angular modules.
- *
- * Note: This hook only runs in CiviCRM 4.5+. It may
- * use features only available in v4.6+.
- *
- * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_angularModules
- */
-function firewall_civicrm_angularModules(&$angularModules) {
-  _firewall_civix_civicrm_angularModules($angularModules);
-}
-
-/**
- * Implements hook_civicrm_alterSettingsFolders().
- *
- * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_alterSettingsFolders
- */
-function firewall_civicrm_alterSettingsFolders(&$metaDataFolders = NULL) {
-  _firewall_civix_civicrm_alterSettingsFolders($metaDataFolders);
 }
 
 /**

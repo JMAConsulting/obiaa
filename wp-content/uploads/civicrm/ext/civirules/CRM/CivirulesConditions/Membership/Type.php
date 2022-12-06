@@ -58,6 +58,61 @@ class CRM_CivirulesConditions_Membership_Type extends CRM_Civirules_Condition {
   }
 
   /**
+   * Returns condition data as an array and ready for export.
+   * E.g. replace ids for names.
+   *
+   * @return array
+   */
+  public function exportConditionParameters() {
+    $params = parent::exportConditionParameters();
+    if (!empty($params['membership_type_ids']) && is_array($params['membership_type_ids'])) {
+      foreach($params['membership_type_ids'] as $i => $j) {
+        $params['membership_type_ids'][$i] = civicrm_api3('MembershipType', 'getvalue', [
+          'return' => 'name',
+          'id' => $j,
+        ]);
+      }
+    } elseif (!empty($params['membership_type_ids'])) {
+      try {
+        $params['membership_type_ids'] = civicrm_api3('MembershipType', 'getvalue', [
+          'return' => 'name',
+          'id' => $params['membership_type_ids'],
+        ]);
+      } catch (\CiviCRM_Api3_Exception $e) {
+        // Do nothing.
+      }
+    }
+    return $params;
+  }
+
+  /**
+   * Returns condition data as an array and ready for import.
+   * E.g. replace name for ids.
+   *
+   * @return string
+   */
+  public function importConditionParameters($condition_params = NULL) {
+    if (!empty($condition_params['membership_type_ids']) && is_array($condition_params['membership_type_ids'])) {
+      foreach($condition_params['membership_type_ids'] as $i => $j) {
+        $condition_params['membership_type_ids'][$i] = civicrm_api3('MembershipType', 'getvalue', [
+          'return' => 'id',
+          'name' => $j,
+        ]);
+      }
+    } elseif (!empty($condition_params['membership_type_ids'])) {
+      try {
+        $condition_params['membership_type_ids'] = civicrm_api3('MembershipType', 'getvalue', [
+          'return' => 'id',
+          'name' => $condition_params['membership_type_ids'],
+        ]);
+      } catch (\CiviCRM_Api3_Exception $e) {
+        // Do nothing.
+      }
+    }
+    return parent::importConditionParameters($condition_params);
+  }
+
+  /**
    * Returns a redirect url to extra data input from the user after adding a condition
    *
    * Return false if you do not need extra data input

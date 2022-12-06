@@ -68,4 +68,43 @@ class CRM_CivirulesActions_Tag_ContactTagAdd extends CRM_Civirules_Action {
     return "These tags will be added to the contact:  " . implode(", ", $labels);
   }
 
+  /**
+   * Returns condition data as an array and ready for export.
+   * E.g. replace ids for names.
+   *
+   * @return array
+   */
+  public function exportActionParameters() {
+    $action_params = parent::exportActionParameters();
+    foreach($action_params['tag_id'] as $i=>$j) {
+      try {
+        $action_params['tag_id'][$i] = civicrm_api3('Tag', 'getvalue', [
+          'return' => 'name',
+          'id' => $j,
+        ]);
+      } catch (CiviCRM_API3_Exception $e) {
+      }
+    }
+    return $action_params;
+  }
+
+  /**
+   * Returns condition data as an array and ready for import.
+   * E.g. replace name for ids.
+   *
+   * @return string
+   */
+  public function importActionParameters($action_params = NULL) {
+    foreach($action_params['tag_id'] as $i=>$j) {
+      try {
+        $action_params['tag_id'][$i] = civicrm_api3('Tag', 'getvalue', [
+          'return' => 'id',
+          'name' => $j,
+        ]);
+      } catch (CiviCRM_API3_Exception $e) {
+      }
+    }
+    return parent::importActionParameters($action_params);
+  }
+
 }

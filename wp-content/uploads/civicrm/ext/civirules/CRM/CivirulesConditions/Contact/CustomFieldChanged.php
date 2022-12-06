@@ -69,6 +69,57 @@ class CRM_CivirulesConditions_Contact_CustomFieldChanged extends CRM_Civirules_C
   }
 
   /**
+   * Returns condition data as an array and ready for export.
+   * E.g. replace ids for names.
+   *
+   * @return array
+   */
+  public function exportConditionParameters() {
+    $params = parent::exportConditionParameters();
+    if (!empty($params['custom_field_id'])) {
+      try {
+        $customField = civicrm_api3('CustomField', 'getsingle', [
+          'id' => $params['custom_field_id'],
+        ]);
+        $customGroup = civicrm_api3('CustomGroup', 'getsingle', [
+          'id' => $customField['custom_group_id'],
+        ]);
+        unset($params['custom_field_id']);
+        $params['custom_field_group'] = $customGroup['name'];
+        $params['custom_field_field'] = $customField['name'];
+      } catch (\CiviCRM_Api3_Exception $e) {
+        // Do nothing.
+      }
+    }
+    return $params;
+  }
+
+  /**
+   * Returns condition data as an array and ready for import.
+   * E.g. replace name for ids.
+   *
+   * @return string
+   */
+  public function importConditionParameters($condition_params = NULL) {
+    if (!empty($condition_params['custom_field_group'])) {
+      try {
+        $customField = civicrm_api3('CustomField', 'getsingle', [
+          'name' => $condition_params['custom_field_group'],
+          'custom_group_id' => $condition_params['custom_field_group'],
+        ]);
+
+
+        $condition_params['custom_field_id'] = $customField['id'];
+        unset($condition_params['custom_field_field']);
+        unset($condition_params['custom_field_group']);
+      } catch (\CiviCRM_Api3_Exception $e) {
+        // Do nothing.
+      }
+    }
+    return parent::importConditionParameters($condition_params);
+  }
+
+  /**
    * Returns a redirect url to extra data input from the user after adding a condition
    *
    * Return false if you do not need extra data input

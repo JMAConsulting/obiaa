@@ -188,6 +188,47 @@ class CRM_CivirulesConditions_GroupContact_InGroupSince extends CRM_Civirules_Co
   }
 
   /**
+   * Returns condition data as an array and ready for export.
+   * E.g. replace ids for names.
+   *
+   * @return array
+   */
+  public function exportConditionParameters() {
+    $params = parent::exportConditionParameters();
+    if (!empty($params['group_id'])) {
+      try {
+        $params['group_id'] = civicrm_api3('Group', 'getvalue', [
+          'return' => 'name',
+          'id' => $params['group_id'],
+        ]);
+      } catch (\CiviCRM_Api3_Exception $e) {
+        // Do nothing.
+      }
+    }
+    return $params;
+  }
+
+  /**
+   * Returns condition data as an array and ready for import.
+   * E.g. replace name for ids.
+   *
+   * @return string
+   */
+  public function importConditionParameters($condition_params = NULL) {
+    if (!empty($condition_params['group_id'])) {
+      try {
+        $condition_params['group_id'] = civicrm_api3('Group', 'getvalue', [
+          'return' => 'id',
+          'name' => $condition_params['group_id'],
+        ]);
+      } catch (\CiviCRM_Api3_Exception $e) {
+        // Do nothing.
+      }
+    }
+    return parent::importConditionParameters($condition_params);
+  }
+
+  /**
    * This function validates whether this condition works with the selected trigger.
    *
    * This function could be overriden in child classes to provide additional validation

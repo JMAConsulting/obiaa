@@ -17,7 +17,7 @@ class CRM_CivirulesActions_Generic_UpdateDateValue extends CRM_Civirules_Action 
    * @access public
    */
   public function processAction(CRM_Civirules_TriggerData_TriggerData $triggerData) {
-    
+
     $contact_id = $triggerData->getContactId();
     $action_params = $this->getActionParameters();
     if (empty($action_params))
@@ -27,7 +27,7 @@ class CRM_CivirulesActions_Generic_UpdateDateValue extends CRM_Civirules_Action 
     // $trigger = $triggerData->getTrigger();
     // $ojbectName = null;
     // if ($trigger instanceof CRM_Civirules_Trigger_Post)
-    //   $ojbectName = $trigger->getObjectName();  
+    //   $ojbectName = $trigger->getObjectName();
 
     // parse target field parts
     try {
@@ -104,7 +104,7 @@ class CRM_CivirulesActions_Generic_UpdateDateValue extends CRM_Civirules_Action 
         Civi::log()->debug('UpdateDateCustomValue Action: Error retrieving source entity value ('.$e->getMessage().')');
         return;
       }
-      
+
       // proecess to datetime
       if (!empty($action_params['update_operand'])) {
         try {
@@ -131,7 +131,7 @@ class CRM_CivirulesActions_Generic_UpdateDateValue extends CRM_Civirules_Action 
 
   /**
    * Parse saved field id into entity type and field id (eg Contact:10 to Contact and 10)
-   * 
+   *
    * @param string $raw_field_id
    * @return array [entity_type, field_id]
    * @throws Exception when field id is invalid
@@ -139,7 +139,7 @@ class CRM_CivirulesActions_Generic_UpdateDateValue extends CRM_Civirules_Action 
   protected function parseRawFieldId($raw_field_id) {
 
     $field_parts = explode('::', $raw_field_id);
-    
+
     if (count($field_parts)!==2)
       throw new Exception("Invalid field format '{$raw_field_id}'.");
 
@@ -158,7 +158,7 @@ class CRM_CivirulesActions_Generic_UpdateDateValue extends CRM_Civirules_Action 
 
   /**
    * Set the value to the given field
-   * 
+   *
    * @param string $entity_type entity type of primary object trigger; Only Contact is supported
    * @param int $entity_id      entity ID of primary object trigger
    * @param string $field_id    field ID or special fields like 'contact_id'
@@ -224,10 +224,10 @@ class CRM_CivirulesActions_Generic_UpdateDateValue extends CRM_Civirules_Action 
             'return' => 'table_name',
           ]);
           return CRM_Core_DAO::singleValueQuery("
-            SELECT {$mode}({$custom_field['column_name']}) 
+            SELECT {$mode}({$custom_field['column_name']})
             FROM {$custom_group['table_name']}
             LEFT JOIN civicrm_contact contact
-              ON contact.id = {$custom_group['table_name']}.entity_id  
+              ON contact.id = {$custom_group['table_name']}.entity_id
             WHERE (contact.is_deleted IS NULL OR contact.is_deleted = 0);
           ");
         } else {
@@ -264,7 +264,7 @@ class CRM_CivirulesActions_Generic_UpdateDateValue extends CRM_Civirules_Action 
    * @throws \CiviCRM_API3_Exception
    */
   public function userFriendlyConditionParams() {
-    
+
     $action_params = $this->getActionParameters();
 
     try {
@@ -287,7 +287,7 @@ class CRM_CivirulesActions_Generic_UpdateDateValue extends CRM_Civirules_Action 
       Civi::log()->debug('UpdateDateCustomValue Action: Error parsing source field name ('.$e->getMessage().')');
       return;
     }
-    
+
     $update = empty($action_params['update_operand']) ? '' : ' modifield by "' . $action_params['update_operand'] . '"';
 
     if ($action_params['update_operation']==='modify') {
@@ -296,12 +296,12 @@ class CRM_CivirulesActions_Generic_UpdateDateValue extends CRM_Civirules_Action 
     }
 
     if ($action_params['update_operation']==='max_modify') {
-      
+
       return 'Set ' . $target_field . ' to the Global Maximum value of ' . $source_field . $update;
     }
 
     if ($action_params['update_operation']==='min_modify') {
-      
+
       return 'Set ' . $target_field . ' to the Global Minimum value of ' . $source_field . $update;
     }
 
@@ -310,7 +310,7 @@ class CRM_CivirulesActions_Generic_UpdateDateValue extends CRM_Civirules_Action 
 
   /**
    * Find the human readable label for a field
-   * 
+   *
    * @param string|int $field_identifier
    * @access protected
    * @return string
@@ -329,5 +329,82 @@ class CRM_CivirulesActions_Generic_UpdateDateValue extends CRM_Civirules_Action 
     // Built in Fields
     return ucwords(str_replace('_', ' ', $field_identifier));
   }
-  
+
+  /**
+   * Returns condition data as an array and ready for export.
+   * E.g. replace ids for names.
+   *
+   * @return array
+   */
+  public function exportActionParameters() {
+    $action_params = parent::exportActionParameters();
+    if (!empty($action_params['target_field_id'])) {
+      try {
+        $customField = civicrm_api3('CustomField', 'getsingle', [
+          'id' => $action_params['target_field_id'],
+        ]);
+        $customGroup = civicrm_api3('CustomGroup', 'getsingle', [
+          'id' => $customField['custom_group_id'],
+        ]);
+        unset($action_params['target_field_id']);
+        $action_params['target_custom_group'] = $customGroup['name'];
+        $action_params['target_custom_field'] = $customField['name'];
+      } catch (\CiviCRM_Api3_Exception $e) {
+        // Do nothing.
+      }
+    }
+    if (!empty($action_params['source_field_id'])) {
+      try {
+        $customField = civicrm_api3('CustomField', 'getsingle', [
+          'id' => $action_params['source_field_id'],
+        ]);
+        $customGroup = civicrm_api3('CustomGroup', 'getsingle', [
+          'id' => $customField['custom_group_id'],
+        ]);
+        unset($action_params['source_field_id']);
+        $action_params['source_custom_group'] = $customGroup['name'];
+        $action_params['source_custom_field'] = $customField['name'];
+      } catch (\CiviCRM_Api3_Exception $e) {
+        // Do nothing.
+      }
+    }
+    return $action_params;
+  }
+
+  /**
+   * Returns condition data as an array and ready for import.
+   * E.g. replace name for ids.
+   *
+   * @return string
+   */
+  public function importActionParameters($action_params = NULL) {
+    if (!empty($action_params['target_custom_group'])) {
+      try {
+        $customField = civicrm_api3('CustomField', 'getsingle', [
+          'name' => $action_params['target_custom_field'],
+          'custom_group_id' => $action_params['target_custom_group'],
+        ]);
+        $action_params['target_field_id'] = $customField['id'];
+        unset($action_params['target_custom_group']);
+        unset($action_params['target_custom_field']);
+      } catch (\CiviCRM_Api3_Exception $e) {
+        // Do nothing.
+      }
+    }
+    if (!empty($action_params['source_custom_group'])) {
+      try {
+        $customField = civicrm_api3('CustomField', 'getsingle', [
+          'name' => $action_params['source_custom_field'],
+          'custom_group_id' => $action_params['source_custom_group'],
+        ]);
+        $action_params['source_field_id'] = $customField['id'];
+        unset($action_params['source_custom_group']);
+        unset($action_params['source_custom_field']);
+      } catch (\CiviCRM_Api3_Exception $e) {
+        // Do nothing.
+      }
+    }
+    return parent::importActionParameters($action_params);
+  }
+
 }

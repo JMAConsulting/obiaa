@@ -30,4 +30,15 @@ class CRM_Mjwshared_Upgrader extends CRM_Mjwshared_Upgrader_Base {
     $this->executeSqlFile('sql/upgrade_1001.sql');
     return TRUE;
   }
+
+  public function upgrade_1002() {
+    $this->ctx->log->info('Add indexes to civicrm_paymentprocessor_webhook table');
+    if (!CRM_Core_BAO_SchemaHandler::checkIfIndexExists('civicrm_paymentprocessor_webhook', 'index_processed_date')) {
+      CRM_Core_DAO::executeQuery('ALTER TABLE `civicrm_paymentprocessor_webhook` ADD INDEX `index_processed_date` (`processed_date`)');
+    }
+    if (!CRM_Core_BAO_SchemaHandler::checkIfIndexExists('civicrm_paymentprocessor_webhook', 'index_identifier')) {
+      CRM_Core_DAO::executeQuery('ALTER TABLE `civicrm_paymentprocessor_webhook` ADD INDEX `index_identifier` (`identifier`)');
+    }
+    return TRUE;
+  }
 }

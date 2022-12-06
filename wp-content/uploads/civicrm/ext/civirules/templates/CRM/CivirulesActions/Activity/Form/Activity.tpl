@@ -21,6 +21,14 @@
         <div class="clear"></div>
     </div>
 
+    {if $form.relationship_contact}
+        <div class="crm-section">
+            <div class="label">{$form.relationship_contact.label}</div>
+            <div class="content">{$form.relationship_contact.html}</div>
+            <div class="clear"></div>
+        </div>
+    {/if}
+
     {if ($use_old_contact_ref_fields)}
         <div class="crm-section">
             <div class="label">{ts}Assignee{/ts}</div>
@@ -36,6 +44,15 @@
             <div class="clear"></div>
         </div>
     {/if}
+
+    {if $form.relationship_contact_assignee}
+        <div class="crm-section">
+            <div class="label">{$form.relationship_contact_assignee.label}</div>
+            <div class="content">{$form.relationship_contact_assignee.html}</div>
+            <div class="clear"></div>
+        </div>
+    {/if}
+
     <div class="crm-section">
         <div class="label">{$form.activity_date_time.label}</div>
         <div class="content">{$form.activity_date_time.html}</div>
