@@ -11,7 +11,7 @@
 namespace Civi\Firewall\Event;
 
 /**
- * Class FraudEvent
+ * Class InvalidCSRFEvent
  */
 class InvalidCSRFEvent extends \Symfony\Component\EventDispatcher\Event {
 
@@ -31,7 +31,7 @@ class InvalidCSRFEvent extends \Symfony\Component\EventDispatcher\Event {
   public $eventType;
 
   /**
-   * FraudEvent constructor.
+   * InvalidCSRFEvent constructor.
    *
    * @param string $ipAddress
    * @param string|NULL $source

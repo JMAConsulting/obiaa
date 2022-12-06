@@ -63,7 +63,7 @@ class CRM_CivirulesConditions_Contact_CreatedBy extends CRM_Civirules_Condition 
         break;
       }
     }
-    return $isValid; 
+    return $isValid;
   }
 
   protected function contactIsMemberOfOneGroup($contact_id, $group_ids) {
@@ -154,6 +154,49 @@ class CRM_CivirulesConditions_Contact_CreatedBy extends CRM_Civirules_Condition 
    */
   public function doesWorkWithTrigger(CRM_Civirules_Trigger $trigger, CRM_Civirules_BAO_Rule $rule) {
     return $trigger->doesProvideEntity('Contact');
+  }
+
+  /**
+   * Returns condition data as an array and ready for export.
+   * E.g. replace ids for names.
+   *
+   * @return array
+   */
+  public function exportConditionParameters() {
+    $params = parent::exportConditionParameters();
+    if (!empty($params['group_ids']) && is_array($params['group_ids'])) {
+      foreach($params['group_ids'] as $i => $gid) {
+        try {
+          $params['group_ids'][$i] = civicrm_api3('Group', 'getvalue', [
+            'return' => 'name',
+            'id' => $gid,
+          ]);
+        } catch (CiviCRM_API3_Exception $e) {
+        }
+      }
+    }
+    return $params;
+  }
+
+  /**
+   * Returns condition data as an array and ready for import.
+   * E.g. replace name for ids.
+   *
+   * @return string
+   */
+  public function importConditionParameters($condition_params = NULL) {
+    if (!empty($condition_params['group_ids']) && is_array($condition_params['group_ids'])) {
+      foreach($condition_params['group_ids'] as $i => $gid) {
+        try {
+          $condition_params['group_ids'][$i] = civicrm_api3('Group', 'getvalue', [
+            'return' => 'id',
+            'name' => $gid,
+          ]);
+        } catch (CiviCRM_API3_Exception $e) {
+        }
+      }
+    }
+    return parent::importConditionParameters($condition_params);
   }
 
 }

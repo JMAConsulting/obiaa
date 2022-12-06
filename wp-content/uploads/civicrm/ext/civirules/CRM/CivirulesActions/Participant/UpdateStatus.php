@@ -43,6 +43,45 @@ class CRM_CivirulesActions_Participant_UpdateStatus extends CRM_CivirulesActions
   }
 
   /**
+   * Returns condition data as an array and ready for export.
+   * E.g. replace ids for names.
+   *
+   * @return array
+   */
+  public function exportActionParameters() {
+    $action_params = parent::exportActionParameters();
+    if (!empty($action_params['status_id'])) {
+      try {
+        $action_params['status_id'] = civicrm_api3('ParticipantStatusType', 'getvalue', [
+          'return' => 'name',
+          'id' => $action_params['status_id'],
+        ]);
+      } catch (CiviCRM_API3_Exception $e) {
+      }
+    }
+    return $action_params;
+  }
+
+  /**
+   * Returns condition data as an array and ready for import.
+   * E.g. replace name for ids.
+   *
+   * @return string
+   */
+  public function importActionParameters($action_params = NULL) {
+    if (!empty($action_params['status_id'])) {
+      try {
+        $action_params['status_id'] = civicrm_api3('ParticipantStatusType', 'getvalue', [
+          'return' => 'id',
+          'name' => $action_params['status_id'],
+        ]);
+      } catch (CiviCRM_API3_Exception $e) {
+      }
+    }
+    return parent::importActionParameters($action_params);
+  }
+
+  /**
    * Returns a redirect url to extra data input from the user after adding a action
    *
    * Return false if you do not need extra data input

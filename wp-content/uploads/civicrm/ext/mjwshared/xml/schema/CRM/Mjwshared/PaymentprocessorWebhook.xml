@@ -76,6 +76,10 @@
     <default>NULL</default>
     <comment>Has this webhook been processed yet?</comment>
   </field>
+  <index>
+    <name>index_processed_date</name>
+    <fieldName>processed_date</fieldName>
+  </index>
 
   <field>
     <name>status</name>
@@ -97,6 +101,10 @@
     <length>255</length>
     <comment>Optional key to group webhooks, as needed by some processors.</comment>
   </field>
+  <index>
+    <name>index_identifier</name>
+    <fieldName>identifier</fieldName>
+  </index>
 
   <field>
     <name>message</name>

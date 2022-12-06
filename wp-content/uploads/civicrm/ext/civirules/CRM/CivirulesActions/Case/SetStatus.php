@@ -81,6 +81,43 @@ class CRM_CivirulesActions_Case_SetStatus extends CRM_Civirules_Action {
     return CRM_Utils_System::url('civicrm/civirule/form/action/case/setstatus', 'rule_action_id='.$ruleActionId);
   }
 
+  /**
+   * Returns condition data as an array and ready for export.
+   * E.g. replace ids for names.
+   *
+   * @return array
+   */
+  public function exportActionParameters() {
+    $action_params = parent::exportActionParameters();
+    try {
+      $action_params['status_id'] = civicrm_api3('OptionValue', 'getvalue', [
+        'return' => 'name',
+        'value' => $action_params['status_id'],
+        'option_group_id' => 'case_status',
+      ]);
+    } catch (CiviCRM_API3_Exception $e) {
+    }
+    return $action_params;
+  }
+
+  /**
+   * Returns condition data as an array and ready for import.
+   * E.g. replace name for ids.
+   *
+   * @return string
+   */
+  public function importActionParameters($action_params = NULL) {
+    try {
+      $action_params['status_id'] = civicrm_api3('OptionValue', 'getvalue', [
+        'return' => 'value',
+        'name' => $action_params['status_id'],
+        'option_group_id' => 'case_status',
+      ]);
+    } catch (CiviCRM_API3_Exception $e) {
+    }
+    return parent::importActionParameters($action_params);
+  }
+
 
   /**
    * Returns a user friendly text explaining the condition params

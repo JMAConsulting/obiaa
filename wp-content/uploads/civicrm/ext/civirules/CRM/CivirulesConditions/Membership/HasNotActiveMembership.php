@@ -25,6 +25,47 @@ class CRM_CivirulesConditions_Membership_HasNotActiveMembership extends CRM_Civi
   }
 
   /**
+   * Returns condition data as an array and ready for export.
+   * E.g. replace ids for names.
+   *
+   * @return array
+   */
+  public function exportConditionParameters() {
+    $params = parent::exportConditionParameters();
+    if (!empty($params['membership_type_id'])) {
+      try {
+        $params['membership_type_id'] = civicrm_api3('MembershipType', 'getvalue', [
+          'return' => 'name',
+          'id' => $params['membership_type_id'],
+        ]);
+      } catch (\CiviCRM_Api3_Exception $e) {
+        // Do nothing.
+      }
+    }
+    return $params;
+  }
+
+  /**
+   * Returns condition data as an array and ready for import.
+   * E.g. replace name for ids.
+   *
+   * @return string
+   */
+  public function importConditionParameters($condition_params = NULL) {
+    if (!empty($condition_params['membership_type_id'])) {
+      try {
+        $condition_params['membership_type_id'] = civicrm_api3('MembershipType', 'getvalue', [
+          'return' => 'id',
+          'name' => $condition_params['membership_type_id'],
+        ]);
+      } catch (\CiviCRM_Api3_Exception $e) {
+        // Do nothing.
+      }
+    }
+    return parent::importConditionParameters($condition_params);
+  }
+
+  /**
    * Returns a redirect url to extra data input from the user after adding a condition
    *
    * Return false if you do not need extra data input

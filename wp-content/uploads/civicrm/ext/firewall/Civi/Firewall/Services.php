@@ -23,23 +23,21 @@ class Services {
   public static function registerServices(ContainerBuilder $container) {
     $container->addResource(new \Symfony\Component\Config\Resource\FileResource(__FILE__));
     $container
-      ->setDefinition('firewall_fraudulent_request', new Definition('\Civi\Firewall\Listener\FraudulentRequest'))
+      ->setDefinition('civi.firewall.declinedcard', new Definition('\Civi\Firewall\Listener\DeclinedCard'))
+      ->addTag('kernel.event_subscriber')
       ->setPublic(TRUE);
     $container
-      ->setDefinition('firewall_invalidcsrf_request', new Definition('\Civi\Firewall\Listener\InvalidCSRFRequest'))
+      ->setDefinition('civi.firewall.fraudulentrequest', new Definition('\Civi\Firewall\Listener\FraudulentRequest'))
+      ->addTag('kernel.event_subscriber')
       ->setPublic(TRUE);
-
-    foreach (self::getListenerSpecs() as $listenerSpec) {
-      $container->findDefinition('dispatcher')->addMethodCall('addListenerService', $listenerSpec);
-    }
-  }
-
-  protected static function getListenerSpecs() {
-    $listenerSpecs = [
-      ['civi.firewall.fraud', ['firewall_fraudulent_request', 'onTrigger'], 2000],
-      ['civi.firewall.invalidcsrf', ['firewall_invalidcsrf_request', 'onTrigger'], 2000],
-    ];
-    return $listenerSpecs;
+    $container
+      ->setDefinition('civi.firewall.invalidcsrfrequest', new Definition('\Civi\Firewall\Listener\InvalidCSRFRequest'))
+      ->addTag('kernel.event_subscriber')
+      ->setPublic(TRUE);
+    $container
+      ->setDefinition('civi.firewall.stripeauthorize', new Definition('Civi\Firewall\Listener\StripeAuthorize'))
+      ->addTag('kernel.event_subscriber')
+      ->setPublic(TRUE);
   }
 
 }

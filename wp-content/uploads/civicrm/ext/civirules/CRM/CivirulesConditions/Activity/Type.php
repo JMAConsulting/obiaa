@@ -30,6 +30,49 @@ class CRM_CivirulesConditions_Activity_Type extends CRM_Civirules_Condition {
   }
 
   /**
+   * Returns condition data as an array and ready for export.
+   * E.g. replace ids for names.
+   *
+   * @return array
+   */
+  public function exportConditionParameters() {
+    $params = parent::exportConditionParameters();
+    if (!empty($params['activity_type_id'])) {
+      try {
+        $params['activity_type_id'] = civicrm_api3('OptionValue', 'getvalue', [
+          'return' => 'name',
+          'value' => $params['activity_type_id'],
+          'option_group_id' => 'activity_type',
+        ]);
+      } catch (\CiviCRM_Api3_Exception $e) {
+        // Do nothing.
+      }
+    }
+    return $params;
+  }
+
+  /**
+   * Returns condition data as an array and ready for import.
+   * E.g. replace name for ids.
+   *
+   * @return string
+   */
+  public function importConditionParameters($condition_params = NULL) {
+    if (!empty($condition_params['activity_type_id'])) {
+      try {
+        $condition_params['activity_type_id'] = civicrm_api3('OptionValue', 'getvalue', [
+          'return' => 'value',
+          'name' => $condition_params['activity_type_id'],
+          'option_group_id' => 'activity_type',
+        ]);
+      } catch (\CiviCRM_Api3_Exception $e) {
+        // Do nothing.
+      }
+    }
+    return parent::importConditionParameters($condition_params);
+  }
+
+  /**
    * Method to check if the condition is valid, will check if the contact
    * has an activity of the selected type
    *

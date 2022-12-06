@@ -43,6 +43,56 @@ class CRM_CivirulesActions_Case_SetDateFieldOnCase extends CRM_Civirules_Action 
     }
   }
 
+  /**
+   * Returns condition data as an array and ready for export.
+   * E.g. replace ids for names.
+   *
+   * @return array
+   */
+  public function exportActionParameters() {
+    $action_params = parent::exportActionParameters();
+    if (!empty($action_params['field']) && stripos($action_params['field'], 'custom_') !== false) {
+      try {
+        $fieldId = substr($action_params['field'], 7);
+        $customField = civicrm_api3('CustomField', 'getsingle', [
+          'id' => $fieldId,
+        ]);
+        $customGroup = civicrm_api3('CustomGroup', 'getsingle', [
+          'id' => $customField['custom_group_id'],
+        ]);
+        unset($action_params['field']);
+        $action_params['custom_group'] = $customGroup['name'];
+        $action_params['custom_field'] = $customField['name'];
+      } catch (\CiviCRM_Api3_Exception $e) {
+        // Do nothing.
+      }
+    }
+    return $action_params;
+  }
+
+  /**
+   * Returns condition data as an array and ready for import.
+   * E.g. replace name for ids.
+   *
+   * @return string
+   */
+  public function importActionParameters($action_params = NULL) {
+    if (!empty($action_params['custom_group']) && !empty($action_params['custom_field'])) {
+      try {
+        $customField = civicrm_api3('CustomField', 'getsingle', [
+          'name' => $action_params['custom_field'],
+          'custom_group_id' => $action_params['custom_group'],
+        ]);
+        $action_params['field'] = 'custom_'.$customField['id'];
+        unset($action_params['custom_group']);
+        unset($action_params['custom_field']);
+      } catch (\CiviCRM_Api3_Exception $e) {
+        // Do nothing.
+      }
+    }
+    return parent::importActionParameters($action_params);
+  }
+
   public static function getFields() {
     $return = array();
     $fields = civicrm_api3('Case', 'getfields', array('limit' => 99999));

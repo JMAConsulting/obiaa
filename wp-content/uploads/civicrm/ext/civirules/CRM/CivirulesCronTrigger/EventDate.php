@@ -96,6 +96,7 @@ class CRM_CivirulesCronTrigger_EventDate extends CRM_Civirules_Trigger_Cron {
             LEFT JOIN `civirule_rule_log` `rule_log` ON `rule_log`.entity_table = 'civicrm_participant' AND `rule_log`.entity_id = p.id AND `rule_log`.`contact_id` = `p`.`contact_id` AND `rule_log`.`rule_id` = %2
             LEFT JOIN `civirule_rule` `rule` ON `rule`.`id` = %2
             WHERE {$dateExpression}
+            AND `e`.`is_active` = 1
             AND `rule_log`.`id` IS NULL
             {$sqlEventTypeID}
             AND `p`.`contact_id` NOT IN (

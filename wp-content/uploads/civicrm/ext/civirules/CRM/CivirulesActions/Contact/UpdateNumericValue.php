@@ -139,9 +139,9 @@ class CRM_CivirulesActions_Contact_UpdateNumericValue extends CRM_Civirules_Acti
             'id'     => $custom_field['custom_group_id'],
             'return' => 'table_name']);
         return (float) CRM_Core_DAO::singleValueQuery("
-            SELECT {$mode}({$custom_field['column_name']}) 
+            SELECT {$mode}({$custom_field['column_name']})
             FROM {$custom_group['table_name']}
-            LEFT JOIN civicrm_contact contact ON contact.id = {$custom_group['table_name']}.entity_id  
+            LEFT JOIN civicrm_contact contact ON contact.id = {$custom_group['table_name']}.entity_id
             WHERE (contact.is_deleted IS NULL OR contact.is_deleted = 0);");
 
       } elseif ($field_id == 'contact_id') {
@@ -172,5 +172,82 @@ class CRM_CivirulesActions_Contact_UpdateNumericValue extends CRM_Civirules_Acti
    */
   public function getExtraDataInputUrl($ruleActionId) {
     return CRM_Utils_System::url('civicrm/civirule/form/action/contact/updatenumericvalue', 'rule_action_id='.$ruleActionId);
+  }
+
+  /**
+   * Returns condition data as an array and ready for export.
+   * E.g. replace ids for names.
+   *
+   * @return array
+   */
+  public function exportActionParameters() {
+    $action_params = parent::exportActionParameters();
+    if (!empty($action_params['target_field_id'])) {
+      try {
+        $customField = civicrm_api3('CustomField', 'getsingle', [
+          'id' => $action_params['target_field_id'],
+        ]);
+        $customGroup = civicrm_api3('CustomGroup', 'getsingle', [
+          'id' => $customField['custom_group_id'],
+        ]);
+        unset($action_params['target_field_id']);
+        $action_params['target_custom_group'] = $customGroup['name'];
+        $action_params['target_custom_field'] = $customField['name'];
+      } catch (\CiviCRM_Api3_Exception $e) {
+        // Do nothing.
+      }
+    }
+    if (!empty($action_params['source_field_id'])) {
+      try {
+        $customField = civicrm_api3('CustomField', 'getsingle', [
+          'id' => $action_params['source_field_id'],
+        ]);
+        $customGroup = civicrm_api3('CustomGroup', 'getsingle', [
+          'id' => $customField['custom_group_id'],
+        ]);
+        unset($action_params['source_field_id']);
+        $action_params['source_custom_group'] = $customGroup['name'];
+        $action_params['source_custom_field'] = $customField['name'];
+      } catch (\CiviCRM_Api3_Exception $e) {
+        // Do nothing.
+      }
+    }
+    return $action_params;
+  }
+
+  /**
+   * Returns condition data as an array and ready for import.
+   * E.g. replace name for ids.
+   *
+   * @return string
+   */
+  public function importActionParameters($action_params = NULL) {
+    if (!empty($action_params['target_custom_group'])) {
+      try {
+        $customField = civicrm_api3('CustomField', 'getsingle', [
+          'name' => $action_params['target_custom_field'],
+          'custom_group_id' => $action_params['target_custom_group'],
+        ]);
+        $action_params['target_field_id'] = $customField['id'];
+        unset($action_params['target_custom_group']);
+        unset($action_params['target_custom_field']);
+      } catch (\CiviCRM_Api3_Exception $e) {
+        // Do nothing.
+      }
+    }
+    if (!empty($action_params['source_custom_group'])) {
+      try {
+        $customField = civicrm_api3('CustomField', 'getsingle', [
+          'name' => $action_params['source_custom_field'],
+          'custom_group_id' => $action_params['source_custom_group'],
+        ]);
+        $action_params['source_field_id'] = $customField['id'];
+        unset($action_params['source_custom_group']);
+        unset($action_params['source_custom_field']);
+      } catch (\CiviCRM_Api3_Exception $e) {
+        // Do nothing.
+      }
+    }
+    return parent::importActionParameters($action_params);
   }
 }

@@ -6,37 +6,36 @@
  * @license AGPL-3.0
  */
 
+use CRM_Civirules_ExtensionUtil as E;
+
 class CRM_CivirulesConditions_Form_Membership_ActiveMembership extends CRM_CivirulesConditions_Form_Form {
 
   /**
    * Overridden parent method to build form
-   *
-   * @access public
    */
   public function buildQuickForm() {
     $this->add('hidden', 'rule_condition_id');
 
     $membershipTypes = CRM_Civirules_Utils::getMembershipTypes();
-    $membershipTypes[0] = ts('- select -');
     asort($membershipTypes);
-    $this->add('select', 'membership_type_id', ts('Membership Type'), $membershipTypes, true);
+    $this->add('select', 'membership_type_id', E::ts('Membership Type(s)'), $membershipTypes, TRUE, [
+      'multiple' => TRUE,
+      'class' => 'crm-select2',
+      'placeholder' => E::ts('- Select -'),
+    ]);
 
-    $this->add(
-      'checkbox',
-      'negate',
-      ts('Negate')
-    );
+    $this->add('checkbox', 'negate', E::ts('Negate'));
 
-    $this->addButtons(array(
-      array('type' => 'next', 'name' => ts('Save'), 'isDefault' => TRUE,),
-      array('type' => 'cancel', 'name' => ts('Cancel'))));
+    $this->addButtons([
+      ['type' => 'next', 'name' => E::ts('Save'), 'isDefault' => TRUE],
+      ['type' => 'cancel', 'name' => E::ts('Cancel')]
+    ]);
   }
 
   /**
    * Overridden parent method to set default values
    *
    * @return array $defaultValues
-   * @access public
    */
   public function setDefaultValues() {
     $defaultValues = parent::setDefaultValues();

@@ -92,6 +92,49 @@ class CRM_CivirulesConditions_ContributionSoft_SoftCreditType extends CRM_Civiru
   }
 
   /**
+   * Returns condition data as an array and ready for export.
+   * E.g. replace ids for names.
+   *
+   * @return array
+   */
+  public function exportConditionParameters() {
+    $params = parent::exportConditionParameters();
+    if (!empty($params['soft_credit_type_id'])) {
+      try {
+        $params['soft_credit_type_id'] = civicrm_api3('OptionValue', 'getvalue', [
+          'return' => 'name',
+          'value' => $params['soft_credit_type_id'],
+          'option_group_id' => 'soft_credit_type',
+        ]);
+      } catch (\CiviCRM_Api3_Exception $e) {
+        // Do nothing.
+      }
+    }
+    return $params;
+  }
+
+  /**
+   * Returns condition data as an array and ready for import.
+   * E.g. replace name for ids.
+   *
+   * @return string
+   */
+  public function importConditionParameters($condition_params = NULL) {
+    if (!empty($params['soft_credit_type_id'])) {
+      try {
+        $condition_params['soft_credit_type_id'] = civicrm_api3('OptionValue', 'getvalue', [
+          'return' => 'value',
+          'name' => $params['soft_credit_type_id'],
+          'option_group_id' => 'soft_credit_type',
+        ]);
+      } catch (\CiviCRM_Api3_Exception $e) {
+        // Do nothing.
+      }
+    }
+    return parent::importConditionParameters($condition_params);
+  }
+
+  /**
    * This function validates whether this condition works with the selected trigger.
    *
    * This function could be overriden in child classes to provide additional validation

@@ -19,6 +19,49 @@ class CRM_CivirulesConditions_Case_CaseType extends CRM_Civirules_Condition {
   }
 
   /**
+   * Returns condition data as an array and ready for export.
+   * E.g. replace ids for names.
+   *
+   * @return array
+   */
+  public function exportConditionParameters() {
+    $params = parent::exportConditionParameters();
+    if (!empty($params['case_type_id'])) {
+      try {
+        $params['case_type_id'] = civicrm_api3('OptionValue', 'getvalue', [
+          'return' => 'name',
+          'value' => $params['case_type_id'],
+          'option_group_id' => 'case_type',
+        ]);
+      } catch (\CiviCRM_Api3_Exception $e) {
+        // Do nothing.
+      }
+    }
+    return $params;
+  }
+
+  /**
+   * Returns condition data as an array and ready for import.
+   * E.g. replace name for ids.
+   *
+   * @return string
+   */
+  public function importConditionParameters($condition_params = NULL) {
+    if (!empty($condition_params['case_type_id'])) {
+      try {
+        $condition_params['case_type_id'] = civicrm_api3('OptionValue', 'getvalue', [
+          'return' => 'value',
+          'name' => $condition_params['case_type_id'],
+          'option_group_id' => 'case_type',
+        ]);
+      } catch (\CiviCRM_Api3_Exception $e) {
+        // Do nothing.
+      }
+    }
+    return parent::importConditionParameters($condition_params);
+  }
+
+  /**
    * Method to determine if the condition is valid
    *
    * @param CRM_Civirules_TriggerData_TriggerData $triggerData

@@ -9,6 +9,28 @@ Releases use the following numbering system:
 
 * **[BC]**: Items marked with [BC] indicate a breaking change that will require updates to your code if you are using that code in your extension.
 
+## 1.5.6 (2022-11-17)
+
+* Save CSRF token context to session if available.
+
+## 1.5.5 (2022-11-16)
+
+* Add Stripe authorize listener (used to authorize Stripe API events).
+
+## 1.5.4 (2022-11-14)
+
+* Fix CSRF timeout too soon.
+* [!10](https://lab.civicrm.org/extensions/firewall/-/merge_requests/10) Add session id to CSRF.
+
+## 1.5.3 (2022-11-13)
+
+* Fix 500 error on sites with translation enabled
+* Use secure_cache_timeout_minutes instead of custom setting for CSRF token lifetome
+
+## 1.5.2 (2022-11-12)
+
+* [#23](https://lab.civicrm.org/extensions/firewall/-/issues/23) Add event for logging declined cards, stricter fraud settings
+
 ## 1.5.1
 
 * Improve documentation.

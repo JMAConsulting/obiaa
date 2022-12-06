@@ -106,13 +106,12 @@ function mjwshared_symfony_civicrm_coreResourceList($event, $hook) {
     // Load the CRM.payment library
     // We want this library loaded early. Weights are negative earlier, positive later (opposite to symfony).
     // CiviCRM "earliest" is -9999 we'll go with -2000 to load after CiviCRM core but before anything else.
-    \Civi::resources()->addScriptUrl(\Civi::service('asset_builder')->getUrl(
-      'crm.payment.js',
-      [
-        'path' => \Civi::resources()->getPath(E::LONG_NAME, 'js/crm.payment.js'),
-        'mimetype' => 'application/javascript',
-      ]
-    ), -2000, $event->region);
+    \Civi::resources()->addScriptFile(
+      E::LONG_NAME, 
+      'js/crm.payment.js',
+      -2000,
+      $event->region
+    );
   }
 }
 

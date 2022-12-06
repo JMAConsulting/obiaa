@@ -47,6 +47,49 @@ class CRM_CivirulesConditions_Relationship_RelationshipType extends CRM_Civirule
   }
 
   /**
+   * Returns condition data as an array and ready for export.
+   * E.g. replace ids for names.
+   *
+   * @return array
+   */
+  public function exportConditionParameters() {
+    $params = parent::exportConditionParameters();
+    if (!empty($params['relationship_type_id']) && is_array($params['relationship_type_id'])) {
+      foreach($params['relationship_type_id'] as $i => $gid) {
+        try {
+          $params['relationship_type_id'][$i] = civicrm_api3('RelationshipType', 'getvalue', [
+            'return' => 'name_a_b',
+            'id' => $gid,
+          ]);
+        } catch (CiviCRM_API3_Exception $e) {
+        }
+      }
+    }
+    return $params;
+  }
+
+  /**
+   * Returns condition data as an array and ready for import.
+   * E.g. replace name for ids.
+   *
+   * @return string
+   */
+  public function importConditionParameters($condition_params = NULL) {
+    if (!empty($condition_params['relationship_type_id']) && is_array($condition_params['relationship_type_id'])) {
+      foreach($condition_params['relationship_type_id'] as $i => $gid) {
+        try {
+          $condition_params['relationship_type_id'][$i] = civicrm_api3('RelationshipType', 'getvalue', [
+            'return' => 'id',
+            'name_a_b' => $gid,
+          ]);
+        } catch (CiviCRM_API3_Exception $e) {
+        }
+      }
+    }
+    return parent::importConditionParameters($condition_params);
+  }
+
+  /**
    * Returns a redirect url to extra data input from the user after adding a condition
    *
    * Return false if you do not need extra data input

@@ -53,13 +53,52 @@ class CRM_CivirulesActions_Contact_RemoveSubtype extends CRM_Civirules_Action {
   public function userFriendlyConditionParams() {
     $params = $this->getActionParameters();
     $label = ts('Remove contact subtype');
-    $subTypeLabels = array();
+    $subTypeLabels = [];
     $subTypes = CRM_Contact_BAO_ContactType::contactTypeInfo();
     foreach($params['sub_type'] as $subType) {
       $subTypeLabels[] = $subTypes[$subType]['parent_label'].' - '.$subTypes[$subType]['label'];
     }
-    $label .= implode(', ', $subTypeLabels);
+    $label .= ': ' . implode(', ', $subTypeLabels);
     return $label;
+  }
+
+  /**
+   * Returns condition data as an array and ready for export.
+   * E.g. replace ids for names.
+   *
+   * @return array
+   */
+  public function exportActionParameters() {
+    $action_params = parent::exportActionParameters();
+    foreach($action_params['sub_type'] as $i=>$j) {
+      try {
+        $action_params['sub_type'][$i] = civicrm_api3('ContactType', 'getvalue', [
+          'return' => 'name',
+          'id' => $j,
+        ]);
+      } catch (CiviCRM_API3_Exception $e) {
+      }
+    }
+    return $action_params;
+  }
+
+  /**
+   * Returns condition data as an array and ready for import.
+   * E.g. replace name for ids.
+   *
+   * @return string
+   */
+  public function importActionParameters($action_params = NULL) {
+    foreach($action_params['sub_type'] as $i=>$j) {
+      try {
+        $action_params['sub_type'][$i] = civicrm_api3('ContactType', 'getvalue', [
+          'return' => 'id',
+          'name' => $j,
+        ]);
+      } catch (CiviCRM_API3_Exception $e) {
+      }
+    }
+    return parent::importActionParameters($action_params);
   }
 
 }

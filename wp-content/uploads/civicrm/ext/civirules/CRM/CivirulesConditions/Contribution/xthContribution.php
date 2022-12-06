@@ -26,6 +26,49 @@ class CRM_CivirulesConditions_Contribution_xthContribution extends CRM_Civirules
     }
   }
 
+  /**
+   * Returns condition data as an array and ready for export.
+   * E.g. replace ids for names.
+   *
+   * @return array
+   */
+  public function exportConditionParameters() {
+    $params = parent::exportConditionParameters();
+    if (!empty($params['financial_type']) && is_array($params['financial_type'])) {
+      foreach($params['financial_type'] as $i => $gid) {
+        try {
+          $params['financial_type'][$i] = civicrm_api3('FinancialType', 'getvalue', [
+            'return' => 'name',
+            'id' => $gid,
+          ]);
+        } catch (CiviCRM_API3_Exception $e) {
+        }
+      }
+    }
+    return $params;
+  }
+
+  /**
+   * Returns condition data as an array and ready for import.
+   * E.g. replace name for ids.
+   *
+   * @return string
+   */
+  public function importConditionParameters($condition_params = NULL) {
+    if (!empty($condition_params['financial_type']) && is_array($condition_params['financial_type'])) {
+      foreach($condition_params['financial_type'] as $i => $gid) {
+        try {
+          $condition_params['financial_type'][$i] = civicrm_api3('FinancialType', 'getvalue', [
+            'return' => 'id',
+            'name' => $gid,
+          ]);
+        } catch (CiviCRM_API3_Exception $e) {
+        }
+      }
+    }
+    return parent::importConditionParameters($condition_params);
+  }
+
 
   /**
    * Method is mandatory and checks if the condition is met

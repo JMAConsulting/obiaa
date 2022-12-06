@@ -208,6 +208,45 @@ class CRM_CivirulesConditions_Contribution_SpecificAmount extends CRM_Civirules_
   }
 
   /**
+   * Returns condition data as an array and ready for export.
+   * E.g. replace ids for names.
+   *
+   * @return array
+   */
+  public function exportConditionParameters() {
+    $params = parent::exportConditionParameters();
+    if (!empty($params['financial_type_id'])) {
+      try {
+        $params['financial_type_id'] = civicrm_api3('FinancialType', 'getvalue', [
+          'return' => 'name',
+          'id' => $params['financial_type_id'],
+        ]);
+      } catch (CiviCRM_API3_Exception $e) {
+      }
+    }
+    return $params;
+  }
+
+  /**
+   * Returns condition data as an array and ready for import.
+   * E.g. replace name for ids.
+   *
+   * @return string
+   */
+  public function importConditionParameters($condition_params = NULL) {
+    if (!empty($condition_params['financial_type_id'])) {
+      try {
+        $condition_params['financial_type_id'] = civicrm_api3('FinancialType', 'getvalue', [
+          'return' => 'id',
+          'name' => $condition_params['financial_type_id'],
+        ]);
+      } catch (CiviCRM_API3_Exception $e) {
+      }
+    }
+    return parent::importConditionParameters($condition_params);
+  }
+
+  /**
    * This function validates whether this condition works with the selected trigger.
    *
    * This function could be overriden in child classes to provide additional validation

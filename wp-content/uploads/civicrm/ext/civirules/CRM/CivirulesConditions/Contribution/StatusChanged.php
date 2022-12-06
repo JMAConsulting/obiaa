@@ -41,4 +41,33 @@ class CRM_CivirulesConditions_Contribution_StatusChanged extends CRM_CivirulesCo
     return CRM_CivirulesConditions_Contribution_Status::getEntityStatusList(TRUE);
   }
 
+  /**
+   * Returns an array with all possible options for the field, in
+   * case the field is a select field, e.g. gender, or financial type
+   * Return false when the field is a select field
+   *
+   * This method could be overridden by child classes to return the option
+   *
+   * The return is an array with the field option value as key and the option
+   * label as value
+   *
+   * @return array
+   */
+  public function getFieldOptionsNames() {
+    $return = [];
+    $params = [
+      'return' => ["name", "value"],
+      'option_group_id' =>  'contribution_status',
+      'options' => ['limit' => 0, 'sort' => "label ASC"],
+    ];
+    try {
+      $options = civicrm_api3('OptionValue', 'get', $params)['values'];
+      foreach ($options as $option) {
+        $return[$option['value']] = $option['name'];
+      }
+    } catch (CiviCRM_API3_Exception $ex) {}
+
+    return $return;
+  }
+
 }

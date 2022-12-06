@@ -107,4 +107,45 @@ class CRM_CivirulesActions_Contact_SetCommPref extends CRM_Civirules_Action {
     return $label;
   }
 
+  /**
+   * Returns condition data as an array and ready for export.
+   * E.g. replace ids for names.
+   *
+   * @return array
+   */
+  public function exportActionParameters() {
+    $action_params = parent::exportActionParameters();
+    foreach($action_params['comm_pref'] as $i=>$j) {
+      try {
+        $action_params['comm_pref'][$i] = civicrm_api3('OptionValue', 'getvalue', [
+          'return' => 'name',
+          'value' => $j,
+          'option_group_id' => 'preferred_communication_method',
+        ]);
+      } catch (CiviCRM_API3_Exception $e) {
+      }
+    }
+    return $action_params;
+  }
+
+  /**
+   * Returns condition data as an array and ready for import.
+   * E.g. replace name for ids.
+   *
+   * @return string
+   */
+  public function importActionParameters($action_params = NULL) {
+    foreach($action_params['comm_pref'] as $i=>$j) {
+      try {
+        $action_params['comm_pref'][$i] = civicrm_api3('OptionValue', 'getvalue', [
+          'return' => 'value',
+          'name' => $j,
+          'option_group_id' => 'preferred_communication_method',
+        ]);
+      } catch (CiviCRM_API3_Exception $e) {
+      }
+    }
+    return parent::importActionParameters($action_params);
+  }
+
 }

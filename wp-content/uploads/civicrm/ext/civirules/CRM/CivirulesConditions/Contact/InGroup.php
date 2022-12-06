@@ -25,6 +25,49 @@ class CRM_CivirulesConditions_Contact_InGroup extends CRM_Civirules_Condition {
   }
 
   /**
+   * Returns condition data as an array and ready for export.
+   * E.g. replace ids for names.
+   *
+   * @return array
+   */
+  public function exportConditionParameters() {
+    $params = parent::exportConditionParameters();
+    if (!empty($params['group_ids']) && is_array($params['group_ids'])) {
+      foreach($params['group_ids'] as $i => $gid) {
+        try {
+          $params['group_ids'][$i] = civicrm_api3('Group', 'getvalue', [
+            'return' => 'name',
+            'id' => $gid,
+          ]);
+        } catch (CiviCRM_API3_Exception $e) {
+        }
+      }
+    }
+    return $params;
+  }
+
+  /**
+   * Returns condition data as an array and ready for import.
+   * E.g. replace name for ids.
+   *
+   * @return string
+   */
+  public function importConditionParameters($condition_params = NULL) {
+    if (!empty($condition_params['group_ids']) && is_array($condition_params['group_ids'])) {
+      foreach($condition_params['group_ids'] as $i => $gid) {
+        try {
+          $condition_params['group_ids'][$i] = civicrm_api3('Group', 'getvalue', [
+            'return' => 'id',
+            'name' => $gid,
+          ]);
+        } catch (CiviCRM_API3_Exception $e) {
+        }
+      }
+    }
+    return parent::importConditionParameters($condition_params);
+  }
+
+  /**
    * This method returns true or false when an condition is valid or not
    *
    * @param CRM_Civirules_TriggerData_TriggerData $triggerData

@@ -47,7 +47,9 @@ CREATE TABLE `civicrm_paymentprocessor_webhook` (
   PRIMARY KEY (`id`),
   INDEX `index_event_id`(event_id),
   INDEX `index_created_date`(created_date),
+  INDEX `index_processed_date`(processed_date),
   INDEX `index_status_processed_date`(status, processed_date),
+  INDEX `index_identifier`(identifier),
   CONSTRAINT FK_civicrm_paymentprocessor_webhook_payment_processor_id FOREIGN KEY (`payment_processor_id`) REFERENCES `civicrm_payment_processor`(`id`) ON DELETE SET NULL
 )
 ENGINE=InnoDB;

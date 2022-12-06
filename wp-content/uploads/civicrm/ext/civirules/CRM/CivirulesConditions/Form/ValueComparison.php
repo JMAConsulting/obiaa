@@ -66,7 +66,7 @@ class CRM_CivirulesConditions_Form_ValueComparison extends CRM_CivirulesConditio
     $this->add('hidden', 'rule_condition_id');
 
     $this->add('select', 'operator', ts('Operator'), $this->conditionClass->getOperators(), true, array('class' => 'crm-select2 huge'));
-    $this->add('text', 'value', ts('Compare value'), true);
+    $this->add('text', 'value', ts('Compare value'));
     $this->add('textarea', 'multi_value', ts('Compare values'));
 
     $this->assign('field_options', $this->conditionClass->getFieldOptions());

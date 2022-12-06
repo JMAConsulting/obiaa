@@ -1,39 +1,82 @@
 <?php
 
+use CRM_Civirules_ExtensionUtil as E;
+
 class CRM_Civirules_Delay_XMinutes extends CRM_Civirules_Delay_Delay {
 
   protected $minuteOffset;
 
+  /**
+   * @param \DateTime $date
+   * @param \CRM_Civirules_TriggerData_TriggerData $triggerData
+   *
+   * @return \DateTime
+   */
   public function delayTo(DateTime $date, CRM_Civirules_TriggerData_TriggerData $triggerData) {
-    $date->modify("+ ".$this->minuteOffset." minutes");
+    $date->modify("+ " . $this->minuteOffset . " minutes");
     return $date;
   }
 
+  /**
+   * @return string
+   */
   public function getDescription() {
-    return ts('Delay by a number of minutes');
+    return E::ts('Delay by a number of minutes');
   }
 
+  /**
+   * @return string
+   */
   public function getDelayExplanation() {
-    return ts('Delay by %1 minutes', array(1 => $this->minuteOffset));
+    return E::ts('Delay by %1 minutes', [1 => $this->minuteOffset]);
   }
 
+  /**
+   * @param \CRM_Core_Form $form
+   * @param $prefix
+   * @param \CRM_Civirules_BAO_Rule $rule
+   *
+   * @return mixed|void
+   * @throws \CRM_Core_Exception
+   */
   public function addElements(CRM_Core_Form &$form, $prefix, CRM_Civirules_BAO_Rule $rule) {
-    $form->add('text', $prefix.'xminutes_minuteOffset', ts('Minutes'));
+    $form->add('text', $prefix . 'xminutes_minuteOffset', E::ts('Minutes'));
   }
 
-  public function validate($values, &$errors,$prefix, CRM_Civirules_BAO_Rule $rule) {
-    if (empty($values[$prefix.'xminutes_minuteOffset']) || !is_numeric($values[$prefix.'xminutes_minuteOffset'])) {
-      $errors[$prefix.'xminutes_minuteOffset'] = ts('You need to provide a number of minutess');
+  /**
+   * @param $values
+   * @param $errors
+   * @param $prefix
+   * @param \CRM_Civirules_BAO_Rule $rule
+   *
+   * @return void
+   */
+  public function validate($values, &$errors, $prefix, CRM_Civirules_BAO_Rule $rule) {
+    if (empty($values[$prefix . 'xminutes_minuteOffset']) || !is_numeric($values[$prefix.'xminutes_minuteOffset'])) {
+      $errors[$prefix . 'xminutes_minuteOffset'] = E::ts('You need to provide a number of minutes');
     }
   }
 
-  public function setValues($values,$prefix, CRM_Civirules_BAO_Rule $rule) {
-    $this->minuteOffset = $values[$prefix.'xminutes_minuteOffset'];
+  /**
+   * @param $values
+   * @param $prefix
+   * @param \CRM_Civirules_BAO_Rule $rule
+   *
+   * @return void
+   */
+  public function setValues($values, $prefix, CRM_Civirules_BAO_Rule $rule) {
+    $this->minuteOffset = $values[$prefix . 'xminutes_minuteOffset'];
   }
 
+  /**
+   * @param $prefix
+   * @param \CRM_Civirules_BAO_Rule $rule
+   *
+   * @return array
+   */
   public function getValues($prefix, CRM_Civirules_BAO_Rule $rule) {
-    $values = array();
-    $values[$prefix.'xminutes_minuteOffset'] = $this->minuteOffset;
+    $values = [];
+    $values[$prefix . 'xminutes_minuteOffset'] = $this->minuteOffset;
     return $values;
   }
 

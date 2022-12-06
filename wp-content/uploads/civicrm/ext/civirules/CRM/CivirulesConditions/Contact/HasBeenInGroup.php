@@ -9,7 +9,7 @@
 
 class CRM_CivirulesConditions_Contact_HasBeenInGroup extends CRM_Civirules_Condition {
 
-  private $_conditionParams = array();
+  private $_conditionParams = [];
 
   /**
    * Method to set the Rule Condition data
@@ -19,7 +19,7 @@ class CRM_CivirulesConditions_Contact_HasBeenInGroup extends CRM_Civirules_Condi
    */
   public function setRuleConditionData($ruleCondition) {
     parent::setRuleConditionData($ruleCondition);
-    $this->_conditionParams = array();
+    $this->_conditionParams = [];
     if (!empty($this->ruleCondition['condition_params'])) {
       $this->_conditionParams = unserialize($this->ruleCondition['condition_params']);
     }
@@ -35,17 +35,17 @@ class CRM_CivirulesConditions_Contact_HasBeenInGroup extends CRM_Civirules_Condi
     // base query
     $return = FALSE;
     $query = 'SELECT COUNT(*) FROM civicrm_subscription_history WHERE contact_id = %1 AND status = %2';
-    $queryParams = array(
-      1 => array($triggerData->getContactId(), 'Integer'),
-      2 => array('Added', 'String'),
-      );
+    $queryParams = [
+      1 => [$triggerData->getContactId(), 'Integer'],
+      2 => ['Added', 'String'],
+    ];
     $index = 2;
-    $groupIds = array();
+    $groupIds = [];
     // add group_ids
     foreach ($this->_conditionParams['group_id'] as $groupId) {
       $index++;
       $groupIds[] = '%'.$index;
-      $queryParams[$index] = array($groupId, 'Integer');
+      $queryParams[$index] = [$groupId, 'Integer'];
     }
     if (!empty($groupIds)) {
       $query .= ' AND group_id IN (' . implode(', ', $groupIds) . ')';
@@ -87,6 +87,49 @@ class CRM_CivirulesConditions_Contact_HasBeenInGroup extends CRM_Civirules_Condi
   }
 
   /**
+   * Returns condition data as an array and ready for export.
+   * E.g. replace ids for names.
+   *
+   * @return array
+   */
+  public function exportConditionParameters() {
+    $params = parent::exportConditionParameters();
+    if (!empty($params['group_id']) && is_array($params['group_id'])) {
+      foreach($params['group_id'] as $i => $gid) {
+        try {
+          $params['group_id'][$i] = civicrm_api3('Group', 'getvalue', [
+            'return' => 'name',
+            'id' => $gid,
+          ]);
+        } catch (CiviCRM_API3_Exception $e) {
+        }
+      }
+    }
+    return $params;
+  }
+
+  /**
+   * Returns condition data as an array and ready for import.
+   * E.g. replace name for ids.
+   *
+   * @return string
+   */
+  public function importConditionParameters($condition_params = NULL) {
+    if (!empty($condition_params['group_id']) && is_array($condition_params['group_id'])) {
+      foreach($condition_params['group_id'] as $i => $gid) {
+        try {
+          $condition_params['group_id'][$i] = civicrm_api3('Group', 'getvalue', [
+            'return' => 'id',
+            'name' => $gid,
+          ]);
+        } catch (CiviCRM_API3_Exception $e) {
+        }
+      }
+    }
+    return parent::importConditionParameters($condition_params);
+  }
+
+  /**
    * Returns a user friendly text explaining the condition params
    * e.g. 'Older than 65'
    *
@@ -95,17 +138,17 @@ class CRM_CivirulesConditions_Contact_HasBeenInGroup extends CRM_Civirules_Condi
    */
   public function userFriendlyConditionParams() {
     $text = '';
-    $operatorLabels = array('has been in', 'has NEVER been in');
+    $operatorLabels = ['has been in', 'has NEVER been in'];
     if (isset($this->_conditionParams['operator'])) {
       $text = $operatorLabels[$this->_conditionParams['operator']];
     }
-    $groupNames = array();
+    $groupNames = [];
     foreach ($this->_conditionParams['group_id'] as $groupId) {
       try {
-        $groupNames[] = civicrm_api3('Group', 'getvalue', array(
+        $groupNames[] = civicrm_api3('Group', 'getvalue', [
           'id' => $groupId,
           'return' => 'title',
-        ));
+        ]);
       }
       catch (CiviCRM_API3_Exception $ex) {
       }

@@ -58,6 +58,7 @@ class Firewall {
         $this->setReasonDescription(E::ts('Session invalid. Please reload and try again.'));
         break;
 
+      case 'blockeddeclinedcards':
       case 'blockedfraud':
       case 'blockedinvalidcsrf':
       case 'blockedblocklist':
@@ -105,7 +106,7 @@ class Firewall {
     // @todo make these settings configurable.
     // If there are more than COUNT triggers for this event within time interval then block
     $interval = 'INTERVAL 2 HOUR';
-    $this->clientIP = $this->getIPAddress();
+    $this->clientIP = self::getIPAddress();
     if (!isset($this->clientIP)) {
       return FALSE;
     }
@@ -122,7 +123,8 @@ class Firewall {
       // The client IP address
       1 => [$this->clientIP, 'String'],
     ];
-    $blockFraudAfter = 5;
+    $blockDeclinesAfter = 10;
+    $blockFraudAfter = 3;
     $blockInvalidCSRFAfter = 5;
 
     $sql = "
@@ -136,6 +138,15 @@ GROUP BY event_type
     $dao = \CRM_Core_DAO::executeQuery($sql, $queryParams);
     while ($dao->fetch()) {
       switch ($dao->event_type) {
+
+        case 'DeclinedCardEvent':
+          if ($dao->eventCount >= $blockDeclinesAfter) {
+            $block = TRUE;
+            $this->setReason('blockeddeclinedcards');
+            break 2;
+          }
+          break;
+
         case 'FraudEvent':
           if ($dao->eventCount >= $blockFraudAfter) {
             $block = TRUE;
@@ -215,12 +226,19 @@ GROUP BY event_type
   /**
    * Generate a CSRF token. Clients will need to retrieve and pass this into AJAX/API requests.
    *
+   * @param array $context
+   *   Optional information used to store CSRF to session with context so it can be used to identify the form in AJAX requests
+   *
    * @return string
    * @throws \Exception
    */
-  public static function getCSRFToken(): string {
+  public static function getCSRFToken(array $context = []): string {
     $firewall = new Firewall();
-    return $firewall->generateCSRFToken();
+    $token = $firewall->generateCSRFToken();
+    if (!empty($context)) {
+      \CRM_Core_Session::singleton()->set('csrf.' . $token, $context, 'civi.firewall');
+    }
+    return $token;
   }
 
   /**
@@ -230,12 +248,13 @@ GROUP BY event_type
    * @throws \Exception
    */
   public function generateCSRFToken(): string {
-    $validTo = time() + (int) \Civi::settings()->get('firewall_csrf_timeout');
+    $validTo = time() + ((int) \Civi::settings()->get('secure_cache_timeout_minutes') * 60);
     $random = bin2hex(random_bytes(12));
     $privateKey = CIVICRM_SITE_KEY;
+    $sessionId = \CRM_Core_Config::singleton()->userSystem->getSessionId();
 
     $publicToken = "$validTo.$random.";
-    $dataToHash = $publicToken . $privateKey;
+    $dataToHash = $publicToken . $privateKey . $sessionId;
 
     // This is the token that we send to the browser, that it must send back.
     $publicToken .= hash('sha256', $dataToHash);
@@ -264,18 +283,19 @@ GROUP BY event_type
   public function checkIsCSRFTokenValid(string $givenToken): bool {
     $this->setReason('');
     if (!preg_match('/^(\d+)\.([a-f0-9]+)\.([a-f0-9]+)$/', $givenToken, $matches)) {
-      \Civi\Firewall\Event\InvalidCSRFEvent::trigger($this->getIPAddress(), 'invalid token');
+      \Civi\Firewall\Event\InvalidCSRFEvent::trigger(self::getIPAddress(), 'invalid token');
       $this->setReason('invalidcsrf');
       return FALSE;
     }
     if (time() > $matches[1]) {
-      \Civi\Firewall\Event\InvalidCSRFEvent::trigger($this->getIPAddress(), 'expired token');
+      \Civi\Firewall\Event\InvalidCSRFEvent::trigger(self::getIPAddress(), 'expired token');
       $this->setReason('expiredcsrf');
       return FALSE;
     }
-    $dataToHash = "$matches[1].$matches[2]." . CIVICRM_SITE_KEY;
+    $sessionId = \CRM_Core_Config::singleton()->userSystem->getSessionId();
+    $dataToHash = "$matches[1].$matches[2]." . CIVICRM_SITE_KEY . $sessionId;
     if ($matches[3] !== hash('sha256', $dataToHash)) {
-      \Civi\Firewall\Event\InvalidCSRFEvent::trigger($this->getIPAddress(), 'tampered hash');
+      \Civi\Firewall\Event\InvalidCSRFEvent::trigger(self::getIPAddress(), 'tampered hash');
       $this->setReason('tamperedcsrf');
       return FALSE;
     }
@@ -288,7 +308,7 @@ GROUP BY event_type
    *
    * @return string
    */
-  public function getIPAddress(): string {
+  public static function getIPAddress(): string {
     if (!isset(\Civi::$statics[__CLASS__]['ipAddress'])) {
       $ipAddress = $_SERVER['REMOTE_ADDR'] ?? '';
 

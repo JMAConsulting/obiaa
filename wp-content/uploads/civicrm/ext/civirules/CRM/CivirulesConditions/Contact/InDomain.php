@@ -8,17 +8,16 @@
 
 class CRM_CivirulesConditions_Contact_InDomain extends CRM_Civirules_Condition {
 
-  private $conditionParams = array();
+  private $conditionParams = [];
 
   /**
    * Method to set the Rule Condition data
    *
    * @param array $ruleCondition
-   * @access public
    */
   public function setRuleConditionData($ruleCondition) {
     parent::setRuleConditionData($ruleCondition);
-    $this->conditionParams = array();
+    $this->conditionParams = [];
     if (!empty($this->ruleCondition['condition_params'])) {
       $this->conditionParams = unserialize($this->ruleCondition['condition_params']);
     }
@@ -28,12 +27,11 @@ class CRM_CivirulesConditions_Contact_InDomain extends CRM_Civirules_Condition {
    * This method returns true or false when an condition is valid or not
    *
    * @param CRM_Civirules_TriggerData_TriggerData $triggerData
+   *
    * @return bool
-   * @access public
-   * @abstract
    */
   public function isConditionValid(CRM_Civirules_TriggerData_TriggerData $triggerData) {
-    $isConditionValid = false;
+    $isConditionValid = FALSE;
     $contact_id = $triggerData->getContactId();
     switch($this->conditionParams['operator']) {
       case 'in':
@@ -46,18 +44,30 @@ class CRM_CivirulesConditions_Contact_InDomain extends CRM_Civirules_Condition {
     return $isConditionValid;
   }
 
+  /**
+   * @param int $contact_id
+   * @param int $domain_id
+   *
+   * @return bool
+   */
   protected function contactIsNotMemberOfDomain($contact_id, $domain_id) {
-    $isValid = true;
+    $isValid = TRUE;
     if (self::isContactInDomain($contact_id, $domain_id)) {
-      $isValid = false;
+      $isValid = FALSE;
     }
     return $isValid;
   }
 
+  /**
+   * @param int $contact_id
+   * @param int $domain_id
+   *
+   * @return bool
+   */
   protected function contactIsMemberOfDomain($contact_id, $domain_id) {
-    $isValid = false;
+    $isValid = FALSE;
     if (self::isContactIndomain($contact_id, $domain_id)) {
-      $isValid = true;
+      $isValid = TRUE;
     }
     return $isValid;
   }
@@ -68,9 +78,8 @@ class CRM_CivirulesConditions_Contact_InDomain extends CRM_Civirules_Condition {
    * Return false if you do not need extra data input
    *
    * @param int $ruleConditionId
+   *
    * @return bool|string
-   * @access public
-   * @abstract
    */
   public function getExtraDataInputUrl($ruleConditionId) {
     return CRM_Utils_System::url('civicrm/civirule/form/condition/contact_indomain/', 'rule_condition_id='.$ruleConditionId);
@@ -81,7 +90,6 @@ class CRM_CivirulesConditions_Contact_InDomain extends CRM_Civirules_Condition {
    * e.g. 'Older than 65'
    *
    * @return string
-   * @access public
    */
   public function userFriendlyConditionParams() {
     $operators = CRM_CivirulesConditions_Contact_InDomain::getOperatorOptions();
@@ -100,37 +108,95 @@ class CRM_CivirulesConditions_Contact_InDomain extends CRM_Civirules_Condition {
    * Method to get operators
    *
    * @return array
-   * @access protected
    */
   public static function getOperatorOptions() {
-    return array(
+    return [
       'in' => ts('In selected domain'),
       'not in' => ts('Not in selected domain'),
-    );
+    ];
   }
 
+  /**
+   * @return array
+   * @throws \CiviCRM_API3_Exception
+   */
   public static function domains() {
     $domains = [];
-    $domainsFound = civicrm_api3('Domain', 'get', []);
-    foreach ($domainsFound['values'] as $domainId => $values) {
+    $domainsFound = \Civi\Api4\Domain::get(FALSE)
+      ->execute()
+      ->indexBy('id');
+    foreach ($domainsFound as $domainId => $values) {
       $domains[$domainId] = $values['name'];
     }
     return $domains;
   }
 
+  /**
+   * @param int $domain_id
+   *
+   * @return mixed
+   * @throws \CiviCRM_API3_Exception
+   */
   public static function getDomainName($domain_id) {
     return self::domains()[$domain_id];
   }
 
+  /**
+   * @param int $contact_id
+   * @param int $domain_id
+   *
+   * @return bool
+   * @throws \CiviCRM_API3_Exception
+   */
   public static function isContactIndomain($contact_id, $domain_id) {
-    $setting = civicrm_api3('Setting', 'get', ['domain_id' => $domain_id]);
-    $group_id = $setting['values'][$domain_id]['domain_group_id'];
+    $group_id = \Civi::settings($domain_id)->get('domain_group_id');
     if (empty($group_id)) {
       return TRUE;
     }
     else {
       return CRM_CivirulesConditions_Utils_GroupContact::isContactInGroup($contact_id, $group_id);
     }
+  }
+
+  /**
+   * Returns condition data as an array and ready for export.
+   * E.g. replace ids for names.
+   *
+   * @return array
+   */
+  public function exportConditionParameters() {
+    $params = parent::exportConditionParameters();
+    if (!empty($params['domain_id'])) {
+      try {
+        $params['domain_id'] = civicrm_api3('Domain', 'getvalue', [
+          'return' => 'name',
+          'id' => $params['domain_id']
+        ]);
+      } catch (\CiviCRM_Api3_Exception $e) {
+        // Do nothing.
+      }
+    }
+    return $params;
+  }
+
+  /**
+   * Returns condition data as an array and ready for import.
+   * E.g. replace name for ids.
+   *
+   * @return string
+   */
+  public function importConditionParameters($condition_params = NULL) {
+    if (!empty($condition_params['domain_id'])) {
+      try {
+        $condition_params['domain_id'] = civicrm_api3('Domain', 'getvalue', [
+          'return' => 'id',
+          'name' => $condition_params['domain_id']
+        ]);
+      } catch (\CiviCRM_Api3_Exception $e) {
+        // Do nothing.
+      }
+    }
+    return parent::importConditionParameters($condition_params);
   }
 
 }

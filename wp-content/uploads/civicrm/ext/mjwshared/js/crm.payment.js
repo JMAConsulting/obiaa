@@ -1,5 +1,5 @@
-(function($) {
-
+/*jshint esversion: 6 */
+(function($, ts) {
   var payment = {
     name: 'CRM.payment',
     form: null,
@@ -26,7 +26,7 @@
           totalAmount = parseFloat(calculateTotalFee());
         }
       else if (document.getElementById('totalTaxAmount') !== null) {
-        totalAmount = parseFloat(this.calculateTaxAmount());
+        totalAmount = this.calculateTaxAmount();
         this.debugging(this.name, 'Calculated amount using internal calculateTaxAmount()');
       }
       else if ($("#priceset [price]").length > 0) {
@@ -67,7 +67,7 @@
      *   eg. "Amount including Tax: $ 4.50" gives us 4.50.
      *   The PHP side is responsible for converting money formats (we just parse to cents and remove any ,. chars).
      *
-     * @returns {string|prototype.value|number}
+     * @returns {float}
      */
     calculateTaxAmount: function() {
       var totalTaxAmount = 0;
@@ -90,6 +90,10 @@
 
         // Join all parts and ensure the decimal point is per javascript format.
         totalTaxAmount = document.getElementById('totalTaxAmount').textContent.match(matcher).join('').replace(dPoint, '.');
+      }
+      totalTaxAmount = parseFloat(totalTaxAmount);
+      if (isNaN(totalTaxAmount)) {
+        totalTaxAmount = 0.0;
       }
       return totalTaxAmount;
     },
@@ -316,11 +320,26 @@
       // /civicrm/payment/form? occurs when a payproc is selected on page
       // /civicrm/contact/view/participant occurs when payproc is first loaded on event credit card payment
       // On wordpress these are urlencoded
-      var basePage = CRM.config.isFrontend ? CRM.vars.payment.basePage : 'civicrm';
-      return (url.match(basePage + "(\/|%2F)payment(\/|%2F)form") !== null) ||
-        (url.match(basePage + "(\/|\%2F)contact(\/|\%2F)view(\/|\%2F)participant") !== null) ||
-        (url.match(basePage + "(\/|\%2F)contact(\/|\%2F)view(\/|\%2F)membership") !== null) ||
-        (url.match(basePage + "(\/|\%2F)contact(\/|\%2F)view(\/|\%2F)contribution") !== null);
+      var patterns = [
+        "(\/|%2F)payment(\/|%2F)form",
+        "(\/|\%2F)contact(\/|\%2F)view(\/|\%2F)participant",
+        "(\/|\%2F)contact(\/|\%2F)view(\/|\%2F)membership",
+        "(\/|\%2F)contact(\/|\%2F)view(\/|\%2F)contribution"
+      ];
+
+      if (CRM.config.isFrontend && CRM.vars.payment.basePage !== 'civicrm') {
+        for (const pattern of patterns) {
+          if (url.match(CRM.vars.payment.basePage + pattern) !== null) {
+            return true;
+          }
+        }
+      }
+      for (const pattern of patterns) {
+        if (url.match('civicrm' + pattern) !== null) {
+          return true;
+        }
+      }
+
     },
 
     /**
@@ -657,4 +676,4 @@
     }
   });
 
-}(CRM.$));
+}(CRM.$, CRM.ts('mjwshared')));

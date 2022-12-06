@@ -63,6 +63,30 @@ abstract class CRM_Civirules_Action {
     $this->action = $action;
   }
 
+
+  /**
+   * Returns condition data as an array and ready for export.
+   * E.g. replace ids for names.
+   *
+   * @return array
+   */
+  public function exportActionParameters() {
+    return $this->getActionParameters();
+  }
+
+  /**
+   * Returns condition data as an array and ready for import.
+   * E.g. replace name for ids.
+   *
+   * @return string
+   */
+  public function importActionParameters($action_params=null) {
+    if (!empty($action_params)) {
+      return serialize($action_params);
+    }
+    return '';
+  }
+
   /**
    * Convert parameters to an array of parameters
    *
@@ -112,7 +136,7 @@ abstract class CRM_Civirules_Action {
   /**
    * This function validates whether this action works with the selected trigger.
    *
-   * This function could be overriden in child classes to provide additional validation
+   * This function could be overridden in child classes to provide additional validation
    * whether an action is possible in the current setup.
    *
    * @param CRM_Civirules_Trigger $trigger

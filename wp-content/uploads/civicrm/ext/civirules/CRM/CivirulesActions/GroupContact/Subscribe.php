@@ -35,6 +35,65 @@ class CRM_CivirulesActions_GroupContact_Subscribe extends CRM_Civirules_Action {
   }
 
   /**
+   * Returns condition data as an array and ready for export.
+   * E.g. replace ids for names.
+   *
+   * @return array
+   */
+  public function exportActionParameters() {
+    $action_params = parent::exportActionParameters();
+    if (!empty($actionParams['group_id'])) {
+      try {
+        $action_params['group_id'] = civicrm_api3('Group', 'getvalue', [
+          'return' => 'name',
+          'id' => $action_params['group_id'],
+        ]);
+      } catch (CiviCRM_API3_Exception $e) {
+      }
+    } elseif (!empty($actionParams['group_ids']) && is_array($actionParams['group_ids'])) {
+      foreach ($action_params['group_ids'] as $i => $j) {
+        try {
+          $action_params['group_ids'][$i] = civicrm_api3('Group', 'getvalue', [
+            'return' => 'name',
+            'id' => $j,
+          ]);
+        } catch (CiviCRM_API3_Exception $e) {
+        }
+      }
+    }
+    return $action_params;
+  }
+
+  /**
+   * Returns condition data as an array and ready for import.
+   * E.g. replace name for ids.
+   *
+   * @return string
+   */
+  public function importActionParameters($action_params = NULL) {
+    if (!empty($actionParams['group_id'])) {
+      try {
+        $action_params['group_id'] = civicrm_api3('Group', 'getvalue', [
+          'return' => 'id',
+          'name' => $action_params['group_id'],
+        ]);
+      } catch (CiviCRM_API3_Exception $e) {
+      }
+    } elseif (!empty($actionParams['group_ids']) && is_array($actionParams['group_ids'])) {
+      foreach ($action_params['group_ids'] as $i => $j) {
+        try {
+          $action_params['group_ids'][$i] = civicrm_api3('Group', 'getvalue', [
+            'return' => 'id',
+            'name' => $j,
+          ]);
+        } catch (CiviCRM_API3_Exception $e) {
+        }
+      }
+    }
+    return parent::importActionParameters($action_params);
+  }
+
+  /**
    * Returns a redirect url to extra data input from the user after adding a action
    *
    * Return false if you do not need extra data input

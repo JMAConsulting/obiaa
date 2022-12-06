@@ -24,6 +24,41 @@ class CRM_CivirulesActions_Membership_Add extends CRM_CivirulesActions_Generic_A
   }
 
   /**
+   * Returns condition data as an array and ready for export.
+   * E.g. replace ids for names.
+   *
+   * @return array
+   */
+  public function exportActionParameters() {
+    $action_params = parent::exportActionParameters();
+    try {
+      $action_params['membership_type_id'] = civicrm_api3('MembershipType', 'getvalue', [
+        'return' => 'name',
+        'id' => $action_params['membership_type_id'],
+      ]);
+    } catch (CiviCRM_API3_Exception $e) {
+    }
+    return $action_params;
+  }
+
+  /**
+   * Returns condition data as an array and ready for import.
+   * E.g. replace name for ids.
+   *
+   * @return string
+   */
+  public function importActionParameters($action_params = NULL) {
+    try {
+      $action_params['membership_type_id'] = civicrm_api3('MembershipType', 'getvalue', [
+        'return' => 'id',
+        'name' => $action_params['membership_type_id'],
+      ]);
+    } catch (CiviCRM_API3_Exception $e) {
+    }
+    return parent::importActionParameters($action_params);
+  }
+
+  /**
    * Returns a redirect url to extra data input from the user after adding a action
    *
    * Return false if you do not need extra data input

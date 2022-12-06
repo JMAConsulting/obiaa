@@ -10,7 +10,21 @@
  */
 namespace Civi\Firewall\Listener;
 
-class InvalidCSRFRequest {
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+
+class InvalidCSRFRequest implements EventSubscriberInterface {
+
+  /**
+   * @return array
+   */
+  public static function getSubscribedEvents() {
+    return [
+      'civi.firewall.invalidcsrfrequest' => [
+        // Positive priority is higher (eg. 200 will run before 100)
+        ['onTrigger', 2000],
+      ],
+    ];
+  }
 
   public function onTrigger(\Civi\Firewall\Event\InvalidCSRFEvent $event) {
     // Add to firewall ip address log table with timestamp + event type

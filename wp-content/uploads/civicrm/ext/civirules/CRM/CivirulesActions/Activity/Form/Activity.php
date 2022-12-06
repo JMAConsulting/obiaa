@@ -64,6 +64,21 @@ class CRM_CivirulesActions_Activity_Form_Activity extends CRM_CivirulesActions_F
     }
     $this->assign('delayClasses', CRM_Civirules_Delay_Factory::getAllDelayClasses());
 
+    // #188 allow assignment of target/assignees dynamically via relationship contacts
+    if ($this->trigger->object_name == 'Relationship' && $this->trigger->op == 'create') {
+      $this->add('select', 'relationship_contact', ts('Relationship Contact (activity target)'), [
+        'both' => ts('Both Contacts'),
+        'contact_id_a' => ts('Contact A'),
+        'contact_id_b' => ts('Contact B')
+      ], TRUE);
+
+      $this->add('select', 'relationship_contact_assignee', ts('Relationship Contact Assignee'), [
+        '' => ts('-- please select --'),
+        'contact_id_a' => ts('Contact A'),
+        'contact_id_b' => ts('Contact B')
+      ], FALSE);
+    }
+
     $this->addButtons(array(
       array('type' => 'next', 'name' => ts('Save'), 'isDefault' => TRUE,),
       array('type' => 'cancel', 'name' => ts('Cancel'))));
@@ -102,6 +117,12 @@ class CRM_CivirulesActions_Activity_Form_Activity extends CRM_CivirulesActions_F
           $defaultValues['contact_select_id[1]'] = $assignee_contact_id;
         }
       }
+    }
+    if (!empty($data['relationship_contact'])) {
+      $defaultValues['relationship_contact'] = $data['relationship_contact'];
+    }
+    if (!empty($data['relationship_contact_assignee'])) {
+      $defaultValues['relationship_contact_assignee'] = $data['relationship_contact_assignee'];
     }
     if (!empty($data['send_email'])) {
       $defaultValues['send_email'] = $data['send_email'];
@@ -190,6 +211,14 @@ class CRM_CivirulesActions_Activity_Form_Activity extends CRM_CivirulesActions_F
       $scheduledDateClass = CRM_Civirules_Delay_Factory::getDelayClassByName($this->_submitValues['activity_date_time']);
       $scheduledDateClass->setValues($this->_submitValues, 'activity_date_time', $this->rule);
       $data['activity_date_time'] = serialize($scheduledDateClass);
+    }
+
+    if (!empty($this->_submitValues['relationship_contact'])) {
+      $data['relationship_contact'] = $this->_submitValues['relationship_contact'];
+    }
+
+    if (!empty($this->_submitValues['relationship_contact_assignee'])) {
+      $data['relationship_contact_assignee'] = $this->_submitValues['relationship_contact_assignee'];
     }
 
     $data['send_email'] = $this->_submitValues['send_email'];

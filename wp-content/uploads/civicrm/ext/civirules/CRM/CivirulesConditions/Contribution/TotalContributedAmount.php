@@ -18,6 +18,111 @@ class CRM_CivirulesConditions_Contribution_TotalContributedAmount extends CRM_Ci
   }
 
   /**
+   * Returns condition data as an array and ready for export.
+   * E.g. replace ids for names.
+   *
+   * @return array
+   */
+  public function exportConditionParameters() {
+    $params = parent::exportConditionParameters();
+    if (!empty($params['contribution_status_id']) && is_array($params['contribution_status_id'])) {
+      foreach($params['contribution_status_id'] as $i => $j) {
+        $params['contribution_status_id'][$i] = civicrm_api3('OptionValue', 'getvalue', [
+          'return' => 'name',
+          'value' => $j,
+          'option_group_id' => 'contribution_status',
+        ]);
+      }
+    } elseif (!empty($params['contribution_status_id'])) {
+      try {
+        $params['contribution_status_id'] = civicrm_api3('OptionValue', 'getvalue', [
+          'return' => 'name',
+          'value' => $params['contribution_status_id'],
+          'option_group_id' => 'contribution_status',
+        ]);
+      } catch (\CiviCRM_Api3_Exception $e) {
+        // Do nothing.
+      }
+    }
+    if (!empty($params['payment_instrument_id']) && is_array($params['payment_instrument_id'])) {
+      foreach($params['payment_instrument_id'] as $i => $gid) {
+        try {
+          $params['payment_instrument_id'][$i] = civicrm_api3('OptionValue', 'getvalue', [
+            'return' => 'name',
+            'id' => $gid,
+            'option_group_id' => 'payment_instrument'
+          ]);
+        } catch (CiviCRM_API3_Exception $e) {
+        }
+      }
+    }
+    return $params;
+  }
+
+  /**
+   * Returns condition data as an array and ready for import.
+   * E.g. replace name for ids.
+   *
+   * @return string
+   */
+  public function importConditionParameters($condition_params = NULL) {
+    if (!empty($condition_params['contribution_status_id']) && is_array($condition_params['contribution_status_id'])) {
+      foreach($condition_params['contribution_status_id'] as $i => $j) {
+        $condition_params['contribution_status_id'][$i] = civicrm_api3('OptionValue', 'getvalue', [
+          'return' => 'name',
+          'value' => $j,
+          'option_group_id' => 'contribution_status',
+        ]);
+      }
+    } elseif (!empty($condition_params['contribution_status_id'])) {
+      try {
+        $condition_params['contribution_status_id'] = civicrm_api3('OptionValue', 'getvalue', [
+          'return' => 'value',
+          'name' => $condition_params['contribution_status_id'],
+          'option_group_id' => 'contribution_status',
+        ]);
+      } catch (\CiviCRM_Api3_Exception $e) {
+        // Do nothing.
+      }
+    }
+    if (!empty($condition_params['payment_instrument_id']) && is_array($condition_params['payment_instrument_id'])) {
+      foreach($condition_params['payment_instrument_id'] as $i => $gid) {
+        try {
+          $condition_params['payment_instrument_id'][$i] = civicrm_api3('OptionValue', 'getvalue', [
+            'return' => 'id',
+            'name' => $gid,
+            'option_group_id' => 'payment_instrument'
+          ]);
+        } catch (CiviCRM_API3_Exception $e) {
+        }
+      }
+    }
+    if (!empty($params['financial_type_id']) && is_array($params['financial_type_id'])) {
+      foreach($params['financial_type_id'] as $i => $gid) {
+        try {
+          $params['financial_type_id'][$i] = civicrm_api3('FinancialType', 'getvalue', [
+            'return' => 'name',
+            'id' => $gid,
+          ]);
+        } catch (CiviCRM_API3_Exception $e) {
+        }
+      }
+    }
+    if (!empty($condition_params['financial_type_id']) && is_array($condition_params['financial_type_id'])) {
+      foreach($condition_params['financial_type_id'] as $i => $gid) {
+        try {
+          $condition_params['financial_type_id'][$i] = civicrm_api3('FinancialType', 'getvalue', [
+            'return' => 'id',
+            'name' => $gid,
+          ]);
+        } catch (CiviCRM_API3_Exception $e) {
+        }
+      }
+    }
+    return parent::importConditionParameters($condition_params);
+  }
+
+  /**
    * Returns value of the field
    *
    * @param object CRM_Civirules_TriggerData_TriggerData $triggerData

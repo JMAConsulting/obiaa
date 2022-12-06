@@ -84,6 +84,51 @@ class CRM_CivirulesActions_Activity_AddTargetContact extends CRM_Civirules_Actio
   }
 
   /**
+   * Returns condition data as an array and ready for export.
+   * E.g. replace ids for names.
+   *
+   * @return array
+   */
+  public function exportActionParameters() {
+    $action_params = parent::exportActionParameters();
+    if (isset($action_params['rel_type_id'])) {
+      $rel_type_id = substr($action_params['rel_type_id'], 4);
+      $rel_dir = substr($action_params['rel_type_id'], 0, 4);
+      try {
+        $rel_type_id = civicrm_api3('RelationshipType', 'getvalue', [
+          'return' => 'name_a_b',
+          'id' => $rel_type_id,
+        ]);
+      } catch (CiviCRM_API3_Exception $e) {
+      }
+      $action_params['rel_type_id'] .= $rel_dir . $rel_type_id;
+    }
+    return $action_params;
+  }
+
+  /**
+   * Returns condition data as an array and ready for import.
+   * E.g. replace name for ids.
+   *
+   * @return string
+   */
+  public function importActionParameters($action_params = NULL) {
+    if (isset($action_params['rel_type_id'])) {
+      $rel_type_id = substr($action_params['rel_type_id'], 4);
+      $rel_dir = substr($action_params['rel_type_id'], 0, 4);
+      try {
+        $rel_type_id = civicrm_api3('RelationshipType', 'getvalue', [
+          'return' => 'id',
+          'name_a_b' => $rel_type_id,
+        ]);
+      } catch (CiviCRM_API3_Exception $e) {
+      }
+      $action_params['rel_type_id'] .= $rel_dir . $rel_type_id;
+    }
+    return parent::importActionParameters($action_params);
+  }
+
+  /**
    * Returns a redirect url to extra data input from the user after adding a
    * action
    *

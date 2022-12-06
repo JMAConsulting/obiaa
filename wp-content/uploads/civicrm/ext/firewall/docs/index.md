@@ -25,7 +25,7 @@ If this job is *not* running then the `civicrm_firewall_ipaddress` table will gr
 
 #### CSRF validity
 
-* There is a hidden setting `firewall_csrf_timeout` (default 43200 (12 hours)) that controls how long generated CSRF tokens
+* There is a setting `firewall_csrf_timeout` (default 43200 (12 hours)) that controls how long generated CSRF tokens
 are valid for. This accepts an integer number of seconds.
 
 ## Scenarios
@@ -37,8 +37,20 @@ You can trigger a Fraud Event by calling:
 \Civi\Firewall\Event\FraudEvent::trigger([ip address], "my helpful description");
 ```
 
-If 5 or more fraud events from the same IP address are triggered within 2 hours the IP address will be blocked for 2 hours.
-Once the number of fraud events in a 2 hour period drop below 5 the IP address will be automatically unblocked again.
+If 3 or more fraud events from the same IP address are triggered within 2 hours the IP address will be blocked for 2 hours.
+Once the number of fraud events in a 2-hour period drop below 5 the IP address will be automatically unblocked again.
+
+#### Declined Card Events
+
+You can trigger a Declined Card Event by calling:
+```php
+\Civi\Firewall\Event\DeclinedCardEvent::trigger([ip address], "my helpful description");
+```
+
+If 10 or more declined card events occur from the same IP address within 2 hours, the IP address will be blocked
+for 2 hours. Once the number of events in a 2-hour period drop below 10 the IP address will be automatically unblocked again.
+
+Multiple declined card attempts could be an indicator of card testing via your site.
 
 #### Invalid CSRF Events
 

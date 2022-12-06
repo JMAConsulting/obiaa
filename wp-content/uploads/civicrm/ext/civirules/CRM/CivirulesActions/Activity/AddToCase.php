@@ -26,6 +26,8 @@ class CRM_CivirulesActions_Activity_AddToCase extends CRM_CivirulesActions_Activ
     $action_params = $this->getActionParameters();
     $caseParams['contact_id'] = $parameters['target_contact_id'];
     $caseParams['case_type_id'] = $action_params['case_type_id'];
+    // ensure deleted cases are not selected
+    $caseParams['is_deleted'] = FALSE;
     if (!empty($action_params['case_status_id'])) {
       $caseParams['status_id'] = $action_params['case_status_id'];
     }
@@ -39,7 +41,7 @@ class CRM_CivirulesActions_Activity_AddToCase extends CRM_CivirulesActions_Activ
         }
         $formattedCaseParams .= "{$key}=\"$param\"";
       }
-      $message = "Civirules could not fund case: {$ex->getMessage()}. API call: Case.getsingle with params: {$formattedCaseParams}";
+      $message = "Civirules could not find case: {$ex->getMessage()}. API call: Case.getsingle with params: {$formattedCaseParams}";
       \Civi::log()->error($message);
       throw new Exception($message);
     }
@@ -60,6 +62,59 @@ class CRM_CivirulesActions_Activity_AddToCase extends CRM_CivirulesActions_Activ
       \Civi::log()->error($message);
       throw new Exception($message);
     }
+  }
+
+  /**
+   * Returns condition data as an array and ready for export.
+   * E.g. replace ids for names.
+   *
+   * @return array
+   */
+  public function exportActionParameters() {
+    $action_params = parent::exportActionParameters();
+    try {
+      $action_params['case_status_id'] = civicrm_api3('OptionValue', 'getvalue', [
+        'return' => 'name',
+        'value' => $action_params['case_status_id'],
+        'option_group_id' => 'case_status',
+      ]);
+    } catch (CiviCRM_API3_Exception $e) {
+    }
+    try {
+      $action_params['case_type_id'] = civicrm_api3('OptionValue', 'getvalue', [
+        'return' => 'name',
+        'value' => $action_params['case_type_id'],
+        'option_group_id' => 'case_type',
+      ]);
+    } catch (CiviCRM_API3_Exception $e) {
+    }
+    return $action_params;
+  }
+
+  /**
+   * Returns condition data as an array and ready for import.
+   * E.g. replace name for ids.
+   *
+   * @return string
+   */
+  public function importActionParameters($action_params = NULL) {
+    try {
+      $action_params['case_status_id'] = civicrm_api3('OptionValue', 'getvalue', [
+        'return' => 'value',
+        'name' => $action_params['case_status_id'],
+        'option_group_id' => 'case_status',
+      ]);
+    } catch (CiviCRM_API3_Exception $e) {
+    }
+    try {
+      $action_params['case_type_id'] = civicrm_api3('OptionValue', 'getvalue', [
+        'return' => 'value',
+        'name' => $action_params['case_type_id'],
+        'option_group_id' => 'case_type',
+      ]);
+    } catch (CiviCRM_API3_Exception $e) {
+    }
+    return parent::importActionParameters($action_params);
   }
 
   /**

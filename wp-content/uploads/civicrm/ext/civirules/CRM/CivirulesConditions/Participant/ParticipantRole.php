@@ -47,6 +47,65 @@ class CRM_CivirulesConditions_Participant_ParticipantRole extends CRM_Civirules_
   }
 
   /**
+   * Returns condition data as an array and ready for export.
+   * E.g. replace ids for names.
+   *
+   * @return array
+   */
+  public function exportConditionParameters() {
+    $params = parent::exportConditionParameters();
+    if (!empty($params['participant_role_id']) && is_array($params['participant_role_id'])) {
+      foreach($params['participant_role_id'] as $i => $j) {
+        $params['participant_role_id'][$i] = civicrm_api3('OptionValue', 'getvalue', [
+          'return' => 'name',
+          'value' => $j,
+          'option_group_id' => 'participant_role',
+        ]);
+      }
+    } elseif (!empty($params['participant_role_id'])) {
+      try {
+        $params['participant_role_id'] = civicrm_api3('OptionValue', 'getvalue', [
+          'return' => 'name',
+          'value' => $params['participant_role_id'],
+          'option_group_id' => 'participant_role',
+        ]);
+      } catch (\CiviCRM_Api3_Exception $e) {
+        // Do nothing.
+      }
+    }
+    return $params;
+  }
+
+  /**
+   * Returns condition data as an array and ready for import.
+   * E.g. replace name for ids.
+   *
+   * @return string
+   */
+  public function importConditionParameters($condition_params = NULL) {
+    if (!empty($condition_params['participant_role_id']) && is_array($condition_params['participant_role_id'])) {
+      foreach($condition_params['participant_role_id'] as $i => $j) {
+        $condition_params['participant_role_id'][$i] = civicrm_api3('OptionValue', 'getvalue', [
+          'return' => 'value',
+          'name' => $j,
+          'option_group_id' => 'participant_role',
+        ]);
+      }
+    } elseif (!empty($condition_params['participant_role_id'])) {
+      try {
+        $condition_params['participant_role_id'] = civicrm_api3('OptionValue', 'getvalue', [
+          'return' => 'value',
+          'name' => $condition_params['participant_role_id'],
+          'option_group_id' => 'participant_role',
+        ]);
+      } catch (\CiviCRM_Api3_Exception $e) {
+        // Do nothing.
+      }
+    }
+    return parent::importConditionParameters($condition_params);
+  }
+
+  /**
    * Returns a redirect url to extra data input from the user after adding a condition
    *
    * Return false if you do not need extra data input

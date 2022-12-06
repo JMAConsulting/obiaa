@@ -26,6 +26,47 @@ class CRM_CivirulesConditions_ContributionRecur_Campaign extends CRM_Civirules_C
   }
 
   /**
+   * Returns condition data as an array and ready for export.
+   * E.g. replace ids for names.
+   *
+   * @return array
+   */
+  public function exportConditionParameters() {
+    $params = parent::exportConditionParameters();
+    if (!empty($params['campaign_id'])) {
+      try {
+        $params['campaign_id'] = civicrm_api3('Campaign', 'getvalue', [
+          'return' => 'name',
+          'id' => $params['campaign_id']
+        ]);
+      } catch (\CiviCRM_Api3_Exception $e) {
+        // Do nothing.
+      }
+    }
+    return $params;
+  }
+
+  /**
+   * Returns condition data as an array and ready for import.
+   * E.g. replace name for ids.
+   *
+   * @return string
+   */
+  public function importConditionParameters($condition_params = NULL) {
+    if (!empty($condition_params['campaign_id'])) {
+      try {
+        $condition_params['campaign_id'] = civicrm_api3('Campaign', 'getvalue', [
+          'return' => 'id',
+          'name' => $condition_params['campaign_id']
+        ]);
+      } catch (\CiviCRM_Api3_Exception $e) {
+        // Do nothing.
+      }
+    }
+    return parent::importConditionParameters($condition_params);
+  }
+
+  /**
    * Method to determine if the condition is valid
    *
    * @param CRM_Civirules_TriggerData_TriggerData $triggerData

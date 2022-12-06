@@ -76,6 +76,49 @@ class CRM_CivirulesConditions_EntityTag_TagId extends CRM_Civirules_Condition {
   }
 
   /**
+   * Returns condition data as an array and ready for export.
+   * E.g. replace ids for names.
+   *
+   * @return array
+   */
+  public function exportConditionParameters() {
+    $params = parent::exportConditionParameters();
+    if (!empty($params['tag_id']) && is_array($params['tag_id'])) {
+      foreach($params['tag_id'] as $i => $gid) {
+        try {
+          $params['tag_id'][$i] = civicrm_api3('Tag', 'getvalue', [
+            'return' => 'name',
+            'id' => $gid,
+          ]);
+        } catch (CiviCRM_API3_Exception $e) {
+        }
+      }
+    }
+    return $params;
+  }
+
+  /**
+   * Returns condition data as an array and ready for import.
+   * E.g. replace name for ids.
+   *
+   * @return string
+   */
+  public function importConditionParameters($condition_params = NULL) {
+    if (!empty($condition_params['tag_id']) && is_array($condition_params['tag_id'])) {
+      foreach($condition_params['tag_id'] as $i => $gid) {
+        try {
+          $condition_params['tag_id'][$i] = civicrm_api3('Tag', 'getvalue', [
+            'return' => 'id',
+            'name' => $gid,
+          ]);
+        } catch (CiviCRM_API3_Exception $e) {
+        }
+      }
+    }
+    return parent::importConditionParameters($condition_params);
+  }
+
+  /**
    * This function validates whether this condition works with the selected trigger.
    *
    * This function could be overriden in child classes to provide additional validation

@@ -41,4 +41,59 @@ class CRM_CivirulesConditions_Participant_Status extends CRM_CivirulesConditions
     return $statuses;
   }
 
+  /**
+   * Returns condition data as an array and ready for export.
+   * E.g. replace ids for names.
+   *
+   * @return array
+   */
+  public function exportConditionParameters() {
+    $params = parent::exportConditionParameters();
+    if (!empty($params['status_id']) && is_array($params['status_id'])) {
+      foreach($params['status_id'] as $i => $j) {
+        $params['status_id'][$i] = civicrm_api3('ParticipantStatusType', 'getvalue', [
+          'return' => 'name',
+          'id' => $j,
+        ]);
+      }
+    } elseif (!empty($params['status_id'])) {
+      try {
+        $params['status_id'] = civicrm_api3('ParticipantStatusType', 'getvalue', [
+          'return' => 'name',
+          'id' => $params['status_id'],
+        ]);
+      } catch (\CiviCRM_Api3_Exception $e) {
+        // Do nothing.
+      }
+    }
+    return $params;
+  }
+
+  /**
+   * Returns condition data as an array and ready for import.
+   * E.g. replace name for ids.
+   *
+   * @return string
+   */
+  public function importConditionParameters($condition_params = NULL) {
+    if (!empty($condition_params['status_id']) && is_array($condition_params['status_id'])) {
+      foreach($condition_params['status_id'] as $i => $j) {
+        $condition_params['status_id'][$i] = civicrm_api3('ParticipantStatusType', 'getvalue', [
+          'return' => 'id',
+          'name' => $j,
+        ]);
+      }
+    } elseif (!empty($condition_params['status_id'])) {
+      try {
+        $condition_params['status_id'] = civicrm_api3('ParticipantStatusType', 'getvalue', [
+          'return' => 'id',
+          'name' => $condition_params['status_id'],
+        ]);
+      } catch (\CiviCRM_Api3_Exception $e) {
+        // Do nothing.
+      }
+    }
+    return parent::importConditionParameters($condition_params);
+  }
+
 }

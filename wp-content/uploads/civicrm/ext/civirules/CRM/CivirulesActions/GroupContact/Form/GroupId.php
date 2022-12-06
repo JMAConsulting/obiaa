@@ -8,60 +8,51 @@
 
 class CRM_CivirulesActions_GroupContact_Form_GroupId extends CRM_CivirulesActions_Form_Form {
 
-
-  /**
-   * Method to get groups
-   *
-   * @return array
-   * @access protected
-   */
-  protected function getGroups() {
-    return CRM_Contact_BAO_GroupContact::getGroupList();
-  }
-
   /**
    * Overridden parent method to build the form
    *
-   * @access public
    */
   public function buildQuickForm() {
     $this->add('hidden', 'rule_action_id');
 
-    $this->add('select', 'type', ts('Single/Multiple'), array(
+    $this->add('select', 'type', ts('Single/Multiple'), [
       0 => ts('Select a single a group'),
       1 => ts('Select multiple groups'),
-    ));
+    ]);
 
-    $this->add('select', 'group_id', ts('Group'), array('' => ts('-- please select --')) + $this->getGroups());
+    $this->add('select', 'group_id', ts('Group'), ['' => ts('-- please select --')] + CRM_Civirules_Utils::getGroupList());
 
-    $multiGroup = $this->addElement('advmultiselect', 'group_ids', ts('Groups'), $this->getGroups(), array(
+    $multiGroup = $this->addElement('advmultiselect', 'group_ids', ts('Groups'), CRM_Civirules_Utils::getGroupList(), [
       'size' => 5,
       'style' => 'width:250px',
       'class' => 'advmultiselect',
-    ));
+    ]);
 
-    $multiGroup->setButtonAttributes('add', array('value' => ts('Add >>')));
-    $multiGroup->setButtonAttributes('remove', array('value' => ts('<< Remove')));
+    $multiGroup->setButtonAttributes('add', ['value' => ts('Add >>')]);
+    $multiGroup->setButtonAttributes('remove', ['value' => ts('<< Remove')]);
 
-    $this->addButtons(array(
-      array('type' => 'next', 'name' => ts('Save'), 'isDefault' => TRUE,),
-      array('type' => 'cancel', 'name' => ts('Cancel'))));
+    $this->addButtons([
+      ['type' => 'next', 'name' => ts('Save'), 'isDefault' => TRUE],
+      ['type' => 'cancel', 'name' => ts('Cancel')]
+    ]);
   }
 
+  /**
+   * @return void
+   */
   public function addRules() {
-    $this->addFormRule(array('CRM_CivirulesActions_GroupContact_Form_GroupId', 'validateGroupFields'));
+    $this->addFormRule(['CRM_CivirulesActions_GroupContact_Form_GroupId', 'validateGroupFields']);
   }
 
   /**
    * Function to validate value of rule action form
    *
    * @param array $fields
+   *
    * @return array|bool
-   * @access public
-   * @static
    */
   static function validateGroupFields($fields) {
-    $errors = array();
+    $errors = [];
     if ($fields['type'] == 0 && empty($fields['group_id'])) {
       $errors['group_id'] = ts('You have to select at least one group');
     } elseif ($fields['type'] == 1 && (empty($fields['group_ids']) || count($fields['group_ids']) < 1)) {
@@ -71,14 +62,13 @@ class CRM_CivirulesActions_GroupContact_Form_GroupId extends CRM_CivirulesAction
     if (count($errors)) {
       return $errors;
     }
-    return true;
+    return TRUE;
   }
 
   /**
    * Overridden parent method to set default values
    *
    * @return array $defaultValues
-   * @access public
    */
   public function setDefaultValues() {
     $defaultValues = parent::setDefaultValues();
@@ -98,11 +88,10 @@ class CRM_CivirulesActions_GroupContact_Form_GroupId extends CRM_CivirulesAction
   /**
    * Overridden parent method to process form data after submitting
    *
-   * @access public
    */
   public function postProcess() {
-    $data['group_id'] = false;
-    $data['group_ids'] = false;
+    $data['group_id'] = FALSE;
+    $data['group_ids'] = FALSE;
     if ($this->_submitValues['type'] == 0) {
       $data['group_id'] = $this->_submitValues['group_id'];
     } else {

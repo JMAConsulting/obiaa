@@ -10,7 +10,21 @@
  */
 namespace Civi\Firewall\Listener;
 
-class FraudulentRequest {
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+
+class FraudulentRequest implements EventSubscriberInterface {
+
+  /**
+   * @return array
+   */
+  public static function getSubscribedEvents() {
+    return [
+      'civi.firewall.fraudulentrequest' => [
+        // Positive priority is higher (eg. 200 will run before 100)
+        ['onTrigger', 2000],
+      ],
+    ];
+  }
 
   public function onTrigger(\Civi\Firewall\Event\FraudEvent $event) {
     // Add to firewall ip address log table with timestamp + event type

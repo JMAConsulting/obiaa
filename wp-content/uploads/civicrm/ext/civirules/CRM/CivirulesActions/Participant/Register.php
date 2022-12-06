@@ -56,6 +56,83 @@ class CRM_CivirulesActions_Participant_Register extends CRM_CivirulesActions_Gen
   }
 
   /**
+   * Returns condition data as an array and ready for export.
+   * E.g. replace ids for names.
+   *
+   * @return array
+   */
+  public function exportActionParameters() {
+    $action_params = parent::exportActionParameters();
+    if (!empty($action_params['participant_role_id'])) {
+      try {
+        $action_params['participant_role_id'] = civicrm_api3('OptionValue', 'getvalue', [
+          'return' => 'name',
+          'value' => $action_params['participant_role_id'],
+          'option_group_id' => "participant_role",
+        ]);
+      } catch (CiviCRM_API3_Exception $e) {
+      }
+    }
+    if (!empty($action_params['participant_status_id'])) {
+      try {
+        $action_params['participant_status_id'] = civicrm_api3('ParticipantStatusType', 'getvalue', [
+          'return' => 'name',
+          'id' => $action_params['participant_status_id'],
+        ]);
+      } catch (CiviCRM_API3_Exception $e) {
+      }
+    }
+    if (!empty($action_params['campaign_id'])) {
+      try {
+        $action_params['campaign_id'] = civicrm_api3('Campaign', 'getvalue', [
+          'return' => 'name',
+          'id' => $action_params['campaign_id'],
+        ]);
+      } catch (CiviCRM_API3_Exception $e) {
+      }
+    }
+    return $action_params;
+  }
+
+  /**
+   * Returns condition data as an array and ready for import.
+   * E.g. replace name for ids.
+   *
+   * @return string
+   */
+  public function importActionParameters($action_params = NULL) {
+    if (!empty($action_params['participant_role_id'])) {
+      try {
+        $action_params['participant_role_id'] = civicrm_api3('OptionValue', 'getvalue', [
+          'return' => 'value',
+          'name' => $action_params['participant_role_id'],
+          'option_group_id' => "participant_role",
+        ]);
+      } catch (CiviCRM_API3_Exception $e) {
+      }
+    }
+    if (!empty($action_params['participant_status_id'])) {
+      try {
+        $action_params['participant_status_id'] = civicrm_api3('ParticipantStatusType', 'getvalue', [
+          'return' => 'id',
+          'name' => $action_params['participant_status_id'],
+        ]);
+      } catch (CiviCRM_API3_Exception $e) {
+      }
+    }
+    if (!empty($action_params['campaign_id'])) {
+      try {
+        $action_params['campaign_id'] = civicrm_api3('Campaign', 'getvalue', [
+          'return' => 'id',
+          'name' => $action_params['campaign_id'],
+        ]);
+      } catch (CiviCRM_API3_Exception $e) {
+      }
+    }
+    return parent::importActionParameters($action_params);
+  }
+
+  /**
    * Returns a user friendly text explaining the condition params
    * e.g. 'Older than 65'
    *
