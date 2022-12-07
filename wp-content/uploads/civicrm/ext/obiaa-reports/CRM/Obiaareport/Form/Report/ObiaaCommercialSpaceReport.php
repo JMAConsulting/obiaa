@@ -12,7 +12,7 @@ class CRM_Obiaareport_Form_Report_ObiaaCommercialSpaceReport extends CRM_Report_
   protected $_customGroupGroupBy = FALSE;
 
   public function __construct() {
-    $totalCount = CRM_Core_DAO::singleValueQuery("SELECT COUNT(DISTINCT id) FROM civicrm_unit");
+    $totalCount = CRM_Core_DAO::singleValueQuery("SELECT COUNT(DISTINCT id) FROM civicrm_unit") ?? 0;
     $sum = CRM_Core_DAO::singleValueQuery("SELECT SUM(unit_size) FROM civicrm_unit") ?? 0;
     $cfFilter = \Civi\Api4\CustomField::get()->addWhere('name', '=', 'What_region_is_this_BIA_in_')->execute()->first();
     $this->_columns = [
@@ -41,25 +41,17 @@ class CRM_Obiaareport_Form_Report_ObiaaCommercialSpaceReport extends CRM_Report_
             'required' => TRUE,
             'title' => E::ts('Number of Units'),
             'dbAlias' => 'SUM(u.unit_size)',
-            'no_display' => TRUE, 
+            'no_display' => TRUE,
           ],
           'percentage_of_size' => [
 
             'required' => TRUE,
             'title' => E::ts('Percentage of Space'),
-            'dbAlias' => "( (SUM(u.unit_size) / $sum) * 100 )",
+            'dbAlias' => "((SUM(u.unit_size) / $sum) * 100)",
             'no_display' => TRUE,
           ],
         ],
-        'filters' => [
-          $cfFilter['column_name'] => [
-            'title' => $cfFilter['label'],
-            'type' => CRM_Utils_Type::T_STRING,
-            'operatorType' => CRM_Report_Form::OP_MULTISELECT,
-            'options' => CRM_Core_OptionGroup::values('Region_What_region_is_this_BIA_in_'),
-            'dbAlias' => 'cf.' . $cfFilter['column_name'],
-          ],
-        ],
+        'filters' => [],
       ],
     ];
     $result = CRM_Core_DAO::executeQuery("SELECT ov.value, ov.label, ov.name FROM civicrm_option_value ov INNER JOIN civicrm_option_group og ON og.id = ov.option_group_id AND og.name = 'unit_status' ")->fetchAll();
@@ -75,11 +67,11 @@ class CRM_Obiaareport_Form_Report_ObiaaCommercialSpaceReport extends CRM_Report_
         'dbAlias' => $value['value'],
       ];
     }
-    $this->_columns['civicrm_unit']['fields']["total"] = [      
+    $this->_columns['civicrm_unit']['fields']["total"] = [
       'title' => "Total Vacant",
       'dbAlias' => '1',
-      
     ];
+    CRM_Obiaareport_Utils::addMembershipFilter($this->_columns['civicrm_unit']['filters']);
     parent::__construct();
   }
 
@@ -91,6 +83,7 @@ class CRM_Obiaareport_Form_Report_ObiaaCommercialSpaceReport extends CRM_Report_
   public function from() {
     parent::where();
     $join = empty($this->_whereClauses) ? 'LEFT' : 'INNER';
+    $part = CRM_Obiaareport_Utils::addMembershipTableJoin('Property', 'u');
     $this->_from = "
   FROM  civicrm_unit u
              INNER JOIN civicrm_option_value AS ov
@@ -98,7 +91,7 @@ class CRM_Obiaareport_Form_Report_ObiaaCommercialSpaceReport extends CRM_Report_
 
              INNER  JOIN civicrm_option_group AS og
                         ON og.id = ov.option_group_id AND og.name = 'unit_status'
-             {$join} JOIN (SELECT unit_id FROM civicrm_unit_business ub INNER JOIN civicrm_value_region_27 cf ON cf.entity_id = ub.business_id {$this->_where} GROUP BY unit_id) temp ON temp.unit_id = u.id
+            {$part}
     ";
   }
 
@@ -121,27 +114,21 @@ class CRM_Obiaareport_Form_Report_ObiaaCommercialSpaceReport extends CRM_Report_
       'civicrm_unit_percentage' => 'Percentage of Units',
       'civicrm_unit_unit_size' => 'Sum of Size (Sq Ft)',
       'civicrm_unit_percentage_of_size' => 'Percentage of Space',
-      
+
     ] as $key => $label) {
       $newRows[$key] = ['civicrm_unit_status' =>  $label];
       $total = array_sum(array_column($rows, $key));
 
       foreach ($rows as $row) {
-        $newRows[$key]['civicrm_unit_' . $row['civicrm_unit_unit_status']] = round($row[$key],2);        
-        
+        $newRows[$key]['civicrm_unit_' . $row['civicrm_unit_unit_status']] = $row[$key] == 0 ? '0' : round($row[$key],2);
+
         if($row["civicrm_unit_unit_status"] == "Occupied"){
           $total -= $row[$key];
         }
-        $newRows[$key]['civicrm_unit_total'] = round($total,2) ;        
+        $newRows[$key]['civicrm_unit_total'] = $total == 0 ? '0' : round($total,2);
       }
     }
-$rows = $newRows;
-    //CRM_Core_Error::debug('colHeaders', $rows);
-    //CRM_Core_Error::debug('total', array_sum($totalUnitCount));
-
-return;
-
-    
+    $rows = $newRows;
   }
 
 }
