@@ -37,6 +37,10 @@ class DAODeleteAction extends AbstractBatchAction {
 
     if ($this->getCheckPermissions()) {
       foreach ($items as $key => $item) {
+        if ($item === NULL) {
+          unset($items[$key]);	
+          continue;
+        }
         if (!CoreUtil::checkAccessRecord($this, $item, \CRM_Core_Session::getLoggedInContactID() ?: 0)) {
           throw new UnauthorizedException("ACL check failed");
         }
