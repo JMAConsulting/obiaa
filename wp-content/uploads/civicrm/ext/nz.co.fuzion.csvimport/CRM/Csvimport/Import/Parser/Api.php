@@ -207,7 +207,7 @@ class CRM_Csvimport_Import_Parser_Api extends CRM_Csvimport_Import_Parser_BaseCl
     }
     $queueParams = [
       'entity' => $this->_entity,
-      'params' => $this->_importQueueBatch,
+      'batch' => $this->_importQueueBatch,
       'errorFileName' => $this->_errorFileName,
     ];
     $task = new CRM_Queue_Task(

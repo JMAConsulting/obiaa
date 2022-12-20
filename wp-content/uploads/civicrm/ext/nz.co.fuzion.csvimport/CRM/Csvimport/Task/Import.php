@@ -62,7 +62,7 @@ class CRM_Csvimport_Task_Import {
    *
    * @return bool
    */
-  public static function ImportEntity(CRM_Queue_TaskContext $ctx, $entity, $batch, $errFileName) {
+  public static function ImportEntity(CRM_Queue_TaskContext $ctx, $entity, $batch, $errorFileName) {
     if (!$entity || !isset($batch)) {
       CRM_Core_Session::setStatus('Invalid params supplied to import queue!', 'Queue task - Init', 'error');
       return FALSE;
@@ -200,7 +200,7 @@ class CRM_Csvimport_Task_Import {
     }
 
     if (count($errors) > 0) {
-      $ret = self::addErrorsToReport($errFileName, $errors);
+      $ret = self::addErrorsToReport($errorFileName, $errors);
       if (isset($ret['error'])) {
         CRM_Core_Session::setStatus($ret['error'], 'Queue task', 'error');
       }

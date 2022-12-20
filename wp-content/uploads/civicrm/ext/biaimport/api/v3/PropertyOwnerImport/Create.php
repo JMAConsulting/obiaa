@@ -20,6 +20,7 @@ function _civicrm_api3_property_owner_import_create_spec(&$spec) {
   $spec['roll_no'] = [
     'title' => E::ts('Assessment Roll Number'),
     'type' => CRM_Utils_Type::T_STRING,
+    'api.required' => 1,
   ];
   $spec['property_name'] = [
     'title' => E::ts('Property Name'),
@@ -38,7 +39,6 @@ function _civicrm_api3_property_owner_import_create_spec(&$spec) {
   $spec['postal_code'] = [
     'title' => E::ts('Postal Code'),
     'type' => CRM_Utils_Type::T_STRING,
-    'api.required' => 1,
   ];
   $owners = [1, 2, 3, 4];
   foreach ($owners as $owner) {

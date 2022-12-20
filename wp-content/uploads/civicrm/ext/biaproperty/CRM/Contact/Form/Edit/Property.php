@@ -7,7 +7,7 @@ use CRM_Biaproperty_ExtensionUtil as E;
  *
  * @see https://docs.civicrm.org/dev/en/latest/framework/quickform/
  */
-class CRM_Contact_Form_Edit_Property extends CRM_Core_Form {
+class CRM_Contact_Form_Edit_Property {
 
   protected $_id;
 
@@ -27,7 +27,7 @@ class CRM_Contact_Form_Edit_Property extends CRM_Core_Form {
     return $this->_id;
   }
 
-  public function buildQuickForm(&$form, $addressBlockCount = NULL, $sharing = TRUE, $inlineEdit = FALSE) {
+  public static function buildQuickForm(&$form, $addressBlockCount = NULL, $sharing = TRUE, $inlineEdit = FALSE) {
     $form->addEntityRef('property_id',  E::ts('Property'), [
       'create' => TRUE,
           'entity' => 'Property',
@@ -54,7 +54,6 @@ class CRM_Contact_Form_Edit_Property extends CRM_Core_Form {
     ");
     $form->addFormRule([__CLASS__, 'formRule'], $form);
     $form->assign('elements', $elements);
-    parent::buildQuickForm();
   }
 
     public static function formRule($fields, $files = [], $self = NULL) {
