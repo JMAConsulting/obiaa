@@ -112,7 +112,7 @@ class CRM_Obiaareport_Form_Report_TurnoverReport extends CRM_Report_Form {
       foreach ($rows as $row) {
         if (!array_search($row['civicrm_unit_year'], $years)) {$years[$row['civicrm_unit_year']] = $row['civicrm_unit_year'];}
         if ($key == 'civicrm_unit_turnover') {
-          $newRows[$key]['civicrm_unit_' . $row['civicrm_unit_year']] = ($newRows['civicrm_unit_close']['civicrm_unit_' . $row['civicrm_unit_year']] ?: 0) - ($newRows['civicrm_unit_open']['civicrm_unit_' . $row['civicrm_unit_year']] ?: 0);
+          $newRows[$key]['civicrm_unit_' . $row['civicrm_unit_year']] = ($newRows['civicrm_unit_open']['civicrm_unit_' . $row['civicrm_unit_year']] ?: 0) - ($newRows['civicrm_unit_close']['civicrm_unit_' . $row['civicrm_unit_year']] ?: 0);
         }
         elseif ($key == 'civicrm_unit_open' && $row['civicrm_unit_activity_type_id'] == CRM_Core_PseudoConstant::getKey('CRM_Activity_BAO_Activity', 'activity_type_id', 'Business opened')) {
           $newRows[$key]['civicrm_unit_' . $row['civicrm_unit_year']] = $row['civicrm_unit_count'] ?? 0;
