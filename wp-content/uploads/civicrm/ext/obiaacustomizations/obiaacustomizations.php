@@ -225,17 +225,8 @@ CRM.menubar.removeItem('tutorial_add');
             'urlPath' => implode('/', $form->urlPath),
           ]);
        }
-*/
+ */
   if ('CRM_Contact_Form_Contact' == $formName) {
-//CRM_Core_Error::debug('$this->_editOptions', $form->getVar('_editOptions'));
-$options= $form->getVar('_editOptions');
-if (in_array($form->_contactSubType, ['Members_Property_Owners_'])) {
-unset($options['Address']);
-$options['property'] =  ts('Property');
-$form->setVar('_editOptions', $options);
-$form->assign('editOptions', $options);
-
-}
 //CRM_Core_Error::debug('$this->_editOptions', $form);exit;
     Civi::resources()->addScript("
     CRM.$(function($) {

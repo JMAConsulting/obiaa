@@ -250,7 +250,9 @@ function biaproperty_civicrm_buildForm($formName, &$form) {
         if ($form->getVar('_contactId')) {
           continue;
         }
-        unset($options['Address']);
+        if ($ctype === 'Members_Businesses_') {
+          unset($options['Address']);
+        }
         $options = [$entity => ts($entity)] + $options;
         $className = 'CRM_Contact_Form_Edit_' . $entity;
         $className::buildQuickForm($form);

@@ -1,8 +1,8 @@
-<div id="propertyID" class="crm-accordion-wrapper crm-address-accordion">
+<div id="propertyID" class="crm-accordion-wrapper crm-property-accordion">
  <div class="crm-accordion-header">
     {$title}
  </div><!-- /.crm-accordion-header -->
- <div class="crm-accordion-body" id="addressBlock">
+ <div class="crm-accordion-body" id="propertyBlock">
   <div class="crm-block crm-form-block">
 
     {foreach from=$elements key=element item=label}
