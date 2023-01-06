@@ -23,6 +23,10 @@ class Services {
   public static function registerServices(ContainerBuilder $container) {
     $container->addResource(new \Symfony\Component\Config\Resource\FileResource(__FILE__));
     $container
+      ->setDefinition('civi.firewall.formprotection', new Definition('\Civi\Firewall\Listener\FormProtection'))
+      ->addTag('kernel.event_subscriber')
+      ->setPublic(TRUE);
+    $container
       ->setDefinition('civi.firewall.declinedcard', new Definition('\Civi\Firewall\Listener\DeclinedCard'))
       ->addTag('kernel.event_subscriber')
       ->setPublic(TRUE);

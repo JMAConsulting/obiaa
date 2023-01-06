@@ -52,6 +52,7 @@ class Firewall {
         $this->setReasonDescription(E::ts('Session expired. Please reload and try again.'));
         break;
 
+      case 'blockedformprotection':
       case 'invalidcsrf':
       case 'tamperedcsrf':
         // Be careful not to give out too much information that could help someone bypass the CSRF check.
@@ -90,6 +91,15 @@ class Firewall {
    */
   public function run() {
     if ($this->shouldThisRequestBeBlocked()) {
+
+      // Allow extensions to be notified on block
+      $clientIP = self::getIPAddress();
+      $null = NULL;
+      \CRM_Utils_Hook::singleton()->invoke(['clientIP'], $clientIP, $null, $null,
+        $null, $null, $null,
+        'civicrm_firewallRequestBlocked'
+      );
+
       // Block them
       http_response_code(403); // Forbidden
       exit();
@@ -124,6 +134,7 @@ class Firewall {
       1 => [$this->clientIP, 'String'],
     ];
     $blockDeclinesAfter = 10;
+    $blockFormProtectionAfter = 10;
     $blockFraudAfter = 3;
     $blockInvalidCSRFAfter = 5;
 
@@ -143,6 +154,14 @@ GROUP BY event_type
           if ($dao->eventCount >= $blockDeclinesAfter) {
             $block = TRUE;
             $this->setReason('blockeddeclinedcards');
+            break 2;
+          }
+          break;
+
+        case 'FormProtectionEvent':
+          if ($dao->eventCount >= $blockFormProtectionAfter) {
+            $block = TRUE;
+            $this->setReason('blockedformprotection');
             break 2;
           }
           break;

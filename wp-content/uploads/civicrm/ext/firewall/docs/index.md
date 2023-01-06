@@ -30,34 +30,43 @@ are valid for. This accepts an integer number of seconds.
 
 ## Scenarios
 
+### Blocking time
+
+The extension currently blocks an IP address when there are a number of events equal to the 'threshold' for the event
+type in the past two hours. Once the number of events in the last 2 hours drop below the threshold, the IP address will
+be automatically unblocked.
+
+### Event types
+
 #### Fraud Events
+
+Threshold: 3
 
 You can trigger a Fraud Event by calling:
 ```php
 \Civi\Firewall\Event\FraudEvent::trigger([ip address], "my helpful description");
 ```
 
-If 3 or more fraud events from the same IP address are triggered within 2 hours the IP address will be blocked for 2 hours.
-Once the number of fraud events in a 2-hour period drop below 5 the IP address will be automatically unblocked again.
-
 #### Declined Card Events
+
+Threshold: 10
 
 You can trigger a Declined Card Event by calling:
 ```php
 \Civi\Firewall\Event\DeclinedCardEvent::trigger([ip address], "my helpful description");
 ```
 
-If 10 or more declined card events occur from the same IP address within 2 hours, the IP address will be blocked
-for 2 hours. Once the number of events in a 2-hour period drop below 10 the IP address will be automatically unblocked again.
-
 Multiple declined card attempts could be an indicator of card testing via your site.
 
 #### Invalid CSRF Events
 
+Threshold: 10
+
 If you implement APIs or AJAX endpoints which require anonymous access (eg. a javascript based payment processor
 such as [Stripe](https://lab.civicrm.org/extensions/stripe)) then you will probably need to protect them with a CSRF token.
 
-First get a token and pass it to your form/endpoint:
+First get a token and pass it to your form/endpoint, eg:
+
 ```php
 $myVars = [
   'token' => class_exists('\Civi\Firewall\Firewall') ? \Civi\Firewall\Firewall::getCSRFToken() : NULL,
@@ -65,12 +74,13 @@ $myVars = [
 ```
 
 OR
+
 ```php
-$firewall = new \Civi\Firewall\Firewall();
-$token = $firewall->generateCSRFToken();
+$token = \Civi\Firewall\Firewall::getCSRFToken();
 ```
 
 Then in your API/AJAX endpoint check if the token is valid:
+
 ```php
 if (class_exists('\Civi\Firewall\Firewall')) {
   $firewall = new \Civi\Firewall\Firewall();
@@ -81,6 +91,26 @@ if (class_exists('\Civi\Firewall\Firewall')) {
 ```
 
 !!! Note: By checking if the class exists the firewall extension can be an optional dependency.
+
+#### Integration with Formprotection extension
+
+Threshold: 10
+
+The [Formprotection extension](https://civicrm.org/extensions/form-protection) (1.4.0+) triggers `FormProtectionEvent`s
+whenever a user fails to submit a form due to anti-spam measures (such as reCAPTCHA, flood control or honeypot).
+
+You can also trigger this event in your own custom form protection measures.
+
+## Hooks
+
+The following hooks are provided by the extension.
+
+### hook_civicrm_firewallRequestBlocked
+
+`hook_civicrm_firewallRequestBlocked($clientIP)`
+
+This hook is called when the firewall blocks a request from a certain IP address. The `$clientIP` parameter contains the IP
+address which has been blocked.
 
 ## Future Development / Ideas
 

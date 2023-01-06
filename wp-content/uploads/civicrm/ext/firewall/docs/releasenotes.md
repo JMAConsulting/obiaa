@@ -9,6 +9,11 @@ Releases use the following numbering system:
 
 * **[BC]**: Items marked with [BC] indicate a breaking change that will require updates to your code if you are using that code in your extension.
 
+## 1.5.7 (2022-12-09)
+
+* [#25](https://lab.civicrm.org/extensions/firewall/-/issues/25) Add hook that triggers when firewall blocks an IP address.
+* [#26](https://lab.civicrm.org/extensions/firewall/-/issues/26) Add a firewall event for formprotection violations.
+
 ## 1.5.6 (2022-11-17)
 
 * Save CSRF token context to session if available.
