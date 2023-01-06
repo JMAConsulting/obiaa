@@ -14,7 +14,11 @@ namespace Civi\Api4\Service\Spec\Provider;
 
 use Civi\Api4\Service\Spec\RequestSpec;
 
-class CustomGroupSpecProvider implements Generic\SpecProviderInterface {
+/**
+ * @service
+ * @internal
+ */
+class CustomGroupSpecProvider extends \Civi\Core\Service\AutoService implements Generic\SpecProviderInterface {
 
   /**
    * @inheritDoc
@@ -23,7 +27,6 @@ class CustomGroupSpecProvider implements Generic\SpecProviderInterface {
     $action = $spec->getAction();
 
     $spec->getFieldByName('extends')
-      ->setRequired($action === 'create')
       ->setSuffixes(['name', 'label', 'grouping']);
   }
 

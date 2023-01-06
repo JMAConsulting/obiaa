@@ -9,7 +9,7 @@
     },
     require: {ngModel: 'ngModel'},
     template: '<div class="form-group" ng-include="$ctrl.getTemplate()"></div>',
-    controller: function($scope, formatForSelect2) {
+    controller: function($scope, formatForSelect2, crmApi4) {
       var ts = $scope.ts = CRM.ts('org.civicrm.search_kit'),
         ctrl = this;
 
@@ -17,7 +17,6 @@
         var rendered = false,
           field = this.field || {};
         ctrl.dateRanges = CRM.crmSearchTasks.dateRanges;
-        ctrl.entity = field.fk_entity || field.entity;
 
         this.ngModel.$render = function() {
           ctrl.value = ctrl.ngModel.$viewValue;
@@ -44,6 +43,19 @@
             ctrl.dateType = 'fixed';
           }
         }
+      };
+
+      this.getFkEntity = function() {
+        return ctrl.field ? ctrl.field.fk_entity || ctrl.field.entity : null;
+      };
+
+      var autocompleteStaticOptions = {
+        Contact: ['user_contact_id'],
+        '': []
+      };
+
+      this.getAutocompleteStaticOptions = function() {
+        return autocompleteStaticOptions[ctrl.getFkEntity() || ''] || autocompleteStaticOptions[''];
       };
 
       this.isMulti = function() {
@@ -95,11 +107,31 @@
         }
       };
 
+      this.lookupAddress = function() {
+        ctrl.value.geo_code_1 = null;
+        ctrl.value.geo_code_2 = null;
+        if (ctrl.value.address) {
+          crmApi4('Address', 'getCoordinates', {
+            address: ctrl.value.address
+          }).then(function(coordinates) {
+            if (coordinates[0]) {
+              ctrl.value.geo_code_1 = coordinates[0].geo_code_1;
+              ctrl.value.geo_code_2 = coordinates[0].geo_code_2;
+            }
+          });
+        }
+      };
+
       this.getTemplate = function() {
         var field = ctrl.field || {};
 
         if (_.includes(['LIKE', 'NOT LIKE', 'REGEXP', 'NOT REGEXP'], ctrl.op)) {
           return '~/crmSearchTasks/crmSearchInput/text.html';
+        }
+
+        if (field.input_type === 'Location') {
+          ctrl.value = ctrl.value || {distance_unit: CRM.crmSearchAdmin.defaultDistanceUnit};
+          return '~/crmSearchTasks/crmSearchInput/location.html';
         }
 
         if (isDateField(field)) {
@@ -110,12 +142,14 @@
           return '~/crmSearchTasks/crmSearchInput/boolean.html';
         }
 
-        if (field.options) {
-          return '~/crmSearchTasks/crmSearchInput/select.html';
-        }
-
-        if ((field.fk_entity || field.name === 'id') && !_.includes(['>', '<', '>=', '<='], ctrl.op)) {
-          return '~/crmSearchTasks/crmSearchInput/entityRef.html';
+        if (!_.includes(['>', '<', '>=', '<='], ctrl.op)) {
+          // Only use option list if the field has a "name" suffix
+          if (field.options && (!field.suffixes || field.suffixes.includes('name'))) {
+            return '~/crmSearchTasks/crmSearchInput/select.html';
+          }
+          if (field.fk_entity || field.name === 'id') {
+            return '~/crmSearchTasks/crmSearchInput/entityRef.html';
+          }
         }
 
         if (field.data_type === 'Integer') {
