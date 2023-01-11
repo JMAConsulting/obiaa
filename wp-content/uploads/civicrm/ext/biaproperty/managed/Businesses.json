@@ -1,0 +1,190 @@
+[
+  [
+    "SavedSearch",
+    "save",
+    {
+      "records": [
+        {
+          "name": "Businesses_new_",
+          "label": "Businesses (new)",
+          "form_values": null,
+          "search_custom_id": null,
+          "api_entity": "Unit",
+          "api_params": {
+            "version": 4,
+            "select": [
+              "id",
+              "GROUP_CONCAT(DISTINCT Unit_UnitBusiness_unit_id_01_UnitBusiness_Contact_business_id_01.display_name) AS GROUP_CONCAT_Unit_UnitBusiness_unit_id_01_UnitBusiness_Contact_business_id_01_display_name",
+              "GROUP_CONCAT(DISTINCT Unit_UnitBusiness_unit_id_01_UnitBusiness_Contact_business_id_01.id) AS GROUP_CONCAT_Unit_UnitBusiness_unit_id_01_UnitBusiness_Contact_business_id_01_id",
+              "GROUP_CONCAT(DISTINCT Unit_Address_address_id_01.geo_code_1) AS GROUP_CONCAT_Unit_Address_address_id_01_geo_code_1",
+              "GROUP_CONCAT(DISTINCT Unit_Address_address_id_01.geo_code_2) AS GROUP_CONCAT_Unit_Address_address_id_01_geo_code_2",
+              "GROUP_CONCAT(DISTINCT Unit_Address_address_id_01.street_unit) AS GROUP_CONCAT_Unit_Address_address_id_01_street_unit",
+              "GROUP_CONCAT(DISTINCT Unit_Address_address_id_01.city) AS GROUP_CONCAT_Unit_Address_address_id_01_city",
+              "GROUP_CONCAT(DISTINCT Unit_Address_address_id_01.postal_code) AS GROUP_CONCAT_Unit_Address_address_id_01_postal_code",
+              "GROUP_CONCAT(DISTINCT Unit_Address_address_id_01.country_id:label) AS GROUP_CONCAT_Unit_Address_address_id_01_country_id_label",
+              "GROUP_CONCAT(DISTINCT Unit_Address_address_id_01_Address_StateProvince_state_province_id_01.abbreviation) AS GROUP_CONCAT_Unit_Address_address_id_01_Address_StateProvince_state_province_id_01_abbreviation"
+            ],
+            "orderBy": [],
+            "where": [],
+            "groupBy": [
+              "id"
+            ],
+            "join": [
+              [
+                "UnitBusiness AS Unit_UnitBusiness_unit_id_01",
+                "LEFT",
+                [
+                  "id",
+                  "=",
+                  "Unit_UnitBusiness_unit_id_01.unit_id"
+                ]
+              ],
+              [
+                "Contact AS Unit_UnitBusiness_unit_id_01_UnitBusiness_Contact_business_id_01",
+                "LEFT",
+                [
+                  "Unit_UnitBusiness_unit_id_01.business_id",
+                  "=",
+                  "Unit_UnitBusiness_unit_id_01_UnitBusiness_Contact_business_id_01.id"
+                ],
+                [
+                  "Unit_UnitBusiness_unit_id_01_UnitBusiness_Contact_business_id_01.is_deleted",
+                  "=",
+                  false
+                ]
+              ],
+              [
+                "Address AS Unit_Address_address_id_01",
+                "LEFT",
+                [
+                  "address_id",
+                  "=",
+                  "Unit_Address_address_id_01.id"
+                ]
+              ],
+              [
+                "StateProvince AS Unit_Address_address_id_01_Address_StateProvince_state_province_id_01",
+                "LEFT",
+                [
+                  "Unit_Address_address_id_01.state_province_id",
+                  "=",
+                  "Unit_Address_address_id_01_Address_StateProvince_state_province_id_01.id"
+                ]
+              ]
+            ],
+            "having": []
+          },
+          "expires_date": null,
+          "description": null,
+          "mapping_id": null
+        }
+      ],
+      "match": [
+        "name"
+      ]
+    }
+  ],
+  [
+    "SearchDisplay",
+    "save",
+    {
+      "records": [
+        {
+          "name": "Businesses_new_List_1",
+          "label": "Businesses (new) List 1",
+          "saved_search_id.name": "Businesses_new_",
+          "type": "list",
+          "settings": {
+            "style": "ul",
+            "limit": 0,
+            "sort": [],
+            "pager": false,
+            "columns": [
+              {
+                "type": "field",
+                "key": "GROUP_CONCAT_Unit_Address_address_id_01_street_unit",
+                "dataType": "String",
+                "link": {
+                  "path": "civicrm/unit/form?reset=1&action=update&context=update&id=[id]",
+                  "entity": "",
+                  "action": "",
+                  "join": "",
+                  "target": "_blank"
+                },
+                "rewrite": "Unit #[GROUP_CONCAT_Unit_Address_address_id_01_street_unit] [Unit_Address_address_id_01.street_address]",
+                "empty_value": "[Unit_Address_address_id_01.street_address]"
+              },
+              {
+                "type": "field",
+                "key": "GROUP_CONCAT_Unit_Address_address_id_01_city",
+                "dataType": "String"
+              },
+              {
+                "type": "field",
+                "key": "GROUP_CONCAT_Unit_Address_address_id_01_postal_code",
+                "dataType": "String"
+              },
+              {
+                "type": "field",
+                "key": "GROUP_CONCAT_Unit_Address_address_id_01_country_id_label",
+                "dataType": "Integer",
+                "rewrite": "[Unit_Address_address_id_01_Address_StateProvince_state_province_id_01.abbreviation], [GROUP_CONCAT_Unit_Address_address_id_01_country_id_label]",
+                "empty_value": "[Unit_Address_address_id_01_Address_StateProvince_state_province_id_01.abbreviation]"
+              },
+              {
+                "links": [
+                  {
+                    "path": "civicrm/contact/map?reset=1&cid=[Unit_UnitBusiness_unit_id_01_UnitBusiness_Contact_business_id_01.id]",
+                    "icon": "fa-map-marker",
+                    "text": "Map",
+                    "style": "default",
+                    "condition": [
+                      "GROUP_CONCAT_Unit_Address_address_id_01_geo_code_1",
+                      "IS NOT EMPTY"
+                    ],
+                    "entity": "",
+                    "action": "",
+                    "join": "",
+                    "target": ""
+                  }
+                ],
+                "type": "links"
+              }
+            ]
+          },
+          "acl_bypass": false
+        }
+      ],
+      "match": [
+        "name",
+        "saved_search_id"
+      ]
+    }
+  ],
+  [
+    "Afform",
+    "save",
+    {
+      "records": [
+        {
+          "name": "afsearchWorkAddresses",
+          "requires": [],
+          "title": "Work addresses",
+          "description": "",
+          "is_dashlet": false,
+          "is_public": false,
+          "is_token": false,
+          "permission": "access CiviCRM",
+          "type": "search",
+          "contact_summary": "block",
+          "server_route": "",
+          "layout": "<!--\n<div af-fieldset=\"\">\n  <crm-search-display-list search-name=\"Businesses_new_\" display-name=\"Businesses_new_List_1\" filters=\"{'Unit_UnitBusiness_unit_id_01.business_id': options.contact_id}\"></crm-search-display-list>\n</div>\n\n<div af-fieldset=\"\">\n  <crm-search-display-list search-name=\"Businesses_new_\" display-name=\"Businesses_new_List_1\" filters=\"{'Unit_UnitBusiness_unit_id_01.business_id': options.contact_id}\"></crm-search-display-list>\n</div>\n-->\n<div class=\"crm-summary-row afsearchWorkAddress\">\n  \n  <div class=\"crm-label\">\n    Work Address\n  </div>\n  <div class=\"crm-content\">\n    <div af-fieldset=\"\">\n      <crm-search-display-list search-name=\"Businesses_new_\" display-name=\"Businesses_new_List_1\" filters=\"{'Unit_UnitBusiness_unit_id_01.business_id': options.contact_id}\"></crm-search-display-list>\n<!--\n      <crm-search-display-list search-name=\"Businesses\" display-name=\"Businesses\" filters=\"{'UnitBusiness_Contact_business_id_01.id': options.contact_id}\"/>\n-->\n    </div>\n  </div>\n\n</div>\n<script>\n  <![CDATA[\n  jQuery(document).ready(function ($) {\n    if ($('.crm-contact_type_label').text().indexOf('Member (Business)') != -1) {\n      $('.crm-address-block').hide();\n    }\n    else {\n      $('.afsearchWorkAddress').hide();\n    }\n  });\n]]>\n</script>\n",
+          "entity_type": null,
+          "join_entity": null,
+          "redirect": null,
+          "create_submission": null
+        }
+      ]
+    }
+  ]
+]

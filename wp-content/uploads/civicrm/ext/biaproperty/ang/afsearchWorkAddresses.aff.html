@@ -1,0 +1,22 @@
+<div class="crm-summary-row afsearchWorkAddress">
+  <div class="crm-label">
+    Work Address
+  </div>
+  <div class="crm-content">
+    <div af-fieldset="">
+      <crm-search-display-list search-name="Businesses_new_" display-name="Businesses_new_List_1" filters="{'Unit_UnitBusiness_unit_id_01.business_id': options.contact_id}"></crm-search-display-list>
+    </div>
+  </div>
+</div>
+<script>
+  <![CDATA[
+  jQuery(document).ready(function ($) {
+    if ($('.crm-contact_type_label').text().indexOf('Member (Business)') != -1) {
+      $('.crm-address-block').hide();
+    }
+    else {
+      $('.afsearchWorkAddress').hide();
+    }
+  });
+]]>
+</script>
