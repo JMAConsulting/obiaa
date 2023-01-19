@@ -86,7 +86,7 @@ function biaproperty_civicrm_pre($op, $objectName, $id, &$params) {
       ->addSelect('contact_sub_type:label', 'contact_sub_type:name')
       ->addWhere('id', '=', $cid)
       ->execute()->first()['contact_sub_type:label'] ?? [];
-    if ($op == 'create' && in_array('BIA Staff' , $contactSubType) && $params['contact_sub_type'] != 'OBIAA_Staff') {
+    if ($op == 'create' && in_array('BIA Staff' , $contactSubType) && $params['contact_sub_type'] == 'OBIAA_Staff') {
        CRM_Core_Error::statusBounce(ts('You do not have permission to create BIA contact.'));
     }
   }
