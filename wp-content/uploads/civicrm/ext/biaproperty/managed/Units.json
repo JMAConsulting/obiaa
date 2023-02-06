@@ -1,0 +1,168 @@
+[
+  {
+    "name": "SavedSearch_Units",
+    "entity": "SavedSearch",
+    "cleanup": "unused",
+    "update": "unmodified",
+    "params": {
+      "version": 4,
+      "values": {
+        "name": "Units",
+        "label": "Units",
+        "form_values": null,
+        "mapping_id": null,
+        "search_custom_id": null,
+        "api_entity": "Unit",
+        "api_params": {
+          "version": 4,
+          "select": [
+            "GROUP_CONCAT(DISTINCT Unit_Address_address_id_01.street_unit) AS GROUP_CONCAT_Unit_Address_address_id_01_street_unit",
+            "GROUP_CONCAT(DISTINCT Unit_UnitBusiness_unit_id_01.business_id.display_name) AS GROUP_CONCAT_Unit_UnitBusiness_unit_id_01_business_id_display_name",
+            "COALESCE(Unit_UnitBusiness_unit_id_01_UnitBusiness_Contact_business_id_01.id, Unit_UnitBusiness_unit_id_01_UnitBusiness_Contact_business_id_01.id, \"0\") AS COALESCE_Unit_UnitBusiness_unit_id_01_UnitBusiness_Contact_business_id_01_id_Unit_UnitBusiness_unit_id_01_UnitBusiness_Contact_business_id_01_id",
+            "unit_status:label"
+          ],
+          "orderBy": [],
+          "where": [],
+          "groupBy": [
+            "Unit_UnitBusiness_unit_id_01_UnitBusiness_Contact_business_id_01.id",
+            "id"
+          ],
+          "join": [
+            [
+              "UnitBusiness AS Unit_UnitBusiness_unit_id_01",
+              "LEFT",
+              [
+                "id",
+                "=",
+                "Unit_UnitBusiness_unit_id_01.unit_id"
+              ]
+            ],
+            [
+              "Contact AS Unit_UnitBusiness_unit_id_01_UnitBusiness_Contact_business_id_01",
+              "LEFT",
+              [
+                "Unit_UnitBusiness_unit_id_01.business_id",
+                "=",
+                "Unit_UnitBusiness_unit_id_01_UnitBusiness_Contact_business_id_01.id"
+              ]
+            ],
+            [
+              "Address AS Unit_Address_address_id_01",
+              "LEFT",
+              [
+                "address_id",
+                "=",
+                "Unit_Address_address_id_01.id"
+              ]
+            ],
+            [
+              "Property AS Unit_Property_property_id_01",
+              "LEFT",
+              [
+                "property_id",
+                "=",
+                "Unit_Property_property_id_01.id"
+              ]
+            ]
+          ],
+          "having": []
+        },
+        "expires_date": null,
+        "description": null
+      }
+    }
+  },
+  {
+    "name": "SavedSearch_Units_SearchDisplay_Units_Table_1_1",
+    "entity": "SearchDisplay",
+    "cleanup": "unused",
+    "update": "unmodified",
+    "params": {
+      "version": 4,
+      "values": {
+        "name": "Units_Table_1_1",
+        "label": "Units",
+        "saved_search_id.name": "Units",
+        "type": "table",
+        "settings": {
+          "actions": false,
+          "limit": 50,
+          "classes": [
+            "table",
+            "table-striped"
+          ],
+          "pager": {
+            "show_count": true,
+            "expose_limit": true
+          },
+          "sort": [
+            [
+              "Unit_Address_address_id_01.street_unit",
+              "ASC"
+            ]
+          ],
+          "columns": [
+            {
+              "type": "field",
+              "key": "GROUP_CONCAT_Unit_Address_address_id_01_street_unit",
+              "dataType": "String",
+              "label": "Unit #",
+              "sortable": true,
+              "link": {
+                "path": "civicrm/unit/form?reset=1&context=propertyView&action=update&pid=[property_id]&id=[id]",
+                "entity": "",
+                "action": "",
+                "join": "",
+                "target": ""
+              },
+              "title": "Edit Unit",
+              "rewrite": "[GROUP_CONCAT_Unit_Address_address_id_01_street_unit] - [Unit_Address_address_id_01.street_address]",
+              "empty_value": "[Unit_Address_address_id_01.street_address]"
+            },
+            {
+              "type": "field",
+              "key": "GROUP_CONCAT_Unit_UnitBusiness_unit_id_01_business_id_display_name",
+              "dataType": "String",
+              "label": "Business",
+              "sortable": true,
+              "link": {
+                "path": "civicrm/add-business?uid=[id]&status=[unit_status]&bid=[COALESCE_Unit_UnitBusiness_unit_id_01_UnitBusiness_Contact_business_id_01_id_Unit_UnitBusiness_unit_id_01_UnitBusiness_Contact_business_id_01_id]",
+                "entity": "",
+                "action": "",
+                "join": "",
+                "target": ""
+              },
+              "rewrite": "",
+              "empty_value": "[unit_status:label]",
+              "title": "View Business"
+            },
+            {
+              "size": "btn-sm",
+              "links": [
+                {
+                  "path": "civicrm/unit/form?action=delete&id=[id]&pid=[property_id]",
+                  "icon": "fa-trash",
+                  "text": "Delete",
+                  "style": "danger",
+                  "condition": [
+                    "unit_status:label",
+                    "!=",
+                    "Occupied"
+                  ],
+                  "entity": "",
+                  "action": "",
+                  "join": "",
+                  "target": "crm-popup"
+                }
+              ],
+              "type": "buttons",
+              "alignment": "text-right"
+            }
+          ],
+          "placeholder": 5
+        },
+        "acl_bypass": false
+      }
+    }
+  }
+]

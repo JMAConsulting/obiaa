@@ -74,7 +74,7 @@
           var property_id = {/literal}{$propertyID}{literal};
           var unit_id = '{/literal}{$id}{literal}';
           unit_id = unit_id === '' ? 0 : unit_id;
-          var $form = $('form.{/literal}{$form.formClass}{literal}'); 
+          var $form = $('form.{/literal}{$form.formClass}{literal}');
 
           $('#_qf_Unit_upload-bottom').on('click', function(e) {
             if (unit_id > 0 && (parseInt($('#unit_status').val()) !== 1) && $('#business_id').val() != '') {
@@ -89,11 +89,11 @@
 
           function refreshUnitAddress(pid) {
             let params = $('#address_id').data('api-params');
-            if (typeof params.params === "undefined") {
-              params.params = {};
-            }
-            else if (params == null) {
+            if (params == null) {
               params = {params: {}};
+            }
+            else if (typeof params.params === "undefined") {
+              params.params = {};
             }
             params.params.property_id = pid;
             $('#address_id').attr('data-api-params', JSON.stringify(params)).data('api-params', params).trigger('change');

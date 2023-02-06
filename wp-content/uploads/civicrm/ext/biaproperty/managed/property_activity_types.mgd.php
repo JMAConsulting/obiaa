@@ -96,4 +96,21 @@ return [
       ],
     ],
   ],
+  [
+    "name" => "OptionValue_Changed Contact Details",
+    "entity" => "OptionValue",
+    "cleanup" => "unused",
+    "update" => "unmodified",
+    "params" => [
+      "version" => 4,
+      "values" => [
+        "option_group_id.name" => "activity_type",
+        "label" => "Contact Details Changed in Sync",
+        "value" => "88",
+        "name" => "changed_contact_details",
+        "weight" => "89",
+        "is_active" => TRUE,
+      ],
+    ],
+  ],
 ];

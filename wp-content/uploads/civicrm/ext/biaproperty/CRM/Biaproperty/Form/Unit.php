@@ -183,9 +183,8 @@ class CRM_Biaproperty_Form_Unit extends CRM_Core_Form {
         // if we are only creating new unit, then set status to 'Vacant (available for rent)'
         if ($element == 'unit_status' && ($this->_bid === 0 || empty($this->_id))) {
           $this->setDefaults(['unit_status' => 2]);
-          if ($this->_bid > 0) {$ele->freeze();}
+          $ele->freeze();
         }
-        elseif (empty($this->_id) && $element == 'unit_status') {$ele->freeze();}
       }
 
       if (!empty($this->_unit['file.uri'])) {

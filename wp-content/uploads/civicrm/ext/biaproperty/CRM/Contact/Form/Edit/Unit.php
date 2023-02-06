@@ -44,6 +44,7 @@ class CRM_Contact_Form_Edit_Unit {
                   CRM.utils.setOptions(\$target, vals || [], (vals && vals.length ? data.selectPrompt : data.nonePrompt));
                   if (vals.length) {
                     \$target.val(vals[vals.length - 1].key);
+                    \$target.trigger('change');
                   }
                });
          });
