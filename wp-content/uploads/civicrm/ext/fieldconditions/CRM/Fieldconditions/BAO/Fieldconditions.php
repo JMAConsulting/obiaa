@@ -229,7 +229,7 @@ class CRM_Fieldconditions_BAO_Fieldconditions {
 
     if (!empty($keys)) {
       if (self::getFieldPropertyFromSettings($settings, 'column_name', $keys[0], 'serialize')) {
-        $sql = 'SELECT DISTINCT(' . $keys[0] . ') FROM ' . $table . ' vf ORDER BY vf.id ASC';
+        $sql = 'SELECT DISTINCT(' . $keys[0] . '), vf.id FROM ' . $table . ' vf ORDER BY vf.id ASC';
         $dao = CRM_Core_DAO::executeQuery($sql);
 
         while ($dao->fetch()) {
