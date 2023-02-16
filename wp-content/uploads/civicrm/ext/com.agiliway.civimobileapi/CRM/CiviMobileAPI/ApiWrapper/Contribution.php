@@ -221,7 +221,7 @@ class CRM_CiviMobileAPI_ApiWrapper_Contribution implements API_Wrapper {
    */
   public function getIdsByCurrency($currency) {
     $table = CRM_Contribute_DAO_Contribution::getTableName();
-    $sql =  "SELECT id as contribution_id FROM $table WHERE currency = %1";
+    $sql =  "SELECT id as contribution_id FROM $table WHERE currency = %1"; 
     $params = [
       1 => [$currency, 'String']
     ];

@@ -15,7 +15,7 @@ class CRM_CiviMobileAPI_Utils_CustomGroup {
       }
     }
   }
-
+  
   /**
    * Deletes custom group
    *

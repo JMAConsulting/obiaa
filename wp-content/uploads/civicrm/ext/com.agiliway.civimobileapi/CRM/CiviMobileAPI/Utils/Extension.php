@@ -153,7 +153,8 @@ class CRM_CiviMobileAPI_Utils_Extension {
   public static function isAllowCmsRegistration() {
     $config = CRM_Core_Config::singleton();
 
-    return (bool) $config->userSystem->isUserRegistrationPermitted() ? 1 : 0;
+    return (int)($config->userSystem->isUserRegistrationPermitted()
+      && Civi::settings()->get('civimobile_is_allow_registration'));
   }
 
   /**

@@ -27,7 +27,7 @@ class CRM_CiviMobileAPI_Form_Venue extends CRM_Core_Form {
 
     if (in_array($this->getAction(), [CRM_Core_Action::ADD, CRM_Core_Action::UPDATE, CRM_Core_Action::DELETE])
       && !CRM_CiviMobileAPI_Utils_Permission::isEnoughPermissionForCreateEventVenues()) {
-      CRM_Core_Error::statusBounce('You do not have all the permissions needed for this page.', '', E::ts('Permission Denied'));
+      CRM_Core_Error::statusBounce(E::ts('You do not have all the permissions needed for this page.'), '', E::ts('Permission Denied'));
     }
 
     $this->location_id = CRM_Utils_Request::retrieve('location_id', 'Positive');
@@ -72,7 +72,7 @@ class CRM_CiviMobileAPI_Form_Venue extends CRM_Core_Form {
    */
   public function buildQuickForm() {
     parent::buildQuickForm();
-    $cancelButtonTittle = 'Cancel';
+    $cancelButtonTittle = E::ts('Cancel');
 
     $this->add('hidden', 'location_id', $this->location_id);
     $this->add('hidden', 'id', $this->id);
@@ -83,19 +83,19 @@ class CRM_CiviMobileAPI_Form_Venue extends CRM_Core_Form {
 
     $buttons = [];
     $isActive = [
-      1 => 'Yes',
-      0 => 'No',
+      1 => E::ts('Yes'),
+      0 => E::ts('No'),
     ];
 
     if ($this->getAction() == CRM_Core_Action::VIEW) {
-      $this->setTitle('View venue');
-      $cancelButtonTittle = 'Done';
+      $this->setTitle(E::ts('View venue'));
+      $cancelButtonTittle = E::ts('Done');
     }
     if ($this->getAction() == CRM_Core_Action::UPDATE) {
-      $this->setTitle('Edit venue');
+      $this->setTitle(E::ts('Edit venue'));
     }
     if ($this->getAction() == CRM_Core_Action::ADD) {
-      $this->setTitle('Add venue');
+      $this->setTitle(E::ts('Add venue'));
     }
 
     if ($this->getAction() == CRM_Core_Action::ADD
@@ -152,13 +152,13 @@ class CRM_CiviMobileAPI_Form_Venue extends CRM_Core_Form {
 
         $this->assign('venue', $venue);
       } catch (Exception $e) {
-        CRM_Core_Error::statusBounce('Invalid venueId parameter.', E::ts('Venue Not Found'));
+        CRM_Core_Error::statusBounce(E::ts('Invalid venueId parameter.'), E::ts('Venue Not Found'));
       }
     }
 
     $buttons[] = [
       'type' => 'cancel',
-      'name' => E::ts($cancelButtonTittle),
+      'name' => $cancelButtonTittle,
       'class' => 'cancel',
       'js' => ['onclick' => "
          if( CRM.$('.ui-dialog').length ) {
