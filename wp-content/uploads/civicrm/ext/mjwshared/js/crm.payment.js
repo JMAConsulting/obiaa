@@ -319,7 +319,7 @@
     isAJAXPaymentForm: function(url) {
       // /civicrm/payment/form? occurs when a payproc is selected on page
       // /civicrm/contact/view/participant occurs when payproc is first loaded on event credit card payment
-      // On wordpress these are urlencoded
+      // On WordPress these are urlencoded
       var patterns = [
         "(\/|%2F)payment(\/|%2F)form",
         "(\/|\%2F)contact(\/|\%2F)view(\/|\%2F)participant",
@@ -327,7 +327,7 @@
         "(\/|\%2F)contact(\/|\%2F)view(\/|\%2F)contribution"
       ];
 
-      if (CRM.config.isFrontend && CRM.vars.payment.basePage !== 'civicrm') {
+      if (CRM.config.isFrontend && CRM.vars.payment && CRM.vars.payment.basePage !== 'civicrm') {
         for (const pattern of patterns) {
           if (url.match(CRM.vars.payment.basePage + pattern) !== null) {
             return true;

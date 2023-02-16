@@ -117,11 +117,11 @@
               {$form.civimobile_is_allow_public_info_api.html}
             </div>
             <div id="itemsToShowMessage" class="status">
-              Public Area will show pages:
+                {ts domain=com.agiliway.civimobileapi}Public Area will show pages:{/ts}
               <span class="itemsToShow"></span>
             </div>
             <div>
-              <span class="description spec-event-note" style="display: none;"><span class="crm-marker">*</span>Note that the all required permissions for Anonymous user should be enabled.</span>
+              <span class="description spec-event-note" style="display: none;"><span class="crm-marker">*</span>{ts domain=com.agiliway.civimobileapi}Note that the all required permissions for Anonymous user should be enabled.{/ts}</span>
             </div>
           </div>
         </td>
@@ -140,6 +140,19 @@
 
         </td>
       </tr>
+
+      {if $form.civimobile_is_allow_registration}
+        <tr class="crm-group-form-block-isReserved">
+          <td class="label">{$form.civimobile_is_allow_registration.label}</td>
+          <td>
+
+            <div>
+                {$form.civimobile_is_allow_registration.html}
+            </div>
+
+          </td>
+        </tr>
+      {/if}
 
       </tbody>
     </table>

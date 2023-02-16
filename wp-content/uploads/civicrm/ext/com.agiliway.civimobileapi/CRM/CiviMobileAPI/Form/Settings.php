@@ -175,6 +175,10 @@ class CRM_CiviMobileAPI_Form_Settings extends CRM_Core_Form {
     $this->addElement('text', 'civimobile_firebase_key', E::ts('Firebase key'));
     $this->addElement('checkbox', 'civimobile_is_custom_app', E::ts('Do you have custom application?'));
     $this->addElement('text', 'civimobile_push_notification_lifetime', E::ts('Life time for push notification messages'));
+    
+    if (CRM_Core_Config::singleton()->userSystem->isUserRegistrationPermitted()) {
+      $this->addElement('checkbox', 'civimobile_is_allow_registration', E::ts('Allow registration'));
+    }
 
     $buttons = [
       [
@@ -251,6 +255,9 @@ class CRM_CiviMobileAPI_Form_Settings extends CRM_Core_Form {
       if (!isset($params['civimobile_push_notification_lifetime'])) {
         $params['civimobile_push_notification_lifetime'] = CRM_CiviMobileAPI_BAO_PushNotificationMessages::LIFE_TIME_IN_DAYS;
       }
+      if (!isset($params['civimobile_is_allow_registration'])) {
+        $params['civimobile_is_allow_registration'] = 0;
+      }
 
       Civi::settings()->set('civimobile_is_custom_app', $params['civimobile_is_custom_app']);
       Civi::settings()->set('civimobile_firebase_key', $params['civimobile_firebase_key']);
@@ -261,6 +268,8 @@ class CRM_CiviMobileAPI_Form_Settings extends CRM_Core_Form {
       Civi::settings()->set('civimobile_is_showed_news', $params['civimobile_is_showed_news']);
       Civi::settings()->set('civimobile_news_rss_feed_url', $params['civimobile_news_rss_feed_url']);
       Civi::settings()->set("civimobile_push_notification_lifetime", $params['civimobile_push_notification_lifetime']);
+      Civi::settings()->set("civimobile_is_allow_registration", $params['civimobile_is_allow_registration']);
+      
       CRM_Core_Session::singleton()->setStatus(E::ts('CiviMobile settings updated'), E::ts('CiviMobile Settings'), 'success');
     }
   }
@@ -284,6 +293,7 @@ class CRM_CiviMobileAPI_Form_Settings extends CRM_Core_Form {
     $defaults['civimobile_is_custom_app'] = CRM_CiviMobileAPI_Utils_Extension::isCustomApp();
     $defaults['civimobile_push_notification_lifetime'] = isset($pushNotificationLifetime)
       ? (int) $pushNotificationLifetime : CRM_CiviMobileAPI_BAO_PushNotificationMessages::LIFE_TIME_IN_DAYS;
+    $defaults['civimobile_is_allow_registration'] = Civi::settings()->get('civimobile_is_allow_registration');
 
     return $defaults;
   }

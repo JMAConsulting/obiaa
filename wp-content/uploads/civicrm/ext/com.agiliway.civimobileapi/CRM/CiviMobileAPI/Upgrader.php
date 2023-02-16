@@ -256,6 +256,12 @@ class CRM_CiviMobileAPI_Upgrader extends CRM_CiviMobileAPI_Upgrader_Base {
 
     return TRUE;
   }
+  
+  public function upgrade_0027() {
+    Civi::settings()->set('civimobile_is_allow_registration', 1);
+    
+    return TRUE;
+  }
 
   /**
    * Installs scheduled job
@@ -279,6 +285,7 @@ class CRM_CiviMobileAPI_Upgrader extends CRM_CiviMobileAPI_Upgrader_Base {
     self::setDefaultMobileEventRegistration();
 
     Civi::settings()->set('civimobile_auto_update', 1);
+    Civi::settings()->set('civimobile_is_allow_registration', 1);
   }
 
   /**

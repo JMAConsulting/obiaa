@@ -38,5 +38,4 @@ class CRM_CiviMobileAPI_Install_Entity_ApplicationQrCode implements CRM_CiviMobi
     \PHPQRCode\QRcode::png($qrCodeContent, $path, 'L', 9, 3);
     CRM_Core_BAO_File::processAttachment($params, 'civimobile', 1);
   }
-
 }
