@@ -10,8 +10,8 @@ class CRM_CiviMobileAPI_Page_ManageVenues extends CRM_Core_Page {
   public function run() {
     $null = NULL;
     $isActive = [
-      1 => 'Yes',
-      0 => 'No',
+      1 => E::ts('Yes'),
+      0 => E::ts('No'),
     ];
 
     $location_id = CRM_Utils_Request::retrieve('location_id', 'Positive');

@@ -93,7 +93,7 @@
                  class="crm-option-edit-link medium-popup crm-hover-button" target="_blank"
                  title="{ts domain=com.agiliway.civimobileapi}New Speaker{/ts}"><i class="crm-i fa-plus-circle"></i></a>
               <br/>
-              <span class="description">If you can’t find the participant you want in the list, you can always create a new one by tapping "+".</span>
+              <span class="description">{ts domain=com.agiliway.civimobileapi}If you can’t find the participant you want in the list, you can always create a new one by tapping "+".{/ts}</span>
             </td>
           </tr>
           <tr>

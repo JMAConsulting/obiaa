@@ -37,7 +37,7 @@ class CRM_CiviMobileAPI_Form_Session extends CRM_Core_Form {
 
     if (in_array($this->getAction(), [CRM_Core_Action::ADD, CRM_Core_Action::UPDATE, CRM_Core_Action::DELETE])
       && !CRM_CiviMobileAPI_Utils_Permission::isEnoughPermissionForCreateEventSession()) {
-      CRM_Core_Error::statusBounce('You do not have all the permissions needed for this page.', '', E::ts('Permission Denied'));
+      CRM_Core_Error::statusBounce(E::ts('You do not have all the permissions needed for this page.'), '', E::ts('Permission Denied'));
     }
 
     $url = CRM_Utils_System::url('civicrm/event/manage');
@@ -50,10 +50,10 @@ class CRM_CiviMobileAPI_Form_Session extends CRM_Core_Form {
       try {
         $event = CRM_Event_BAO_Event::findById($eventId);
       } catch (Exception $e) {
-        CRM_Core_Error::statusBounce('Invalid eventId parameter.', $url, E::ts('Not Found'));
+        CRM_Core_Error::statusBounce(E::ts('Invalid eventId parameter.'), $url, E::ts('Not Found'));
       }
       $this->eventId = $event->id;
-      $this->setTitle($event->title . ' - Add Session');
+      $this->setTitle($event->title . E::ts(' - Add Session'));
     }
 
     if ($this->getAction() == CRM_Core_Action::UPDATE || $this->getAction() == CRM_Core_Action::DELETE || $this->getAction() == CRM_Core_Action::VIEW) {
@@ -66,12 +66,12 @@ class CRM_CiviMobileAPI_Form_Session extends CRM_Core_Form {
           'id' => $sessionId
         ]);
       } catch (Exception $e) {
-        CRM_Core_Error::statusBounce('Invalid sessionId parameter.', $url, E::ts('Not Found'));
+        CRM_Core_Error::statusBounce(E::ts('Invalid sessionId parameter.'), $url, E::ts('Not Found'));
       }
       try {
         $event = CRM_Event_BAO_Event::findById($session["event_id"]);
       } catch (Exception $e) {
-        CRM_Core_Error::statusBounce('Event does not exists.', $url, E::ts('Not Found'));
+        CRM_Core_Error::statusBounce(E::ts('Event does not exists.'), $url, E::ts('Not Found'));
       }
       $this->sessionId = $session["id"];
       $this->eventId = $event->id;
@@ -115,7 +115,7 @@ class CRM_CiviMobileAPI_Form_Session extends CRM_Core_Form {
       'reset' => '1',
       'id' => $this->eventId
     ]));
-    $cancelButtonName = 'Cancel';
+    $cancelButtonName = E::ts('Cancel');
 
     if ($this->getAction() == CRM_Core_Action::ADD) {
       $this->add('hidden', 'event_id', $this->eventId);
@@ -138,7 +138,7 @@ class CRM_CiviMobileAPI_Form_Session extends CRM_Core_Form {
       $this->add('datepicker', 'end_time', E::ts('End time'), [], TRUE, ['time' => TRUE, 'date' => FALSE]);
 
       $this->addEntityRef('speakers', E::ts('Speakers'), [
-        'placeholder' => '- select speakers -',
+        'placeholder' => E::ts('- select speakers -'),
         'multiple' => TRUE,
         'entity' => 'CiviMobileParticipant',
         'api' => [
@@ -149,7 +149,7 @@ class CRM_CiviMobileAPI_Form_Session extends CRM_Core_Form {
       ]);
 
       $this->addEntityRef('venue_id', E::ts('Venue'), [
-        'placeholder' => '- select venue -',
+        'placeholder' => E::ts('- select venue -'),
         'entity' => 'CiviMobileVenue',
         'api' => [
           'params' => ['location_id' => $this->locationId, 'is_active' => 1, 'options' => ['sort' => "weight asc"]]
@@ -190,12 +190,12 @@ class CRM_CiviMobileAPI_Form_Session extends CRM_Core_Form {
     }
 
     if ($this->getAction() == CRM_Core_Action::VIEW) {
-      $cancelButtonName = 'Done';
+      $cancelButtonName = E::ts('Done');
     }
 
     $buttons[] = [
       'type' => 'cancel',
-      'name' => E::ts($cancelButtonName),
+      'name' => $cancelButtonName,
       'js' => ['onclick' => "
          if( CRM.$('.ui-dialog').length ) {
            var active = 'a.crm-popup';
@@ -268,7 +268,7 @@ class CRM_CiviMobileAPI_Form_Session extends CRM_Core_Form {
           'id' => $this->sessionId
         ]);
       } catch (Exception $e) {
-        CRM_Core_Error::statusBounce('Invalid sessionId parameter.', $url, E::ts('Not Found'));
+        CRM_Core_Error::statusBounce(E::ts('Invalid sessionId parameter.'), $url, E::ts('Not Found'));
       }
 
       $defaults["title"] = $session["title"];

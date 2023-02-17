@@ -368,7 +368,7 @@ function civimobileapi_secret_validation() {
  */
 function is_mobile_request() {
   $null = NULL;
-
+  
   return CRM_Utils_Request::retrieve('civimobile', 'Int', $null, FALSE, FALSE, 'GET');
 }
 
@@ -413,7 +413,7 @@ function civimobileapi_civicrm_post($op, $objectName, $objectId, &$objectRef) {
   (new ActivityPushNotification($op, $objectName, $objectId, $objectRef))->handlePostHook();
   (new RelationshipPushNotification($op, $objectName, $objectId, $objectRef))->handlePostHook();
   (new ParticipantPushNotification($op, $objectName, $objectId, $objectRef))->handlePostHook();
-
+  
   /**
    * Rebuild venue after changing event location data.
    */
@@ -465,7 +465,7 @@ function civimobileapi_civicrm_postProcess($formName, &$form) {
   if ($formName == 'CRM_Case_Form_Activity' && $action == 'delete') {
     $objectId = (isset($form->_caseId[0])) ? $form->_caseId[0] : null;
   }
-
+  
   if ($formName == 'CRM_Event_Form_Participant' && $action == 'create') {
     setcookie("civimobile_speaker_id", $form->_id, 0, '/');
   }

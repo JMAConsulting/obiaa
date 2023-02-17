@@ -11,6 +11,10 @@ class CRM_CiviMobileAPI_Api_CiviMobileCmsRegistration_Create extends CRM_CiviMob
    * @throws api_Exception
    */
   public function getResult() {
+    if (!CRM_CiviMobileAPI_Utils_Extension::isAllowCmsRegistration()) {
+      throw new api_Exception("CiviCRM creating Contact is not allowed", 'creating_contact_error');
+    }
+    
     $transaction = new CRM_Core_Transaction();
     $currentCMS = CRM_CiviMobileAPI_Utils_CmsUser::getInstance()->getSystem();
 
