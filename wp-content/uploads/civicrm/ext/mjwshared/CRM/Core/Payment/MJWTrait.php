@@ -141,17 +141,6 @@ trait CRM_Core_Payment_MJWTrait {
   }
 
   /**
-   * Get the amount as a float
-   * @param array $params
-   *
-   * @return mixed
-   */
-  protected function getAmount($params = []) {
-    $params['amount'] = $params['amount'] ?? 0.0;
-    return filter_var($params['amount'], FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
-  }
-
-  /**
    * Get the recurring contribution ID from parameters
    *
    * @param \Civi\Payment\PropertyBag $propertyBag
