@@ -26,7 +26,7 @@
     if($('#page').length === 0) {
       $('body').attr('id', 'page');
     }
-
+    
   });
 </script>
 

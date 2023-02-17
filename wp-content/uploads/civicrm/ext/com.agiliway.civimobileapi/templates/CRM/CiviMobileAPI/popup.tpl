@@ -1,5 +1,5 @@
 <div class="qr_open_popup">
-  <button class="open_btn" id="open_btn">Open Qr Code</button>
+  <button class="open_btn" id="open_btn">{ts domain=com.agiliway.civimobileapi}Open Qr Code{/ts}</button>
 </div>
 
 <div id="civimobile-popup" class="civi-mobile-popup-wrap">
@@ -9,10 +9,10 @@
     <div class="civi-mobile-popup-body">
       <div class="civi-mobile-top">
         <img src="{$civimobile_logo}" alt="CiviMobile logo" class="civi-mobile-popup-logo">
-        <button class="civi-mobile-popup-more">MORE</button>
+        <button class="civi-mobile-popup-more">{ts domain=com.agiliway.civimobileapi}MORE{/ts}</button>
       </div>
       <div class="civi-mobile-popup-qr">
-        <p>Scan QR code for login into app</p>
+        <p>{ts domain=com.agiliway.civimobileapi}Scan QR code for login into app{/ts}</p>
         <img src="{$qr_code_link}" alt="qr-code">
       </div>
     </div>
@@ -26,7 +26,7 @@
           <a target="_blank" href="{$apple_link}"><img src="{$app_store_img}" alt="app-store"></a>
           <a target="_blank" href="{$google_link}"><img src="{$google_play_img}" alt="google-play"></a>
           <div class="civi-mobile-popup-qr">
-            <p>Scan QR code for login into app</p>
+            <p>{ts domain=com.agiliway.civimobileapi}Scan QR code for login into app{/ts}</p>
             <img src="{$qr_code_link}" alt="qr-code">
           </div>
         </div>

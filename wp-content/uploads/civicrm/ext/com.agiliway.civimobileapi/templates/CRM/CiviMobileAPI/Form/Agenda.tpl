@@ -39,7 +39,7 @@
             <td class="label"><label for="is_use_agenda">{ts domain=com.agiliway.civimobileapi}Show Event Agenda:{/ts}</label></td>
             <td>
               <input id="is_use_agenda" type="checkbox" {if $is_use_agenda}checked="checked"{/if}>
-              <span class="description">Event Agenda enabled?</span>
+              <span class="description">{ts domain=com.agiliway.civimobileapi}Event Agenda enabled?{/ts}</span>
               <br/><span class="description">{ts domain=com.agiliway.civimobileapi}You can fill the Agenda and when you finish it, just turn it on.{/ts}</span>
             </td>
           </tr>
@@ -80,7 +80,7 @@
                 {if $can_create_event_session}
                   <div style="width:100%;margin-bottom:10px;overflow:auto;">
                     <a href="{crmURL p='civicrm/civimobile/event/session' q="action=add&event_id=`$event_id`"}"
-                       class="button crm-popup event-session-popup"><span><i class="crm-i fa-plus-circle"></i> Add session</span></a>
+                       class="button crm-popup event-session-popup"><span><i class="crm-i fa-plus-circle"></i> {ts domain=com.agiliway.civimobileapi}Add session{/ts}</span></a>
                   </div>
                 {/if}
                 <div style="overflow:auto; width:100%;">

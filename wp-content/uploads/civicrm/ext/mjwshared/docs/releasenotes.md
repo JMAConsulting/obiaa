@@ -9,6 +9,11 @@ Releases use the following numbering system:
 
 * **[BC]**: Items marked with [BC] indicate a breaking change that will require updates to your code if you are using that code in your extension.
 
+## Release 1.2.11 (2023-01-30)
+
+* Remove our version of CRM_Core_Payment::getAmount() as it was merged into core in 5.37.
+* Fix undefined variable basePage on frontend formbuilder pages.
+
 ## Release 1.2.10 (2022-11-22)
 
 * Make sure calculateTaxAmount always returns a valid float.

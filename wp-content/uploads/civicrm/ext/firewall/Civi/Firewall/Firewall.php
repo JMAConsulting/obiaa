@@ -253,11 +253,7 @@ GROUP BY event_type
    */
   public static function getCSRFToken(array $context = []): string {
     $firewall = new Firewall();
-    $token = $firewall->generateCSRFToken();
-    if (!empty($context)) {
-      \CRM_Core_Session::singleton()->set('csrf.' . $token, $context, 'civi.firewall');
-    }
-    return $token;
+    return $firewall->generateCSRFToken($context);
   }
 
   /**
@@ -266,7 +262,7 @@ GROUP BY event_type
    * @return string
    * @throws \Exception
    */
-  public function generateCSRFToken(): string {
+  public function generateCSRFToken(array $context = []): string {
     $validTo = time() + ((int) \Civi::settings()->get('secure_cache_timeout_minutes') * 60);
     $random = bin2hex(random_bytes(12));
     $privateKey = CIVICRM_SITE_KEY;
@@ -277,6 +273,10 @@ GROUP BY event_type
 
     // This is the token that we send to the browser, that it must send back.
     $publicToken .= hash('sha256', $dataToHash);
+
+    if (!empty($context)) {
+      \CRM_Core_Session::singleton()->set('csrf.' . $publicToken, $context, 'civi.firewall');
+    }
     return $publicToken;
   }
 
