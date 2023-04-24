@@ -11,7 +11,8 @@ class CRM_Obiaareport_Form_Report_ObiaaUsageReport extends CRM_Report_Form {
 
   protected $_customGroupGroupBy = TRUE;
   public function __construct() {
-    $thid->_customGroupExtends = ['Contact', 'Individual', 'Organization'];
+    $this->_customGroupExtends = ['Contact', 'Individual', 'Organization'];
+    $this->optimisedForOnlyFullGroupBy = FALSE;
     $this->_columns = array(
       'civicrm_contact' => array(
         'dao' => 'CRM_Contact_DAO_Contact',
@@ -51,28 +52,45 @@ class CRM_Obiaareport_Form_Report_ObiaaUsageReport extends CRM_Report_Form {
   public function from() {
 
     $this->_from = "
-         FROM civicrm_value_synchronisati_26 {$this->_aliases['civicrm_value_synchronisati_26']} 
-         INNER JOIN civicrm_contact {$this->_aliases['civicrm_contact']} ON
-           {$this->_aliases['civicrm_contact']}.id = {$this->_aliases ['civicrm_value_synchronisati_26']}.entity_id {$this->_aclFrom}";
+	 FROM civicrm_value_synchronisati_26 {$this->_aliases['civicrm_value_synchronisati_26']}
+         INNER JOIN civicrm_contact {$this->_aliases['civicrm_contact']} ON {$this->_aliases['civicrm_contact']}.id = {$this->_aliases['civicrm_value_synchronisati_26']}.entity_id {$this->_aclFrom}";
 
 
   }
 
   /**
-   * Add field specific select alterations.
+   * Build the report query.
    *
-   * @param string $tableName
-   * @param string $tableKey
-   * @param string $fieldName
-   * @param array $field
+   * @param bool $applyLimit
    *
    * @return string
    */
-  public function selectClause(&$tableName, $tableKey, &$fieldName, &$field) {
-    if ($tableName === 'civicrm_value_synchronisati_26' && $fieldName === 'bia_contact_reference_102') {
-      return 'GROUP_CONCAT(DISTINCT SUBSTRING_INDEX(' . $this->_aliases['civicrm_value_synchronisati_26'] . '.bia_contact_reference_102, \'?\', 1))';
+  public function buildQuery($applyLimit = TRUE) {
+    $this->buildGroupTempTable();
+    $this->select();
+    $this->from();
+    $this->buildPermissionClause();
+    $this->where();
+    $this->groupBy();
+    $this->orderBy();
+
+    foreach ($this->unselectedOrderByColumns() as $alias => $field) {
+      $clause = $this->getSelectClauseWithGroupConcatIfNotGroupedBy($field['table_name'], $field['name'], $field);
+      if (!$clause) {
+        $clause = "{$field['dbAlias']} as {$alias}";
+      }
+      $this->_select .= ", $clause ";
     }
-    return parent::selectClause($tableName, $tableKey, $fieldName, $field);
+
+    if ($applyLimit && empty($this->_params['charts'])) {
+      $this->limit();
+    }
+    CRM_Utils_Hook::alterReportVar('sql', $this, $this);
+    $this->_select = str_replace('value_synchronisati_26_civireport.bia_contact_reference_102', 'GROUP_CONCAT(DISTINCT SUBSTRING_INDEX(value_synchronisati_26_civireport.bia_contact_reference_102, \'?\', 1))', $this->_select);
+    $sql = "{$this->_select} {$this->_from} {$this->_where} {$this->_groupBy} {$this->_having} {$this->_orderBy} {$this->_limit}";
+    $this->addToDeveloperTab($sql);
+    return $sql;
   }
+
 
 }
