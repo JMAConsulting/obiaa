@@ -18,11 +18,12 @@
   <version>1.0</version>
   <develStage>alpha</develStage>
   <compatibility>
-    <ver>5.0</ver>
+    <ver>5.27</ver>
   </compatibility>
   <comments>This is a new, undeveloped module</comments>
   <classloader>
     <psr4 prefix="Civi\" path="Civi"/>
+    <psr0 prefix="CRM_" path="."/>
   </classloader>
   <requires>
     <ext>biaproperty</ext>
@@ -30,7 +31,7 @@
   </requires>
   <civix>
     <namespace>CRM/Biaimport</namespace>
-    <format>22.05.2</format>
+    <format>23.02.1</format>
     <angularModule>crmBiaimport</angularModule>
   </civix>
   <mixins>
