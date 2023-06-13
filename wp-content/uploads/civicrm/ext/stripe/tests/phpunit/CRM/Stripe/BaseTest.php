@@ -66,10 +66,14 @@ abstract class CRM_Stripe_BaseTest extends \PHPUnit\Framework\TestCase implement
     if (!is_dir(__DIR__ . '/../../../../../mjwshared')) {
       civicrm_api3('Extension', 'download', ['key' => 'mjwshared']);
     }
+    if (!is_dir(__DIR__ . '/../../../../../firewall')) {
+      civicrm_api3('Extension', 'download', ['key' => 'firewall']);
+    }
 
     return \Civi\Test::headless()
       ->installMe(__DIR__)
       ->install('mjwshared')
+      ->install('firewall')
       ->apply($reInstall);
   }
 
@@ -127,8 +131,16 @@ abstract class CRM_Stripe_BaseTest extends \PHPUnit\Framework\TestCase implement
 
   /**
    * Submit to stripe
+   *
+   * @param array $params
+   *
+   * @return array The result from PaymentProcessor->doPayment
+   * @throws \CRM_Core_Exception
+   * @throws \CiviCRM_API3_Exception
+   * @throws \Civi\Payment\Exception\PaymentProcessorException
+   * @throws \Stripe\Exception\ApiErrorException
    */
-  public function doPayment($params = []) {
+  public function doPayment(array $params = []): array {
     // Send in credit card to get payment method. xxx mock here
     $paymentMethod = $this->paymentObject->stripeClient->paymentMethods->create([
       'type' => 'card',
@@ -143,6 +155,7 @@ abstract class CRM_Stripe_BaseTest extends \PHPUnit\Framework\TestCase implement
     $paymentIntentID = NULL;
     $paymentMethodID = NULL;
 
+    $firewall = new \Civi\Firewall\Firewall();
     if (!isset($params['is_recur'])) {
       // Send in payment method to get payment intent.
       $paymentIntentParams = [
@@ -151,6 +164,7 @@ abstract class CRM_Stripe_BaseTest extends \PHPUnit\Framework\TestCase implement
         'payment_processor_id' => $this->paymentProcessorID,
         'payment_intent_id' => $params['paymentIntentID'] ?? NULL,
         'description' => NULL,
+        'csrfToken' => $firewall->generateCSRFToken(),
       ];
       $result = civicrm_api3('StripePaymentintent', 'process', $paymentIntentParams);
 
@@ -204,6 +218,7 @@ abstract class CRM_Stripe_BaseTest extends \PHPUnit\Framework\TestCase implement
         $this->processorID = $dao->processor_id;
       }
     }
+    return $ret;
   }
 
   /**
@@ -386,6 +401,10 @@ class PropertySpy implements ArrayAccess, Iterator, Countable, JsonSerializable 
 
   public function valid() {
     return array_key_exists(key($this->_props), $this->_props);
+  }
+
+  public function toArray() {
+    return $this->_props;
   }
 
   public function __construct($name, $props) {

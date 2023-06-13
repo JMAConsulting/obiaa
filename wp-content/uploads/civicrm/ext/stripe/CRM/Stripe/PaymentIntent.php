@@ -33,9 +33,9 @@ class CRM_Stripe_PaymentIntent {
   protected $referrer = '';
 
   /**
-   * @var array
+   * @var string
    */
-  protected $extraData = [];
+  protected $extraData = '';
 
   /**
    * @param \CRM_Core_Payment_Stripe $paymentProcessor
@@ -74,11 +74,11 @@ class CRM_Stripe_PaymentIntent {
   }
 
   /**
-   * @param array $extraData
+   * @param string $extraData
    *
    * @return void
    */
-  public function setExtraData($extraData) {
+  public function setExtraData(string $extraData) {
     $this->extraData = $extraData;
   }
 
@@ -199,7 +199,6 @@ class CRM_Stripe_PaymentIntent {
     }
 
     $intent = $stripe->stripeClient->paymentIntents->retrieve($params['id']);
-    $paymentIntent = self::get($params);
     $params['status'] = $intent->status;
     self::add($params);
   }
@@ -261,19 +260,25 @@ class CRM_Stripe_PaymentIntent {
     }
     $intentParams['usage'] = 'off_session';
 
+    // Get the client IP address
+    $ipAddress = (class_exists('\Civi\Firewall\Firewall')) ? (new \Civi\Firewall\Firewall())->getIPAddress() : $ipAddress = CRM_Utils_System::ipAddress();
+
     try {
       $intent = $this->paymentProcessor->stripeClient->setupIntents->create($intentParams);
+
     } catch (Exception $e) {
-      // Save the "error" in the paymentIntent table in in case investigation is required.
+      // Save the "error" in the paymentIntent table in case investigation is required.
       $stripePaymentintentParams = [
         'payment_processor_id' => $this->paymentProcessor->getID(),
         'status' => 'failed',
         'description' => "{$e->getRequestId()};{$e->getMessage()};{$this->description}",
         'referrer' => $this->referrer,
       ];
-      if (!empty($this->extraData)) {
-        $stripePaymentintentParams['extra_data'] = $this->extraData;
-      }
+      $extraData = (!empty($this->extraData)) ? explode(';', $this->extraData) : [];
+      $extraData[] = $ipAddress;
+      $extraData[] = $e->getMessage();
+      $stripePaymentintentParams['extra_data'] = implode(';', $extraData);
+
       CRM_Stripe_BAO_StripePaymentintent::create($stripePaymentintentParams);
       $resultObject->ok = FALSE;
       $resultObject->message = $e->getMessage();
@@ -288,9 +293,11 @@ class CRM_Stripe_PaymentIntent {
       'description' => $this->description,
       'referrer' => $this->referrer,
     ];
-    if (!empty($this->extraData)) {
-      $stripePaymentintentParams['extra_data'] = $this->extraData;
-    }
+
+    $extraData = (!empty($this->extraData)) ? explode(';', $this->extraData) : [];
+    $extraData[] = $ipAddress;
+    $stripePaymentintentParams['extra_data'] = implode(';', $extraData);
+
     CRM_Stripe_BAO_StripePaymentintent::create($stripePaymentintentParams);
 
     switch ($intent->status) {
@@ -334,7 +341,6 @@ class CRM_Stripe_PaymentIntent {
    *
    * @return object
    * @throws \CRM_Core_Exception
-   * @throws \CiviCRM_API3_Exception
    * @throws \Stripe\Exception\ApiErrorException
    */
   public function processIntent(array $params) {
@@ -392,12 +398,33 @@ class CRM_Stripe_PaymentIntent {
       // Either paymentIntentID or paymentMethodID must be set
       'paymentIntentID' => 'pi_xx',
       'paymentMethodID' => 'pm_xx',
+      'customer' => 'cus_xx', // required if paymentMethodID is set
       'capture' => TRUE/FALSE,
       'amount' => '12.05',
       'currency' => 'USD',
     ];
     */
     $resultObject = (object) ['ok' => FALSE, 'message' => '', 'data' => []];
+
+    if (class_exists('\Civi\Firewall\Event\FraudEvent')) {
+      if (!empty($this->extraData)) {
+        // The firewall will block IP addresses when it detects fraud.
+        // This additionally checks if the same details are being used on a different IP address.
+        $ipAddress = \Civi\Firewall\Firewall::getIPAddress();
+
+        // Where a payment is declined as likely fraud, log it as a more serious exception
+        $numberOfFailedAttempts = \Civi\Api4\StripePaymentintent::get(FALSE)
+          ->selectRowCount()
+          ->addWhere('extra_data', '=', $this->extraData)
+          ->addWhere('status', '=', 'failed')
+          ->addWhere('created_date', '>', '-2 hours')
+          ->execute()
+          ->count();
+        if ($numberOfFailedAttempts > 5) {
+          \Civi\Firewall\Event\FraudEvent::trigger($ipAddress, CRM_Utils_String::ellipsify('StripeProcessPaymentIntent: ' . $this->extraData, 255));
+        }
+      }
+    }
 
     $intentParams = [];
     $intentParams['confirm'] = TRUE;
@@ -407,14 +434,19 @@ class CRM_Stripe_PaymentIntent {
       $intentParams['confirmation_method'] = 'automatic';
     }
 
-    if ($params['paymentIntentID']) {
-      // We already have a PaymentIntent, retrieve and attempt confirm.
-      $intent = $this->paymentProcessor->stripeClient->paymentIntents->retrieve($params['paymentIntentID']);
-      if ($intent->status === 'requires_confirmation') {
-        $intent->confirm();
+    if (!empty($params['paymentIntentID'])) {
+      try {
+        // We already have a PaymentIntent, retrieve and attempt to confirm.
+        $intent = $this->paymentProcessor->stripeClient->paymentIntents->retrieve($params['paymentIntentID']);
+        if ($intent->status === 'requires_confirmation') {
+          $intent->confirm();
+        }
+        if ($params['capture'] && $intent->status === 'requires_capture') {
+          $intent->capture();
+        }
       }
-      if ($params['capture'] && $intent->status === 'requires_capture') {
-        $intent->capture();
+      catch (Exception $e) {
+        \Civi::log()->debug(get_class($e) . $e->getMessage());
       }
     }
     else {
@@ -430,35 +462,85 @@ class CRM_Stripe_PaymentIntent {
         $intentParams['capture_method'] = 'manual';
         // Setup the card to be saved and used later
         $intentParams['setup_future_usage'] = 'off_session';
-        if ($params['paymentMethodID']) {
+        if (isset($params['paymentMethodID'])) {
           $intentParams['payment_method'] = $params['paymentMethodID'];
         }
+        if (isset($params['customer'])) {
+          $intentParams['customer'] = $params['customer'];
+        }
         $intent = $this->paymentProcessor->stripeClient->paymentIntents->create($intentParams);
-      } catch (Exception $e) {
-        // Save the "error" in the paymentIntent table in in case investigation is required.
+      }
+      catch (Exception $e) {
+        $parsedError = $this->paymentProcessor::parseStripeException('process_paymentintent', $e);
+        // Save the "error" in the paymentIntent table in case investigation is required.
         $stripePaymentintentParams = [
           'payment_processor_id' => $this->paymentProcessor->getID(),
           'status' => 'failed',
           'description' => "{$e->getRequestId()};{$e->getMessage()};{$this->description}",
           'referrer' => $this->referrer,
         ];
-        if (!empty($this->extraData)) {
-          $stripePaymentintentParams['extra_data'] = $this->extraData;
-        }
+
+        // Get the client IP address
+        $ipAddress = (class_exists('\Civi\Firewall\Firewall')) ? (new \Civi\Firewall\Firewall())->getIPAddress() : $ipAddress = CRM_Utils_System::ipAddress();
+
+        $extraData = (!empty($this->extraData)) ? explode(';', $this->extraData) : [];
+        $extraData[] = $ipAddress;
+        $extraData[] = $e->getMessage();
+        $stripePaymentintentParams['extra_data'] = implode(';', $extraData);
+
         CRM_Stripe_BAO_StripePaymentintent::create($stripePaymentintentParams);
 
         if ($e instanceof \Stripe\Exception\CardException) {
-          if (($e->getDeclineCode() === 'fraudulent') && class_exists('\Civi\Firewall\Event\FraudEvent')) {
-            \Civi\Firewall\Event\FraudEvent::trigger(\CRM_Utils_System::ipAddress(), 'CRM_Stripe_AJAX::confirmPayment');
+
+          $fraud = FALSE;
+
+          if (method_exists('\Civi\Firewall\Firewall', 'getIPAddress')) {
+            $ipAddress = \Civi\Firewall\Firewall::getIPAddress();
           }
-          $message = $e->getMessage();
+          else {
+            $ipAddress = \CRM_Utils_System::ipAddress();
+          }
+
+          // Where a payment is declined as likely fraud, log it as a more serious exception
+          if (class_exists('\Civi\Firewall\Event\FraudEvent')) {
+
+            // Fraud response from issuer
+            if ($e->getDeclineCode() === 'fraudulent') {
+              $fraud = TRUE;
+            }
+
+            // Look for fraud detected by Stripe Radar
+            else {
+              $jsonBody = $e->getJsonBody();
+              if (!empty($jsonBody['error']['payment_intent']['charges']['data'])) {
+                foreach ($jsonBody['error']['payment_intent']['charges']['data'] as $charge) {
+                  if ($charge['outcome']['type'] === 'blocked') {
+                    $fraud = TRUE;
+                    break;
+                  }
+                }
+              }
+            }
+
+            if ($fraud) {
+              \Civi\Firewall\Event\FraudEvent::trigger($ipAddress, 'CRM_Stripe_PaymentIntent::processPaymentIntent');
+            }
+
+          }
+
+          // Multiple declined card attempts is an indicator of card testing
+          if (!$fraud && class_exists('\Civi\Firewall\Event\DeclinedCardEvent')) {
+            \Civi\Firewall\Event\DeclinedCardEvent::trigger($ipAddress, 'CRM_Stripe_PaymentIntent::processPaymentIntent');
+          }
+
+          // Returned message should not indicate whether fraud was detected
+          $message = $parsedError['message'];
         }
         elseif ($e instanceof \Stripe\Exception\InvalidRequestException) {
-          \Civi::log('stripe')->error('processPaymentIntent: ' . $e->getMessage());
-          $message = 'Invalid request';
+          $message = $parsedError['message'];
         }
         $resultObject->ok = FALSE;
-        $resultObject->message = $message;
+        $resultObject->message = $message ?? 'Unknown error';
         return $resultObject;
       }
     }

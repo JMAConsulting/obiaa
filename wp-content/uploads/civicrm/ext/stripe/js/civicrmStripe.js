@@ -25,7 +25,7 @@
      * @param {string} objectType
      * @param {string} objectID
      */
-    successHandler: function(objectType, objectID) {
+    async successHandler(objectType, objectID) {
       script.debugging(objectType + ': success - submitting form');
 
       // Insert the token ID into the form so it gets submitted to the server
@@ -37,8 +37,20 @@
 
       CRM.payment.resetBillingFieldsRequiredForJQueryValidate();
 
+      if (script.getReCAPTCHAToken()) {
+        let recaptcha = await script.reloadReCAPTCHA();
+
+        // Insert the token ID into the form so it gets submitted to the server
+        var hiddenInput2 = document.createElement('input');
+        hiddenInput2.setAttribute('type', 'hidden');
+        hiddenInput2.setAttribute('name', 'captcha');
+        hiddenInput2.setAttribute('value', script.getReCAPTCHAToken());
+        CRM.payment.form.appendChild(hiddenInput2);
+      }
+
       // Submit the form
       CRM.payment.form.submit();
+
     },
 
     /**
@@ -99,6 +111,28 @@
     },
 
     /**
+     * Get the ReCAPTCHA token if available (function currently only implemented by formprotection)
+     *
+     * @returns {*|string}
+     */
+    getReCAPTCHAToken: function() {
+      return (typeof getReCAPTCHAToken === 'function') ? getReCAPTCHAToken() : '';
+    },
+
+    /**
+     * Wrapper for formprotection reloadReCAPTCHA function
+     */
+    /**
+     *
+     * @returns {promise}
+     */
+    reloadReCAPTCHA: function() {
+      if (typeof reloadReCAPTCHA === 'function') {
+        return reloadReCAPTCHA();
+      }
+    },
+
+    /**
      * Handle the "Card" submission to Stripe
      *
      * @param submitEvent
@@ -129,7 +163,8 @@
               paymentProcessorID: CRM.vars[script.name].id,
               description: document.title,
               csrfToken: CRM.vars[script.name].csrfToken,
-              extraData: CRM.payment.getBillingEmail() + CRM.payment.getBillingName()
+              extraData: CRM.payment.getBillingEmail() + CRM.payment.getBillingName(),
+              captcha: script.getReCAPTCHAToken()
             });
             CRM.payment.swalClose();
             CRM.payment.debugging(script.name, 'StripePaymentintent.Process done (setupIntent)');
@@ -169,10 +204,6 @@
           }, '', false);
 
           try {
-            let processMode = 'Public';
-            if (CRM.vars.stripe.moto && document.getElementById('enableMOTO').checked) {
-              processMode = 'MOTO';
-            }
             let processParams = {
               // payment_method_id: createPaymentMethodResult.paymentMethod.id,
               paymentMethodID: createPaymentMethodResult.paymentMethod.id,
@@ -180,10 +211,16 @@
               currency: CRM.payment.getCurrency(CRM.vars[script.name].currency),
               paymentProcessorID: CRM.vars[script.name].id,
               description: document.title,
-              extraData: CRM.payment.getBillingEmail() + CRM.payment.getBillingName()
+              extraData: CRM.payment.getBillingEmail() + CRM.payment.getBillingName(),
             };
-            if (processMode !== 'MOTO') {
+
+            let processMode = 'Public';
+            if (CRM.vars.stripe.moto && document.getElementById('enableMOTO').checked) {
+              processMode = 'MOTO';
+            }
+            else {
               processParams.csrfToken = CRM.vars[script.name].csrfToken;
+              processParams.captcha = script.getReCAPTCHAToken();
             }
 
             let paymentIntentProcessResponse = await CRM.api4('StripePaymentintent', 'Process' + processMode, processParams);
@@ -196,6 +233,7 @@
               if (cardActionResult.error) {
                 // Show error in payment form
                 CRM.payment.displayError(cardActionResult.error.message, true);
+                script.reloadReCAPTCHA();
               }
               else {
                 // The card action has been handled
@@ -238,11 +276,13 @@
         currency: CRM.payment.getCurrency(CRM.vars[script.name].currency),
         payment_processor_id: CRM.vars[script.name].id,
         description: document.title,
-        csrfToken: CRM.vars[script.name].csrfToken
+        csrfToken: CRM.vars[script.name].csrfToken,
+        captcha: script.getReCAPTCHAToken()
       })
         .done(function (paymentIntentProcessResponse) {
           CRM.payment.swalClose();
           script.debugging('StripePaymentintent.Process done');
+
           if (paymentIntentProcessResponse.is_error) {
             // Triggered for api3_create_error or Exception
             CRM.payment.displayError(paymentIntentProcessResponse.error_message, true);
@@ -285,6 +325,7 @@
           }
       }
       CRM.payment.displayError(error, true);
+      script.reloadReCAPTCHA();
       return true;
     },
 
@@ -296,6 +337,7 @@
       script.destroyPaymentElements();
       delete (CRM.vars[script.name]);
       $(CRM.payment.getBillingSubmit()).show();
+      CRM.payment.resetBillingFieldsRequiredForJQueryValidate();
     },
 
     /**
@@ -303,7 +345,7 @@
      */
     checkAndLoad: function() {
       if (typeof CRM.vars[script.name] === 'undefined') {
-        script.debugging('CRM.vars' + script.name + ' not defined!');
+        script.debugging('CRM.vars.' + script.name + ' not defined!');
         return;
       }
 
@@ -618,6 +660,15 @@
       var style = {
         base: {
           fontSize: '1.1em', fontWeight: 'lighter'
+        },
+
+        invalid: {
+          "::placeholder": {
+            color: "#E25950",
+            fontWeight: '500',
+          },
+          color: "#E25950",
+          fontWeight: '500',
         }
       };
 
@@ -639,13 +690,7 @@
 
       if (postCodeElement) {
         // Hide the CiviCRM postcode field so it will still be submitted but will contain the value set in the stripe card-element.
-        if (document.getElementById('billing_postal_code-5').value) {
-          document.getElementById('billing_postal_code-5')
-            .setAttribute('disabled', true);
-        }
-        else {
-          document.getElementsByClassName('billing_postal_code-' + CRM.vars[script.name].billingAddressID + '-section')[0].setAttribute('hidden', true);
-        }
+        postCodeElement.setAttribute('readonly', true);
       }
 
       // All containers start as display: none and are enabled on demand

@@ -11,6 +11,7 @@
 
 use Civi\Api4\ContributionRecur;
 use Civi\Api4\PaymentprocessorWebhook;
+use Civi\Payment\Exception\PaymentProcessorException;
 
 /**
  * Class CRM_Core_Payment_StripeIPN
@@ -23,6 +24,14 @@ class CRM_Core_Payment_StripeIPN {
    * @var \CRM_Core_Payment_Stripe Payment processor
    */
   protected $_paymentProcessor;
+
+  /**
+   * The data provided by the IPN
+   * Redeclared here to tighten up the var type
+   *
+   * @var \Stripe\StripeObject
+   */
+  protected $data;
 
   /**
    * The CiviCRM contact ID that maps to the Stripe customer
@@ -87,6 +96,17 @@ class CRM_Core_Payment_StripeIPN {
    * @var bool.
    */
   public $exceptionOnFailure = FALSE;
+
+  /**
+   * Redeclared here to tighten up the var type
+   * Can't define return because unit tests return PropertySpy
+   * Should be \Stripe\StripeObject|PropertySpy with PHP8.0+
+   *
+   * @return \Stripe\StripeObject
+   */
+  public function getData() {
+    return $this->data;
+  }
 
   public function __construct(?CRM_Core_Payment_Stripe $paymentObject = NULL) {
     if ($paymentObject !== NULL && !($paymentObject instanceof CRM_Core_Payment_Stripe)) {
@@ -154,19 +174,22 @@ class CRM_Core_Payment_StripeIPN {
   }
 
   /**
-   * Store input array on the class.
+   * Check, decode, validate webhook data and extract some parameters to the class.
    */
   public function setInputParameters() {
     if ($this->setInputParametersHasRun) {
       return;
     }
 
+    // If we don't have a webhook signing secret we need to retrieve the event again
+    // to make sure that it is "real" and was not faked.
     if ($this->getVerifyData()) {
       /** @var \Stripe\Event $event */
-      $event = $this->_paymentProcessor->stripeClient->events->retrieve($this->eventID);
+      $event = $this->getPaymentProcessor()->stripeClient->events->retrieve($this->eventID);
       $this->setData($event->data);
     }
 
+    // If we have a webhook signing secret data was already set on the class.
     $data = $this->getData();
     if (!is_object($data)) {
       $this->exception('Invalid input data (not an object)');
@@ -178,7 +201,7 @@ class CRM_Core_Payment_StripeIPN {
     //   and we need to make sure we don't process them at the same time or we can get deadlocks/race conditions
     //   that cause processing to fail.
     if (($data->object instanceof \Stripe\Charge) && !empty($data->object->invoice)) {
-      $data->object = $this->_paymentProcessor->stripeClient->charges->retrieve(
+      $data->object = $this->getPaymentProcessor()->stripeClient->charges->retrieve(
         $this->getData()->object->id,
         ['expand' => ['invoice']]
       );
@@ -235,7 +258,7 @@ class CRM_Core_Payment_StripeIPN {
    * @throws \CiviCRM_API3_Exception
    * @throws \Stripe\Exception\UnknownApiErrorException
    */
-  public function onReceiveWebhook() {
+  public function onReceiveWebhook(): bool {
     if (!in_array($this->eventType, CRM_Stripe_Webhook::getDefaultEnabledEvents())) {
       // We don't handle this event, return 200 OK so Stripe does not retry.
       return TRUE;
@@ -244,12 +267,13 @@ class CRM_Core_Payment_StripeIPN {
     // Now re-retrieve the data from Stripe to ensure it's legit.
     // Special case if this is the test webhook
     if (substr($this->getEventID(), -15, 15) === '_00000000000000') {
-      $test = (boolean) $this->_paymentProcessor->getPaymentProcessor()['is_test'] ? '(Test)' : '(Live)';
-      $name = $this->_paymentProcessor->getPaymentProcessor()['name'];
+      $test = (boolean) $this->getPaymentProcessor()->getPaymentProcessor()['is_test'] ? '(Test)' : '(Live)';
+      $name = $this->getPaymentProcessor()->getPaymentProcessor()['name'];
       echo "Test webhook from Stripe ({$this->getEventID()}) received successfully by CiviCRM: {$name} {$test}.";
       exit();
     }
 
+    // Check, decode, validate webhook data and extract some parameters to the class
     $this->setInputParameters();
 
     $uniqueIdentifier = $this->getWebhookUniqueIdentifier();
@@ -259,7 +283,7 @@ class CRM_Core_Payment_StripeIPN {
     // For example this would match both invoice.finalized and invoice.payment_succeeded events which must be
     // processed sequentially and not simultaneously.
     $paymentProcessorWebhooks = PaymentprocessorWebhook::get(FALSE)
-      ->addWhere('payment_processor_id', '=', $this->_paymentProcessor->getID())
+      ->addWhere('payment_processor_id', '=', $this->getPaymentProcessor()->getID())
       ->addWhere('identifier', '=', $uniqueIdentifier)
       ->addWhere('processed_date', 'IS NULL')
       ->execute();
@@ -277,7 +301,7 @@ class CRM_Core_Payment_StripeIPN {
       }
     }
     else {
-      // We have one or more webhooks with matching identifier
+      // We already have one or more webhooks with matching identifier
       foreach ($paymentProcessorWebhooks as $paymentProcessorWebhook) {
         // Does the eventType match our webhook?
         if ($paymentProcessorWebhook['trigger'] === $this->eventType) {
@@ -296,9 +320,8 @@ class CRM_Core_Payment_StripeIPN {
       // So we will record this webhook but will not process now (it will be processed later by the scheduled job).
     }
 
-    // In mjwshared 1.1 status defaults to NULL. In 1.2 status defaults to "new".
-    $newWebhook = PaymentprocessorWebhook::create(FALSE)
-      ->addValue('payment_processor_id', $this->_paymentProcessor->getID())
+    $newWebhookEvent = PaymentprocessorWebhook::create(FALSE)
+      ->addValue('payment_processor_id', $this->getPaymentProcessor()->getID())
       ->addValue('trigger', $this->getEventType())
       ->addValue('identifier', $uniqueIdentifier)
       ->addValue('event_id', $this->getEventID())
@@ -308,7 +331,7 @@ class CRM_Core_Payment_StripeIPN {
 
     // Check the number of webhooks to be processed does not exceed connection-limit
     $toBeProcessedWebhook = PaymentprocessorWebhook::get(FALSE)
-        ->addWhere('payment_processor_id', '=', $this->_paymentProcessor->getID())
+        ->addWhere('payment_processor_id', '=', $this->getPaymentProcessor()->getID())
         ->addWhere('processed_date', 'IS NULL')
         ->execute();
 
@@ -318,7 +341,7 @@ class CRM_Core_Payment_StripeIPN {
         return TRUE;
     }
 
-    return $this->processQueuedWebhookEvent($newWebhook);
+    return $this->processQueuedWebhookEvent($newWebhookEvent);
   }
 
   /**
@@ -362,14 +385,21 @@ class CRM_Core_Payment_StripeIPN {
    * @throws \API_Exception
    * @throws \Civi\API\Exception\UnauthorizedException
    */
-  public function processWebhookEvent() :StdClass {
+  public function processWebhookEvent() :stdClass {
     $return = (object) ['message' => '', 'ok' => FALSE, 'exception' => NULL];
+
     try {
       $this->setInputParameters();
+
+      $webhookEventProcessor = new \Civi\Stripe\Webhook\Events();
+      $webhookEventProcessor->setEventType($this->getEventType());
+      $webhookEventProcessor->setEventID($this->getEventID());
+      $webhookEventProcessor->setData($this->getData());
+      $webhookEventProcessor->setPaymentProcessor($this->getPaymentProcessor()->getID());
+
       switch ($this->eventType) {
         case 'charge.refunded':
-          $return->ok = TRUE;
-          $return->message = $this->doChargeRefunded();
+          $return = $webhookEventProcessor->doChargeRefunded();
           break;
 
         default:
@@ -381,7 +411,7 @@ class CRM_Core_Payment_StripeIPN {
       if ($this->exceptionOnFailure) {
         // Re-throw a modified exception. (Special case for phpunit testing).
         $return->message = get_class($e) . ": " . $e->getMessage();
-        throw new RuntimeException($return->message, $e->getCode(), $e);
+        throw new PaymentProcessorException($return->message, $e->getCode(), $e);
       }
       else {
         // Normal use.
@@ -399,6 +429,7 @@ class CRM_Core_Payment_StripeIPN {
         \Civi::log()->error("StripeIPN: processWebhookEvent failed. EventID: {$this->eventID} : " . $return->message);
       }
     }
+
     $this->setEventID('');
     return $return;
   }
@@ -504,7 +535,7 @@ class CRM_Core_Payment_StripeIPN {
           // To obtain the failure_message we need to look up the charge object
           $failureMessage = '';
           if ($this->charge_id) {
-            $stripeCharge = $this->_paymentProcessor->stripeClient->charges->retrieve($this->charge_id);
+            $stripeCharge = $this->getPaymentProcessor()->stripeClient->charges->retrieve($this->charge_id);
             $failureMessage = CRM_Stripe_Api::getObjectParam('failure_message', $stripeCharge);
             $failureMessage = is_string($failureMessage) ? $failureMessage : '';
           }
@@ -602,79 +633,6 @@ class CRM_Core_Payment_StripeIPN {
   }
 
   /**
-   * Process the charge.refunded event from Stripe
-   *
-   * @return bool
-   * @throws \CRM_Core_Exception
-   * @throws \CiviCRM_API3_Exception
-   * @throws \Civi\Payment\Exception\PaymentProcessorException
-   * @throws \Stripe\Exception\ApiErrorException
-   */
-  private function doChargeRefunded() {
-    // Cancelling an uncaptured paymentIntent triggers charge.refunded but we don't want to process that
-    if (empty(CRM_Stripe_Api::getObjectParam('captured', $this->getData()->object))) {
-      return TRUE;
-    }
-
-    // This gives us the refund date + reason code
-    $refunds = $this->_paymentProcessor->stripeClient->refunds->all(['charge' => $this->charge_id, 'limit' => 1]);
-    $refund = $refunds->data[0];
-
-    // Stripe does not refund fees - see https://support.stripe.com/questions/understanding-fees-for-refunded-payments
-    // This gets the fee refunded
-    // $this->fee = $this->getPaymentProcessor()->getFeeFromBalanceTransaction($refund->balance_transaction, $this->retrieve('currency', 'String', FALSE));
-    // This gives us the actual amount refunded
-    $amountRefunded = CRM_Stripe_Api::getObjectParam('amount_refunded', $this->getData()->object);
-
-    // Get the CiviCRM contribution that matches the Stripe metadata we have from the event
-    $this->getContribution();
-
-    if (isset($this->contribution['payments'])) {
-      foreach ($this->contribution['payments'] as $payment) {
-        if ($payment['trxn_id'] === $refund->id) {
-          return 'Refund ' . $refund->id . ' already recorded in CiviCRM';
-        }
-        if ($payment['trxn_id'] === $this->charge_id) {
-          // This triggers the financial transactions/items to be updated correctly.
-          $cancelledPaymentID = $payment['id'];
-        }
-      }
-    }
-
-    $refundParams = [
-      'contribution_id' => $this->contribution['id'],
-      'total_amount' => 0 - abs($amountRefunded),
-      'trxn_date' => date('YmdHis', $refund->created),
-      'trxn_result_code' => $refund->reason,
-      'fee_amount' => 0,
-      'trxn_id' => $refund->id,
-      'order_reference' => $this->invoice_id ?? NULL,
-    ];
-
-    if (!empty($cancelledPaymentID)) {
-      $refundParams['cancelled_payment_id'] = $cancelledPaymentID;
-    }
-
-    $lock = Civi::lockManager()->acquire('data.contribute.contribution.' . $refundParams['contribution_id']);
-    if (!$lock->isAcquired()) {
-      \Civi::log()->error('Could not acquire lock to record refund for contribution: ' . $refundParams['contribution_id']);
-    }
-    $refundPayment = civicrm_api3('Payment', 'get', [
-      'trxn_id' => $refundParams['trxn_id'],
-      'total_amount' => $refundParams['total_amount'],
-    ]);
-    if (!empty($refundPayment['count'])) {
-      $message = 'OK - refund already recorded';
-    }
-    else {
-      $this->updateContributionRefund($refundParams);
-      $message = 'OK - refund recorded';
-    }
-    $lock->release();
-    return $message;
-  }
-
-  /**
    * Create the next contribution for a recurring contribution
    * This happens when Stripe generates a new invoice and notifies us (normally by invoice.finalized but
    * invoice.payment_succeeded sometimes arrives first).
@@ -712,7 +670,7 @@ class CRM_Core_Payment_StripeIPN {
   public function setInfo() {
     if (!$this->getCustomer()) {
       if ((bool)\Civi::settings()->get('stripe_ipndebug')) {
-        $message = $this->_paymentProcessor->getPaymentProcessorLabel() . ': ' . $this->getEventID() . ': Missing customer_id';
+        $message = $this->getPaymentProcessor()->getPaymentProcessorLabel() . ': ' . $this->getEventID() . ': Missing customer_id';
         Civi::log()->debug($message);
       }
   //    return FALSE;
@@ -722,7 +680,7 @@ class CRM_Core_Payment_StripeIPN {
     $this->amount = $this->retrieve('amount', 'String', FALSE);
 
     if (($this->getData()->object->object !== 'charge') && (!empty($this->charge_id))) {
-      $charge = $this->_paymentProcessor->stripeClient->charges->retrieve($this->charge_id);
+      $charge = $this->getPaymentProcessor()->stripeClient->charges->retrieve($this->charge_id);
       $balanceTransactionID = CRM_Stripe_Api::getObjectParam('balance_transaction', $charge);
     }
     else {
@@ -750,13 +708,13 @@ class CRM_Core_Payment_StripeIPN {
 
     // Get the recurring contribution record associated with the Stripe subscription.
     $contributionRecur = ContributionRecur::get(FALSE)
-      ->addWhere('trxn_id', '=', $this->subscription_id)
+      ->addWhere('processor_id', '=', $this->subscription_id)
       ->addWhere('is_test', 'IN', [TRUE, FALSE])
       ->execute()
       ->first();
     if (empty($contributionRecur)) {
       if ((bool)\Civi::settings()->get('stripe_ipndebug')) {
-        $message = $this->_paymentProcessor->getPaymentProcessorLabel() . ': ' . $this->getEventID() . ': Cannot find recurring contribution for subscription ID: ' . $this->subscription_id;
+        $message = $this->getPaymentProcessor()->getPaymentProcessorLabel() . ': ' . $this->getEventID() . ': Cannot find recurring contribution for subscription ID: ' . $this->subscription_id;
         Civi::log()->debug($message);
       }
       return FALSE;
@@ -782,7 +740,7 @@ class CRM_Core_Payment_StripeIPN {
    */
   private function getContribution() {
     $paymentParams = [
-      'contribution_test' => $this->_paymentProcessor->getIsTestMode(),
+      'contribution_test' => $this->getPaymentProcessor()->getIsTestMode(),
     ];
 
     // A) One-off contribution
@@ -814,7 +772,7 @@ class CRM_Core_Payment_StripeIPN {
     // @todo there is a case where $contribution is not defined (i.e. if charge_id, invoice_id, subscription_id are empty)
     if (!$contribution['count']) {
       if ((bool)\Civi::settings()->get('stripe_ipndebug')) {
-        $message = $this->_paymentProcessor->getPaymentProcessorLabel() . 'No matching contributions for event ' . $this->getEventID();
+        $message = $this->getPaymentProcessor()->getPaymentProcessorLabel() . 'No matching contributions for event ' . $this->getEventID();
         Civi::log()->debug($message);
       }
       $result = [];
@@ -845,17 +803,17 @@ class CRM_Core_Payment_StripeIPN {
     }
     try {
       $customer = civicrm_api3('StripeCustomer', 'getsingle', [
-        'id' => $this->customer_id,
+        'customer_id' => $this->customer_id,
       ]);
       $this->contactID = $customer['contact_id'];
-      if ($this->_paymentProcessor->getID() !== (int) $customer['processor_id']) {
-        $this->exception("Customer ({$this->customer_id}) and payment processor ID don't match (expected: {$customer['processor_id']}, actual: {$this->_paymentProcessor->getID()})");
+      if ($this->getPaymentProcessor()->getID() !== (int) $customer['processor_id']) {
+        $this->exception("Customer ({$this->customer_id}) and payment processor ID don't match (expected: {$customer['processor_id']}, actual: {$this->getPaymentProcessor()->getID()})");
       }
     }
     catch (Exception $e) {
       // Customer not found in CiviCRM
       if ((bool)\Civi::settings()->get('stripe_ipndebug') && !$this->contribution) {
-        $message = $this->_paymentProcessor->getPaymentProcessorLabel() . 'Stripe Customer not found in CiviCRM for event ' . $this->getEventID();
+        $message = $this->getPaymentProcessor()->getPaymentProcessorLabel() . 'Stripe Customer not found in CiviCRM for event ' . $this->getEventID();
         Civi::log()->debug($message);
       }
       CRM_Mjwshared_Hook::webhookEventNotMatched('stripe', $this, 'customer_not_found');
@@ -888,12 +846,12 @@ class CRM_Core_Payment_StripeIPN {
     //   parameter for now and rely on checking end_date (which was calculated based on number of installments...)
     // if (empty($contributionRecur['installments'])) { return; }
 
-    $stripeSubscription = $this->_paymentProcessor->stripeClient->subscriptions->retrieve($this->subscription_id);
+    $stripeSubscription = $this->getPaymentProcessor()->stripeClient->subscriptions->retrieve($this->subscription_id);
     // If we've passed the end date cancel the subscription
     if (($stripeSubscription->current_period_end >= strtotime($contributionRecur['end_date']))
       || ($contributionRecur['contribution_status_id']
         == CRM_Core_PseudoConstant::getKey('CRM_Contribute_BAO_ContributionRecur', 'contribution_status_id', 'Completed'))) {
-      $this->_paymentProcessor->stripeClient->subscriptions->update($this->subscription_id, ['cancel_at_period_end' => TRUE]);
+      $this->getPaymentProcessor()->stripeClient->subscriptions->update($this->subscription_id, ['cancel_at_period_end' => TRUE]);
       $this->updateRecurCompleted(['id' => $this->contribution_recur_id]);
     }
   }
