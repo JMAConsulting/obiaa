@@ -40,6 +40,10 @@ This allows conditions to be checked each day for members of a specified group.
 
 This allows conditions to be checked each day for cases.  For example, this trigger combined with the "Days since last case activity" could be used to take action when cases start to go stale.
 
+### Contact is added to Group
+
+This is triggered when a form is submitted that includes the group data for the contact, which may result in the rule being triggered even when the contact was not actually added to the group, but simply continued to be in the group. For example, if you save the Edit Contact screen and the contact is a member of the group in question, even if you aren't adding them to the group, the rule will be triggered.
+
 ## Conditions
 
 Conditions limit the scope of the trigger by specifying additional criteria that must be satisfied.

@@ -882,11 +882,13 @@ class CRM_Civirules_Upgrader extends CRM_Civirules_Upgrader_Base {
     CRM_Civirules_Utils_Upgrader::insertTriggersFromJson($this->extensionDir . DIRECTORY_SEPARATOR . 'sql/triggers.json');
     return TRUE;
   }
+
   public function upgrade_2080() {
     $this->ctx->log->info('Applying update 2080 - Add condition contribution recur frequency');
     CRM_Civirules_Utils_Upgrader::insertConditionsFromJson($this->extensionDir . DIRECTORY_SEPARATOR . 'sql/conditions.json');
     return TRUE;
   }
+
   public function upgrade_2081() {
     $this->ctx->log->info('Applying update 2081 - Add action to register participant');
     CRM_Civirules_Utils_Upgrader::insertActionsFromJson($this->extensionDir . DIRECTORY_SEPARATOR . 'sql/actions.json');

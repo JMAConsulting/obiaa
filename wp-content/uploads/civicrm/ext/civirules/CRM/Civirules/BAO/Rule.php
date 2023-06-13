@@ -184,7 +184,8 @@ class CRM_Civirules_BAO_Rule extends CRM_Civirules_DAO_Rule {
     $sql = "SELECT r.id AS rule_id, t.id AS trigger_id, t.class_name, r.trigger_params
             FROM `civirule_rule` r
             INNER JOIN `civirule_trigger` t ON r.trigger_id = t.id AND t.is_active = 1
-            WHERE r.`is_active` = 1 AND t.cron = 1";
+            WHERE r.`is_active` = 1 AND t.cron = 1
+            ORDER BY rule_id";
 
     $dao = CRM_Core_DAO::executeQuery($sql);
     while ($dao->fetch()) {

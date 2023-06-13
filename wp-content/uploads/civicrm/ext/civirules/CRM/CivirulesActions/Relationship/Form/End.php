@@ -26,8 +26,8 @@ class CRM_CivirulesActions_Relationship_Form_End extends CRM_CivirulesActions_Fo
     $this->add('datepicker', 'end_date', E::ts('Relationship End Date (only if disable)'), ['placeholder' => E::ts('End date')],FALSE, ['time' => FALSE]);
 
     $this->addButtons([
-      ['type' => 'next', 'name' => ts('Save'), 'isDefault' => TRUE,],
-      ['type' => 'cancel', 'name' => ts('Cancel')]]);
+      ['type' => 'next', 'name' => E::ts('Save'), 'isDefault' => TRUE],
+      ['type' => 'cancel', 'name' => E::ts('Cancel')]]);
   }
 
   /**

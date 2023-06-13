@@ -7,114 +7,78 @@
  * @license http://www.gnu.org/licenses/agpl-3.0.html
  */
 
+use Civi\Api4\Relationship;
+use Civi\Api4\RelationshipType;
+use CRM_Civirules_ExtensionUtil as E;
+
 class CRM_CivirulesActions_Relationship_End extends CRM_Civirules_Action {
 
   /**
    * Method processAction to execute the action
    *
-   * @param CRM_Civirules_TriggerData_TriggerData $triggerData
-   * @throws Exception when error from API Contact create
-   * @access public
+   * @param \CRM_Civirules_TriggerData_TriggerData $triggerData
    *
+   * @return void
+   * @throws \Exception
    */
   public function processAction(CRM_Civirules_TriggerData_TriggerData $triggerData) {
     $actionParams = $this->getActionParameters();
     $contactId = (int) $triggerData->getContactId();
-    $api4Active = CRM_Civirules_Utils::isApi4Active();
     if (!empty($contactId) && isset($actionParams['operation'])) {
       if ($actionParams['operation'] == 1) {
-        $this->deleteRelationship($actionParams, $contactId, $api4Active);
+        $this->deleteRelationship($actionParams, $contactId);
       }
       else {
-        $this->disableRelationship($actionParams, $contactId, $api4Active);
+        $this->disableRelationship($actionParams, $contactId);
       }
     }
   }
 
   /**
-   * Method to delete the relationships with either API3 or API4
+   * Method to delete the relationships
    *
    * @param array $actionParams
    * @param int $contactId
-   * @param bool $api4Active
+   *
+   * @return void
    */
-  private function deleteRelationship(array $actionParams, int $contactId, bool $api4Active) {
-    if ($api4Active) {
-      try {
-        \Civi\Api4\Relationship::delete()
-          ->addWhere('contact_id_a', '=', $contactId)
-          ->addWhere('relationship_type_id', '=', (int) $actionParams['relationship_type_id'])
-          ->execute();
-      }
-      catch (API_Exception $ex) {
-        Civi::log()->error(E::ts("Could not delete relationships with CiviRules in ") . __METHOD__ . ", error from API4 Relationship delete: ". $ex->getMessage());
-      }
+  private function deleteRelationship(array $actionParams, int $contactId) {
+    try {
+      Relationship::delete(FALSE)
+        ->addClause('OR', ['contact_id_a', '=', $contactId], ['contact_id_b', '=', $contactId])
+        ->addWhere('relationship_type_id', '=', (int) $actionParams['relationship_type_id'])
+        ->execute();
     }
-    else {
-      // with API3 the ID's need to be retrieved first
-      try {
-        $relationships = civicrm_api3('Relationship', 'get', [
-          'sequential' => 1,
-          'relationship_type_id' => (int) $actionParams['relationship_type_id'],
-          'contact_id_a' => $contactId,
-          'return' => ['id'],
-        ]);
-        foreach ($relationships['values'] as $relationshipId) {
-          civicrm_api3('Relationship', 'delete', ['id' => (int) $relationshipId]);
-        }
-      }
-      catch (CiviCRM_API3_Exception $ex) {
-        Civi::log()->error(E::ts("Could not delete relationships with CiviRules in ") . __METHOD__ . ", error from API3 Relationship get or delete: ". $ex->getMessage());
-      }
+    catch (\Exception $ex) {
+      Civi::log()->error(E::ts("Could not delete relationships with CiviRules in ") . __METHOD__ . ", error from API4 Relationship delete: ". $ex->getMessage());
     }
   }
 
   /**
-   * Method to disable the relationships with either API3 or API4
+   * Method to disable the relationships
    *
    * @param array $actionParams
    * @param int $contactId
-   * @param bool $api4Active
-   * @throws
+   *
+   * @throws \Exception
    */
-  private function disableRelationship(array $actionParams, int $contactId, bool $api4Active) {
+  private function disableRelationship(array $actionParams, int $contactId) {
     if (isset($actionParams['end_date']) && !empty($actionParams['end_date'])) {
       $endDate = new DateTime($actionParams['end_date']);
     }
     else {
       $endDate = new DateTime();
     }
-    if ($api4Active) {
-      try {
-        \Civi\Api4\Relationship::update()
-          ->addValue('end_date', $endDate->format('Y-m-d'))
-          ->addValue('is_active', FALSE)
-          ->addWhere('relationship_type_id', '=', (int) $actionParams['relationship_type_id'])
-          ->addWhere('contact_id_a', '=', $contactId)
-          ->execute();      }
-      catch (API_Exception $ex) {
-        Civi::log()->error(E::ts("Could not disable relationships with CiviRules in ") . __METHOD__ . ", error from API4 Relationship update: ". $ex->getMessage());
-      }
+    try {
+      Relationship::update(FALSE)
+        ->addValue('end_date', $endDate->format('Y-m-d'))
+        ->addValue('is_active', FALSE)
+        ->addWhere('relationship_type_id', '=', (int) $actionParams['relationship_type_id'])
+        ->addClause('OR', ['contact_id_a', '=', $contactId], ['contact_id_b', '=', $contactId])
+        ->execute();
     }
-    else {
-      // with API3 need to retrieve current relationship data first
-      try {
-        $relationships = civicrm_api3('Relationship', 'get', [
-          'sequential' => 1,
-          'relationship_type_id' => (int) $actionParams['relationship_type_id'],
-          'contact_id_a' => $contactId,
-          'return' => ['id'],
-        ]);
-        foreach ($relationships['values'] as $relationshipId) {
-          civicrm_api3('Relationship', 'create', [
-            'id' => (int) $relationshipId,
-            'end_date' => $endDate->format('Y-m-d'),
-            'is_active' => FALSE,
-          ]);        }
-      }
-      catch (CiviCRM_API3_Exception $ex) {
-        Civi::log()->error(E::ts("Could not disable relationships with CiviRules in ") . __METHOD__ . ", error from API3 Relationship get or create: ". $ex->getMessage());
-      }
+    catch (\Exception $ex) {
+      Civi::log()->error(E::ts("Could not disable relationships with CiviRules in ") . __METHOD__ . ", error from API4 Relationship update: ". $ex->getMessage());
     }
   }
 
@@ -122,7 +86,8 @@ class CRM_CivirulesActions_Relationship_End extends CRM_Civirules_Action {
    * Method to add url for form action for rule
    *
    * @param int $ruleActionId
-   * @return string
+   *
+   * @return bool|string
    */
   public function getExtraDataInputUrl($ruleActionId) {
     return CRM_Utils_System::url('civicrm/civirule/form/action/relationship/end', 'rule_action_id=' . $ruleActionId);
@@ -133,8 +98,8 @@ class CRM_CivirulesActions_Relationship_End extends CRM_Civirules_Action {
    * e.g. 'Older than 65'
    *
    * @return string
-   * @access public
-   * @throws
+   * @throws \CRM_Core_Exception
+   * @throws \Civi\API\Exception\UnauthorizedException
    */
   public function userFriendlyConditionParams() {
     $actionParams = $this->getActionParameters();
@@ -144,7 +109,7 @@ class CRM_CivirulesActions_Relationship_End extends CRM_Civirules_Action {
     else {
       $label = "Disable relationship(s) for contact of type ";
     }
-    $label .= $this->getRelationshipTypeLabel($actionParams['relationship_type_id'], $actionParams['relation_contact']);
+    $label .= $this->getRelationshipTypeLabel($actionParams['relationship_type_id']);
     if (isset($actionParams['end_date']) && !empty($actionParams['end_date']) && $actionParams['operation'] != 1) {
       $endDate = new DateTime($actionParams['end_date']);
       $label .= " on end date " . $endDate->format("d-m-Y");
@@ -174,6 +139,8 @@ class CRM_CivirulesActions_Relationship_End extends CRM_Civirules_Action {
    * Returns condition data as an array and ready for import.
    * E.g. replace name for ids.
    *
+   * @param array|NULL $action_params
+   *
    * @return string
    */
   public function importActionParameters($action_params = NULL) {
@@ -190,38 +157,20 @@ class CRM_CivirulesActions_Relationship_End extends CRM_Civirules_Action {
   /**
    * Method to get the relationship type label based on contact_a or contact_b
    *
-   * @param $relationshipTypeId
-   * @param $relationContact
+   * @param int $relationshipTypeId
+   *
    * @return mixed|string
+   * @throws \CRM_Core_Exception
+   * @throws \Civi\API\Exception\UnauthorizedException
    */
-  private function getRelationshipTypeLabel($relationshipTypeId, $relationContact) {
-    if (CRM_Civirules_Utils::isApi4Active()) {
-      try {
-        $relationshipType = \Civi\Api4\RelationshipType::get()
-          ->addSelect('label_a_b')
-          ->addWhere('id', '=', (int) $relationshipTypeId)
-          ->setLimit(1)
-          ->execute();
-        $label = $relationshipType->first();
-        return $label['label_a_b'];
-      }
-      catch (API_Exception $ex) {
-      }
-    }
-    else {
-      try {
-        $label = civicrm_api3('RelationshipType', 'getvalue', [
-          'return' => ["label_a_b"],
-          'id' => (int) $relationshipTypeId,
-        ]);
-        if ($label) {
-          return $label;
-        }
-      }
-      catch (CiviCRM_API3_Exception $ex) {
-      }
-    }
-    return "";
+  private function getRelationshipTypeLabel(int $relationshipTypeId) {
+    $relationshipType = RelationshipType::get()
+      ->addSelect('label_a_b')
+      ->addWhere('id', '=', $relationshipTypeId)
+      ->setLimit(1)
+      ->execute();
+    $label = $relationshipType->first();
+    return $label['label_a_b'];
   }
 
 }

@@ -124,9 +124,7 @@ class CRM_CivirulesActions_Activity_Form_Activity extends CRM_CivirulesActions_F
     if (!empty($data['relationship_contact_assignee'])) {
       $defaultValues['relationship_contact_assignee'] = $data['relationship_contact_assignee'];
     }
-    if (!empty($data['send_email'])) {
-      $defaultValues['send_email'] = $data['send_email'];
-    }
+    $defaultValues['send_email'] = $data['send_email'] ?? '';
     foreach(CRM_Civirules_Delay_Factory::getAllDelayClasses() as $delay_class) {
       $delay_class->setDefaultValues($defaultValues, 'activity_date_time', $this->rule);
     }

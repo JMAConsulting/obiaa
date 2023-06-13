@@ -10,9 +10,13 @@ class CRM_CivirulesCronTrigger_ActivityScheduledDate extends CRM_CivirulesCronTr
 
   public static function intervals() {
     return [
+      '-minutes' => ts('Minutes(s) before scheduled date/time'),
+      '-hours' => ts('Hours(s) before scheduled date/time'),
       '-days' => ts('Day(s) before scheduled date'),
       '-weeks' => ts('Week(s) before scheduled date'),
       '-months' => ts('Month(s) before scheduled date'),
+      '+minutes' => ts('Minutes(s) after scheduled date/time'),
+      '+hours' => ts('Hours(s) after scheduled date/time'),
       '+days' => ts('Day(s) after scheduled date'),
       '+weeks' => ts('Week(s) after scheduled date'),
       '+months' => ts('Month(s) after scheduled date'),
@@ -30,16 +34,32 @@ class CRM_CivirulesCronTrigger_ActivityScheduledDate extends CRM_CivirulesCronTr
     $currentDateTime = "CONCAT(CURRENT_DATE(), ' ', CURRENT_TIME())";
     $activity_date_time_statement = "AND DATE(a.activity_date_time) = {$currentDateTime}";
     switch ($this->triggerParams['interval_unit']) {
+      case '-minutes':
+        $activity_date_time_statement = "AND DATE_SUB(a.activity_date_time, INTERVAL %2 MINUTE) < {$currentDateTime}";
+        $params[2] = [$this->triggerParams['interval'], 'Integer'];
+        break;
+      case '-hours':
+        $activity_date_time_statement = "AND DATE_SUB(a.activity_date_time, INTERVAL %2 HOUR) < {$currentDateTime}";
+        $params[2] = [$this->triggerParams['interval'], 'Integer'];
+        break;
       case '-days':
-        $activity_date_time_statement = "AND DATE_SUB(a.activity_date_time, INTERVAL %2 DAY) > {$currentDateTime}";
+        $activity_date_time_statement = "AND DATE_SUB(a.activity_date_time, INTERVAL %2 DAY) < {$currentDateTime}";
         $params[2] = [$this->triggerParams['interval'], 'Integer'];
         break;
       case '-weeks':
-        $activity_date_time_statement = "AND DATE_SUB(a.activity_date_time, INTERVAL %2 WEEK) > {$currentDateTime}";
+        $activity_date_time_statement = "AND DATE_SUB(a.activity_date_time, INTERVAL %2 WEEK) < {$currentDateTime}";
         $params[2] = [$this->triggerParams['interval'], 'Integer'];
         break;
       case '-months':
-        $activity_date_time_statement = "AND DATE_SUB(a.activity_date_time, INTERVAL %2 MONTH) > {$currentDateTime}";
+        $activity_date_time_statement = "AND DATE_SUB(a.activity_date_time, INTERVAL %2 MONTH) < {$currentDateTime}";
+        $params[2] = [$this->triggerParams['interval'], 'Integer'];
+        break;
+      case '+minutes':
+        $activity_date_time_statement = "AND DATE_ADD(a.activity_date_time, INTERVAL %2 MINUTE) < {$currentDateTime}";
+        $params[2] = [$this->triggerParams['interval'], 'Integer'];
+        break;
+      case '+hours':
+        $activity_date_time_statement = "AND DATE_ADD(a.activity_date_time, INTERVAL %2 HOUR) < {$currentDateTime}";
         $params[2] = [$this->triggerParams['interval'], 'Integer'];
         break;
       case '+days':
@@ -95,6 +115,9 @@ class CRM_CivirulesCronTrigger_ActivityScheduledDate extends CRM_CivirulesCronTr
     $params[4] = [implode(',', $this->triggerParams['activity_status_id']), 'CommaSeparatedIntegers'];
 
     $this->activityDAO = CRM_Core_DAO::executeQuery($sql, $params, TRUE, 'CRM_Activity_DAO_Activity');
+
+    $dao = CRM_Core_DAO::executeQuery($sql, $params);
+    $dao->fetch();
 
     return TRUE;
   }
