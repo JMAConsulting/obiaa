@@ -26,6 +26,7 @@ The **CiviMobileAPI** extension is a CiviCRM component that allows to use a mobi
 - **News** – RSS feed reader keeps users informed about latest news updates organization shares.
 - **Surveys** – ability to conduct surveys with all updated survey details, walk lists, respondent statuses at hand and data available for analysis in real-time.
 - **Petitions** – support a broader campaign by engaging registered and unregistered users to sign a petition within the app.
+- **Time Tracker** - ability to track time spent on projects. Possibility to log your time straight from app.
 - **Working Offline** - can work in the offline mode.
 - **Settings** - users can configure a set of parameters customizing the view and work of the application.
 - **9 locales** - supports: English, German, French, Italian, Spanish, Dutch, Hungarian, Polish and Ukrainian.

@@ -46,6 +46,9 @@ function civicrm_api3_civi_mobile_permission_get() {
     $civimobileSeeGroups = CRM_Core_Permission::check('see groups');
     $civimobileSeeTags = CRM_Core_Permission::check('see tags');
     $administerCiviCrm = CRM_Core_Permission::check('administer CiviCRM');
+    $administerTimeTracker = CRM_Core_Permission::check('administer TimeTracker');
+    $accessTimeTracker = CRM_Core_Permission::check('access TimeTracker');
+
 
     $permissions['access'] = [
       'accessCiviCRM' => $accessToCiviCrm && $viewMyContact ? 1 : 0,
@@ -53,8 +56,8 @@ function civicrm_api3_civi_mobile_permission_get() {
 
     $permissions['contact'] = [
       'view' => [
-        'all' =>  $accessToCiviCrm && $viewMyContact && ($viewAllContacts || $editAllContacts) ? 1 : 0,
-        'my' =>  $accessToCiviCrm && $viewMyContact ? 1 : 0,
+        'all' => $accessToCiviCrm && $viewMyContact && ($viewAllContacts || $editAllContacts) ? 1 : 0,
+        'my' => $accessToCiviCrm && $viewMyContact ? 1 : 0,
       ],
       'edit' => [
         'all' => $accessToCiviCrm && $viewMyContact && $editAllContacts ? 1 : 0,
@@ -173,19 +176,19 @@ function civicrm_api3_civi_mobile_permission_get() {
     $permissions['membership'] = [
       'view' => [
         'all' => $accessToCiviCrm && $viewMyContact && $accessCiviMember && ($viewAllContacts || $editAllContacts) ? 1 : 0,
-        'my' =>  $accessToCiviCrm && $viewMyContact && $accessCiviMember ? 1 : 0,
+        'my' => $accessToCiviCrm && $viewMyContact && $accessCiviMember ? 1 : 0,
       ],
       'edit' => [
         'all' => $accessToCiviCrm && $viewMyContact && $accessCiviMember && $editMemberships && ($viewAllContacts || $editAllContacts) ? 1 : 0,
-        'my' =>  $accessToCiviCrm && $viewMyContact && $accessCiviMember && $editMemberships ? 1 : 0,
+        'my' => $accessToCiviCrm && $viewMyContact && $accessCiviMember && $editMemberships ? 1 : 0,
       ],
       'create' => [
         'all' => $accessToCiviCrm && $viewMyContact && $accessCiviMember && $editMemberships && ($viewAllContacts || $editAllContacts) ? 1 : 0,
-        'my' =>  $accessToCiviCrm && $viewMyContact && $accessCiviMember && $editMemberships ? 1 : 0,
+        'my' => $accessToCiviCrm && $viewMyContact && $accessCiviMember && $editMemberships ? 1 : 0,
       ],
       'delete' => [
         'all' => $accessToCiviCrm && $viewMyContact && $accessCiviMember && $deleteInCiviMember && $deleteInCiviContribute && ($viewAllContacts || $editAllContacts) ? 1 : 0,
-        'my' =>  $accessToCiviCrm && $viewMyContact && $accessCiviMember && $deleteInCiviMember && $deleteInCiviContribute ? 1 : 0,
+        'my' => $accessToCiviCrm && $viewMyContact && $accessCiviMember && $deleteInCiviMember && $deleteInCiviContribute ? 1 : 0,
       ],
       'membership_dashboard' => $administerCiviCrm ? 1 : 0,
     ];
@@ -193,19 +196,19 @@ function civicrm_api3_civi_mobile_permission_get() {
     $permissions['contribution'] = [
       'view' => [
         'all' => $accessToCiviCrm && $viewMyContact && $accessCiviContribute && ($viewAllContacts || $editAllContacts) ? 1 : 0,
-        'my' =>  $accessToCiviCrm && $viewMyContact && $accessCiviContribute ? 1 : 0,
+        'my' => $accessToCiviCrm && $viewMyContact && $accessCiviContribute ? 1 : 0,
       ],
       'edit' => [
         'all' => $accessToCiviCrm && $viewMyContact && $accessCiviContribute && $editContributions && ($viewAllContacts || $editAllContacts) ? 1 : 0,
-        'my' =>  $accessToCiviCrm && $viewMyContact && $accessCiviContribute && $editContributions ? 1 : 0,
+        'my' => $accessToCiviCrm && $viewMyContact && $accessCiviContribute && $editContributions ? 1 : 0,
       ],
       'create' => [
         'all' => $accessToCiviCrm && $viewMyContact && $accessCiviContribute && $editContributions && ($viewAllContacts || $editAllContacts) ? 1 : 0,
-        'my' =>  $accessToCiviCrm && $viewMyContact && $accessCiviContribute && $editContributions ? 1 : 0,
+        'my' => $accessToCiviCrm && $viewMyContact && $accessCiviContribute && $editContributions ? 1 : 0,
       ],
       'delete' => [
         'all' => $accessToCiviCrm && $viewMyContact && $accessCiviContribute && $deleteInCiviContribute && ($viewAllContacts || $editAllContacts) ? 1 : 0,
-        'my' =>  $accessToCiviCrm && $viewMyContact && $accessCiviContribute && $deleteInCiviContribute ? 1 : 0,
+        'my' => $accessToCiviCrm && $viewMyContact && $accessCiviContribute && $deleteInCiviContribute ? 1 : 0,
       ],
       'make_contributions' => $accessToCiviCrm && $accessCiviContribute && $makeOnlineContributions ? 1 : 0,
       'contribution_dashboard' => $administerCiviCrm ? 1 : 0,
@@ -214,7 +217,7 @@ function civicrm_api3_civi_mobile_permission_get() {
     $permissions['note'] = [
       'view' => [
         'all' => $accessToCiviCrm && $viewMyContact && ($viewAllContacts || $editAllContacts) ? 1 : 0,
-        'my' =>  $accessToCiviCrm && $viewMyContact ? 1 : 0,
+        'my' => $accessToCiviCrm && $viewMyContact ? 1 : 0,
       ],
       'edit' => [
         'all' => $accessToCiviCrm && $viewMyContact && $editAllContacts ? 1 : 0,
@@ -260,7 +263,7 @@ function civicrm_api3_civi_mobile_permission_get() {
       ],
       'add_to_group' => [
         'all' => $accessToCiviCrm && $viewMyContact && $editAllContacts ? 1 : 0,
-        'my' => $accessToCiviCrm && $viewMyContact && ($editMyContact || $editAllContacts)? 1 : 0,
+        'my' => $accessToCiviCrm && $viewMyContact && ($editMyContact || $editAllContacts) ? 1 : 0,
       ],
       'delete' => [
         'all' => $accessToCiviCrm && $viewMyContact && $editAllContacts ? 1 : 0,
@@ -301,6 +304,11 @@ function civicrm_api3_civi_mobile_permission_get() {
       'view' => CRM_Core_Permission::check('profile view'),
       'create' => CRM_Core_Permission::check('profile create'),
       'edit' => CRM_Core_Permission::check('profile edit'),
+    ];
+
+    $permissions['timetracker'] = [
+      'administer_time_tracker' => $administerTimeTracker && $accessToCiviCrm ? 1 : 0,
+      'access_time_tracker' => (($accessTimeTracker || $administerTimeTracker) && $accessToCiviCrm) ? 1 : 0,
     ];
 
     $nullObject = CRM_Utils_Hook::$_nullObject;

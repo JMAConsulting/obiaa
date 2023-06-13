@@ -14,8 +14,8 @@
         <url desc="Support">https://civimobile.org</url>
         <url desc="Licensing">http://www.gnu.org/licenses/agpl-3.0.html</url>
     </urls>
-    <releaseDate>2023-01-30</releaseDate>
-    <version>6.1.2</version>
+    <releaseDate>2023-05-24</releaseDate>
+    <version>6.2.0</version>
     <compatibility>
         <ver>5.14</ver>
     </compatibility>
@@ -26,4 +26,7 @@
     <classloader>
         <psr4 prefix="Civi\" path="Civi"/>
     </classloader>
+    <requires>
+        <ext>authx</ext>
+    </requires>
 </extension>

@@ -12,11 +12,11 @@ class CRM_CiviMobileAPI_Utils_RestPath {
     $currentCMS = CRM_CiviMobileAPI_Utils_CmsUser::getInstance()->getSystem();
     $restPath = $this->getStandardRestPath();
 
-    if ($currentCMS == CRM_CiviMobileAPI_Utils_CmsUser::CMS_WORDPRESS ) {
+    if ($currentCMS == CRM_CiviMobileAPI_Utils_CmsUser::CMS_WORDPRESS) {
       $restPath = $this->getWordpressRestPath();
     }
 
-    if ($currentCMS == CRM_CiviMobileAPI_Utils_CmsUser::CMS_JOOMLA ) {
+    if ($currentCMS == CRM_CiviMobileAPI_Utils_CmsUser::CMS_JOOMLA) {
       $restPath = $this->getJoomlaRestPath();
     }
 
@@ -54,11 +54,11 @@ class CRM_CiviMobileAPI_Utils_RestPath {
    * @return bool
    */
   public function isWpRestPluginActive() {
-    if (CRM_CiviMobileAPI_Utils_CmsUser::getInstance()->getSystem() !== CRM_CiviMobileAPI_Utils_CmsUser::CMS_WORDPRESS ) {
+    if (CRM_CiviMobileAPI_Utils_CmsUser::getInstance()->getSystem() !== CRM_CiviMobileAPI_Utils_CmsUser::CMS_WORDPRESS) {
       return false;
     }
 
-    include_once(ABSPATH.'wp-admin/includes/plugin.php');
+    include_once(ABSPATH . 'wp-admin/includes/plugin.php');
 
     if (function_exists('is_plugin_active')) {
       $pathPlugin = 'civicrm-wp-rest/civicrm-wp-rest.php';
@@ -76,7 +76,7 @@ class CRM_CiviMobileAPI_Utils_RestPath {
    * @return string
    */
   private function getJoomlaRestPath() {
-    return '/administrator' . str_replace('/administrator','', Civi::paths()->getUrl("[civicrm.root]/extern/rest.php"));
+    return '/administrator' . str_replace('/administrator', '', Civi::paths()->getUrl("[civicrm.root]/extern/rest.php"));
   }
 
   /**
@@ -88,11 +88,11 @@ class CRM_CiviMobileAPI_Utils_RestPath {
     $currentCMS = CRM_CiviMobileAPI_Utils_CmsUser::getInstance()->getSystem();
     $restPath = $this->getStandardAbsoluteUrl();
 
-    if ($currentCMS == CRM_CiviMobileAPI_Utils_CmsUser::CMS_WORDPRESS ) {
+    if ($currentCMS == CRM_CiviMobileAPI_Utils_CmsUser::CMS_WORDPRESS) {
       $restPath = $this->getWordpressAbsoluteUrl();
     }
 
-    if ($currentCMS == CRM_CiviMobileAPI_Utils_CmsUser::CMS_JOOMLA ) {
+    if ($currentCMS == CRM_CiviMobileAPI_Utils_CmsUser::CMS_JOOMLA) {
       $restPath = $this->getJoomlaAbsoluteUrl();
     }
 
@@ -145,17 +145,33 @@ class CRM_CiviMobileAPI_Utils_RestPath {
     $endpoint = '';
 
     if ($this->isWpRestPluginActive()) {
-      $endpoint =  'civicrm/v3/rest';
+      $endpoint = 'civicrm/v3/rest';
     }
 
     if (class_exists('CiviCRM_WP_REST\Controller\Rest')) {
       $restController = new CiviCRM_WP_REST\Controller\Rest();
       if (method_exists($restController, 'get_endpoint')) {
-        $endpoint = substr((string) $restController->get_endpoint(), 1);
+        $endpoint = substr((string)$restController->get_endpoint(), 1);
       }
     }
 
     return $endpoint;
   }
 
+  /**
+   * Returns absolute url path for API V4
+   *
+   * @return string
+   */
+  public function getAbsoluteUrlApiV4() {
+    $currentCMS = CRM_CiviMobileAPI_Utils_CmsUser::getInstance()->getSystem();
+    $url = CRM_Utils_System::url('civicrm/ajax/api4', NULL, TRUE, NULL, FALSE, TRUE);
+
+    if ($currentCMS == CRM_CiviMobileAPI_Utils_CmsUser::CMS_JOOMLA) {
+      $url = preg_replace('/[?&]Itemid=\d+\/?/', '', $url);
+    }
+
+    return rtrim($url, '/');
+  }
+  
 }
