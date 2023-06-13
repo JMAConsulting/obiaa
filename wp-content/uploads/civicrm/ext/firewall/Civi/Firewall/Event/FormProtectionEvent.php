@@ -13,7 +13,7 @@ namespace Civi\Firewall\Event;
 /**
  * Class FormProtectionEvent
  */
-class FormProtectionEvent extends \Symfony\Component\EventDispatcher\Event {
+class FormProtectionEvent extends \Civi\Core\Event\GenericHookEvent {
 
   /**
    * @var string

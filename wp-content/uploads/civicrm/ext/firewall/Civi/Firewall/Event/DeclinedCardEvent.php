@@ -13,7 +13,7 @@ namespace Civi\Firewall\Event;
 /**
  * Class DeclinedCardEvent
  */
-class DeclinedCardEvent extends \Symfony\Component\EventDispatcher\Event {
+class DeclinedCardEvent extends \Civi\Core\Event\GenericHookEvent {
 
   /**
    * @var string
