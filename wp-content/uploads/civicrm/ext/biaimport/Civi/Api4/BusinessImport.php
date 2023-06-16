@@ -163,7 +163,7 @@ class BusinessImport extends Generic\AbstractEntity {
         'data_type' => 'Boolean',
       ];
     }
-    return (new Generic\BasicGetFieldsAction(__CLASS__, __FUNCTION__, function() {
+    return (new Generic\BasicGetFieldsAction(__CLASS__, __FUNCTION__, function() use ($spec) {
       return $spec;
     }))->setCheckPermissions($checkPermissions);
   }
