@@ -150,7 +150,7 @@ class PropertyOwnerImport extends Generic\AbstractEntity {
         'data_type' => 'String',
       ];
     }
-    return (new Generic\BasicGetFieldsAction(__CLASS__, __FUNCTION__, function() {
+    return (new Generic\BasicGetFieldsAction(__CLASS__, __FUNCTION__, function() use ($spec) {
       return $spec;
     }))->setCheckPermissions($checkPermissions);
   }
