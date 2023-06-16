@@ -165,7 +165,7 @@ class BusinessImport extends Generic\AbstractEntity {
     }
     return (new Generic\BasicGetFieldsAction(__CLASS__, __FUNCTION__, function() {
       return $spec;
-    }))->setPermissions($checkPermissions);
+    }))->setCheckPermissions($checkPermissions);
   }
 
 }
