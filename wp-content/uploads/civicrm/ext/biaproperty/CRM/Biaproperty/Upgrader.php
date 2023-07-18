@@ -4,7 +4,7 @@ use CRM_Biaproperty_ExtensionUtil as E;
 /**
  * Collection of upgrade steps.
  */
-class CRM_Biaproperty_Upgrader extends CRM_Biaproperty_Upgrader_Base {
+class CRM_Biaproperty_Upgrader extends CRM_Extension_Upgrader_Base {
 
   // By convention, functions that look like "function upgrade_NNNN()" are
   // upgrade tasks. They are executed in order (like Drupal's hook_update_N).
@@ -234,6 +234,25 @@ class CRM_Biaproperty_Upgrader extends CRM_Biaproperty_Upgrader_Base {
       }
     }
     \Civi\Api4\SearchDisplay::update(FALSE)->addValue('settings', $searchDisplay['settings'])->addWhere('id', '=', $searchDisplay['id'])->execute();
+    return TRUE;
+  }
+
+  public function upgrade_2203(): bool {
+    $this->ctx->log->info('Upgrade 2203: Modify Custom field defaults and change name of Bia Staff label Also fix local bia headings menu url');
+    $staffType = civicrm_api3('ContactType', 'get', ['name' => 'OBIAA_Staff']);
+    civicrm_api3('ContactType', 'create', [
+      'label' => 'BIA Member\'s Staff',
+      'id' => $staffType['id'],
+    ]);
+    $customFields = ['Open_Date', 'Close_Date'];
+    foreach ($customFields as $customFieldName) {
+      $customField = civicrm_api3('CustomField', 'get', ['name' => $customFieldName]);
+      \Civi\Api4\CustomField::update(FALSE)->addValue('start_date_years', 50)->addValue('end_date_years')->addWhere('id', '=', $customField['id']])->execute();
+    }
+    CRM_Core_DAO::executeQuery("UPDATE civicrm_navigation SET url = %1 WHERE name = %2", [
+      1 => [CRM_Utils_System::url('civicrm/admin/custom/group/field/option', ['reset' => 1, 'action' => 'browse', 'gid' => 4, 'fid' => 9], TRUE, NULL, TRUE, FALSE, TRUE), 'String'],
+      2 => ['Local BIA Heading', 'String'],
+    ])
     return TRUE;
   }
 
