@@ -24,59 +24,12 @@ function biaproperty_civicrm_install() {
 }
 
 /**
- * Implements hook_civicrm_postInstall().
- *
- * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_postInstall
- */
-function biaproperty_civicrm_postInstall() {
-  _biaproperty_civix_civicrm_postInstall();
-}
-
-/**
- * Implements hook_civicrm_uninstall().
- *
- * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_uninstall
- */
-function biaproperty_civicrm_uninstall() {
-  _biaproperty_civix_civicrm_uninstall();
-}
-
-/**
  * Implements hook_civicrm_enable().
  *
  * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_enable
  */
 function biaproperty_civicrm_enable() {
   _biaproperty_civix_civicrm_enable();
-}
-
-/**
- * Implements hook_civicrm_disable().
- *
- * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_disable
- */
-function biaproperty_civicrm_disable() {
-  _biaproperty_civix_civicrm_disable();
-}
-
-/**
- * Implements hook_civicrm_upgrade().
- *
- * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_upgrade
- */
-function biaproperty_civicrm_upgrade($op, CRM_Queue_Queue $queue = NULL) {
-  return _biaproperty_civix_civicrm_upgrade($op, $queue);
-}
-
-/**
- * Implements hook_civicrm_entityTypes().
- *
- * Declare entity types provided by this module.
- *
- * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_entityTypes
- */
-function biaproperty_civicrm_entityTypes(&$entityTypes) {
-  _biaproperty_civix_civicrm_entityTypes($entityTypes);
 }
 
 function biaproperty_civicrm_pre($op, $objectName, $id, &$params) {
