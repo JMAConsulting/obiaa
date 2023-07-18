@@ -3,18 +3,16 @@
 BIA_HOSTNAME=$1
 BIA_SITENAME=$2
 
-pushd /var/www/obiaa.jmaconsulting.biz/htdocs
+pushd /var/aegir/platforms/obiaa-staging/sites/bia1.jmaconsulting.biz/
 
-wp db export obiaa_wp_backup.sql
-wp civicrm sql-dump > obiaa_civicrm_backup.sql
+wp db export obiaa_backup.sql
 popd
-pushd /var/www/$1/htdocs
-wp db import /var/www/obiaa.jmaconsulting.biz/htdocs/obiaa_wp_backup.sql
+pushd /var/aegir/platforms/obiaa/sites/$1
 CIVICRM_CREDS=`wp civicrm sql-connect`
-cat /var/www/obiaa.jmaconsulting.biz/htdocs/obiaa_civicrm_backup.sql | sed -e 's/DEFINER[ ]*=[ ]*[^*]*\*/\*/' | $CIVICRM_CREDS
-echo "UPDATE civicrm_setting SET value = 's:49:\"/var/www/$1/htdocs/wp-load.php\"' WHERE name='wpLoadPhp'" | $CIVICRM_CREDS
+cat /var/aegir/platforms/obiaa-staging/sites/bia1.jmaconsulting.biz/obiaa_backup.sql | sed -e 's/DEFINER[ ]*=[ ]*[^*]*\*/\*/' | $CIVICRM_CREDS
+echo "UPDATE civicrm_setting SET value = 's:38:\"/var/aegir/platforms/obiaa/wp-load.php\";' WHERE name='wpLoadPhp'" | $CIVICRM_CREDS
 # Replace URLs with the new domain
-wp search-replace --all-tables-with-prefix 'obiaa.jmaconsulting.biz' $BIA_HOSTNAME
+wp search-replace --all-tables-with-prefix 'bia1.jmaconsulting.biz' $BIA_HOSTNAME
 wp civicrm api system.flush
 # Remove all contacts that aren't for user accounts or the domain contact
 echo "DELETE FROM civicrm_contact WHERE id NOT IN (SELECT contact_id FROM civicrm_uf_match) AND id NOT IN (SELECT contact_id FROM civicrm_domain)" | $CIVICRM_CREDS
@@ -25,4 +23,4 @@ wp civicrm api contact.create organization_name="My Bia $2" id=1 contact_type='O
 # update site title
 wp option update blogname $2
 popd
-rm /var/www/obiaa.jmaconsulting.biz/htdocs/obiaa_wp_backup.sql /var/www/obiaa.jmaconsulting.biz/htdocs/obiaa_civicrm_backup.sql
+rm /var/aegir/platforms/obiaa-staging/sites/bia1.jmaconsulting.biz/obiaa_backup.sql
