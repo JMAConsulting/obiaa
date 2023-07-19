@@ -1,5 +1,6 @@
 <?php
 use CRM_Newstripepaymentreport_ExtensionUtil as E;
+
 require_once 'Stripeschedulereport.variables.php';
 
 /**
@@ -11,7 +12,7 @@ require_once 'Stripeschedulereport.variables.php';
  * @see https://docs.civicrm.org/dev/en/latest/framework/api-architecture/
  */
 function _civicrm_api3_job_Stripepaymentreport_spec(&$spec) {
-  
+
 }
 
 /**
@@ -27,7 +28,7 @@ function _civicrm_api3_job_Stripepaymentreport_spec(&$spec) {
  * @throws API_Exception
  */
 function civicrm_api3_job_Stripepaymentreport($params) {
-  
+
   $contributions = [];
   $resultsActivity = [];
 
