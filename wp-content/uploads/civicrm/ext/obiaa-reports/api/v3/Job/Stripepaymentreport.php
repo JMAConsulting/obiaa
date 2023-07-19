@@ -1,5 +1,6 @@
 <?php
 use CRM_Newstripepaymentreport_ExtensionUtil as E;
+require_once 'Stripeschedulereport.variables.php';
 
 /**
  * Job.Stripepaymentreport API specification (optional)
@@ -10,7 +11,7 @@ use CRM_Newstripepaymentreport_ExtensionUtil as E;
  * @see https://docs.civicrm.org/dev/en/latest/framework/api-architecture/
  */
 function _civicrm_api3_job_Stripepaymentreport_spec(&$spec) {
-  // $spec['magicword']['api.required'] = 1;
+  
 }
 
 /**
@@ -26,25 +27,42 @@ function _civicrm_api3_job_Stripepaymentreport_spec(&$spec) {
  * @throws API_Exception
  */
 function civicrm_api3_job_Stripepaymentreport($params) {
-  $contributions=[];
-  $resultsActivity=[];
   
+  $contributions = [];
+  $resultsActivity = [];
+
   try {
-    
+
     //get contact id, payment process type, email address, total amount, month, site name
-    
+    //get current year and previous month
+    $currentYear = date("Y");
+    $currentMonth = (int) date("m");
+
+    $getYear = $currentYear;
+    $getMonth = 1;
+
+    if ($currentMonth == 1) {
+      $getYear = $currentYear - 1;
+      $getMonth = 12;
+    }
+    else {
+      $getMonth = $currentMonth - 1;
+    }
+    //get total amount
     $contributions = \Civi\Api4\Contribution::get()
-      ->addSelect('contact_id', 'payment_processor.payment_processor_type_id', 'email.email', 'SUM(total_amount)', 'EXTRACT(YEAR_MONTH FROM receive_date)', 'financial_type.name')
+      ->addSelect('SUM(total_amount)', 'YEAR(receive_date)', 'MONTH(receive_date)')
       ->addJoin('FinancialTrxn AS financial_trxn', 'LEFT', ['financial_trxn.trxn_id', '=', 'trxn_id'])
       ->addJoin('PaymentProcessor AS payment_processor', 'LEFT', ['payment_processor.id', '=', 'financial_trxn.payment_processor_id'])
       ->addJoin('PaymentProcessorType AS payment_processor_type', 'LEFT', ['payment_processor_type.id', '=', 'payment_processor.payment_processor_type_id'])
-      ->addJoin('Email AS email', 'LEFT', ['contact_id', '=', 'email.contact_id'])
       ->addJoin('FinancialType AS financial_type', 'LEFT', ['financial_type.id', '=', 'financial_type_id'])
-      ->addGroupBy('contact_id')
-      ->addGroupBy('financial_type.name')
-      ->addGroupBy('EXTRACT(YEAR_MONTH FROM receive_date)')
-      ->addGroupBy('email.email')
-      ->addGroupBy('payment_processor.payment_processor_type_id')
+      ->addGroupBy('YEAR(receive_date)')
+      ->addGroupBy('MONTH(receive_date)')
+      ->setHaving(
+            [
+            ['YEAR(receive_date)', '=', $getYear],
+            ['MONTH(receive_date)', '=', $getMonth],
+            ]
+        )
       ->addWhere('trxn_id', 'IS NOT NULL')
       ->addWhere('invoice_id', 'IS NOT NULL')
       ->addWhere('contribution_status_id', '=', 1)
@@ -52,34 +70,25 @@ function civicrm_api3_job_Stripepaymentreport($params) {
       ->addWhere('financial_trxn.is_payment', '=', TRUE)
       ->execute();
 
-    Civi::log()->debug("contribution result is: ".$contributions);  
-    // return $contributions;
-    // CRM_Core_Error::debug('contribution information', $contributions);
-    
-    foreach ($contributions as $contribution) {
-      // create activities 
+    if (!empty($contributions)) {
+      // create activities
       $resultsActivity = \Civi\Api4\Activity::create()
-        ->addValue('source_contact_id', $contribution['contact_id'])
-        ->addValue('subject', 'contact id: '.$contribution['contact_id'].' contact email: '.$contribution['email.email'].' and month is '.$contribution['EXTRACT:receive_date'].' and financial type: '.$contribution['financial_type.name'].' total amount: '.$contribution['SUM:total_amount'])
-        ->addValue('Stripe_Monthly_Total_Amount.Stripe_Monthly_Total_Amount',$contribution['SUM:total_amount'])
+        ->addValue('source_contact_id', rand())
+        ->addValue('subject', 'Date is ' . $contributions['YEAR:receive_date'] . ' ' . $contributions['MONTH:receive_date'] . ' Total: ' . $contributions['SUM:total_amount'])
+        ->addValue('Stripe_Monthly_Total_Amount.Stripe_Monthly_Total_Amount', $contributions['SUM:total_amount'])
         ->addValue('activity_date_time', date('Y-m-d H:i:s'))
         ->addValue('status_id', 1)
-        ->addValue('activity_type_id', 56) //56 is activity type id=56 and type name is Stripe Payments
+      // Stripe Payments
+        ->addValue('activity_type_id', OBIAAREPORT_ACTIVITY_TYPE)
         ->addValue('priority_id', 2)
         ->execute();
-      Civi::log()->debug("activity result is: ".$resultsActivity);  
     }
-    // exit();
   }
   //catch exception
-  catch(Exception $e) {
-    Civi::log()->debug("result is: ".$e->getMessage());
-    echo 'Message: ' .$e->getMessage();
+  catch (Exception $e) {
+    echo 'Message: ' . $e->getMessage();
   }
-  // ALTERNATIVE: $returnValues = []; // OK, success
-  // ALTERNATIVE: $returnValues = ["Some value"]; // OK, return a single value
 
-  // Spec: civicrm_api3_create_success($values = 1, $params = [], $entity = NULL, $action = NULL)
-  return civicrm_api3_create_success($contributions, $params, 'Job', 'Stripepaymentschedule');
-  
+  return civicrm_api3_create_success((array) $contributions, $params, 'Job', 'Stripepaymentschedule');
+
 }
