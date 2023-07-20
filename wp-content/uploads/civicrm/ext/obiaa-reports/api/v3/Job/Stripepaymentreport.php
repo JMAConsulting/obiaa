@@ -51,38 +51,31 @@ function civicrm_api3_job_Stripepaymentreport($params) {
     }
     //get total amount
     $contributions = \Civi\Api4\Contribution::get()
-      ->addSelect('SUM(total_amount)', 'YEAR(receive_date)', 'MONTH(receive_date)')
+      ->addSelect('SUM(total_amount)')
       ->addJoin('FinancialTrxn AS financial_trxn', 'LEFT', ['financial_trxn.trxn_id', '=', 'trxn_id'])
       ->addJoin('PaymentProcessor AS payment_processor', 'LEFT', ['payment_processor.id', '=', 'financial_trxn.payment_processor_id'])
       ->addJoin('PaymentProcessorType AS payment_processor_type', 'LEFT', ['payment_processor_type.id', '=', 'payment_processor.payment_processor_type_id'])
       ->addJoin('FinancialType AS financial_type', 'LEFT', ['financial_type.id', '=', 'financial_type_id'])
-      ->addGroupBy('YEAR(receive_date)')
-      ->addGroupBy('MONTH(receive_date)')
-      ->setHaving(
-            [
-            ['YEAR(receive_date)', '=', $getYear],
-            ['MONTH(receive_date)', '=', $getMonth],
-            ]
-        )
       ->addWhere('trxn_id', 'IS NOT NULL')
       ->addWhere('invoice_id', 'IS NOT NULL')
       ->addWhere('contribution_status_id', '=', 1)
       ->addWhere('payment_processor_type.name', '=', 'Stripe')
       ->addWhere('financial_trxn.is_payment', '=', TRUE)
-      ->execute();
+      ->addWhere('MONTH(receive_date)', '=', $getMonth)
+      ->addWhere('YEAR(receive_date)', '=', $getYear)
+      ->execute()->first();
 
     if (!empty($contributions)) {
       // create activities
       $resultsActivity = \Civi\Api4\Activity::create()
-        ->addValue('source_contact_id', rand())
-        ->addValue('subject', 'Date is ' . $contributions['YEAR:receive_date'] . ' ' . $contributions['MONTH:receive_date'] . ' Total: ' . $contributions['SUM:total_amount'])
-        ->addValue('Stripe_Monthly_Total_Amount.Stripe_Monthly_Total_Amount', $contributions['SUM:total_amount'])
-        ->addValue('activity_date_time', date('Y-m-d H:i:s'))
-        ->addValue('status_id', 1)
-      // Stripe Payments
-        ->addValue('activity_type_id', OBIAAREPORT_ACTIVITY_TYPE)
-        ->addValue('priority_id', 2)
-        ->execute();
+      ->addValue('source_contact_id', rand())
+      ->addValue('subject', 'Date is ' . $getYear . ' ' . $getMonth . ' Total: ' . $contributions['SUM:total_amount'])
+      ->addValue('Stripe_Monthly_Total_Amount.Stripe_Monthly_Total_Amount', $contributions['SUM:total_amount'])
+      ->addValue('activity_date_time', date('Y-m-d H:i:s'))
+      ->addValue('status_id', 1)
+      ->addValue('activity_type_id', OBIAAREPORT_ACTIVITY_TYPE)
+      ->addValue('priority_id', 2)
+      ->execute();
     }
   }
   //catch exception
