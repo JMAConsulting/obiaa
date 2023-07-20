@@ -68,14 +68,14 @@ function civicrm_api3_job_Stripepaymentreport($params) {
     if (!empty($contributions)) {
       // create activities
       $resultsActivity = \Civi\Api4\Activity::create()
-      ->addValue('source_contact_id', rand())
-      ->addValue('subject', 'Date is ' . $getYear . ' ' . $getMonth . ' Total: ' . $contributions['SUM:total_amount'])
-      ->addValue('Stripe_Monthly_Total_Amount.Stripe_Monthly_Total_Amount', $contributions['SUM:total_amount'])
-      ->addValue('activity_date_time', date('Y-m-d H:i:s'))
-      ->addValue('status_id', 1)
-      ->addValue('activity_type_id', OBIAAREPORT_ACTIVITY_TYPE)
-      ->addValue('priority_id', 2)
-      ->execute();
+        ->addValue('source_contact_id', rand())
+        ->addValue('subject', 'Date is ' . $getYear . ' ' . $getMonth . ' Total: ' . $contributions['SUM:total_amount'])
+        ->addValue('Stripe_Monthly_Total_Amount.Stripe_Monthly_Total_Amount', $contributions['SUM:total_amount'])
+        ->addValue('activity_date_time', date('Y-m-d H:i:s'))
+        ->addValue('status_id', 1)
+        ->addValue('activity_type_id', OBIAAREPORT_ACTIVITY_TYPE)
+        ->addValue('priority_id', 2)
+        ->execute();
     }
   }
   //catch exception
