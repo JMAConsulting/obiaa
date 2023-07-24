@@ -1,8 +1,6 @@
 <?php
 use CRM_Newstripepaymentreport_ExtensionUtil as E;
 
-require_once 'Stripeschedulereport.variables.php';
-
 /**
  * Job.Stripepaymentreport API specification (optional)
  * This is used for documentation and validation.
@@ -73,7 +71,7 @@ function civicrm_api3_job_Stripepaymentreport($params) {
         ->addValue('Stripe_Monthly_Total_Amount.Stripe_Monthly_Total_Amount', $contributions['SUM:total_amount'])
         ->addValue('activity_date_time', date('Y-m-d H:i:s'))
         ->addValue('status_id', 1)
-        ->addValue('activity_type_id', OBIAAREPORT_ACTIVITY_TYPE)
+        ->addValue('activity_type_id:name', 'Stripe Payments')
         ->addValue('priority_id', 2)
         ->execute();
     }

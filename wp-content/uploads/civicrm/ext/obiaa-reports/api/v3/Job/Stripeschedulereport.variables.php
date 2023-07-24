@@ -1,2 +1,0 @@
-<?php
-define('OBIAAREPORT_ACTIVITY_TYPE', '56');
