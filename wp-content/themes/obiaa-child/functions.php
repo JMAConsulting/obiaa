@@ -21,11 +21,13 @@ function remove_core_updates() {
 }
 
 $user = wp_get_current_user();
-if (!empty($user->roles) && $user->roles[0] != 'administrator') {
-  //hide updates for WordPress itself
-  add_filter('pre_site_transient_update_core', 'remove_core_updates');
-  //hide updates for all plugins
-  add_filter('pre_site_transient_update_plugins', 'remove_core_updates');
-  //hide updates for all themes
-  add_filter('pre_site_transient_update_themes', 'remove_core_updates');
+if (!empty($user->ID)) {
+  if (!(user_can($user->ID, 'jma_admin'))) {
+    //hide updates for WordPress itself
+    add_filter('pre_site_transient_update_core', 'remove_core_updates');
+    //hide updates for plugins
+    add_filter('pre_site_transient_update_plugins', 'remove_core_updates');
+    //hide updates for themes
+    add_filter('pre_site_transient_update_themes', 'remove_core_updates');
+  }
 }
