@@ -4,7 +4,7 @@ use CRM_Mjwshared_ExtensionUtil as E;
 /**
  * Collection of upgrade steps.
  */
-class CRM_Mjwshared_Upgrader extends CRM_Mjwshared_Upgrader_Base {
+class CRM_Mjwshared_Upgrader extends CRM_Extension_Upgrader_Base {
 
   /**
    * @return TRUE on success

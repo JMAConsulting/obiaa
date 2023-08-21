@@ -47,21 +47,30 @@ trait CRM_Core_Payment_MJWTrait {
   /**
    * Get the billing email address
    *
-   * @param array $params
-   * @param int $contactId
+   * @param \Civi\Payment\PropertyBag|array $params
+   * @param int $contactID
    *
    * @return string|NULL
    */
-  public function getBillingEmail($params, $contactId) {
+  public function getBillingEmail($propertyBag, $contactID = NULL) {
+    // We want this function to take a single argument - propertyBag but for legacy compatibility
+    //   we still accept an array and the second parameter contactID.
+    // Start: Hackery to convert this function to take propertyBag
+    $propertyBag = PropertyBag::cast($propertyBag);
+    if (empty($contactID) && $propertyBag->has('contactID')) {
+      $contactID = $propertyBag->getContactID();
+    }
+    $params = $this->getPropertyBagAsArray($propertyBag);
+    // End: Hackery to convert this function to take propertyBag
+
     $billingLocationId = CRM_Core_BAO_LocationType::getBilling();
     $emailAddress = $params["email-{$billingLocationId}"] ?? $params['email-Primary'] ?? $params['email'] ?? NULL;
 
-    if (empty($emailAddress) && !empty($contactId)) {
+    if (empty($emailAddress) && !empty($contactID)) {
       // Try and retrieve an email address from Contact ID
-      $emailAddresses = civicrm_api3('Email', 'get', [
-        'contact_id' => $contactId,
-        'return'     => ['email', 'location_type_id', 'is_primary'],
-      ])['values'];
+      $emailAddresses = \Civi\Api4\Email::get(FALSE)
+        ->addWhere('contact_id', '=', $contactID)
+        ->execute();
 
       $other_options = [];
       foreach ($emailAddresses as $row) {
@@ -320,7 +329,7 @@ trait CRM_Core_Payment_MJWTrait {
       $this->_params['country'] = $this->_params["country-{$billingLocationId}"] = $this->_params["billing_country-{$billingLocationId}"] = CRM_Core_PseudoConstant::countryIsoCode($this->_params["billing_country_id-{$billingLocationId}"]);
     }
 
-    list($hasAddressField, $addressParams) = CRM_Contribute_BAO_Contribution::getPaymentProcessorReadyAddressParams($this->_params, $billingLocationId);
+    [$hasAddressField, $addressParams] = CRM_Contribute_BAO_Contribution::getPaymentProcessorReadyAddressParams($this->_params, $billingLocationId);
     if ($hasAddressField) {
       $this->_params = array_merge($this->_params, $addressParams);
     }
@@ -346,12 +355,13 @@ trait CRM_Core_Payment_MJWTrait {
    * @throws \Civi\Payment\Exception\PaymentProcessorException
    *   (or statusbounce if URL is specified)
    */
-  private function handleError($errorCode = NULL, $errorMessage = NULL, $bounceURL = NULL) {
-    $errorCode = empty($errorCode) ? '' : $errorCode . ': ';
+  private function handleError($errorCode = '', $errorMessage = '', $bounceURL = NULL, $log = TRUE) {
     $errorMessage = empty($errorMessage) ? 'Unknown System Error.' : $errorMessage;
-    $message = $errorCode . $errorMessage;
+    $message = $errorMessage . (!empty($errorCode) ? " - {$errorCode}" : '');
 
-    Civi::log()->error($this->getPaymentTypeLabel() . ' Payment Error: ' . $message);
+    if ($log) {
+      Civi::log()->error($this->getPaymentTypeLabel() . ' Payment Error: ' . $message);
+    }
     if ($this->handleErrorThrowsException) {
       // We're in a test environment. Throw exception.
       throw new \Exception('Exception thrown to avoid statusBounce because handleErrorThrowsException is set.' . $message);

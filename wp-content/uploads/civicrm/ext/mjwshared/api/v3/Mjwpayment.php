@@ -91,17 +91,18 @@ function civicrm_api3_mjwpayment_get_contribution($params) {
     // We may have more than one payment (eg. A payment + a refund payment)
     // Return the contribution of the FIRST payment (all found payments SHOULD reference the same contribution)
     $contributionID = reset($payments['values'])['contribution_id'];
-    $contribution = civicrm_api3('Contribution', 'getsingle', [
-      'id' => $contributionID,
-      'contribution_test' => $params['contribution_test'],
-    ]);
+    $contribution = \Civi\Api4\Contribution::get(FALSE)
+      ->addWhere('id', '=', $contributionID)
+      ->addWhere('is_test', 'IN', [TRUE, FALSE])
+      ->execute()
+      ->first();
     $contribution['payments'] = $payments['values'];
   }
   else {
-    $contributionParams = [
-      'options' => ['limit' => 1, 'sort' => 'id DESC'],
-      'contribution_test' => $params['contribution_test'],
-    ];
+    $contributionApi4 = \Civi\Api4\Contribution::get(FALSE)
+      ->addWhere('is_test', 'IN', [TRUE, FALSE])
+      ->addOrderBy('id', 'DESC');
+
     if (isset($params['order_reference'])) {
       $contributionParams['trxn_id'][] = $params['order_reference'];
     }
@@ -109,10 +110,12 @@ function civicrm_api3_mjwpayment_get_contribution($params) {
       $contributionParams['trxn_id'][] = $params['trxn_id'];
     }
     if (isset($contributionParams['trxn_id'])) {
-      $contributionParams['trxn_id'] = ['IN' => $contributionParams['trxn_id']];
+      $contributionApi4->addWhere('trxn_id', 'IN', $contributionParams['trxn_id']);
     }
-    $contribution = civicrm_api3('Contribution', 'get', $contributionParams)['values'];
-    $contribution = reset($contribution);
+    if (isset($params['contribution_id'])) {
+      $contributionApi4->addWhere('id', '=', $params['contribution_id']);
+    }
+    $contribution = $contributionApi4->execute()->first();
   }
   $result = [];
   if ($contribution) {
@@ -180,20 +183,27 @@ function civicrm_api3_mjwpayment_create_payment($params) {
       }
     }
   }
-  if (!empty($params['payment_processor'])) {
-    // I can't find evidence this is passed in - I was gonna just remove it but decided to deprecate  as I see getToFinancialAccount
-    // also anticipates it.
-    CRM_Core_Error::deprecatedFunctionWarning('passing payment_processor is deprecated - use payment_processor_id');
-    $params['payment_processor_id'] = $params['payment_processor'];
-  }
   // Check if it is an update
   if (!empty($params['id'])) {
     $amount = $params['total_amount'];
     civicrm_api3('Payment', 'cancel', $params);
     $params['total_amount'] = $amount;
   }
-
   $trxn = CRM_Financial_BAO_Payment::create($params);
+
+  $customFields = \Civi\Api4\CustomField::get(FALSE)
+    ->addWhere('custom_group_id:name', '=', 'Payment_details')
+    ->execute()
+    ->indexBy('name');
+  foreach ($customFields as $key => $value) {
+    if (isset($params[$key])) {
+      $customParams['custom_' . $value['id']] = $params[$key];
+    }
+  }
+  if (!empty($customParams)) {
+    $customParams['entity_id'] = $trxn->id;
+    civicrm_api3('CustomValue', 'create', $customParams);
+  }
 
   $values = [];
   _civicrm_api3_object_to_array_unique_fields($trxn, $values[$trxn->id]);
