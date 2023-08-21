@@ -162,7 +162,6 @@ class CRM_CivirulesActions_Activity_Add extends CRM_CivirulesActions_Generic_Api
    * @access public
    */
   public function processAction(CRM_Civirules_TriggerData_TriggerData $triggerData) {
-
     // Process the action, may throw Exceptions
     parent::processAction($triggerData);
 

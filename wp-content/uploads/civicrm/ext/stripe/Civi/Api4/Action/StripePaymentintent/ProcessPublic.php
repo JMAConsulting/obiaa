@@ -12,6 +12,10 @@
 
 namespace Civi\Api4\Action\StripePaymentintent;
 
+use Brick\Math\RoundingMode;
+use Brick\Money\Context\DefaultContext;
+use Brick\Money\Money;
+
 /**
  * Process a Stripe Intent with public/anonymous permissions
  *
@@ -82,42 +86,52 @@ class ProcessPublic extends \Civi\Api4\Generic\AbstractAction {
   protected $csrfToken = '';
 
   /**
-   * @param \Civi\Api4\Generic\Result $result
+   * A captcha token for verification (if enabled)
    *
-   * @return array
-   * @throws \CRM_Core_Exception
-   * @throws \CiviCRM_API3_Exception
+   * @var string
    */
+  protected $captcha = '';
+
   /**
    * @param \Civi\Api4\Generic\Result $result
    *
    * @return void
-   * @throws \API_Exception
    * @throws \CRM_Core_Exception
-   * @throws \CiviCRM_API3_Exception
    * @throws \Stripe\Exception\ApiErrorException
    */
   public function _run(\Civi\Api4\Generic\Result $result) {
-    if (class_exists('\Civi\Firewall\Firewall')) {
-      $firewall = new \Civi\Firewall\Firewall();
-      if (!$firewall->checkIsCSRFTokenValid(\CRM_Utils_Type::validate($this->csrfToken, 'String'))) {
-        throw new \API_Exception($firewall->getReasonDescription());
-      }
+    $authorizeEvent = new \Civi\Stripe\Event\AuthorizeEvent($this->getEntityName(), $this->getActionName(), $this->getParams());
+    $event = \Civi::dispatcher()->dispatch('civi.stripe.authorize', $authorizeEvent);
+    if ($event->isAuthorized() === FALSE) {
+      throw new \CRM_Core_Exception('Bad Request');
     }
 
     if (empty($this->amount) && !$this->setup) {
       \Civi::log('stripe')->error(__CLASS__ . 'missing amount and not capture or setup');
-      throw new \API_Exception('Bad request');
+      throw new \CRM_Core_Exception('Bad request');
     }
+
+    // setupIntent doesn't have an amount so we can't validate minamount in that case
+    // If we configured a minimum allowed amount for processing check it now
+    $minAmount = \Civi::settings()->get('stripe_minamount');
+    if (!$this->setup && !empty($minAmount)) {
+      $moneyAmount = Money::of($this->amount, $this->currency, new DefaultContext(), RoundingMode::CEILING);
+      $moneyMinAmount = Money::of($minAmount, $this->currency, new DefaultContext(), RoundingMode::CEILING);
+      if ($moneyAmount->isLessThan($moneyMinAmount)) {
+        \Civi::log('stripe')->error('StripeProcessintent: ' . 'amount: ' . $this->amount . ' is less than min_amount: ' . $minAmount);
+        throw new \CRM_Core_Exception('Bad request');
+      }
+    }
+
     if (empty($this->paymentProcessorID)) {
       \Civi::log('stripe')->error(__CLASS__ . ' missing paymentProcessorID');
-      throw new \API_Exception('Bad request');
+      throw new \CRM_Core_Exception('Bad request');
     }
 
     $intentProcessor = new \CRM_Stripe_PaymentIntent();
     $intentProcessor->setDescription($this->description);
     $intentProcessor->setReferrer($_SERVER['HTTP_REFERER'] ?? '');
-    $intentProcessor->setExtraData($this->extraData ?? []);
+    $intentProcessor->setExtraData($this->extraData ?? '');
 
     $processIntentParams = [
       'paymentProcessorID' => $this->paymentProcessorID,
@@ -135,7 +149,7 @@ class ProcessPublic extends \Civi\Api4\Generic\AbstractAction {
       $result->exchangeArray($processIntentResult->data);
     }
     else {
-      throw new \API_Exception($processIntentResult->message);
+      throw new \CRM_Core_Exception($processIntentResult->message);
     }
   }
 

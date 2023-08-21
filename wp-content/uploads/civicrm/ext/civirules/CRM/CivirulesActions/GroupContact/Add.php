@@ -15,7 +15,6 @@ class CRM_CivirulesActions_GroupContact_Add extends CRM_CivirulesActions_GroupCo
    * Method to set the api action
    *
    * @return string
-   * @access protected
    */
   protected function getApiAction() {
     return 'create';

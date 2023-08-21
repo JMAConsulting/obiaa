@@ -18,7 +18,7 @@ class CRM_CivirulesPostTrigger_ContactCustomDataChanged extends CRM_Civirules_Tr
     $triggers = CRM_Civirules_BAO_Rule::findRulesByClassname($get_called_class);
 
     $contactTriggers = CRM_Civirules_BAO_Rule::findRulesByObjectNameAndOp($get_called_class::getObjectName(), 'edit');
-    foreach($contactTriggers as $trigger) {
+    foreach ($contactTriggers as $trigger) {
       if ($trigger instanceof CRM_Civirules_Trigger_Post) {
         $triggers[] = $trigger;
       }
@@ -57,18 +57,20 @@ class CRM_CivirulesPostTrigger_ContactCustomDataChanged extends CRM_Civirules_Tr
     $objectName = $get_called_class::getObjectName();
     if ('Contact' == $objectName) {
       $entity_extensions = array('Contact', 'Individual', 'Organization', 'Household');
-    } else {
+    }
+    else {
       $entity_extensions = array($objectName);
     }
     return $entity_extensions;
   }
 
   public static function custom($op, $groupID, $entityID, &$params) {
-    $custom_group = civicrm_api3('CustomGroup', 'getsingle', array('id' => $groupID));
+    $config = \Civi\CiviRules\Config\ConfigContainer::getInstance();
+    $custom_group = $config->getCustomGroupById($groupID);
     $get_called_class = get_called_class();
     $objectName = $get_called_class::getObjectName();
     $entity_extensions = self::getEntityExtensions();
-    if (!in_array($custom_group['extends'] , $entity_extensions)) {
+    if (!in_array($custom_group['extends'], $entity_extensions)) {
       return;
     }
     $contact = array();
@@ -77,6 +79,8 @@ class CRM_CivirulesPostTrigger_ContactCustomDataChanged extends CRM_Civirules_Tr
       foreach ($params as $field) {
         if (!empty($field['custom_field_id'])) {
           $contact['custom_' . $field['custom_field_id']] = $field['value'];
+          $contact['custom_' . $field['custom_field_id'] . '_group_id'] = $field['custom_group_id'];
+          $contact['custom_' . $field['custom_field_id'] . '_entry_id'] = $field['id'];
         }
       }
     }
@@ -90,7 +94,7 @@ class CRM_CivirulesPostTrigger_ContactCustomDataChanged extends CRM_Civirules_Tr
   protected static function trigger(CRM_Civirules_TriggerData_TriggerData $triggerData) {
     //find matching rules for this objectName and op
     $triggers = self::getTriggers();
-    foreach($triggers as $trigger) {
+    foreach ($triggers as $trigger) {
       $trigger->alterTriggerData($triggerData);
       CRM_Civirules_Engine::triggerRule($trigger, $triggerData);
     }

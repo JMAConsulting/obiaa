@@ -567,6 +567,18 @@ function civimobileapi_civicrm_permission(&$permissionList) {
     E::ts("It means the User can see the groups he belongs to"),
   ];
 
+  $permissionList['CiviMobile backend access'] = [
+    $permissionsPrefix . 'CiviMobile backend access',
+    E::ts("test"),
+  ];
+
+}
+
+function civimobileapi_civicrm_permission_check($permission, &$granted) {
+  if ($permission == 'access CiviCRM' && CRM_Core_Permission::check('CiviMobile backend access') && is_mobile_request()) {
+    $granted = TRUE;
+  }
+
 }
 
 if (!function_exists('is_writable_r')) {

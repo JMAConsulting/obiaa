@@ -13,7 +13,7 @@ namespace Civi\Firewall\Event;
 /**
  * Class FraudEvent
  */
-class FraudEvent extends \Symfony\Component\EventDispatcher\Event {
+class FraudEvent extends \Civi\Core\Event\GenericHookEvent {
 
   /**
    * @var string
@@ -50,7 +50,7 @@ class FraudEvent extends \Symfony\Component\EventDispatcher\Event {
    */
   public static function trigger(string $ipAddress, string $source = NULL) {
     $event = new \Civi\Firewall\Event\FraudEvent($ipAddress, $source);
-    \Civi::dispatcher()->dispatch('civi.firewall.fraud', $event);
+    \Civi::dispatcher()->dispatch('civi.firewall.fraudulentrequest', $event);
   }
 
 }

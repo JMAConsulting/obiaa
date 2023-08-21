@@ -9,6 +9,8 @@
  +--------------------------------------------------------------------+
  */
 
+use CRM_Stripe_ExtensionUtil as E;
+
 class CRM_Stripe_Api {
 
   /**
@@ -51,13 +53,25 @@ class CRM_Stripe_Api {
             return self::formatDate($stripeObject->created);
 
           case 'invoice_id':
-            return (string) $stripeObject->invoice;
+            if (!isset($stripeObject->invoice)) {
+              return '';
+            }
+            // Handle both "expanded" and "collapsed" response
+            elseif (is_object($stripeObject->invoice)) {
+              return (string) $stripeObject->invoice->id;
+            }
+            else {
+              return (string) $stripeObject->invoice;
+            }
 
           case 'captured':
             return (bool) $stripeObject->captured;
 
           case 'currency':
-            return (string) mb_strtoupper($stripeObject->currency);
+            return self::formatCurrency($stripeObject->currency);
+
+          case 'payment_intent_id':
+            return (string) $stripeObject->payment_intent;
 
         }
         break;
@@ -86,7 +100,7 @@ class CRM_Stripe_Api {
             return (string) $stripeObject->amount_remaining / 100;
 
           case 'currency':
-            return (string) mb_strtoupper($stripeObject->currency);
+            return self::formatCurrency($stripeObject->currency);
 
           case 'status_id':
             if ((bool) $stripeObject->paid) {
@@ -122,7 +136,7 @@ class CRM_Stripe_Api {
             return (string) $stripeObject->plan->amount / 100;
 
           case 'currency':
-            return (string) mb_strtoupper($stripeObject->plan->currency);
+            return self::formatCurrency($stripeObject->plan->currency);
 
           case 'plan_start':
             return self::formatDate($stripeObject->start_date);
@@ -160,7 +174,28 @@ class CRM_Stripe_Api {
             return (string) $stripeObject->customer;
         }
         break;
+
+      case 'checkout.session':
+        switch ($name) {
+          case 'payment_intent_id':
+            return (string) $stripeObject->payment_intent;
+
+          case 'checkout_session_id':
+            return (string) $stripeObject->id;
+
+          case 'client_reference_id':
+            return (string) $stripeObject->client_reference_id;
+
+          case 'subscription_id':
+            return (string) $stripeObject->subscription;
+
+          case 'invoice_id':
+            return (string) $stripeObject->invoice;
+        }
+        break;
+
     }
+
     return NULL;
   }
 
@@ -170,8 +205,17 @@ class CRM_Stripe_Api {
    *
    * @return string|null
    */
-  private static function formatDate($stripeTimestamp) {
+  public static function formatDate($stripeTimestamp) {
     return $stripeTimestamp ? date('YmdHis', $stripeTimestamp) : NULL;
+  }
+
+  /**
+   * @param string $stripeCurrency
+   *
+   * @return string
+   */
+  public static function formatCurrency(string $stripeCurrency): string {
+    return (string) mb_strtoupper($stripeCurrency);
   }
 
   /**
@@ -225,6 +269,39 @@ class CRM_Stripe_Api {
     //   of the CiviCRM locale. If it doesn't match the Stripe element will fallback
     //   to "auto"
     return substr($civiCRMLocale,0, 2);
+  }
+
+  public static function getListOfSupportedPaymentMethodsCheckout() {
+    return [
+      'card' => E::ts('Card'),
+      // 'acss_debit',
+      // 'affirm',
+      // 'afterpay_clearpay',
+      // 'alipay',
+      // 'au_becs_debit',
+      'bacs_debit' => E::ts('BACS Direct Debit'),
+      // 'bancontact',
+      // 'blik',
+      // 'boleto',
+      // 'cashapp',
+      // 'customer_balance',
+      // 'eps',
+      // 'fpx',
+      // 'giropay',
+      // 'grabpay',
+      // 'ideal',
+      // 'klarna',
+      // 'konbini',
+      // 'oxxo',
+      // 'p24',
+      // 'paynow',
+      // 'pix',
+      // 'promptpay',
+      'sepa_debit' => E::ts('SEPA Direct Debit'),
+      // 'sofort',
+      'us_bank_account' => E::ts('ACH Direct Debit'),
+      // 'wechat_pay',
+    ];
   }
 
 }

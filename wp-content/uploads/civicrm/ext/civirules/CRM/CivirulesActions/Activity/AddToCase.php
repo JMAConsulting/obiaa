@@ -196,7 +196,7 @@ class CRM_CivirulesActions_Activity_AddToCase extends CRM_CivirulesActions_Activ
     $case_type = civicrm_api3('CaseType', 'getvalue', [
       'id' => $params['case_type_id'],
       'return' => 'title',
-      'options' => ['limit' => 0]
+      'options' => ['limit' => 1]
     ]);
     $case_statuses = CRM_Core_OptionGroup::values('case_status');
     if (!empty($params['case_status_id'])) {

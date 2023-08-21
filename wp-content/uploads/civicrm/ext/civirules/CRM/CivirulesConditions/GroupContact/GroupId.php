@@ -19,7 +19,6 @@ class CRM_CivirulesConditions_GroupContact_GroupId extends CRM_Civirules_Conditi
   }
 
   public function isConditionValid(CRM_Civirules_TriggerData_TriggerData $triggerData) {
-$this->logCondition('civirules: group is', $triggerData, \PSR\Log\LogLevel::INFO);
     $groupContact = $triggerData->getEntityData('GroupContact');
     if ($groupContact['group_id'] == $this->conditionParams['group_id']) {
       return true;

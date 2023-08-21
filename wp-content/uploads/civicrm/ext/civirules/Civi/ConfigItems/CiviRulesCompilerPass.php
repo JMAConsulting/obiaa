@@ -30,7 +30,7 @@ class CiviRulesCompilerPass implements CompilerPassInterface {
   public function process(ContainerBuilder $container) {
     if ($container->hasDefinition('civiconfig_entity_factory')) {
       $container->getDefinition('civiconfig_entity_factory')
-        ->addMethodCall('addEntityDefinition', [new Definition('\Civi\ConfigItems\Entity\CiviRules\Definition', ['CiviRules'])], 999);
+        ->addMethodCall('addEntityDefinition', [new Definition('\Civi\ConfigItems\Entity\CiviRules\Definition', ['CiviRules']), 999]);
     }
   }
 

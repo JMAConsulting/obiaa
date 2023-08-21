@@ -27,8 +27,7 @@ class CRM_CiviMobileAPI_BAO_EventSessionSpeaker extends CRM_CiviMobileAPI_DAO_Ev
 
     if (!empty($params['id'])) {
       CRM_Utils_Hook::pre('edit', self::getEntityName(), $params['id'], $params);
-    }
-    else {
+    } else {
       CRM_Utils_Hook::pre('create', self::getEntityName(), NULL, $params);
     }
 
@@ -43,8 +42,7 @@ class CRM_CiviMobileAPI_BAO_EventSessionSpeaker extends CRM_CiviMobileAPI_DAO_Ev
 
     if (!empty($params['id'])) {
       CRM_Utils_Hook::post('edit', self::getEntityName(), $entityData->id, $entityData);
-    }
-    else {
+    } else {
       CRM_Utils_Hook::post('create', self::getEntityName(), $entityData->id, $entityData);
     }
 
@@ -75,7 +73,7 @@ class CRM_CiviMobileAPI_BAO_EventSessionSpeaker extends CRM_CiviMobileAPI_DAO_Ev
    * @return \CRM_Utils_SQL_Select
    */
   private static function buildSelectQuery($returnValue = 'rows') {
-    $query = CRM_Utils_SQL_Select::from(self::getTableName()  . ' esspeaker');
+    $query = CRM_Utils_SQL_Select::from(self::getTableName() . ' esspeaker');
 
     if ($returnValue == 'rows') {
       $query->select('
@@ -83,8 +81,7 @@ class CRM_CiviMobileAPI_BAO_EventSessionSpeaker extends CRM_CiviMobileAPI_DAO_Ev
         esspeaker.event_session_id,
         esspeaker.speaker_id
       ');
-    }
-    else {
+    } else {
       if ($returnValue == 'count') {
         $query->select('COUNT(id)');
       }
@@ -128,7 +125,7 @@ class CRM_CiviMobileAPI_BAO_EventSessionSpeaker extends CRM_CiviMobileAPI_DAO_Ev
    */
   private static function getSpeakersBelongedToSessionsByEventQuery($params) {
     $query = self::buildOrderQuery(self::buildSelectQuery(), $params);
-    $query->where('event_session_id IN (SELECT id FROM civicrm_civimobile_event_session WHERE event_id=#1)',[
+    $query->where('event_session_id IN (SELECT id FROM civicrm_civimobile_event_session WHERE event_id=#1)', [
       1 => $params['event_id']
     ]);
     $query->select('participant.id as participant_id,
@@ -143,7 +140,7 @@ class CRM_CiviMobileAPI_BAO_EventSessionSpeaker extends CRM_CiviMobileAPI_DAO_Ev
     $query->join('contact', 'LEFT join civicrm_contact contact ON contact.id = participant.contact_id');
 
     if (!empty($params['participant_id'])) {
-      $query->where('participant.id = #1',[
+      $query->where('participant.id = #1', [
         1 => $params['participant_id']
       ]);
     }
@@ -161,8 +158,16 @@ class CRM_CiviMobileAPI_BAO_EventSessionSpeaker extends CRM_CiviMobileAPI_DAO_Ev
    */
   public static function getSpeakersBelongedToSessionsByEvent($params) {
     $query = self::getSpeakersBelongedToSessionsByEventQuery($params);
-    $query->limit(!empty($params['options']['limit']) ? $params['options']['limit'] : 25, !empty($params['options']['offset']) ? $params['options']['offset'] : 0);
 
+    $limit = isset($params['options']['limit']) ? $params['options']['limit'] : 25;
+    $offset = isset($params['options']['offset']) ? $params['options']['offset'] : 0;
+
+    if ($limit != 0) {
+      $query->limit($limit, $offset);
+    } else {
+      return CRM_Core_DAO::executeQuery($query->toSQL())->fetchAll();
+    }
+    
     return CRM_Core_DAO::executeQuery($query->toSQL())->fetchAll();
   }
 

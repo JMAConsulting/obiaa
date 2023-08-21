@@ -45,18 +45,16 @@ class CRM_Queue_Queue_Civirules extends CRM_Queue_Queue_Sql {
 
     if ($dao->fetch()) {
       $nowEpoch = CRM_Utils_Time::time();
-      if ($dao->release_time === NULL || strtotime($dao->release_time) < $nowEpoch) {
-        CRM_Core_DAO::executeQuery("UPDATE civicrm_queue_item SET release_time = %1 WHERE id = %2", array(
-          '1' => array(date('YmdHis', $nowEpoch + $lease_time), 'String'),
-          '2' => array($dao->id, 'Integer'),
-        ));
-        // work-around: inconsistent date-formatting causes unintentional breakage
-        #        $dao->submit_time = date('YmdHis', strtotime($dao->submit_time));
-        #        $dao->release_time = date('YmdHis', $nowEpoch + $lease_time);
-        #        $dao->save();
-        $dao->data = unserialize($dao->data);
-        return $dao;
-      }
+      CRM_Core_DAO::executeQuery("UPDATE civicrm_queue_item SET release_time = %1 WHERE id = %2", array(
+	'1' => array(date('YmdHis', $nowEpoch + $lease_time), 'String'),
+	'2' => array($dao->id, 'Integer'),
+      ));
+      // work-around: inconsistent date-formatting causes unintentional breakage
+      #        $dao->submit_time = date('YmdHis', strtotime($dao->submit_time));
+      #        $dao->release_time = date('YmdHis', $nowEpoch + $lease_time);
+      #        $dao->save();
+      $dao->data = unserialize($dao->data);
+      return $dao;
     }
   }
 

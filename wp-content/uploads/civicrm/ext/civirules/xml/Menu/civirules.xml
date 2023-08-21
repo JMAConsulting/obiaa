@@ -145,6 +145,12 @@
     <access_arguments>administer CiviCRM</access_arguments>
   </item>
   <item>
+    <path>civicrm/civirule/form/condition/recurhasmembership</path>
+    <page_callback>CRM_CivirulesConditions_Form_ContributionRecur_Membership</page_callback>
+    <title>recurring contribution has membership</title>
+    <access_arguments>administer CiviCRM</access_arguments>
+  </item>
+  <item>
     <path>civicrm/civirule/form/condition/status</path>
     <page_callback>CRM_CivirulesConditions_Form_Status</page_callback>
     <title>Status</title>
@@ -211,6 +217,12 @@
     <access_arguments>administer CiviCRM</access_arguments>
   </item>
   <item>
+    <path>civicrm/civirule/form/condition/contribution_recur_xth_contribution</path>
+    <page_callback>CRM_CivirulesConditions_Form_ContributionRecur_xthContribution</page_callback>
+    <title>xth recurring contribution</title>
+    <access_arguments>administer CiviCRM</access_arguments>
+  </item>  
+  <item>
     <path>civicrm/civirule/form/condition/contribution_recur_donorisrecurring</path>
     <page_callback>CRM_CivirulesConditions_Form_ContributionRecur_DonorIsRecurring</page_callback>
     <title>donor has recurring contributions</title>
@@ -232,6 +244,12 @@
     <path>civicrm/civirule/form/condition/contribution/xthcontribution</path>
     <page_callback>CRM_CivirulesConditions_Form_Contribution_xthContribution</page_callback>
     <title>xth contribution of donor</title>
+    <access_arguments>administer CiviCRM</access_arguments>
+  </item>
+  <item>
+    <path>civicrm/civirule/form/condition/contribution/xthcontributionlast</path>
+    <page_callback>CRM_CivirulesConditions_Form_Contribution_xthContributionLast</page_callback>
+    <title>xth contribution of donor in last time interval</title>
     <access_arguments>administer CiviCRM</access_arguments>
   </item>
   <item>
@@ -274,6 +292,12 @@
     <path>civicrm/civirule/form/action/groupcontact</path>
     <page_callback>CRM_CivirulesActions_GroupContact_Form_GroupId</page_callback>
     <title>Group contact</title>
+    <access_arguments>administer CiviCRM</access_arguments>
+  </item>
+  <item>
+    <path>civicrm/civirule/form/action/groupcontact/addrelated</path>
+    <page_callback>CRM_CivirulesActions_GroupContact_Form_AddRelated</page_callback>
+    <title>Related Group contact</title>
     <access_arguments>administer CiviCRM</access_arguments>
   </item>
   <item>
@@ -365,6 +389,12 @@
     <path>civicrm/civirule/form/action/generic/setcustomvalue</path>
     <page_callback>CRM_CivirulesActions_Generic_Form_SetCustomField</page_callback>
     <title>Set Custom Field</title>
+    <access_arguments>administer CiviCRM</access_arguments>
+  </item>
+  <item>
+    <path>civicrm/civirule/form/action/generic/copycustomvalue</path>
+    <page_callback>CRM_CivirulesActions_Generic_Form_CopyCustomField</page_callback>
+    <title>Set Custom Field on an entiy with data from another Custom Field</title>
     <access_arguments>administer CiviCRM</access_arguments>
   </item>
   <item>
@@ -623,6 +653,30 @@
     <path>civicrm/civirule/form/trigger/nextcontributiondate</path>
     <page_callback>CRM_CivirulesCronTrigger_Form_NextContributionDate</page_callback>
     <title>Next Scheduled Contribution Date</title>
+    <access_arguments>administer CiviCRM</access_arguments>
+  </item>
+  <item>
+    <path>civicrm/civirule/form/condition/contribution_is_pay_later</path>
+    <page_callback>CRM_CivirulesConditions_Form_Contribution_IsPayLater</page_callback>
+    <title>Is a Pay Later Contribution?</title>
+    <access_arguments>administer CiviCRM</access_arguments>
+  </item>
+  <item>
+    <path>civicrm/civirule/form/condition/contribution_source</path>
+    <page_callback>CRM_CivirulesConditions_Form_Contribution_Source</page_callback>
+    <title>Contribution Source</title>
+    <access_arguments>administer CiviCRM</access_arguments>
+  </item>
+  <item>
+    <path>civicrm/civirule/form/condition/contact_hastype</path>
+    <page_callback>CRM_CivirulesConditions_Form_Contact_HasType</page_callback>
+    <title>Has Type</title>
+    <access_arguments>administer CiviCRM</access_arguments>
+  </item>
+  <item>
+    <path>civicrm/civirule/form/condition/contact_loggedin</path>
+    <page_callback>CRM_CivirulesConditions_Form_Contact_LoggedIn</page_callback>
+    <title>User is Logged In</title>
     <access_arguments>administer CiviCRM</access_arguments>
   </item>
 </menu>

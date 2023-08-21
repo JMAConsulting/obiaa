@@ -91,6 +91,12 @@ class ProcessMOTO extends \Civi\Api4\Generic\AbstractAction {
    * @throws \Stripe\Exception\ApiErrorException
    */
   public function _run(\Civi\Api4\Generic\Result $result) {
+    $authorizeEvent = new \Civi\Stripe\Event\AuthorizeEvent($this->getEntityName(), $this->getActionName(), $this->getParams());
+    $event = \Civi::dispatcher()->dispatch('civi.stripe.authorize', $authorizeEvent);
+    if ($event->isAuthorized() === FALSE) {
+      throw new \CRM_Core_Exception('Bad Request');
+    }
+
     if (empty($this->amount) && !$this->setup) {
       \Civi::log('stripe')->error(__CLASS__ . 'missing amount and not capture or setup');
       throw new \API_Exception('Bad request');
@@ -103,7 +109,7 @@ class ProcessMOTO extends \Civi\Api4\Generic\AbstractAction {
     $intentProcessor = new \CRM_Stripe_PaymentIntent();
     $intentProcessor->setDescription($this->description);
     $intentProcessor->setReferrer($_SERVER['HTTP_REFERER'] ?? '');
-    $intentProcessor->setExtraData($this->extraData ?? []);
+    $intentProcessor->setExtraData($this->extraData ?? '');
 
     $processIntentParams = [
       'paymentProcessorID' => $this->paymentProcessorID,

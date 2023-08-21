@@ -85,6 +85,7 @@ class CRM_CiviMobileAPI_Authentication_Login {
       'display_name' => $this->civiContact->display_name,
       'cms' => CRM_CiviMobileAPI_Utils_CmsUser::getInstance()->getSystem(),
       'rest_path' => $restPath->get(),
+      'absolute_rest_url_v4' => $restPath->getAbsoluteUrlApiV4(),
       'absolute_rest_url' => $restPath->getAbsoluteUrl(),
       'site_name' => CRM_CiviMobileAPI_Utils_Extension::getSiteName(),
     ];
