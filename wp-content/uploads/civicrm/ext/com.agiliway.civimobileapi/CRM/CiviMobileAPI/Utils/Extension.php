@@ -249,6 +249,13 @@ class CRM_CiviMobileAPI_Utils_Extension {
   public static function isCurlExtensionEnabled() {
     return in_array('curl', get_loaded_extensions());
   }
+  
+  /**
+   * Is Time Tracker extension enabled
+   */
+  public static function isTimeTrackerExtensionEnabled() {
+    return CRM_CiviMobileAPI_Utils_TimeTracker::isTimeTrackerInstalled() ? 1 : 0;
+  }
 
   /**
    *  Sets cookie to hide QR popup

@@ -1,5 +1,10 @@
 <h3>{$ruleConditionHeader}</h3>
 <div class="crm-block crm-form-block crm-civirule-rule_condition-block-contact_has_membership">
+    <div class="crm-section">
+        <div class="label">{$form.inclusion_operator.label}</div>
+        <div class="content">{$form.inclusion_operator.html}</div>
+        <div class="clear"></div>
+    </div>
     <h4>{$form.membership_type_id.label}</h4>
     <div class="crm-section">
         <div class="label">{$form.type_operator.html}</div>

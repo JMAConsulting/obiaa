@@ -9,13 +9,129 @@ Releases use the following numbering system:
 
 * **[BC]**: Items marked with [BC] indicate a breaking change that will require updates to your code if you are using that code in your extension.
 
-## Release 6.8 (not yet released)
+## Release 6.9.2 (2023-08-14)
+
+* Enable BACS direct debit and send subscribtion data to stripe checkout.
+* When form incorrectly submits a one-off for a recur log an error and return a generic error message (it's a configuration error).
+* Standardize event processor return messages (messages that are displayed in the list of processed payment processor webhooks).
+* More conversion to \Civi\Payment\Propertybag (internal code enhancements).
+
+## Release 6.9.1 (2023-07-18)
+
+* Fix recording balancetransaction details (eg. available_on) on FinancialTrxn when payment is completed immediately (eg. Contribution page) and add tests to cover this scenario.
+* Fix [#440](https://lab.civicrm.org/extensions/stripe/-/issues/440) Fails to create a plan if one doesn't exist.
+
+## Release 6.9 (2023-06-29)
+
+### Features
+
+* Support Stripe Checkout (https://stripe.com/en-pt/payments/checkout): Currently supports Card payments, SEPA debit (EUR), ACH debit (USD) and Google/Apple Pay.
+  * Add setting for Stripe Checkout payment methods and enable Card/SEPA/ACH.
+
+* Add custom fields for available on/payout amount/currency and retrieve from balance transaction when processing charge/invoice (currently does not work when charge is completed immediately (ie. single contribution)).
+* Add API `StripeCharge.GetBalanceTransactionDetails`.
+
+### Improvements / Fixes
+
+* Fixes for PHP8.1/8.2.
+* Multiple test improvements.
+* Check for fee in tests. Switch to getDetailsForBalanceTransaction() for all webhooks that use it.
+* Add prefix to IPN/Webhook log messages.
+* Improve parsing of Stripe exceptions.
+* Set order_reference correctly when it's empty (use trxn_id).
+* If stripe customer is stored in CiviCRM but does not exist, delete and recreate it instead of failing.
+
+#### Webhooks
+
+* Replace IPN / Webhook processing with new \Civi\Stripe\Webhook\Events processor.
+* Fix `charge.failed` webhook - handle both collapsed and expanded invoice in charge.
+* Support `checkout.session.completed` webhook event.
+
+
+## Release 6.8.2 (2023-04-09)
+
+* Fix [#422](https://lab.civicrm.org/extensions/stripe/-/issues/422) The resource ID cannot be null or whitespace.
+
+## Release 6.8.1 (2023-03-13)
+
+* Add mixin required for versions older than 5.59 (ie. 5.58).
+
+## Release 6.8 (2023-03-12)
+
 **You don't need "Access AJAX API" permission for anonymous user to make payments**
 
+### Features:
+* Implement optional MOTO payments for backoffice.
+* Update name/email address at Stripe if contact has a Stripe Customer when updating contact / email (primary/billing).
+* Allow to configure a minimum amount that Stripe can process. Anything below this will fail with 'Bad Request'. This helps reduce card testing in some circumstances.
+* Add APIv3 `Stripe.membershipcheck` api.
+
+### Breaking changes:
+* In APIv3 StripeCustomer, the `id` field is renamed to `customer_id` and a standard autoincrement `id` field is added.  Note that previously `customer_id` was an alias for the `id` field so scripts using this Api may already be using `customer_id`.
+* You DO NOT need "Access AJAX API" permission for anonymous user to make payments.
+* You DO need "Make online contributions" permission for anonymous user to make payments.
+* Deprecate API3 Stripe.ipn (it's not yet removed but will be).
+
+### Detailed changes:
 * Implement optional MOTO payments for backoffice.
 * Refactor webhook processing to be more 'standard'. Deprecate API3 Stripe.ipn.
 * Switch to API4 endpoints (`StripePaymentintent.ProcessPublic`, `StripePaymentintent.ProcessMOTO`) for processing/creating paymentIntents.
 * Make `StripePaymentintent.ProcessPublic` conditional on 'make online contributions' permission.
+* Fix [#294](https://lab.civicrm.org/extensions/stripe/-/issues/294) Stripe customer data not updated when contacts are merged.
+* Add APIv4 for StripeCustomer.
+* In APIv3 StripeCustomer, the `id` field is renamed to `customer_id` and a standard autoincrement `id` field is added.  Note that previously `customer_id` was an alias for the `id` field so scripts using this Api may already be using `customer_id`.
+* Fix StripeCustomer.updatemetadata() to use correct metadata.
+* Add StripeCustomer.getFromStripe and StripeCustomer.updateStripe API4 actions.
+* Record IP address and error message when processIntent fails.
+* Convert StripeCustomer to an entity and add API4 methods to access it.
+* Update Stripe PHP library to v9.
+* Change recommended Stripe API version to 2022-11-15.
+* Fix loading stripe element for some WordPress sites.
+* New framework for handling webhook events.
+
+## Release 6.7.14 (2022-12-19)
+
+* Fix [#404](https://lab.civicrm.org/extensions/stripe/-/issues/404)
+
+## Release 6.7.13 (2022-11-29)
+**Add support for Stripe API version 2022-11-15**
+
+## Release 6.7.12 (2022-11-28)
+**Requires mjwshared (Payment Shared) 1.2.10 and Firewall 1.5.6**
+
+* Require Firewall 1.5.6.
+* Cleanup and remove legacy error handling.
+* Add check for extra data.
+* Make firewall a required extension.
+* Add check for failed paymentIntents.
+* Add `civi.stripe.authorize` event which is used by other extensions (eg. Firewall, Formprotection with ReCAPTCHA)
+to authorize or deny access to StripePaymentintent API calls.
+* Add support for passing ReCAPTCHA token to backend so it can be used to validate API calls.
+* Fix [#397](https://lab.civicrm.org/extensions/stripe/-/issues/397) Error: Call to undefined method Stripe\Exception\InvalidArgumentException::getJsonBody().
+
+## Release 6.7.11 (2022-10-14)
+
+* Add psr0 prefix (might fix classloader issues / class not found).
+* Postcode element should always be visible but readonly (only if billing fields enabled).
+* Don't activate stripe job if it was disabled (stops the job auto-enabling on cache clear).
+
+## Release 6.7.10 (2022-09-22)
+
+* Fix [#388](https://lab.civicrm.org/extensions/stripe/-/issues/388) Recurring payments not being recorded in CiviCRM.
+* [!198](https://lab.civicrm.org/extensions/stripe/-/merge_requests/198) Handle null balance trxn id when calculating fees.
+* [!195](https://lab.civicrm.org/extensions/stripe/-/merge_requests/195) Make errors more visible.
+
+## Release 6.7.9 (2022-09-01)
+
+* Fix [#387](https://lab.civicrm.org/extensions/stripe/-/issues/387) Paid multi-participant registration fails.
+
+## Release 6.7.8 (2022-08-20)
+**Requires mjwshared (Payment Shared) 1.2.8**
+
+* Fix [#377](https://lab.civicrm.org/extensions/stripe/-/issues/377) Webhook failures when using webhook signing.
+* Simplify and standardise webhook processing.
+* Fix [#380](https://lab.civicrm.org/extensions/stripe/-/issues/380) Update civi address if donor updates their postal code.
+* Fix [#385](https://lab.civicrm.org/extensions/stripe/-/issues/385) Checkbox price field not submitted for non-stripe payments.
 
 ## Release 6.7.7 (2022-07-24)
 

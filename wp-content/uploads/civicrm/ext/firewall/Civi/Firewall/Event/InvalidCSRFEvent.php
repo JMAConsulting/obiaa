@@ -13,7 +13,7 @@ namespace Civi\Firewall\Event;
 /**
  * Class InvalidCSRFEvent
  */
-class InvalidCSRFEvent extends \Symfony\Component\EventDispatcher\Event {
+class InvalidCSRFEvent extends \Civi\Core\Event\GenericHookEvent {
 
   /**
    * @var string
@@ -50,7 +50,7 @@ class InvalidCSRFEvent extends \Symfony\Component\EventDispatcher\Event {
    */
   public static function trigger(string $ipAddress, string $source = NULL) {
     $event = new \Civi\Firewall\Event\InvalidCSRFEvent($ipAddress, $source);
-    \Civi::dispatcher()->dispatch('civi.firewall.invalidcsrf', $event);
+    \Civi::dispatcher()->dispatch('civi.firewall.invalidcsrfrequest', $event);
   }
 
 }

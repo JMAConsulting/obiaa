@@ -182,7 +182,7 @@ class CRM_CiviMobileAPI_Upgrader extends CRM_CiviMobileAPI_Upgrader_Base {
 
   public function upgrade_0021() {
     try {
-      $customGroupId = (int) civicrm_api3('CustomGroup', 'getvalue', [
+      $customGroupId = (int)civicrm_api3('CustomGroup', 'getvalue', [
         'name' => CRM_CiviMobileAPI_Install_Entity_CustomGroup::ALLOW_MOBILE_REGISTRATION,
         'return' => 'id'
       ]);
@@ -263,6 +263,16 @@ class CRM_CiviMobileAPI_Upgrader extends CRM_CiviMobileAPI_Upgrader_Base {
     return TRUE;
   }
 
+  public function upgrade_0028() {
+    try {
+      (new CRM_CiviMobileAPI_Install_Entity_OptionValue())->install();
+    } catch (Exception $e) {
+      return FALSE;
+    }
+
+    return TRUE;
+  }
+
   /**
    * Installs scheduled job
    *
@@ -279,7 +289,7 @@ class CRM_CiviMobileAPI_Upgrader extends CRM_CiviMobileAPI_Upgrader_Base {
 
     CRM_CiviMobileAPI_Settings_Calendar::setCalendarIsAllowToUseCiviCalendarSettings(
       CRM_CiviMobileAPI_Utils_Calendar::isCiviCalendarEnable()
-        && CRM_CiviMobileAPI_Utils_Calendar::isCiviCalendarCompatible()
+      && CRM_CiviMobileAPI_Utils_Calendar::isCiviCalendarCompatible()
     );
 
     self::setDefaultMobileEventRegistration();

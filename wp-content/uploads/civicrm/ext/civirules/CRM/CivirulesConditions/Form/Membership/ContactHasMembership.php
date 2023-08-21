@@ -25,6 +25,8 @@ class CRM_CivirulesConditions_Form_Membership_ContactHasMembership extends CRM_C
   public function buildQuickForm() {
     $this->add('hidden', 'rule_condition_id');
 
+    $operators = CRM_CivirulesConditions_Membership_ContactHasMembership::getInclusionOptions();
+    $this->add('select', 'inclusion_operator', ts('Condition Type'), $operators, TRUE);
     $membershipTypes = CRM_Civirules_Utils::getMembershipTypes();
     asort($membershipTypes);
     $membership_type_id = $this->add('select', 'membership_type_id', ts('Membership Type'), $membershipTypes, TRUE);
@@ -56,6 +58,9 @@ class CRM_CivirulesConditions_Form_Membership_ContactHasMembership extends CRM_C
   public function setDefaultValues() {
     $defaultValues = parent::setDefaultValues();
     $data = unserialize($this->ruleCondition->condition_params);
+    if (!empty($data['inclusion_operator'])) {
+      $defaultValues['inclusion_operator'] = $data['inclusion_operator'];
+    }
     if (!empty($data['membership_type_id'])) {
       $defaultValues['membership_type_id'] = $data['membership_type_id'];
     }
@@ -84,6 +89,7 @@ class CRM_CivirulesConditions_Form_Membership_ContactHasMembership extends CRM_C
    * @access public
    */
   public function postProcess() {
+    $data['inclusion_operator'] = $this->_submitValues['inclusion_operator'];
     $data['membership_type_id'] = $this->_submitValues['membership_type_id'];
     $data['type_operator'] = $this->_submitValues['type_operator'];
     $data['membership_status_id'] = $this->_submitValues['membership_status_id'];

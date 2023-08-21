@@ -32,6 +32,7 @@ class CRM_CivirulesConditions_Membership_ContactHasMembership extends CRM_Civiru
     $whereClauses = array();
     $whereClauses[] = "contact_id = %1";
     $sqlParams[1] = array($triggerData->getContactId(), 'Integer');
+    $inclusion_operator = CRM_Utils_Array::value('inclusion_operator', $this->conditionParams, 0);
     if (count($this->conditionParams['membership_type_id'])) {
       switch ($this->conditionParams['type_operator']) {
         case 'in':
@@ -81,10 +82,10 @@ class CRM_CivirulesConditions_Membership_ContactHasMembership extends CRM_Civiru
 
     $sql = "SELECT COUNT(*) as total FROM civicrm_membership WHERE " . implode(' AND ', $whereClauses);
     $count = CRM_Core_DAO::singleValueQuery($sql, $sqlParams);
-    if ($count) {
-      return TRUE;
-    }
-    return FALSE;
+
+    // Depending Condition Type selected, "Has Membership" or "Does not Have Membership"
+    $isValid = (!boolval($inclusion_operator) == boolval($count));
+    return $isValid;
   }
 
   /**
@@ -176,6 +177,9 @@ class CRM_CivirulesConditions_Membership_ContactHasMembership extends CRM_Civiru
   public function userFriendlyConditionParams() {
     $label = '';
     $operator_options = self::getOperatorOptions();
+    $inclusionOperators = $this->getInclusionOptions();
+    $selectedInclusionOperator = CRM_Utils_Array::value('inclusion_operator', $this->conditionParams, 0);
+    $label = $inclusionOperators[$selectedInclusionOperator] . "<ul>";
 
     try {
       $params = array(
@@ -195,7 +199,7 @@ class CRM_CivirulesConditions_Membership_ContactHasMembership extends CRM_Civiru
           }
           $values .= $membershipTypes['values'][$membershipTypeId]['name'];
         }
-        $label .= ts('Membership Type') . " {$operator} <b>{$values}</b> <br>";
+        $label .= "<li>" . ts('Membership Type') . " {$operator} <b>{$values}</b> <br>";
       }
     }
     catch (CiviCRM_API3_Exception $ex) {
@@ -218,7 +222,7 @@ class CRM_CivirulesConditions_Membership_ContactHasMembership extends CRM_Civiru
           }
           $values .= $membershipStatus['values'][$membershipStatusId]['name'];
         }
-        $label .= ts('Membership Status') . " {$operator} <b>{$values}</b> <br>";
+        $label .= "<li>" . ts('Membership Status') . " {$operator} <b>{$values}</b> <br>";
       }
     }
     catch (CiviCRM_API3_Exception $ex) {
@@ -250,7 +254,7 @@ class CRM_CivirulesConditions_Membership_ContactHasMembership extends CRM_Civiru
         $msg[] = $dateMsg;
       }
     };
-    $label .= implode('<br>', $msg);
+    $label .= implode('<li>', $msg) . "</ul>";
 
     return trim($label);
   }
@@ -265,6 +269,20 @@ class CRM_CivirulesConditions_Membership_ContactHasMembership extends CRM_Civiru
     return array(
       'in' => ts('Is one of'),
       'not in' => ts('Is not one of'),
+    );
+  }
+
+  /**
+   * Method to get operators
+   *
+   * @return array
+   * @access protected
+   */
+  public static function getInclusionOptions() {
+    // Contact HAS Membership is value '0', for backwards-compatibility for existing rules where this condition will be empty
+    return array(
+      '0' => ts('Contact HAS Membership'),
+      '1' => ts('Contact DOES NOT HAVE Membership'),
     );
   }
 

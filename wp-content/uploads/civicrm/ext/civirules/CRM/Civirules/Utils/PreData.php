@@ -96,16 +96,26 @@ class CRM_Civirules_Utils_PreData {
    */
   public static function customPre($op, $groupID, $entityID, $params, $eventID=1) {
     // We use api version 3 here as there is no api v4 for the CustomValue table.
-    $entity = civicrm_api3('CustomGroup', 'getvalue', ['id' => $groupID, 'return' => 'extends']);
-    $data = array();
-    try {
-      $data = civicrm_api3($entity, 'getsingle', array('id' => $entityID));
-    } catch (Exception $e) {
-      // Do nothing.
+    if ($op != 'edit' && $op != 'delete') {
+      return;
     }
-    $customDataApiResult = civicrm_api3('CustomValue', 'get', ['entity_id' => $entityID, 'entity_table' => $entity]);
-    foreach($customDataApiResult['values'] as $customField) {
-      $data['custom_' . $customField['id']] = $customField['latest'];
+    $config = \Civi\CiviRules\Config\ConfigContainer::getInstance();
+    $custom_group = $config->getCustomGroupById($groupID);
+    $entity = $custom_group['extends'];
+    if (!isset(self::$preData[$entity][$entityID][$eventID])) {
+      $data = [];
+      try {
+        $data = civicrm_api3($entity, 'getsingle', ['id' => $entityID]);
+      } catch (Exception $e) {
+        // Do nothing.
+      }
+      $customDataApiResult = civicrm_api3('CustomValue', 'get', [
+        'entity_id' => $entityID,
+        'entity_table' => $entity
+      ]);
+      foreach ($customDataApiResult['values'] as $customField) {
+        $data['custom_' . $customField['id']] = $customField['latest'];
+      }
     }
     self::setPreData($entity, $entityID, $data, $eventID);
   }

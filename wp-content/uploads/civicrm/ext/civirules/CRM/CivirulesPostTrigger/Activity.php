@@ -62,8 +62,8 @@ class CRM_CivirulesPostTrigger_Activity extends CRM_Civirules_Trigger_Post {
 
     foreach($activityContacts as $activityContact) {
       $triggerData->setEntityData('ActivityContact', $activityContact);
-      if (isset($data['contact_id']) && $data['contact_id']) {
-        $triggerData->setContactId($data['contact_id']);
+      if (isset($activityContact['contact_id']) && $activityContact['contact_id']) {
+        $triggerData->setContactId($activityContact['contact_id']);
       }
       CRM_Civirules_Engine::triggerRule($this, clone $triggerData);
     }

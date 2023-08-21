@@ -27,20 +27,21 @@ class CRM_Stripe_Webhook {
    * @param bool $attemptFix If TRUE, try to fix the webhook.
    *
    * @throws \CRM_Core_Exception
-   * @throws \CiviCRM_API3_Exception
+   * @throws \Civi\API\Exception\UnauthorizedException
    */
   public function check(array &$messages, bool $attemptFix = FALSE) {
     $env = \Civi::settings()->get('environment');
     if ($env && $env !== 'Production') {
-      return;
+    //  return;
     }
-    $result = civicrm_api3('PaymentProcessor', 'get', [
-      'class_name' => 'Payment_Stripe',
-      'is_active' => 1,
-      'domain_id' => CRM_Core_Config::domainID(),
-    ]);
+    $paymentProcessors = \Civi\Api4\PaymentProcessor::get(FALSE)
+      ->addWhere('class_name', 'LIKE', 'Payment_Stripe%')
+      ->addWhere('is_active', '=', TRUE)
+      ->addWhere('domain_id', '=', 'current_domain')
+      ->addWhere('is_test', 'IN', [TRUE, FALSE])
+      ->execute();
 
-    foreach ($result['values'] as $paymentProcessor) {
+    foreach ($paymentProcessors as $paymentProcessor) {
       $webhook_path = self::getWebhookPath($paymentProcessor['id']);
       $processor = \Civi\Payment\System::singleton()->getById($paymentProcessor['id']);
       if ($processor->stripeClient === NULL) {
@@ -244,7 +245,7 @@ class CRM_Stripe_Webhook {
   public static function getDefaultEnabledEvents(): array {
     return [
       'invoice.finalized',
-      //'invoice.paid' Ignore this event because it sometimes causes duplicates (it's sent at almost the same time as invoice.payment_succeeded
+      'invoice.paid', // Ignore this event because it sometimes causes duplicates (it's sent at almost the same time as invoice.payment_succeeded
       //   and if they are both processed at the same time the check to see if the payment already exists is missed and it gets created twice.
       'invoice.payment_succeeded',
       'invoice.payment_failed',
@@ -254,6 +255,7 @@ class CRM_Stripe_Webhook {
       'charge.captured',
       'customer.subscription.updated',
       'customer.subscription.deleted',
+      'checkout.session.completed',
     ];
   }
 

@@ -30,7 +30,7 @@ private static $installed = array (
     'aliases' => 
     array (
     ),
-    'reference' => '28d24235bc7cc88a7ef4b1fd6953cb9700940f14',
+    'reference' => '30fe9d87ad1d84b725ba3be99105951d9ca18b16',
     'name' => 'civicrm/stripe',
   ),
   'versions' => 
@@ -42,16 +42,16 @@ private static $installed = array (
       'aliases' => 
       array (
       ),
-      'reference' => '28d24235bc7cc88a7ef4b1fd6953cb9700940f14',
+      'reference' => '30fe9d87ad1d84b725ba3be99105951d9ca18b16',
     ),
     'stripe/stripe-php' => 
     array (
-      'pretty_version' => 'v7.128.0',
-      'version' => '7.128.0.0',
+      'pretty_version' => 'v9.9.0',
+      'version' => '9.9.0.0',
       'aliases' => 
       array (
       ),
-      'reference' => 'c704949c49b72985c76cc61063aa26fefbd2724e',
+      'reference' => '479b5c2136fde0debb93d290ceaf20dd161c358f',
     ),
   ),
 );
