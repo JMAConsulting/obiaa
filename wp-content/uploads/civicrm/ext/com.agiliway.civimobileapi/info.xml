@@ -2,7 +2,9 @@
 <extension key="com.agiliway.civimobileapi" type="module">
     <file>civimobileapi</file>
     <name>CiviMobileAPI</name>
-    <description>The CiviMobileAPI extension is an CiviCRM component which allows to use a mobile application CiviMobile.</description>
+    <description>The CiviMobileAPI extension is an CiviCRM component which allows to use a mobile application
+        CiviMobile.
+    </description>
     <license>AGPL-3.0</license>
     <maintainer>
         <author>CIVIMOBILE SOLUTIONS, LLC</author>
@@ -14,16 +16,20 @@
         <url desc="Support">https://civimobile.org</url>
         <url desc="Licensing">http://www.gnu.org/licenses/agpl-3.0.html</url>
     </urls>
-    <releaseDate>2023-01-30</releaseDate>
-    <version>6.1.2</version>
+    <releaseDate>2023-07-10</releaseDate>
+    <version>6.2.2</version>
     <compatibility>
         <ver>5.14</ver>
     </compatibility>
-    <comments>The CiviMobileAPI extension is an CiviCRM component which allows to use a mobile application CiviMobile.</comments>
+    <comments>The CiviMobileAPI extension is an CiviCRM component which allows to use a mobile application CiviMobile.
+    </comments>
     <civix>
         <namespace>CRM/CiviMobileAPI</namespace>
     </civix>
     <classloader>
         <psr4 prefix="Civi\" path="Civi"/>
     </classloader>
+    <requires>
+        <ext>authx</ext>
+    </requires>
 </extension>

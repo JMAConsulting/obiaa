@@ -195,13 +195,21 @@ class CRM_CiviMobileAPI_BAO_EventSession extends CRM_CiviMobileAPI_DAO_EventSess
    * @return array
    */
   public static function getAll($params = []) {
-    $query = self::buildOrderQuery(self::buildWhereQuery(self::buildSelectQuery(), $params), $params);
+    $query = self::buildOrderQuery(
+      self::buildWhereQuery(self::buildSelectQuery(), $params),
+      $params
+    );
 
-    $query->limit(!empty($params['options']['limit']) ? $params['options']['limit'] : 25, !empty($params['options']['offset']) ? $params['options']['offset'] : 0);
+    $limit = isset($params['options']['limit']) ? $params['options']['limit'] : 25;
+    $offset = isset($params['options']['offset']) ? $params['options']['offset'] : 0;
 
     if (CRM_Core_Session::getLoggedInContactID()) {
       $query->select('COUNT(fes.id) > 0 as is_favourite');
       $query->join('fes', 'LEFT join civicrm_civimobile_favourite_event_session fes ON evs.id = fes.event_session_id AND fes.contact_id = ' . (int)CRM_Core_Session::getLoggedInContactID());
+    }
+
+    if ($limit != 0) {
+      $query->limit($limit, $offset);
     }
 
     return CRM_Core_DAO::executeQuery($query->toSQL())->fetchAll();
@@ -216,7 +224,7 @@ class CRM_CiviMobileAPI_BAO_EventSession extends CRM_CiviMobileAPI_DAO_EventSess
   public static function deleteAllVenues($eventId) {
     $query = "UPDATE " . self::getTableName() . " SET `venue_id`=NULL WHERE `event_id` = %1";
     return CRM_Core_DAO::executeQuery($query, [
-      1 => [(int) $eventId, 'Integer']
+      1 => [(int)$eventId, 'Integer']
     ]);
   }
 

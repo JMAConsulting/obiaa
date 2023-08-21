@@ -20,6 +20,7 @@ function civicrm_api3_civi_mobile_system_get($params) {
     'news_rss_feed_url' => CRM_CiviMobileAPI_Utils_Extension::newsRssFeedUrl(),
     'renewal_membership_contribution_page_url' => CRM_CiviMobileAPI_Utils_CiviCRM::getContributionPageUrl(),
     'time_zone_utc_offset' => CRM_CiviMobileAPI_Utils_Cms::getTimeZoneUTCOffset(),
+    'time_tracker_extension_is_enabled' => CRM_CiviMobileAPI_Utils_Extension::isTimeTrackerExtensionEnabled(),
   ];
 
   return civicrm_api3_create_success($result, $params);

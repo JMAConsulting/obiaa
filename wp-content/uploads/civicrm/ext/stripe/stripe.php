@@ -32,45 +32,10 @@ function stripe_civicrm_install() {
 }
 
 /**
- * Implementation of hook_civicrm_postInstall
- */
-function stripe_civicrm_postInstall() {
-  _stripe_civix_civicrm_postInstall();
-}
-
-/**
- * Implementation of hook_civicrm_uninstall().
- */
-function stripe_civicrm_uninstall() {
-  _stripe_civix_civicrm_uninstall();
-}
-
-/**
  * Implementation of hook_civicrm_enable().
  */
 function stripe_civicrm_enable() {
   _stripe_civix_civicrm_enable();
-}
-
-/**
- * Implementation of hook_civicrm_disable().
- */
-function stripe_civicrm_disable() {
-  return _stripe_civix_civicrm_disable();
-}
-
-/**
- * Implementation of hook_civicrm_upgrade
- */
-function stripe_civicrm_upgrade($op, CRM_Queue_Queue $queue = NULL) {
-  return _stripe_civix_civicrm_upgrade($op, $queue);
-}
-
-/**
- * Implements hook_civicrm_entityTypes().
- */
-function stripe_civicrm_entityTypes(&$entityTypes) {
-  _stripe_civix_civicrm_entityTypes($entityTypes);
 }
 
 /**
@@ -254,4 +219,65 @@ function stripe_civicrm_permission(&$permissions) {
   if (\Civi::settings()->get('stripe_moto')) {
     $permissions['allow stripe moto payments'] = E::ts('CiviCRM Stripe: Process MOTO transactions');
   }
+}
+
+/*
+ * Implements hook_civicrm_post().
+ */
+function stripe_civicrm_post($op, $objectName, $objectId, &$objectRef) {
+  switch ($objectName) {
+    case 'Contact':
+    case 'Individual':
+      switch ($op) {
+        case 'merge':
+          try {
+            CRM_Stripe_BAO_StripeCustomer::updateMetadataForContact($objectId);
+          }
+          catch (Exception $e) {
+            \Civi::log(E::SHORT_NAME)->error('Stripe Contact Merge failed: ' . $e->getMessage());
+          }
+          break;
+
+        case 'edit':
+          register_shutdown_function('stripe_civicrm_shutdown_updatestripecustomer', $objectId);
+      }
+      break;
+
+    case 'Email':
+      if (in_array($op, ['create', 'edit'])) {
+        register_shutdown_function('stripe_civicrm_shutdown_updatestripecustomer', $objectRef->contact_id);
+      }
+  }
+}
+
+/**
+ * Update the Stripe Customers for a contact (metadata)
+ *
+ * @param int $contactID
+ *
+ * @return void
+ */
+function stripe_civicrm_shutdown_updatestripecustomer(int $contactID) {
+  if (isset(\Civi::$statics['stripe_civicrm_shutdown_updatestripecustomer'][$contactID])) {
+    // Don't run the update more than once
+    return;
+  }
+  \Civi::$statics['stripe_civicrm_shutdown_updatestripecustomer'][$contactID] = TRUE;
+
+  try {
+    // Does the contact have a Stripe customer record?
+    $stripeCustomers = \Civi\Api4\StripeCustomer::get(FALSE)
+      ->addWhere('contact_id', '=', $contactID)
+      ->execute();
+    // Update the contact details at Stripe for each customer associated with this contact
+    foreach ($stripeCustomers as $stripeCustomer) {
+      \Civi\Api4\StripeCustomer::updateStripe(FALSE)
+        ->setCustomerID($stripeCustomer['customer_id'])
+        ->execute();
+    }
+  }
+  catch (Exception $e) {
+    \Civi::log(E::SHORT_NAME)->error('Stripe Contact update failed: ' . $e->getMessage());
+  }
+
 }

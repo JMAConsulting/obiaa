@@ -16,7 +16,7 @@ class CRM_CiviMobileAPI_Api_CiviMobileAvailableContactGroup_Get extends CRM_Civi
     $contactGroupIds = $this->getContactGroups($this->validParams['contact_id']);
 
     foreach ($groups as $group) {
-      if (!in_array($group['id'],$contactGroupIds)) {
+      if (!in_array($group['id'], $contactGroupIds)) {
         $availableGroups[] = $group;
       }
     }
@@ -36,6 +36,7 @@ class CRM_CiviMobileAPI_Api_CiviMobileAvailableContactGroup_Get extends CRM_Civi
     $contact = new CRM_Contact_BAO_Contact();
     $contact->id = $params['contact_id'];
     $contactExistence = $contact->find(TRUE);
+
     if (empty($contactExistence)) {
       throw new api_Exception('Contact(id=' . $params['contact_id'] . ') does not exist.', 'contact_does_not_exist');
     }
@@ -67,6 +68,7 @@ class CRM_CiviMobileAPI_Api_CiviMobileAvailableContactGroup_Get extends CRM_Civi
     }
 
     $groups = [];
+
     try {
       $groupsData = civicrm_api3('Group', 'get', $groupsParams);
     } catch (CiviCRM_API3_Exception $e) {
@@ -89,20 +91,23 @@ class CRM_CiviMobileAPI_Api_CiviMobileAvailableContactGroup_Get extends CRM_Civi
    */
   private function getContactGroups($contactId) {
     $groupIds = [];
+
     try {
       $groupContacts = civicrm_api3('GroupContact', 'get', [
         'sequential' => 1,
         'contact_id' => $contactId,
+        'status' => '',
         'options' => ['limit' => 0],
         'return' => ["group_id"],
       ]);
+
     } catch (CiviCRM_API3_Exception $e) {
       return $groupIds;
     }
 
     if (!empty($groupContacts['values'])) {
       foreach ($groupContacts['values'] as $groupContact) {
-        $groupIds[] = (int) $groupContact['group_id'];
+        $groupIds[] = (int)$groupContact['group_id'];
       }
     }
 

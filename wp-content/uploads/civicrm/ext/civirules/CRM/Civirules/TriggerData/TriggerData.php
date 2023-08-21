@@ -176,14 +176,13 @@ abstract class CRM_Civirules_TriggerData_TriggerData {
   /**
    * Returns an array of custom fields in param format
    *
-   * @param $custom_field_id
    * @return array
    */
   public function getEntityCustomData() {
     $customFields = [];
-    if ( ! isset($this->custom_data) ) {
+    if (!isset($this->custom_data)) {
       return $customFields;
-    } elseif ( ! is_array($this->custom_data) ) {
+    } elseif (!is_array($this->custom_data) ) {
       return $customFields;
     }
     foreach ($this->custom_data as $custom_field_id => $custom_field_value ) {

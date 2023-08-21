@@ -887,5 +887,20 @@ class CRM_Civirules_Utils {
     return NULL;
   }
 
+  /**
+   * Method to get contact types
+   *
+   * @return array
+   */
+  public static function getContactTypes($parent_operator = 'IS NULL', $parent_value = null) {
+    return \Civi\Api4\ContactType::get(FALSE)
+      ->addSelect('label', 'name')
+      ->addWhere('is_active', '=', TRUE)
+      ->addWhere('parent_id', $parent_operator, $parent_value)
+      ->execute()
+      ->indexBy('name')
+      ->column('label');
+  }
+
 }
 

@@ -24,6 +24,8 @@ define('STRIPE_PHPUNIT_TEST', 1);
 abstract class CRM_Stripe_BaseTest extends \PHPUnit\Framework\TestCase implements HeadlessInterface, HookInterface, TransactionalInterface {
 
   /** @var int */
+  protected $created_ts;
+  /** @var int */
   protected $contributionID;
   /** @var int */
   protected $financialTypeID = 1;
@@ -66,17 +68,24 @@ abstract class CRM_Stripe_BaseTest extends \PHPUnit\Framework\TestCase implement
     if (!is_dir(__DIR__ . '/../../../../../mjwshared')) {
       civicrm_api3('Extension', 'download', ['key' => 'mjwshared']);
     }
+    if (!is_dir(__DIR__ . '/../../../../../firewall')) {
+      civicrm_api3('Extension', 'download', ['key' => 'firewall']);
+    }
 
     return \Civi\Test::headless()
       ->installMe(__DIR__)
       ->install('mjwshared')
+      ->install('firewall')
       ->apply($reInstall);
   }
 
   public function setUp(): void {
     civicrm_api3('Extension', 'install', ['keys' => 'com.drastikbydesign.stripe']);
     require_once('vendor/stripe/stripe-php/init.php');
-    $this->createPaymentProcessor();
+    // Create Stripe Checkout processor
+    $this->setOrCreateStripeCheckoutPaymentProcessor();
+    // Create Stripe processor
+    $this->setOrCreateStripePaymentProcessor();
     $this->createContact();
     $this->created_ts = time();
   }
@@ -117,18 +126,257 @@ abstract class CRM_Stripe_BaseTest extends \PHPUnit\Framework\TestCase implement
    * Create a stripe payment processor.
    *
    */
-  function createPaymentProcessor($params = []) {
-    $result = civicrm_api3('Stripe', 'setuptest', $params);
-    $processor = array_pop($result['values']);
-    $this->paymentProcessor = $processor;
-    $this->paymentProcessorID = $result['id'];
-    $this->paymentObject = \Civi\Payment\System::singleton()->getById($result['id']);
+  function createPaymentProcessor($overrideParams = []) {
+    $params = array_merge([
+      'name' => 'Stripe',
+      'domain_id' => 'current_domain',
+      'payment_processor_type_id:name' => 'Stripe',
+      'title' => 'Stripe',
+      'is_active' => 1,
+      'is_default' => 0,
+      'is_test' => 1,
+      'is_recur' => 1,
+      'user_name' => 'pk_test_k2hELLGpBLsOJr6jZ2z9RaYh',
+      'password' => 'sk_test_TlGdeoi8e1EOPC3nvcJ4q5UZ',
+      'class_name' => 'Payment_Stripe',
+      'billing_mode' => 1,
+      'payment_instrument_id' => 1,
+    ], $overrideParams);
+
+    // First see if it already exists.
+    $paymentProcessor = \Civi\Api4\PaymentProcessor::get(FALSE)
+      ->addWhere('class_name', '=', $params['class_name'])
+      ->addWhere('is_test', '=', $params['is_test'])
+      ->execute()
+      ->first();
+    if (empty($paymentProcessor)) {
+      // Nope, create it.
+      $paymentProcessor = \Civi\Api4\PaymentProcessor::create(FALSE)
+        ->setValues($params)
+        ->execute()
+        ->first();
+    }
+
+    $this->paymentProcessor = $paymentProcessor;
+    $this->paymentProcessorID = $paymentProcessor['id'];
+    $this->paymentObject = \Civi\Payment\System::singleton()->getById($paymentProcessor['id']);
+  }
+
+  public function setOrCreateStripeCheckoutPaymentProcessor() {
+    $this->createPaymentProcessor([
+      'name' => 'StripeCheckout',
+      'payment_processor_type_id:name' => 'StripeCheckout',
+      'title' => 'Stripe Checkout',
+      'class_name' => 'Payment_StripeCheckout',
+    ]);
+  }
+
+  public function setOrCreateStripePaymentProcessor() {
+    $this->createPaymentProcessor();
+  }
+
+  /**
+   * When storing DateTime in database we have to convert to local timezone when running tests
+   * Used for checking that available_on custom field is set.
+   *
+   * @param string $dateInUTCTimezone eg. '2023-06-10 20:05:05'
+   *
+   * @return string
+   * @throws \Exception
+   */
+  public function getDateinCurrentTimezone(string $dateInUTCTimezone) {
+    // create a $dt object with the UTC timezone
+    $dt = new DateTime($dateInUTCTimezone, new DateTimeZone('UTC'));
+
+    // get the local timezone
+    $loc = (new DateTime)->getTimezone();
+
+    // change the timezone of the object without changing its time
+    $dt->setTimezone($loc);
+
+    // format the datetime
+    return $dt->format('Y-m-d H:i:s');
+  }
+
+  protected function getMocksForOneOffPayment() {
+    PropertySpy::$buffer = 'none';
+    // Set this to 'print' or 'log' maybe more helpful in debugging but for
+    // generally running tests 'exception' suits as we don't expect any output.
+    PropertySpy::$outputMode = 'exception';
+
+    // Create a mock stripe client.
+    $stripeClient = $this->createMock('Stripe\\StripeClient');
+    // Update our CRM_Core_Payment_Stripe object and ensure any others
+    // instantiated separately will also use it.
+    $this->paymentObject->setMockStripeClient($stripeClient);
+
+    // Mock the payment methods service.
+    $mockPaymentMethod = $this->createMock('Stripe\\PaymentMethod');
+    $mockPaymentMethod->method('__get')
+      ->will($this->returnValueMap([
+        [ 'id', 'pm_mock']
+      ]));
+    $stripeClient->paymentMethods = $this->createMock('Stripe\\Service\\PaymentMethodService');
+    $stripeClient->paymentMethods
+      ->method('create')
+      ->willReturn($mockPaymentMethod);
+    $stripeClient->paymentMethods
+      ->method('retrieve')
+      ->with($this->equalTo('pm_mock'))
+      ->willReturn($mockPaymentMethod);
+
+    // Mock the Customers service
+    $stripeClient->customers = $this->createMock('Stripe\\Service\\CustomerService');
+    $stripeClient->customers
+      ->method('create')
+      ->willReturn(
+        new PropertySpy('customers.create', ['id' => 'cus_mock'])
+      );
+    $stripeClient->customers
+      ->method('retrieve')
+      ->with($this->equalTo('cus_mock'))
+      ->willReturn(
+        new PropertySpy('customers.retrieve', ['id' => 'cus_mock'])
+      );
+
+    // Need a mock intent with id and status
+    $mockCharge = $this->createMock('Stripe\\Charge');
+    $mockCharge
+      ->method('__get')
+      ->will($this->returnValueMap([
+        ['id', 'ch_mock'],
+        ['captured', TRUE],
+        ['status', 'succeeded'],
+        ['balance_transaction', 'txn_mock'],
+      ]));
+
+    $mockChargesCollection = new \Stripe\Collection();
+    $mockChargesCollection->data = [$mockCharge];
+
+    $mockCharge = new PropertySpy('Charge', [
+      'id' => 'ch_mock',
+      'object' => 'charge',
+      'captured' => TRUE,
+      'status' => 'succeeded',
+      'balance_transaction' => 'txn_mock',
+      'amount' => $this->total * 100,
+    ]);
+    $stripeClient->charges = $this->createMock('Stripe\\Service\\ChargeService');
+    $stripeClient->charges
+      ->method('retrieve')
+      ->with($this->equalTo('ch_mock'))
+      ->willReturn($mockCharge);
+
+    $mockPaymentIntent = new PropertySpy('PaymentIntent', [
+      'id' => 'pi_mock',
+      'status' => 'succeeded',
+      'latest_charge' => 'ch_mock'
+    ]);
+
+    $stripeClient->paymentIntents = $this->createMock('Stripe\\Service\\PaymentIntentService');
+    $stripeClient->paymentIntents
+      ->method('retrieve')
+      ->with($this->equalTo('pi_mock'))
+      ->willReturn($mockPaymentIntent);
+
+    $mockPaymentIntentWithAmount = new PropertySpy('PaymentIntent', [
+      'id' => 'pi_mock',
+      'status' => 'succeeded',
+      'latest_charge' => 'ch_mock',
+      'amount' => '40000',
+    ]);
+    $stripeClient->paymentIntents
+      ->method('update')
+      ->with($this->equalTo('pi_mock'))
+      ->willReturn($mockPaymentIntentWithAmount);
+
+    $stripeClient->balanceTransactions = $this->createMock('Stripe\\Service\\BalanceTransactionService');
+    $stripeClient->balanceTransactions
+      ->method('retrieve')
+      ->with($this->equalTo('txn_mock'))
+      ->willReturn(new PropertySpy('balanceTransaction', [
+        'id' => 'txn_mock',
+        'fee' => 1190, /* means $11.90 */
+        'currency' => 'usd',
+        'exchange_rate' => NULL,
+        'object' => 'balance_transaction',
+        'available_on'  => '1686427505' // 2023-06-10 21:05:05
+      ]));
+
+    $mockRefund = new PropertySpy('Refund', [
+      'amount_refunded' => $this->total*100,
+      'charge_id' => 'ch_mock', //xxx
+      'created' => time(),
+      'currency' => 'usd',
+      'id' => 're_mock',
+      'object' => 'refund',
+    ]);
+    $stripeClient->refunds = $this->createMock('Stripe\\Service\\RefundService');
+    $stripeClient->refunds
+      ->method('all')
+      ->willReturn(new PropertySpy('refunds.all', [ 'data' => [ $mockRefund ] ]));
+  }
+
+  /**
+   * DRY code. Sets up the database as it would be after a recurring contrib
+   * has been set up with Stripe.
+   *
+   * Results in a pending ContributionRecur and a pending Contribution record.
+   *
+   * The following mock Stripe IDs strings are used:
+   *
+   * - pm_mock   PaymentMethod
+   * - pi_mock   PaymentIntent
+   * - cus_mock  Customer
+   * - ch_mock   Charge
+   * - txn_mock  Balance transaction
+   * - sub_mock  Subscription
+   *
+   * @return array The result from doPayment()
+   * @throws \CRM_Core_Exception
+   * @throws \CiviCRM_API3_Exception
+   * @throws \Civi\Payment\Exception\PaymentProcessorException
+   * @throws \Stripe\Exception\ApiErrorException
+   */
+  protected function mockOneOffPaymentSetup(): array {
+    $this->getMocksForOneOffPayment();
+
+    $this->setupPendingContribution();
+    // Submit the payment.
+    $payment_extra_params = [
+      'contributionID'      => $this->contributionID,
+      'paymentIntentID'     => 'pi_mock',
+    ];
+
+    // Simulate payment
+    $this->assertInstanceOf('CRM_Core_Payment_Stripe', $this->paymentObject);
+    $doPaymentResult = $this->doPaymentStripe($payment_extra_params);
+
+    //
+    // Check the Contribution
+    // ...should be pending
+    // ...its transaction ID should be our Charge ID.
+    //
+    $this->checkContrib([
+      'contribution_status_id' => 'Pending',
+      'trxn_id'                => 'ch_mock',
+    ]);
+
+    return $doPaymentResult;
   }
 
   /**
    * Submit to stripe
+   *
+   * @param array $params
+   *
+   * @return array The result from PaymentProcessor->doPayment
+   * @throws \CRM_Core_Exception
+   * @throws \CiviCRM_API3_Exception
+   * @throws \Civi\Payment\Exception\PaymentProcessorException
+   * @throws \Stripe\Exception\ApiErrorException
    */
-  public function doPayment($params = []) {
+  public function doPaymentStripe(array $params = []): array {
     // Send in credit card to get payment method. xxx mock here
     $paymentMethod = $this->paymentObject->stripeClient->paymentMethods->create([
       'type' => 'card',
@@ -143,6 +391,7 @@ abstract class CRM_Stripe_BaseTest extends \PHPUnit\Framework\TestCase implement
     $paymentIntentID = NULL;
     $paymentMethodID = NULL;
 
+    $firewall = new \Civi\Firewall\Firewall();
     if (!isset($params['is_recur'])) {
       // Send in payment method to get payment intent.
       $paymentIntentParams = [
@@ -151,6 +400,7 @@ abstract class CRM_Stripe_BaseTest extends \PHPUnit\Framework\TestCase implement
         'payment_processor_id' => $this->paymentProcessorID,
         'payment_intent_id' => $params['paymentIntentID'] ?? NULL,
         'description' => NULL,
+        'csrfToken' => $firewall->generateCSRFToken(),
       ];
       $result = civicrm_api3('StripePaymentintent', 'process', $paymentIntentParams);
 
@@ -204,6 +454,7 @@ abstract class CRM_Stripe_BaseTest extends \PHPUnit\Framework\TestCase implement
         $this->processorID = $dao->processor_id;
       }
     }
+    return $ret;
   }
 
   /**
@@ -228,8 +479,13 @@ abstract class CRM_Stripe_BaseTest extends \PHPUnit\Framework\TestCase implement
 
   /**
    * Create contribition
+   *
+   * @param array $params
+   *
+   * @return array The created contribution
+   * @throws \CRM_Core_Exception
    */
-  public function setupTransaction($params = []) {
+  public function setupPendingContribution($params = []): array {
      $contribution = civicrm_api3('contribution', 'create', array_merge([
       'contact_id' => $this->contactID,
       'payment_processor_id' => $this->paymentProcessorID,
@@ -241,7 +497,12 @@ abstract class CRM_Stripe_BaseTest extends \PHPUnit\Framework\TestCase implement
       'is_test' => 1,
      ], $params));
     $this->assertEquals(0, $contribution['is_error']);
+    $contribution = \Civi\Api4\Contribution::get(FALSE)
+      ->addWhere('id', '=', $contribution['id'])
+      ->execute()
+      ->first();
     $this->contributionID = $contribution['id'];
+    return $contribution;
   }
 
   /**
@@ -271,6 +532,32 @@ abstract class CRM_Stripe_BaseTest extends \PHPUnit\Framework\TestCase implement
     foreach ($expectations as $field => $expect) {
       $this->assertArrayHasKey($field, $contribution);
       $this->assertEquals($expect, $contribution[$field], "Expected Contribution.$field = " . json_encode($expect));
+    }
+  }
+
+  /**
+   * Sugar for checking things on the FinancialTrxn.
+   *
+   * @param array $expectations key => value pairs.
+   * @param int $contributionID
+   *   - if null, use this->contributionID
+   *   - if array, assume it's the result of a contribution.getsingle
+   *   - if int, load that contrib.
+   */
+  protected function checkFinancialTrxn(array $expectations, int $contributionID) {
+    $this->assertGreaterThan(0, $contributionID);
+    $latestFinancialTrxn = \Civi\Api4\FinancialTrxn::get(FALSE)
+      ->addSelect('*', 'custom.*')
+      ->addJoin('Contribution AS contribution', 'LEFT', 'EntityFinancialTrxn')
+      ->addWhere('contribution.id', '=', $contributionID)
+      ->addWhere('is_payment', '=', TRUE)
+      ->addOrderBy('id', 'DESC')
+      ->execute()
+      ->first();
+
+    foreach ($expectations as $field => $expect) {
+      $this->assertArrayHasKey($field, $latestFinancialTrxn);
+      $this->assertEquals($expect, $latestFinancialTrxn[$field], "Expected FinancialTrxn.$field = " . json_encode($expect));
     }
   }
 
@@ -386,6 +673,10 @@ class PropertySpy implements ArrayAccess, Iterator, Countable, JsonSerializable 
 
   public function valid() {
     return array_key_exists(key($this->_props), $this->_props);
+  }
+
+  public function toArray() {
+    return $this->_props;
   }
 
   public function __construct($name, $props) {
@@ -563,4 +854,3 @@ class ValueMapOrDie implements \PHPUnit\Framework\MockObject\Stub\Stub {
   }
 
 }
-

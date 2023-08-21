@@ -30,7 +30,7 @@ class CRM_Civirules_Upgrader extends CRM_Civirules_Upgrader_Base {
 
   public function upgrade_1001() {
     if (CRM_Core_DAO::checkTableExists('civirule_rule')) {
-      if (CRM_Core_DAO::checkFieldExists('civirule_rule', 'event_id')) {
+      if (CRM_Core_BAO_SchemaHandler::checkIfFieldExists('civirule_rule', 'event_id')) {
         CRM_Core_DAO::executeQuery("ALTER TABLE `civirule_rule` ADD event_params TEXT NULL AFTER event_id");
       }
     }
@@ -68,10 +68,10 @@ class CRM_Civirules_Upgrader extends CRM_Civirules_Upgrader_Base {
       if (CRM_Core_DAO::checkConstraintExists('civirule_rule', 'fk_rule_event_idx')) {
         CRM_Core_DAO::executeQuery("ALTER TABLE civirule_rule DROP INDEX fk_rule_event_idx;");
       }
-      if (CRM_Core_DAO::checkFieldExists('civirule_rule', 'event_id')) {
+      if (CRM_Core_BAO_SchemaHandler::checkIfFieldExists('civirule_rule', 'event_id')) {
         CRM_Core_DAO::executeQuery("ALTER TABLE civirule_rule CHANGE event_id trigger_id INT UNSIGNED;");
       }
-      if (CRM_Core_DAO::checkFieldExists('civirule_rule', 'event_params')) {
+      if (CRM_Core_BAO_SchemaHandler::checkIfFieldExists('civirule_rule', 'event_params')) {
         CRM_Core_DAO::executeQuery("ALTER TABLE civirule_rule CHANGE event_params trigger_params TEXT;");
       }
       if (!CRM_Core_DAO::checkConstraintExists('civirule_rule', 'fk_rule_trigger')) {
@@ -105,7 +105,7 @@ class CRM_Civirules_Upgrader extends CRM_Civirules_Upgrader_Base {
    */
   public function upgrade_1004() {
     CRM_Core_DAO::executeQuery("update `civirule_trigger` set `class_name` = 'CRM_CivirulesPostTrigger_EntityTag' where `object_name` = 'EntityTag';");
-    if (!CRM_Core_DAO::checkFieldExists('civirule_rule_action', 'ignore_condition_with_delay')) {
+    if (!CRM_Core_BAO_SchemaHandler::checkIfFieldExists('civirule_rule_action', 'ignore_condition_with_delay')) {
       CRM_Core_DAO::executeQuery("ALTER TABLE `civirule_rule_action` ADD COLUMN `ignore_condition_with_delay` TINYINT NULL default 0 AFTER `delay`");
     }
     return true;
@@ -134,10 +134,10 @@ class CRM_Civirules_Upgrader extends CRM_Civirules_Upgrader_Base {
    */
   public function upgrade_1007() {
     if (CRM_Core_DAO::checkTableExists('civirule_rule')) {
-      if (!CRM_Core_DAO::checkFieldExists('civirule_rule', 'description')) {
+      if (!CRM_Core_BAO_SchemaHandler::checkIfFieldExists('civirule_rule', 'description')) {
         CRM_Core_DAO::executeQuery("ALTER TABLE `civirule_rule` ADD COLUMN `description` VARCHAR(256) NULL AFTER `is_active`");
       }
-      if (!CRM_Core_DAO::checkFieldExists('civirule_rule', 'help_text')) {
+      if (!CRM_Core_BAO_SchemaHandler::checkIfFieldExists('civirule_rule', 'help_text')) {
         CRM_Core_DAO::executeQuery("ALTER TABLE `civirule_rule` ADD COLUMN `help_text` TEXT NULL AFTER `description`");
       }
     }
@@ -882,11 +882,13 @@ class CRM_Civirules_Upgrader extends CRM_Civirules_Upgrader_Base {
     CRM_Civirules_Utils_Upgrader::insertTriggersFromJson($this->extensionDir . DIRECTORY_SEPARATOR . 'sql/triggers.json');
     return TRUE;
   }
+
   public function upgrade_2080() {
     $this->ctx->log->info('Applying update 2080 - Add condition contribution recur frequency');
     CRM_Civirules_Utils_Upgrader::insertConditionsFromJson($this->extensionDir . DIRECTORY_SEPARATOR . 'sql/conditions.json');
     return TRUE;
   }
+
   public function upgrade_2081() {
     $this->ctx->log->info('Applying update 2081 - Add action to register participant');
     CRM_Civirules_Utils_Upgrader::insertActionsFromJson($this->extensionDir . DIRECTORY_SEPARATOR . 'sql/actions.json');

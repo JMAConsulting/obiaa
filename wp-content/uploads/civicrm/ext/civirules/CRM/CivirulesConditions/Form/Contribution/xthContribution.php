@@ -1,13 +1,13 @@
 <?php
+
 /**
- * Class for CiviRules Condition xthContribution Form
+ * Class for CiviRules Condition xth Contribution Form
  *
  * @author Erik Hommel (CiviCooP) <erik.hommel@civicoop.org>
  * @date 12 Nov 2018
  * @funded by Amnesty International Vlaanderen
  * @license AGPL-3.0
  */
-
 class CRM_CivirulesConditions_Form_Contribution_xthContribution extends CRM_CivirulesConditions_Form_Form {
 
   /**
@@ -19,13 +19,14 @@ class CRM_CivirulesConditions_Form_Contribution_xthContribution extends CRM_Civi
     $this->add('hidden', 'rule_condition_id');
     $this->add('select', 'operator', ts('Operator'), CRM_Civirules_Utils::getGenericComparisonOperatorOptions(), TRUE);
     $this->add('select', 'financial_type', ts('of Financial Type(s)'), CRM_Civirules_Utils::getFinancialTypes(), TRUE,
-      array('id' => 'financial_type_ids', 'multiple' => 'multiple','class' => 'crm-select2'));
-    $this->add('text', 'number_contributions', ts('Number of Contributions'), array(), TRUE);
+      ['id' => 'financial_type_ids', 'multiple' => 'multiple', 'class' => 'crm-select2']);
+    $this->add('text', 'number_contributions', ts('Number of Contributions'), [], TRUE);
     $this->addRule('number_contributions','Number of Contributions must be a whole number','numeric');
     $this->addRule('number_contributions','Number of Contributions must be a whole number','nopunctuation');
-    $this->addButtons(array(
-      array('type' => 'next', 'name' => ts('Save'), 'isDefault' => TRUE,),
-      array('type' => 'cancel', 'name' => ts('Cancel'))));
+    $this->addButtons([
+      ['type' => 'next', 'name' => ts('Save'), 'isDefault' => TRUE],
+      ['type' => 'cancel', 'name' => ts('Cancel')]
+    ]);
   }
 
   /**

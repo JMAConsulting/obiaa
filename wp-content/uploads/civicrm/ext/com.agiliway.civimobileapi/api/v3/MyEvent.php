@@ -34,16 +34,16 @@ function civicrm_api3_my_event_get($params) {
 function _civicrm_api3_my_event_prepare_params($params) {
   $newParams = [];
   if (isset($params['options'])) {
-    $limit = (int) CRM_Utils_Array::value('limit', $params['options'], 0);
+    $limit = (int)CRM_Utils_Array::value('limit', $params['options'], 0);
     if ($limit != 0) {
       $newParams['limit'] = $limit;
-      $newParams['offset'] = (int) CRM_Utils_Array::value('offset', $params['options'], 0);
+      $newParams['offset'] = (int)CRM_Utils_Array::value('offset', $params['options'], 0);
     }
-    $order = (string) CRM_Utils_Array::value('sort', $params['options']);
+    $order = (string)CRM_Utils_Array::value('sort', $params['options']);
   }
 
-  $newParams['contact_id'] = !empty($params['contact_id']) ? (int) $params['contact_id'] : null;
-  $newParams['is_active'] = isset($params['is_active']) ? (int) $params['is_active'] : 1;
+  $newParams['contact_id'] = !empty($params['contact_id']) ? (int)$params['contact_id'] : null;
+  $newParams['is_active'] = isset($params['is_active']) ? (int)$params['is_active'] : 1;
   $newParams['order'] = !empty($order) ? $order : 'sort_date DESC';
   $newParams['sort_date'] = CRM_Utils_Array::value('sort_date', $params);
   $newParams['start_date'] = CRM_Utils_Array::value('start_date', $params);
@@ -64,7 +64,7 @@ function _civicrm_api3_my_event_get_find($params) {
   $logicSymbols = ['IS NOT NULL', 'IS NULL'];
 
   $select = CRM_Utils_SQL_Select::from('civicrm_participant p')
-    ->select("p.event_id, p.contact_id, e.start_date, p.register_date, e.end_date, e.title, e.event_type_id, pst.name, pst.label, pst.is_active, IF(e.end_date IS NULL or e.end_date = '', e.start_date, e.end_date) as sort_date")
+    ->select("p.event_id, p.contact_id, e.start_date, p.register_date, e.end_date, e.title, e.event_type_id, pst.name, pst.label, pst.is_active, IF(e.end_date IS NULL, e.start_date, e.end_date) as sort_date")
     ->join('pst', 'left join civicrm_participant_status_type pst on pst.id = p.status_id')
     ->join('e', 'left join civicrm_event e on e.id = p.event_id');
 
@@ -82,8 +82,7 @@ function _civicrm_api3_my_event_get_find($params) {
           $select->having('sort_date ' . $key . ' ');
         }
       }
-    }
-    else {
+    } else {
       $select->having('sort_date = #sort_date', ['sort_date' => $params['sort_date']]);
     }
   }
@@ -98,8 +97,7 @@ function _civicrm_api3_my_event_get_find($params) {
           $select->where('e.start_date ' . $key . ' ');
         }
       }
-    }
-    else {
+    } else {
       $select->having('e.start_date = #start_date', ['start_date' => $params['start_date']]);
     }
   }
@@ -114,8 +112,7 @@ function _civicrm_api3_my_event_get_find($params) {
           $select->where('e.end_date ' . $key . ' ');
         }
       }
-    }
-    else {
+    } else {
       $select->having('e.end_date = #end_date', ['end_date' => $params['end_date']]);
     }
   }

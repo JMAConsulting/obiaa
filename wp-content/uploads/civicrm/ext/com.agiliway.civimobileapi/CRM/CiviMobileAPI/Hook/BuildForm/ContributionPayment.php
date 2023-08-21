@@ -48,8 +48,8 @@ class CRM_CiviMobileAPI_Hook_BuildForm_ContributionPayment {
 
     if ($isCivimobile) {
       $template = CRM_Core_Smarty::singleton();
-      $relURL = Civi::paths()->getUrl('[civicrm.root]/');
-      $absURL = CRM_Utils_System::absoluteURL($relURL);
+
+      $absURL = Civi::paths()->getUrl('[civicrm.root]/', 'absolute');
 
       $template->assign('absURL', $absURL);
 

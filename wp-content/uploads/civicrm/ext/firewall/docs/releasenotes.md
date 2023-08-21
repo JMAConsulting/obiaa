@@ -9,6 +9,11 @@ Releases use the following numbering system:
 
 * **[BC]**: Items marked with [BC] indicate a breaking change that will require updates to your code if you are using that code in your extension.
 
+## 1.5.9 (2023-04-12)
+
+* Fix [#28](https://lab.civicrm.org/extensions/firewall/-/issues/28) Fix firewall event triggers.
+* Fix [#31](https://lab.civicrm.org/extensions/firewall/-/issues/31) Make compatible with all versions of symfony.
+
 ## 1.5.8 (2023-01-12)
 
 * [!14](https://lab.civicrm.org/extensions/firewall/-/merge_requests/14) Add composer.json for easier inclusion in projects.

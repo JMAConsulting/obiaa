@@ -28,6 +28,7 @@ class CRM_CiviMobileAPI_Install_Entity_OptionValue extends CRM_CiviMobileAPI_Ins
   const TAB_GROUPS = 'civi_mobile_tab_groups';
   const TAB_TAGS = 'civi_mobile_tab_tags';
   const TAB_SURVEYS = 'civi_mobile_tab_surveys';
+  const TAB_TIME_TRACKER = 'civi_mobile_tab_time_tracker';
 
   /**
    * Params for checking Entity existence
@@ -124,6 +125,14 @@ class CRM_CiviMobileAPI_Install_Entity_OptionValue extends CRM_CiviMobileAPI_Ins
         'name' => self::TAB_SURVEYS,
         'value' => self::TAB_SURVEYS,
         'weight' => 12,
+      ],
+      [
+        'option_group_id' => CRM_CiviMobileAPI_Install_Entity_OptionGroup::TABS,
+        'label' => E::ts('TimeTracker'),
+        'name' => self::TAB_TIME_TRACKER,
+        'value' => self::TAB_TIME_TRACKER,
+        'is_active' => 0,
+        'weight' => 13,
       ],
     ];
   }

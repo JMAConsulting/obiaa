@@ -14,6 +14,9 @@ class CRM_Civirules_Utils_LoggerFactory {
       $hook = CRM_Civirules_Utils_HookInvoker::singleton();
       $hook->hook_civirules_getlogger(self::$logger);
       self::$loggerHookInvoked = true;
+      if (empty(self::$logger)) {
+        self::$logger = Civi::log();
+      }
     }
     return self::$logger;
   }

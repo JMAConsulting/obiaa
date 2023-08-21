@@ -136,8 +136,8 @@ class CRM_CiviMobileAPI_Hook_BuildForm_Register {
     if ($cmbHash) {
       $template = CRM_Core_Smarty::singleton();
       $currentCMS = CRM_CiviMobileAPI_Utils_CmsUser::getInstance()->getSystem();
-      $relURL = Civi::paths()->getUrl('[civicrm.root]/');
-      $absURL = CRM_Utils_System::absoluteURL($relURL);
+
+      $absURL = Civi::paths()->getUrl('[civicrm.root]/', 'absolute');
 
       $template->assign('absURL', $absURL);
       $template->assign('isDrupal7', $currentCMS == CRM_CiviMobileAPI_Utils_CmsUser::CMS_DRUPAL7);

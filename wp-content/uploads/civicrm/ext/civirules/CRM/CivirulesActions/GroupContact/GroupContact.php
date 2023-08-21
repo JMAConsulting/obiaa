@@ -13,11 +13,11 @@ abstract class CRM_CivirulesActions_GroupContact_GroupContact extends CRM_Civiru
    *
    * @param array $params
    * @param object CRM_Civirules_TriggerData_TriggerData $triggerData
+   *
    * @return array $params
-   * @access protected
    */
   protected function alterApiParameters($params, CRM_Civirules_TriggerData_TriggerData $triggerData) {
-    //this function could be overridden in subclasses to alter parameters to meet certain criteria
+    // this function could be overridden in subclasses to alter parameters to meet certain criteria
     $params['contact_id'] = $triggerData->getContactId();
     return $params;
   }
@@ -26,21 +26,20 @@ abstract class CRM_CivirulesActions_GroupContact_GroupContact extends CRM_Civiru
    * Process the action
    *
    * @param CRM_Civirules_TriggerData_TriggerData $triggerData
-   * @access public
    */
   public function processAction(CRM_Civirules_TriggerData_TriggerData $triggerData) {
     $entity = $this->getApiEntity();
     $action = $this->getApiAction();
 
     $actionParams = $this->getActionParameters();
-    $groupIds = array();
+    $groupIds = [];
     if (!empty($actionParams['group_id'])) {
-      $groupIds = array($actionParams['group_id']);
+      $groupIds = [$actionParams['group_id']];
     } elseif (!empty($actionParams['group_ids']) && is_array($actionParams['group_ids'])) {
       $groupIds = $actionParams['group_ids'];
     }
     foreach($groupIds as $groupId) {
-      $params = array();
+      $params = [];
       $params['group_id'] = $groupId;
 
       //alter parameters by subclass
@@ -116,8 +115,8 @@ abstract class CRM_CivirulesActions_GroupContact_GroupContact extends CRM_Civiru
    * Return false if you do not need extra data input
    *
    * @param int $ruleActionId
+   *
    * @return bool|string
-   * @access public
    */
   public function getExtraDataInputUrl($ruleActionId) {
     return CRM_Utils_System::url('civicrm/civirule/form/action/groupcontact', 'rule_action_id='.$ruleActionId);
@@ -128,7 +127,6 @@ abstract class CRM_CivirulesActions_GroupContact_GroupContact extends CRM_Civiru
    * e.g. 'Older than 65'
    *
    * @return string
-   * @access public
    */
   public function userFriendlyConditionParams() {
     $params = $this->getActionParameters();
@@ -167,7 +165,6 @@ abstract class CRM_CivirulesActions_GroupContact_GroupContact extends CRM_Civiru
    * Method to set the api entity
    *
    * @return string
-   * @access protected
    */
   protected function getApiEntity() {
     return 'GroupContact';
@@ -176,15 +173,14 @@ abstract class CRM_CivirulesActions_GroupContact_GroupContact extends CRM_Civiru
   protected function getActionLabel($group) {
     switch ($this->getApiAction()) {
       case 'create':
-        return ts('Add contact to group(s): %1', array(
+        return ts('Add contact to group(s): %1', [
           1 => $group
-        ));
-        break;
+        ]);
+
       case 'delete':
-        return ts('Remove contact from group(s): %1', array(
+        return ts('Remove contact from group(s): %1', [
           1 => $group
-        ));
-        break;
+        ]);
     }
     return '';
   }
