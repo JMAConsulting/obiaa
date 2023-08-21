@@ -27,7 +27,7 @@ function myextension_civicrm_webhookEventNotMatched(string $type, $object, strin
   if ($type !== 'stripe') {
     return;
   }
-  if (!($object instanceof CRM_Core_Payment_StripeIPN)) {
+  if (!($object instanceof CRM_Core_Payment_StripeIPN) && !($object instanceof \Civi\Stripe\Webhook\Events)) {
     return;
   }
   switch ($code) {

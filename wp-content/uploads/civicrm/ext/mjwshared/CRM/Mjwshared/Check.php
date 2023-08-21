@@ -197,7 +197,8 @@ class CRM_Mjwshared_Check {
         $contributionPagesToCheck[] = $blockDetails['entity_id'];
       }
       $paymentProcessorIDs = \Civi\Api4\PaymentProcessor::get(FALSE)
-        ->addWhere('payment_processor_type_id:name', 'IN', $separateMembershipPaymentNotSupportedProcessors)
+        ->addJoin('PaymentProcessorType AS payment_processor_type', 'INNER', ['payment_processor_type_id', '=', 'payment_processor_type.id'])
+        ->addWhere('payment_processor_type.name', 'IN', $separateMembershipPaymentNotSupportedProcessors)
         ->execute()
         ->column('id');
 

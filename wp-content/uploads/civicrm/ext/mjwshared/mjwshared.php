@@ -43,59 +43,12 @@ function mjwshared_civicrm_install() {
 }
 
 /**
- * Implements hook_civicrm_postInstall().
- *
- * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_postInstall
- */
-function mjwshared_civicrm_postInstall() {
-  _mjwshared_civix_civicrm_postInstall();
-}
-
-/**
- * Implements hook_civicrm_uninstall().
- *
- * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_uninstall
- */
-function mjwshared_civicrm_uninstall() {
-  _mjwshared_civix_civicrm_uninstall();
-}
-
-/**
  * Implements hook_civicrm_enable().
  *
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_enable
  */
 function mjwshared_civicrm_enable() {
   _mjwshared_civix_civicrm_enable();
-}
-
-/**
- * Implements hook_civicrm_disable().
- *
- * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_disable
- */
-function mjwshared_civicrm_disable() {
-  _mjwshared_civix_civicrm_disable();
-}
-
-/**
- * Implements hook_civicrm_upgrade().
- *
- * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_upgrade
- */
-function mjwshared_civicrm_upgrade($op, CRM_Queue_Queue $queue = NULL) {
-  return _mjwshared_civix_civicrm_upgrade($op, $queue);
-}
-
-/**
- * Implements hook_civicrm_entityTypes().
- *
- * Declare entity types provided by this module.
- *
- * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_entityTypes
- */
-function mjwshared_civicrm_entityTypes(&$entityTypes) {
-  _mjwshared_civix_civicrm_entityTypes($entityTypes);
 }
 
 /**
@@ -107,7 +60,7 @@ function mjwshared_symfony_civicrm_coreResourceList($event, $hook) {
     // We want this library loaded early. Weights are negative earlier, positive later (opposite to symfony).
     // CiviCRM "earliest" is -9999 we'll go with -2000 to load after CiviCRM core but before anything else.
     \Civi::resources()->addScriptFile(
-      E::LONG_NAME, 
+      E::LONG_NAME,
       'js/crm.payment.js',
       -2000,
       $event->region

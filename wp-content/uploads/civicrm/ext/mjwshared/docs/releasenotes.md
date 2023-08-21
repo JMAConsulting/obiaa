@@ -9,6 +9,24 @@ Releases use the following numbering system:
 
 * **[BC]**: Items marked with [BC] indicate a breaking change that will require updates to your code if you are using that code in your extension.
 
+## Release 1.2.14 (2023-08-14)
+
+* [!41](https://lab.civicrm.org/extensions/mjwshared/-/merge_requests/41) The extension fails to install or upgrade if the option value for cg extends already present in the database (fix compatibility with extensions that use custom fields on financial transactions).
+
+## Release 1.2.13 (2023-06-26)
+
+* smartyv2-1.0.1 does not work on 5.59 because of https://github.com/civicrm/civicrm-core/commit/7168793c03ef57c06bbfe45f5ff873ebb3657806
+so we set minimum version to 5.58 which triggers civix to ship as an extension mixin.
+
+## Release 1.2.12 (2023-06-25)
+
+* Add Payment_details custom field group and allow custom fields to be saved via API3 `Mjwpayment.create`.
+* Pass through custom params in `updateContributionCompleted()`.
+
+* Convert some internals to API4.
+* Refactor API call to fix payment processor name issue.
+* Use getter for `_paymentProcessor`.
+
 ## Release 1.2.11 (2023-01-30)
 
 * Remove our version of CRM_Core_Payment::getAmount() as it was merged into core in 5.37.
