@@ -1,9 +1,9 @@
 === Role Based Redirect ===
 Contributors: yasirkhalifa
-Tags: User, Role, Redirection, Admin Bar
+Tags: User, Role, Redirection, Admin Bar, After Login, Hide Admin Bar,Restrict Dashboard ,Logout,Login
 Donate link: https://myasark.wordpress.com/
 Requires at least: 4
-Tested up to: 5.9
+Tested up to: 6.3
 License: GPLv2
 
 Redirect users to specific page after login, based on their the role and also option for hide adminbar and restrict dashboard access.
@@ -38,3 +38,7 @@ User redirect to his desire page after login logout. And also hide admin bar for
 == Changelog ==
 = 1.4 =
 * Minor Bug fix
+
+== Changelog ==
+= 1.5 =
+* Localization
