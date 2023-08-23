@@ -128,11 +128,11 @@ if (!defined('ABSPATH')) exit;
 		<?php wp_nonce_field('add-urls','url_redirect'); ?>
 		<div class="row">
 			<div class="left">
-				<label>Select Page For Login Redirect</label>
+				<label><?php _e( 'Select Page For Login Redirect', 'role-based-redirect' ); ?></label>
 			</div>
 			<div class="right">
 				<select name="url_login_dropdown" class="select_url_login">
-					<option value=""><?php echo esc_attr( __( 'Select page' ) ); ?></option>
+					<option value=""><?php echo esc_attr( __( 'Select page', 'role-based-redirect' ) ); ?></option>
 					<?php $pages = get_pages(); foreach ( $pages as $page ) { ?>
 						<option value="<?php echo get_page_link( $page->ID ); ?>"<?php  if ($key == $fetchrole_type) {
 						selected( $fetchlogindrop, get_page_link( $page->ID ) ); }  ?>><?php echo $page->post_title; ?></option><?php }	?>
@@ -141,7 +141,7 @@ if (!defined('ABSPATH')) exit;
 		</div>
 		<div class="row">
 			<div class="left">
-				<label for="subject">Or Custom Login Redirect URL</label>
+				<label for="subject"><?php _e( 'Or Custom Login Redirect URL', 'role-based-redirect' ); ?></label>
 			</div>
 			<div class="right">
 				<input type="text" name="url_login_textbox" Value="<?php   if ($key == $fetchrole_type) { if( isset($fetchlogintext)){  echo $fetchlogintext; } }?>" placeholder="http://localhost/wordpress/sample-page/"/>
@@ -149,11 +149,11 @@ if (!defined('ABSPATH')) exit;
 		</div>
 		<div class="row">
 			<div class="left">
-				<label>Select Page For Logout Redirect</label>
+				<label><?php _e( 'Select Page For Logout Redirect', 'role-based-redirect' ); ?></label>
 			</div>
 			<div class="right">
 				<select name="url_logout_dropdown">
-					<option value=""><?php echo esc_attr( __( 'Select page' ) ); ?></option>
+					<option value=""><?php echo esc_attr( __( 'Select page', 'role-based-redirect' ) ); ?></option>
 					<?php 	$pages = get_pages(); 	foreach ( $pages as $page ) { ?>
 						<option value="<?php echo get_page_link( $page->ID ); ?>"<?php  if ($key == $fetchrole_type) { selected( $fetchlogoutdrop, get_page_link( $page->ID ) );} ?>><?php echo $page->post_title; ?></option><?php } ?>
 				</select>
@@ -161,7 +161,7 @@ if (!defined('ABSPATH')) exit;
 		</div>
 		<div class="row">
 			<div class="left">
-				<label for="subject">Or Custom Logout Redirect URL</label>
+				<label for="subject"><?php _e( 'Or Custom Logout Redirect URL', 'role-based-redirect' ); ?></label>
 			</div>
 			<div class="right">
 				<input type="text" name="url_logout_textbox" Value="<?php  if ($key == $fetchrole_type) {  if( isset($fetchlogouttext)){ echo $fetchlogouttext;}}?>" placeholder="http://localhost/wordpress/sample-page/"/>
@@ -169,7 +169,7 @@ if (!defined('ABSPATH')) exit;
 		</div>
 		<div class="row">
 			<div class="left">
-				<label for="subject">Hide Adminbar</label>
+				<label for="subject"><?php _e( 'Hide Adminbar', 'role-based-redirect' ); ?></label>
 			</div>
 			<div class="right">
 				<input type="checkbox" name="adminbar" value="yes"<?php if ($key == $fetchrole_type) { if ($fetchadminbar == "yes") { echo "checked='checked'"; } }?> />
@@ -178,7 +178,7 @@ if (!defined('ABSPATH')) exit;
 		<?php if ($key != "administrator") { ?>
 			<div class="row">
 				<div class="left">
-					<label for="subject">Restrict Dashboard Access</label>
+					<label for="subject"><?php _e( 'Restrict Dashboard Access', 'role-based-redirect' ); ?></label>
 				</div>
 				<div class="right">
 					<input type="checkbox" name="restrictdash" value="yes"<?php if ($key == $fetchrole_type) { if ($fetchrestrict_dashboard == "yes") { echo "checked='checked'"; } } ?> />

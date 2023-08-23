@@ -257,8 +257,8 @@ class URE_Grant_Roles {
             $bbp_roles = $bbpress->extract_bbp_roles( $user->roles );
         }
         $user->remove_all_caps();
-        $roles = array_merge(array( $primary_role ), $bbp_roles, $roles );
-        foreach( $roles as $role ) {
+        $roles2 = ure_array_merge( array( $primary_role ), $bbp_roles, $roles );
+        foreach( $roles2 as $role ) {
             $user->add_role( $role );
         }
         
@@ -359,7 +359,7 @@ class URE_Grant_Roles {
         $other_roles = array_values($user->roles);
         $primary_role = array_shift($other_roles);
         
-        $answer = array('result'=>'success', 'primary_role'=>$primary_role, 'other_roles'=>$other_roles);
+        $answer = array('result'=>'success', 'primary_role'=>$primary_role, 'other_roles'=>$other_roles, 'message'=>'User roles were sent');
         
         return $answer;
     }
