@@ -157,7 +157,7 @@ function obiaacustomizations_civicrm_permission(&$permissions) {
   );
 }
 
-function obiaacustomizations_civicrm_links(string $op, string $objectName, int $objectID, array &$links, int &$mask, array &$values) {
+function obiaacustomizations_civicrm_links(string $op, string $objectName, $objectID, array &$links, ?int &$mask, array &$values) {
   if ('CustomField' == $objectName && (is_user_logged_in() && !in_array('administrator', wp_get_current_user()->roles))) {
     $links = [
      CRM_Core_Action::PREVIEW => [

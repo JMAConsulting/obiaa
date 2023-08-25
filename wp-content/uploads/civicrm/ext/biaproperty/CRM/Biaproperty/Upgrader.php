@@ -247,7 +247,7 @@ class CRM_Biaproperty_Upgrader extends CRM_Extension_Upgrader_Base {
     $customFields = ['Open_Date', 'Close_Date'];
     foreach ($customFields as $customFieldName) {
       $customField = civicrm_api3('CustomField', 'get', ['name' => $customFieldName]);
-      \Civi\Api4\CustomField::update(FALSE)->addValue('start_date_years', 50)->addValue('end_date_years')->addWhere('id', '=', $customField['id'])->execute();
+      \Civi\Api4\CustomField::update(FALSE)->addValue('start_date_years', 50)->addValue('end_date_years', 50)->addWhere('id', '=', $customField['id'])->execute();
     }
     CRM_Core_DAO::executeQuery("UPDATE civicrm_navigation SET url = %1 WHERE name = %2", [
       1 => [CRM_Utils_System::url('civicrm/admin/custom/group/field/option', ['reset' => 1, 'action' => 'browse', 'gid' => 4, 'fid' => 9], TRUE, NULL, TRUE, FALSE, TRUE), 'String'],
