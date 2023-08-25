@@ -20,6 +20,7 @@ echo "DELETE FROM civicrm_unit" | $CIVICRM_CREDS
 echo "DELETE FROM civicrm_property" | $CIVICRM_CREDS
 # Update Domain Contact with correct information.
 wp civicrm api contact.create organization_name="My Bia $2" id=1 contact_type='Organization' contact_sub_type='BIA'
+echo "DELETE ov.* FROM civicrm_option_value ov INNER JOIN civicrm_option_group og ON og.id = ov.option_group_id WHERE ov.value IN ('Bakeries', 'Dine', 'Miscellaneous', 'Shoppe', 'Sip') AND og.name = 'Business_Category_Child_Class_Unique'" | $CIVICRM_CREDS
 # update site title
 wp option update blogname $2
 popd
