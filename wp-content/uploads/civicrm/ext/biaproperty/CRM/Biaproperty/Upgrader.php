@@ -256,6 +256,25 @@ class CRM_Biaproperty_Upgrader extends CRM_Extension_Upgrader_Base {
     return TRUE;
   }
 
+  public function upgrade_2204(): bool {
+    $this->ctx->log->info('Upgrade 2204 Remove original standard bia1 Local Bia Headings');
+    $biaHeadings = [
+      'Bakeries',
+      'Dine',
+      'Miscellaneous',
+      'Shoppe',
+      'Sip',
+    ];
+    foreach ($biaHeadings as $biaHeading) {
+      $contactCount = \Civi\Api4\Contact::get(FALSE)->addWhere('Business_Category.Child_Class_Unique', '=', $biaHeading)->execute();
+      if (count($contactCount) < 1) {
+        $optionValue = \Civi\Api4\OptionValue::get(FALSE)->addWhere('value', '=', $biaHeading)->addWhere('option_group_id:name', '=', 'Business_Category_Child_Class_Unique')->execute()->first();
+        \Civi\Api4\OptionValue::delete(FALSE)->addWhere('id', '=', $optionValue['id'])->execute();
+      }
+    }
+    return TRUE;
+  }
+
   /**
    * Example: Run an external SQL script.
    *
