@@ -4,6 +4,9 @@ use CRM_Obiaareport_ExtensionUtil as E;
 class CRM_Obiaareport_Utils {
 
   public static function addMembershipFilter(&$filters) {
+    if (!self::isCentralSite()) {
+      return;
+    }
     foreach (['Region', 'BIA'] as $name) {
       $customField = \Civi\Api4\CustomField::get(FALSE)
         ->addSelect('label', 'option_group_id:name', 'column_name')
@@ -41,6 +44,13 @@ class CRM_Obiaareport_Utils {
     }
 
     return $join;
+  }
+
+  public static function isCentralSite() {
+    return (bool) \Civi\Api4\CustomField::get(FALSE)
+      ->addWhere('name', '=', 'BIA')
+      ->addWhere('custom_group_id:name', '=', 'Membership_Status')
+      ->selectRowCount()->execute()->count();
   }
 
 }

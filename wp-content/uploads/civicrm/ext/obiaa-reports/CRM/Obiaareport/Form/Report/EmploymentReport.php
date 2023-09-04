@@ -12,6 +12,8 @@ class CRM_Obiaareport_Form_Report_EmploymentReport extends CRM_Report_Form {
 
   protected $_customFieldColumnName;
 
+  public $optimisedForOnlyFullGroupBy = FALSE;
+
   public function __construct() {
     $currentQuater = ceil(date("m", time())/3);
     $season = [

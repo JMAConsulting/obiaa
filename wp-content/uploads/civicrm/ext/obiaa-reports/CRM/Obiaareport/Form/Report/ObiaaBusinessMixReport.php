@@ -10,6 +10,7 @@ class CRM_Obiaareport_Form_Report_ObiaaBusinessMixReport extends CRM_Report_Form
   protected $_summary = NULL;
 
   protected $_customGroupExtends = ['Organization'];
+
   function __construct() {
     $this->_columns =  [
       'civicrm_unit_business' => [
@@ -50,15 +51,18 @@ class CRM_Obiaareport_Form_Report_ObiaaBusinessMixReport extends CRM_Report_Form
       ];
     }
     parent::__construct();
-    $this->_columns['civicrm_unit_business']['filters'] = $this->_columns['civicrm_value_business_cate_4']['filters'];
-    unset($this->_columns['civicrm_value_business_cate_4']);
+    $tableName = \Civi\Api4\CustomGroup::get(FALSE)->addSelect('table_name')->addWhere('name', '=', 'Business_Category')->execute()->first()['table_name'];
+    $this->_columns['civicrm_unit_business']['filters'] = $this->_columns[$tableName]['filters'];
+    unset($this->_columns[$tableName]);
     CRM_Obiaareport_Utils::addMembershipFilter($this->_columns['civicrm_unit_business']['filters']);
     $this->setVar('_params', $this->_submitValues);
   }
 
   public function addCustomDataToColumns($addFields = TRUE, $permCustomGroupIds = []) {
-    $permCustomGroupIds = [25];
-    parent::addCustomDataToColumns(FALSE, $permCustomGroupIds);
+    $customGroups = \Civi\Api4\CustomGroup::get(FALSE)->addSelect('table_name')->addWhere('name', '=', 'Ownership_Demographics')->execute()->first();
+    $permCustomGroupIds = [$customGroups['id']];
+    parent::addCustomDataToColumns(TRUE, $permCustomGroupIds);
+    unset($this->_columns[$customGroups['table_name']]['fields']);
   }
 
   function preProcess() {

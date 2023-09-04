@@ -11,6 +11,8 @@ class CRM_Obiaareport_Form_Report_ObiaaCommercialSpaceReport extends CRM_Report_
 
   protected $_customGroupGroupBy = FALSE;
 
+  public $optimisedForOnlyFullGroupBy = FALSE;
+
   public function __construct() {
     $totalCount = CRM_Core_DAO::singleValueQuery("SELECT COUNT(DISTINCT id) FROM civicrm_unit") ?? 0;
     $sum = CRM_Core_DAO::singleValueQuery("SELECT SUM(unit_size) FROM civicrm_unit") ?? 0;
