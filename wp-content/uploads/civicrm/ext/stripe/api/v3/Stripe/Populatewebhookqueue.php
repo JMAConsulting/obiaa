@@ -28,9 +28,20 @@ use Civi\Api4\PaymentprocessorWebhook;
  * @param array $spec description of fields supported by this API call
  */
 function _civicrm_api3_stripe_Populatewebhookqueue_spec(&$spec) {
-  $spec['ppid']['title'] = E::ts('The id of the payment processor.');
+  $spec['ppid'] = [
+    'type' => CRM_Utils_Type::T_INT,
+    'title' => ts('Payment Processor ID'),
+    'description' => 'Foreign key to civicrm_payment_processor.id',
+    'pseudoconstant' => [
+      'table' => 'civicrm_payment_processor',
+      'keyColumn' => 'id',
+      'labelColumn' => 'title',
+    ],
+    'api.required' => FALSE,
+  ];
   $spec['type']['title'] = E::ts('The event type - defaults to invoice.payment_succeeded.');
   $spec['type']['api.default'] = 'invoice.payment_succeeded';
+  $spec['starting_after']['title'] = E::ts('Only return results after this Stripe event ID.');
 }
 
 /**
@@ -60,6 +71,11 @@ function civicrm_api3_stripe_Populatewebhookqueue($params) {
 
   $listEventsParams['limit'] = 100;
   $listEventsParams['ppid'] = $params['ppid'];
+  $listEventsParams['type'] = $params['type'];
+  if (!empty($params['starting_after'])) {
+    $listEventsParams['starting_after'] = $params['starting_after'];
+  }
+
   $items = [];
   $last_item = NULL;
   while(1) {
@@ -96,14 +112,15 @@ function civicrm_api3_stripe_Populatewebhookqueue($params) {
       continue;
     }
 
-    $webhookUniqueIdentifier = ($item['charge'] ?? '') . ':' . ($item['invoice'] ?? '') . ':' . ($item['subscription'] ?? '');
-    // In mjwshared 1.1 status defaults to NULL. In 1.2 status defaults to "new".
-    PaymentprocessorWebhook::create(FALSE)
-      ->addValue('payment_processor_id', $params['ppid'])
-      ->addValue('trigger', $item['type'])
-      ->addValue('identifier', $webhookUniqueIdentifier)
-      ->addValue('event_id', $item['id'])
-      ->execute();
+    $ipnClass = new CRM_Core_Payment_StripeIPN(\Civi\Payment\System::singleton()->getById($params['ppid']));
+    $ipnClass->setEventID($item['id']);
+    if (!$ipnClass->setEventType($item['type'])) {
+      // We don't handle this event
+      continue;
+    }
+
+    $ipnClass->setData($item['data']);
+    $ipnClass->onReceiveWebhook(FALSE);
 
     $results[] = $item['id'];
   }
