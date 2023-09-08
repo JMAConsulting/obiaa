@@ -25,21 +25,11 @@ function mosaico_civicrm_install() {
 }
 
 /**
- * Implements hook_civicrm_postInstall().
- *
- * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_postInstall
- */
-function mosaico_civicrm_postInstall() {
-  _mosaico_civix_civicrm_postInstall();
-}
-
-/**
  * Implements hook_civicrm_uninstall().
  *
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_uninstall
  */
 function mosaico_civicrm_uninstall() {
-  _mosaico_civix_civicrm_uninstall();
 
   $schema = new CRM_Logging_Schema();
   $schema->fixSchemaDifferences();
@@ -52,24 +42,6 @@ function mosaico_civicrm_uninstall() {
  */
 function mosaico_civicrm_enable() {
   _mosaico_civix_civicrm_enable();
-}
-
-/**
- * Implements hook_civicrm_disable().
- *
- * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_disable
- */
-function mosaico_civicrm_disable() {
-  _mosaico_civix_civicrm_disable();
-}
-
-/**
- * Implements hook_civicrm_upgrade().
- *
- * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_upgrade
- */
-function mosaico_civicrm_upgrade($op, CRM_Queue_Queue $queue = NULL) {
-  return _mosaico_civix_civicrm_upgrade($op, $queue);
 }
 
 function mosaico_civicrm_alterAngular(\Civi\Angular\Manager $angular) {
@@ -163,7 +135,7 @@ function mosaico_civicrm_check(&$messages) {
   if (!extension_loaded('fileinfo')) {
     $messages[] = new CRM_Utils_Check_Message('mosaico_fileinfo', E::ts('May experience mosaico template or thumbnail loading issues (404 errors).'), E::ts('PHP extension Fileinfo not loaded or enabled'));
   }
-  if (!file_exists(E::path('packages/mosaico/dist/mosaico.min.js')) || !file_exists(E::path('packages/mosaico/dist/vendor/jquery.min.js'))) {
+  if (!file_exists(E::path('packages/mosaico/dist/rs/mosaico.min.js')) || !file_exists(E::path('packages/mosaico/dist/rs/mosaico-libs-and-tinymce.min.js'))) {
     $messages[] = new CRM_Utils_Check_Message(
       'mosaico_packages',
       E::ts('Mosaico requires dependencies in its "packages" folder. Please consult the README.md for current installation instructions.'),

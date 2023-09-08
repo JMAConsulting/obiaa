@@ -1,11 +1,11 @@
 <?php return array(
     'root' => array(
-        'pretty_version' => '2.11',
-        'version' => '2.11.0.0',
+        'pretty_version' => '3.2',
+        'version' => '3.2.0.0',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
-        'reference' => '678b01ca03fbc61f324cbd9c4affb12d3347df81',
+        'reference' => 'bb7f1d62d588c7bd9117033eddf8bf9cd6293c6c',
         'name' => 'civipkg/uk.co.vedaconsulting.mosaico',
         'dev' => true,
     ),
@@ -20,12 +20,12 @@
             'dev_requirement' => false,
         ),
         'civipkg/uk.co.vedaconsulting.mosaico' => array(
-            'pretty_version' => '2.11',
-            'version' => '2.11.0.0',
+            'pretty_version' => '3.2',
+            'version' => '3.2.0.0',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
-            'reference' => '678b01ca03fbc61f324cbd9c4affb12d3347df81',
+            'reference' => 'bb7f1d62d588c7bd9117033eddf8bf9cd6293c6c',
             'dev_requirement' => false,
         ),
         'guzzlehttp/guzzle' => array(
@@ -41,12 +41,12 @@
             ),
         ),
         'intervention/image' => array(
-            'pretty_version' => '2.7.1',
-            'version' => '2.7.1.0',
+            'pretty_version' => '2.7.2',
+            'version' => '2.7.2.0',
             'type' => 'library',
             'install_path' => __DIR__ . '/../intervention/image',
             'aliases' => array(),
-            'reference' => '744ebba495319501b873a4e48787759c72e3fb8c',
+            'reference' => '04be355f8d6734c826045d02a1079ad658322dad',
             'dev_requirement' => false,
         ),
         'togos/gitignore' => array(
