@@ -157,7 +157,43 @@ function obiaacustomizations_civicrm_permission(&$permissions) {
   );
 }
 
+function obiaacustomizations_civicrm_links(string $op, string $objectName, $objectID, array &$links, ?int &$mask, array &$values) {
+  if ('CustomField' == $objectName && (is_user_logged_in() && !in_array('administrator', wp_get_current_user()->roles))) {
+    $links = [
+     CRM_Core_Action::PREVIEW => [
+          'name' => ts('Preview Field Display'),
+          'url' => 'civicrm/admin/custom/group/preview',
+          'qs' => 'action=preview&reset=1&fid=%%id%%',
+          'title' => ts('Preview Custom Field'),
+      ]
+    ];
+  }
+  if ('CustomGroup' == $objectName && (is_user_logged_in() && !in_array('administrator', wp_get_current_user()->roles))) {
+    $links = [
+      CRM_Core_Action::PREVIEW => [
+          'name' => ts('Preview'),
+          'url' => 'civicrm/admin/custom/group/preview',
+          'qs' => 'reset=1&gid=%%id%%',
+          'title' => ts('Preview Custom Data Set'),
+      ],
+        CRM_Core_Action::BROWSE => [
+          'name' => ts('View Custom Fields'),
+          'url' => 'civicrm/admin/custom/group/field',
+          'qs' => 'reset=1&action=browse&gid=%%id%%',
+          'title' => ts('View and Edit Custom Fields'),
+        ],
+    ];
+  }
+}
+
 function obiaacustomizations_civicrm_pageRun(&$page) {
+  if (in_array(get_class($page), ['CRM_Custom_Page_Group','CRM_Custom_Page_Field']) && (is_user_logged_in() && !in_array('administrator', wp_get_current_user()->roles))) {
+    Civi::resources()->addScript("
+      CRM.$(function($) {
+        $('#newCustomDataGroup, #newCustomField').hide();
+      });
+    ", -100, 'html-header');
+  }
   if (get_class($page) == "CRM_Contribute_Page_DashBoard" && !CRM_Core_Permission::check('manage payment pages')) {
     CRM_Core_Resources::singleton()->addScript(
       "CRM.$(function($) {
@@ -176,7 +212,7 @@ function obiaacustomizations_civicrm_pageRun(&$page) {
     if(is_user_logged_in()) {
       if(!current_user_can('administrator')) {
         Civi::resources()->addScriptFile('obiaacustomizations', 'js/contributionDashboard.js');
-      } 
+      }
     }
   }
 
@@ -184,7 +220,7 @@ function obiaacustomizations_civicrm_pageRun(&$page) {
     if(is_user_logged_in()) {
       if(!current_user_can('administrator')) {
         Civi::resources()->addStyleFile('obiaacustomizations', 'js/creditCardPaymentPage.css');
-      } 
+      }
     }
   }
 /*
@@ -195,7 +231,7 @@ function obiaacustomizations_civicrm_pageRun(&$page) {
           ->addVars('tutorial', [
             'basePath' => Civi::resources()->getUrl('org.civicrm.tutorial'),
             'urlPath' => implode('/', $page->urlPath),
-          ]); 
+          ]);
        }
 */
 Civi::resources()->addScript("
@@ -323,7 +359,7 @@ function obiaacustomizations_civicrm_alterMailContent(&$content) {
       $content[$key] = str_replace('{contact.display_name}', '{assign var="receiptalternate" value="{contribution.custom_56}"}{if $receiptalternate}{contribution.custom_56}{else}{contact.display_name}{/if}', $content[$key]);
       $content[$key] = str_replace('{$greeting}', '{assign var="receiptalternate" value="{contribution.custom_56}"}{if $receiptalternate}Dear {contribution.custom_56}{else}{$greeting}{/if}', $content[$key]);
       $content[$key] = str_replace($customGroupHtml, $newCustomGroupHtml, $content[$key]);
-    }	    
+    }
   }
   if ($content['valueName'] == 'contribution_online_receipt') {
     $customPre = "{if !empty(\$customPre)}

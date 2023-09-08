@@ -247,12 +247,33 @@ class CRM_Biaproperty_Upgrader extends CRM_Extension_Upgrader_Base {
     $customFields = ['Open_Date', 'Close_Date'];
     foreach ($customFields as $customFieldName) {
       $customField = civicrm_api3('CustomField', 'get', ['name' => $customFieldName]);
-      \Civi\Api4\CustomField::update(FALSE)->addValue('start_date_years', 50)->addValue('end_date_years')->addWhere('id', '=', $customField['id'])->execute();
+      \Civi\Api4\CustomField::update(FALSE)->addValue('start_date_years', 50)->addValue('end_date_years', 50)->addWhere('id', '=', $customField['id'])->execute();
     }
     CRM_Core_DAO::executeQuery("UPDATE civicrm_navigation SET url = %1 WHERE name = %2", [
       1 => [CRM_Utils_System::url('civicrm/admin/custom/group/field/option', ['reset' => 1, 'action' => 'browse', 'gid' => 4, 'fid' => 9], TRUE, NULL, TRUE, FALSE, TRUE), 'String'],
       2 => ['Local BIA Heading', 'String'],
     ]);
+    return TRUE;
+  }
+
+  public function upgrade_2204(): bool {
+    $this->ctx->log->info('Upgrade 2204 Remove original standard bia1 Local Bia Headings');
+    $biaHeadings = [
+      'Bakeries',
+      'Dine',
+      'Miscellaneous',
+      'Shoppe',
+      'Sip',
+    ];
+    foreach ($biaHeadings as $biaHeading) {
+      $contactCount = \Civi\Api4\Contact::get(FALSE)->addWhere('Business_Category.Child_Class_Unique', '=', $biaHeading)->execute();
+      if (count($contactCount) < 1) {
+        $optionValue = \Civi\Api4\OptionValue::get(FALSE)->addWhere('value', '=', $biaHeading)->addWhere('option_group_id:name', '=', 'Business_Category_Child_Class_Unique')->execute()->first();
+        if (!empty($optionValue)) {
+          \Civi\Api4\OptionValue::delete(FALSE)->addWhere('id', '=', $optionValue['id'])->execute();
+        }
+      }
+    }
     return TRUE;
   }
 
