@@ -15,13 +15,7 @@ define('PTR_LOGINWP_REDIRECTIONS_PAGE_URL', admin_url('admin.php?page=' . PTR_LO
 define('PTR_LOGINWP_URL', plugin_dir_url(PTR_LOGINWP_SYSTEM_FILE_PATH));
 define('PTR_LOGINWP_ASSETS_DIR', wp_normalize_path(dirname(PTR_LOGINWP_SYSTEM_FILE_PATH) . '/assets/'));
 
-if (strpos(__FILE__, 'peters-login-redirect/' . DIRECTORY_SEPARATOR . 'src') !== false) {
-    // production url path to assets folder.
-    define('PTR_LOGINWP_ASSETS_URL', PTR_LOGINWP_URL . 'src/core/assets/');
-} else {
-    // dev url path to assets folder.
-    define('PTR_LOGINWP_ASSETS_URL', PTR_LOGINWP_URL . '../' . dirname(dirname(substr(__FILE__, strpos(__FILE__, 'peters-login-redirect')))) . '/assets/');
-}
+define('PTR_LOGINWP_ASSETS_URL', PTR_LOGINWP_URL . 'src/core/assets/');
 
 class Core
 {
@@ -61,6 +55,7 @@ class Core
             `rul_url` LONGTEXT NULL default NULL,
             `rul_url_logout` LONGTEXT NULL default NULL,
             `rul_order` int(2) NOT NULL default '0',
+            `meta_data` longtext NULL,
             PRIMARY KEY (id)
             )";
 
@@ -127,6 +122,8 @@ class Core
     // Some newer operations are duplicated from rul_install() as there's no guarantee that the user will follow a specific upgrade procedure
     public static function rul_upgrade()
     {
+        if (!current_user_can('manage_options')) return;
+
         global $wpdb;
 
         // important we don't use PTR_LOGINWP_DB_TABLE, rather call $wpdb->prefix . 'table name'
@@ -171,6 +168,10 @@ class Core
 
         if ($cmp_current_version < 3006) {
             $wpdb->query("ALTER TABLE $rul_db_addresses CHANGE rul_type rul_type varchar(100) NOT NULL");
+        }
+
+        if ($cmp_current_version < 3040) {
+            $wpdb->query("ALTER TABLE $rul_db_addresses ADD COLUMN meta_data longtext NULL");
         }
 
         update_option('rul_version', PTR_LOGINWP_VERSION_NUMBER, 'no');

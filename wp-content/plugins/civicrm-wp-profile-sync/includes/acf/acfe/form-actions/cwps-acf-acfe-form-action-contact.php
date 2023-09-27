@@ -25,7 +25,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object $plugin The plugin object.
+	 * @var object
 	 */
 	public $plugin;
 
@@ -34,16 +34,16 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object $acf_loader The ACF Loader object.
+	 * @var object
 	 */
 	public $acf_loader;
 
 	/**
-	 * Parent (calling) object.
+	 * ACF Extended object.
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object $acf The parent object.
+	 * @var object
 	 */
 	public $acfe;
 
@@ -52,7 +52,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object $form The ACFE Form object.
+	 * @var object
 	 */
 	public $form;
 
@@ -61,7 +61,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object $civicrm The CiviCRM object.
+	 * @var object
 	 */
 	public $civicrm;
 
@@ -70,7 +70,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var string $action_name The unique name of the Form Action.
+	 * @var string
 	 */
 	public $action_name = 'cwps_contact';
 
@@ -79,7 +79,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var string $field_key The prefix for the Field Key.
+	 * @var string
 	 */
 	public $field_key = 'field_cwps_contact_action_';
 
@@ -88,7 +88,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var string $field_name The prefix for the Field Name.
+	 * @var string
 	 */
 	public $field_name = 'cwps_contact_action_';
 
@@ -99,7 +99,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 	 *
 	 * @since 0.5.1
 	 * @access public
-	 * @var array $fields_to_add The Public Contact Fields to add.
+	 * @var array
 	 */
 	public $fields_to_add = [
 		'display_name' => 'text',
@@ -408,6 +408,11 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 			$contact_id = $this->form_contact_id_get_existing( $form, $current_post_id, $action );
 		}
 
+		// The Contact ID may already exist via an ACFE "magic method".
+		if ( ! $contact_id ) {
+			$contact_id = $this->form_contact_id_get_from_tag( $form, $current_post_id, $action );
+		}
+
 		// Parse Relationships.
 		$relationships = [];
 		if ( ! $this->action_is_submitter() ) {
@@ -460,6 +465,9 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 
 			// Get the Group Field.
 			$custom_group_field = get_sub_field( $this->field_key . 'custom_group_' . $custom_group['id'] );
+			if ( empty( $custom_group_field ) ) {
+				continue;
+			}
 
 			// Populate the Custom Fields.
 			foreach ( $custom_group['api.CustomField.get']['values'] as $custom_field ) {
@@ -586,7 +594,13 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 
 						// Get the Group Field.
 						$group_field_identifier = $this->field_name . 'relationship_custom_group_' . $custom_group['id'];
+						if ( empty( $relationship_action[ $group_field_identifier ] ) ) {
+							continue;
+						}
 						$custom_group_field = $relationship_action[ $group_field_identifier ];
+						if ( empty( $custom_group_field ) ) {
+							continue;
+						}
 
 						// Populate the Relationship Custom Fields.
 						foreach ( $custom_group['api.CustomField.get']['values'] as $custom_field ) {
@@ -910,7 +924,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 			$tags = $this->form_tag_data( $form, $current_post_id, $action );
 			$args['tags'] = $this->form_tag_save( $args['contact'], $tags );
 
-			// Add the Contact to the Group(s) with the data from the Form.
+			// Add or remove the Contact to/from the Group(s) with the data from the Form.
 			$groups = $this->form_group_data( $form, $current_post_id, $action );
 			$args['groups'] = $this->form_group_save( $args['contact'], $groups );
 
@@ -1108,7 +1122,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 			],
 			'acfe_permissions' => '',
 			'default_value' => '',
-			'placeholder' => '',
+			'placeholder' => __( 'CiviCRM Default', 'civicrm-wp-profile-sync' ),
 			'allow_null' => 1,
 			'multiple' => 0,
 			'ui' => 0,
@@ -2566,7 +2580,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 
 		// Assign code and label.
 		$code = 'group_id';
-		$label = __( 'Add To Group', 'civicrm-wp-profile-sync' );
+		$label = __( 'Group', 'civicrm-wp-profile-sync' );
 
 		// Get Group Type "Mapping" Field.
 		$group_field = $this->mapping_field_get( $code, $label );
@@ -2590,15 +2604,23 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 		// ---------------------------------------------------------------------
 
 		// Assign code and label.
-		$code = 'group_conditional';
-		$label = __( 'Conditional On', 'civicrm-wp-profile-sync' );
+		$code = 'group_add_remove';
+		$label = __( 'Add or Remove the Contact', 'civicrm-wp-profile-sync' );
 
-		$group_conditional = $this->mapping_field_get( $code, $label );
-		$group_conditional['placeholder'] = __( 'Always add', 'civicrm-wp-profile-sync' );
-		$group_conditional['instructions'] = __( 'To add the Contact to the Group only when conditions are met, link this to a Hidden Field with value "1" where the conditional logic of that Field shows it when the conditions are met.', 'civicrm-wp-profile-sync' );
+		// Get a "Mapping" Field.
+		$group_add_remove_field = $this->mapping_field_get( $code, $label );
+
+		// Define choices.
+		$group_add_remove_field['choices'] = [
+			'add' => __( 'Add to Group', 'civicrm-wp-profile-sync' ),
+			'remove' => __( 'Remove from Group', 'civicrm-wp-profile-sync' ),
+		];
+		$group_add_remove_field['search_placeholder'] = '';
+		$group_add_remove_field['allow_null'] = 0;
+		$group_add_remove_field['ui'] = 0;
 
 		// Add Field to Repeater's Sub-Fields.
-		$sub_fields[] = $group_conditional;
+		$sub_fields[] = $group_add_remove_field;
 
 		// ---------------------------------------------------------------------
 
@@ -2610,7 +2632,15 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 			'type' => 'true_false',
 			'instructions' => '',
 			'required' => 0,
-			'conditional_logic' => 0,
+			'conditional_logic' => [
+				[
+					[
+						'field' => $this->field_key . 'map_group_add_remove',
+						'operator' => '==',
+						'value' => 'add',
+					],
+				],
+			],
 			'wrapper' => [
 				'width' => '',
 				'class' => '',
@@ -2624,6 +2654,21 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 			'ui_on_text' => '',
 			'ui_off_text' => '',
 		];
+
+		// ---------------------------------------------------------------------
+
+		// Assign code and label.
+		$code = 'group_conditional';
+		$label = __( 'Conditional On', 'civicrm-wp-profile-sync' );
+
+		$group_conditional = $this->mapping_field_get( $code, $label );
+		$group_conditional['placeholder'] = __( 'Always add or remove', 'civicrm-wp-profile-sync' );
+		$group_conditional['instructions'] = __( 'To add or remove the Contact to the Group only when conditions are met, link this to a Hidden Field with value "1" where the conditional logic of that Field shows it when the conditions are met.', 'civicrm-wp-profile-sync' );
+
+		// Add Field to Repeater's Sub-Fields.
+		$sub_fields[] = $group_conditional;
+
+		// ---------------------------------------------------------------------
 
 		// Add to Repeater.
 		$group_repeater['sub_fields'] = $sub_fields;
@@ -3944,7 +3989,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 			 * The following handles all possibilities.
 			 */
 			if ( ! empty( $contact_data['contact_sub_type'] ) ) {
-				$existing_contact = $this->plugin->civicrm->contact->get_by_id( $contact_id );
+				$existing_contact = $this->plugin->civicrm->contact->get_by_id( $contact_data['id'] );
 
 				// When there is already more than one Sub-type.
 				if ( is_array( $existing_contact['contact_sub_type'] ) ) {
@@ -4258,6 +4303,35 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 
 	}
 
+	/**
+	 * Gets the Contact ID if it exists in the Contact ID Field.
+	 *
+	 * @since 0.6.5
+	 *
+	 * @param array $form The array of Form data.
+	 * @param integer $current_post_id The ID of the Post from which the Form has been submitted.
+	 * @param string $action The customised name of the action.
+	 * @return integer $offset The Relationship offset.
+	 */
+	public function form_contact_id_get_from_tag( $form, $current_post_id, $action ) {
+
+		// Init return.
+		$contact_id = false;
+
+		// On load, the Contact ID Field may already be populated.
+		$field = get_sub_field( $this->field_key . 'map_id' );
+		$contact_id = acfe_form_map_field_value_load( $field, $current_post_id, $form );
+
+		// Maybe cast as integer.
+		if ( ! empty( $contact_id ) ) {
+			$contact_id = (int) $contact_id;
+		}
+
+		// --<
+		return $contact_id;
+
+	}
+
 	// -------------------------------------------------------------------------
 
 	/**
@@ -4286,9 +4360,12 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 
 			// Get Group Field.
 			$custom_group_field = get_sub_field( $this->field_key . 'custom_group_' . $custom_group['id'] );
-			foreach ( $custom_group_field as $field ) {
+			if ( empty( $custom_group_field ) ) {
+				continue;
+			}
 
-				// Get mapped Fields.
+			// Get mapped Fields.
+			foreach ( $custom_group_field as $field ) {
 				foreach ( $custom_group['api.CustomField.get']['values'] as $custom_field ) {
 
 					// Add to mapped Fields array.
@@ -4301,7 +4378,6 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 					}
 
 				}
-
 			}
 
 			// Populate data array with values of mapped Fields.
@@ -4949,16 +5025,23 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 		// Build data array.
 		foreach ( $this->relationship_custom_fields as $key => $custom_group ) {
 
+			// Skip if there's no data in the field.
+			if ( empty( $field[ $this->field_name . 'relationship_custom_group_' . $custom_group['id'] ] ) ) {
+				continue;
+			}
+
 			// Get Group Field.
 			$custom_group_field = $field[ $this->field_name . 'relationship_custom_group_' . $custom_group['id'] ];
-			foreach ( $custom_group_field as $group_field ) {
+			if ( empty( $custom_group_field ) ) {
+				continue;
+			}
 
-				// Get mapped Fields.
+			// Get mapped Fields.
+			foreach ( $custom_group_field as $group_field ) {
 				foreach ( $custom_group['api.CustomField.get']['values'] as $custom_field ) {
 					$code = 'custom_' . $custom_field['id'];
 					$fields[ $code ] = $custom_group_field[ $this->field_name . 'map_' . $code ];
 				}
-
 			}
 
 		}
@@ -5959,6 +6042,14 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 			// Get Group ID.
 			$fields['group_id'] = $field[ $this->field_name . 'map_group_id' ];
 
+			// Retain backwards compatibility.
+			$fields['group_add_remove'] = 'add';
+
+			// Get Add or Remove the Contact.
+			if ( ! empty( $field[ $this->field_name . 'map_group_add_remove' ] ) ) {
+				$fields['group_add_remove'] = $field[ $this->field_name . 'map_group_add_remove' ];
+			}
+
 			// Get Group Conditional.
 			$fields['group_conditional'] = $field[ $this->field_name . 'map_group_conditional' ];
 
@@ -6016,33 +6107,64 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 				}
 			}
 
-			// TODO: Do we need a "Remove from Group if Group is empty" option?
-
 			// Skip if there's no Group ID.
 			if ( empty( $group['group_id'] ) ) {
 				continue;
 			}
 
-			// Skip if already a Group Member.
+			// Get the current Group Membership status for the Contact.
 			$is_member = $this->civicrm->group->group_contact_exists( $group['group_id'], $contact['id'] );
-			if ( $is_member === true ) {
-				continue;
+
+			// Maybe add Contact to Group.
+			if ( 'add' === $group['group_add_remove'] ) {
+
+				// Skip if already a Group Member.
+				if ( $is_member === true ) {
+					continue;
+				}
+
+				// Add with or without Opt In.
+				if ( empty( $group['double_optin'] ) ) {
+					$result = $this->civicrm->group->group_contact_create( $group['group_id'], $contact['id'] );
+				} else {
+					$result = $this->civicrm->group->group_contact_create_via_opt_in( $group['group_id'], $contact['id'] );
+				}
+
+				// Skip adding Group ID on failure.
+				if ( $result === false ) {
+					continue;
+				}
+
+				// Add Group ID to return.
+				$groups[] = $group['group_id'];
+
 			}
 
-			// Add with or without Opt In.
-			if ( empty( $group['double_optin'] ) ) {
-				$result = $this->civicrm->group->group_contact_create( $group['group_id'], $contact['id'] );
-			} else {
-				$result = $this->civicrm->group->group_contact_create_via_opt_in( $group['group_id'], $contact['id'] );
-			}
+			// Maybe remove Contact from Group.
+			if ( 'remove' === $group['group_add_remove'] ) {
 
-			// Skip adding Group ID on failure.
-			if ( $result === false ) {
-				continue;
-			}
+				// Skip if not a Group Member.
+				if ( $is_member === false ) {
+					continue;
+				}
 
-			// Add Group ID to return.
-			$groups[] = $group['group_id'];
+				// Remove the Contact.
+				$result = $this->civicrm->group->group_contact_delete( $group['group_id'], $contact['id'] );
+
+				// Skip removing Group ID on failure.
+				if ( $result === false ) {
+					continue;
+				}
+
+				// Remove Group ID from return if present.
+				if ( is_array( $groups ) ) {
+					$key = array_search( $group['group_id'], $groups );
+					if ( false !== $key ) {
+						unset( $groups[ $key ] );
+					}
+				}
+
+			}
 
 		}
 

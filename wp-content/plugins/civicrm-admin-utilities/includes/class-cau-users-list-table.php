@@ -9,8 +9,6 @@
 // Exit if accessed directly.
 defined( 'ABSPATH' ) || exit;
 
-
-
 /**
  * List table class for Single Site Users admin page.
  *
@@ -24,7 +22,7 @@ class CAU_Single_Users_List_Table extends WP_Users_List_Table {
 	 * E.g. "All", "In CiviCRM", "Not in CiviCRM"...
 	 *
 	 * @since 0.9
-	 * @var string $view The current view.
+	 * @var string
 	 */
 	public $view = 'all';
 
@@ -32,7 +30,7 @@ class CAU_Single_Users_List_Table extends WP_Users_List_Table {
 	 * User counts.
 	 *
 	 * @since 0.9
-	 * @var array $user_counts The array of User counts.
+	 * @var array
 	 */
 	public $user_counts = [
 		'all' => 0,
@@ -44,7 +42,7 @@ class CAU_Single_Users_List_Table extends WP_Users_List_Table {
 	 * Items retrieved by the query.
 	 *
 	 * @since 0.9
-	 * @var array $items The array of items retrieved by the query.
+	 * @var array
 	 */
 	public $items = [];
 
@@ -52,7 +50,7 @@ class CAU_Single_Users_List_Table extends WP_Users_List_Table {
 	 * Post counts.
 	 *
 	 * @since 0.9
-	 * @var array $post_counts The array of Post counts.
+	 * @var array
 	 */
 	public $post_counts = [];
 
@@ -63,11 +61,9 @@ class CAU_Single_Users_List_Table extends WP_Users_List_Table {
 	 * User ID and the value is the Contact ID.
 	 *
 	 * @since 0.9
-	 * @var array $linked_ids The reference array.
+	 * @var array
 	 */
 	public $linked_ids = [];
-
-
 
 	/**
 	 * Constructor.
@@ -88,8 +84,6 @@ class CAU_Single_Users_List_Table extends WP_Users_List_Table {
 
 	}
 
-
-
 	/**
 	 * Prepare the users list for display.
 	 *
@@ -106,12 +100,11 @@ class CAU_Single_Users_List_Table extends WP_Users_List_Table {
 		$this->user_counts['all'] = $users_of_blog['total_users'];
 
 		// Get the search string if present.
-		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.WP.GlobalVariablesOverride.Prohibited
-		$usersearch = isset( $_REQUEST['s'] ) ? trim( wp_unslash( $_REQUEST['s'] ) ) : '';
+		// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
+		$usersearch = isset( $_REQUEST['s'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['s'] ) ) : '';
 
 		// Get the views param if present.
-		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-		$user_status = isset( $_REQUEST['user_status'] ) ? wp_unslash( $_REQUEST['user_status'] ) : 'all';
+		$user_status = isset( $_REQUEST['user_status'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['user_status'] ) ) : 'all';
 
 		// Set per page from the screen options.
 		$per_page = 'admin_page_' . civicrm_au()->single_users->users_page_slug . '_per_page';
@@ -177,12 +170,10 @@ class CAU_Single_Users_List_Table extends WP_Users_List_Table {
 
 		// Support ordering.
 		if ( isset( $_REQUEST['orderby'] ) ) {
-			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-			$args['orderby'] = wp_unslash( $_REQUEST['orderby'] );
+			$args['orderby'] = sanitize_text_field( wp_unslash( $_REQUEST['orderby'] ) );
 		}
 		if ( isset( $_REQUEST['order'] ) ) {
-			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-			$args['order'] = wp_unslash( $_REQUEST['order'] );
+			$args['order'] = sanitize_text_field( wp_unslash( $_REQUEST['order'] ) );
 		}
 
 		/**
@@ -250,8 +241,6 @@ class CAU_Single_Users_List_Table extends WP_Users_List_Table {
 
 	}
 
-
-
 	/**
 	 * Get rid of the extra nav.
 	 *
@@ -265,8 +254,6 @@ class CAU_Single_Users_List_Table extends WP_Users_List_Table {
 	public function extra_tablenav( $which ) {
 
 	}
-
-
 
 	/**
 	 * Get the list of views available on this table (e.g. "all", "public").
@@ -282,8 +269,6 @@ class CAU_Single_Users_List_Table extends WP_Users_List_Table {
 		include CIVICRM_ADMIN_UTILITIES_PATH . 'assets/templates/site-users-table-views.php';
 
 	}
-
-
 
 	/**
 	 * Specific columns for our purposes.
@@ -318,8 +303,6 @@ class CAU_Single_Users_List_Table extends WP_Users_List_Table {
 
 	}
 
-
-
 	/**
 	 * Specific bulk actions.
 	 *
@@ -351,8 +334,6 @@ class CAU_Single_Users_List_Table extends WP_Users_List_Table {
 
 	}
 
-
-
 	/**
 	 * The text to show when no items are found.
 	 *
@@ -364,8 +345,6 @@ class CAU_Single_Users_List_Table extends WP_Users_List_Table {
 		esc_html_e( 'No Users found.', 'civicrm-admin-utilities' );
 
 	}
-
-
 
 	/**
 	 * The columns Users can be reordered by.
@@ -394,8 +373,6 @@ class CAU_Single_Users_List_Table extends WP_Users_List_Table {
 
 	}
 
-
-
 	/**
 	 * Display the table rows.
 	 *
@@ -413,8 +390,6 @@ class CAU_Single_Users_List_Table extends WP_Users_List_Table {
 		}
 
 	}
-
-
 
 	/**
 	 * Display a User row.
@@ -441,8 +416,6 @@ class CAU_Single_Users_List_Table extends WP_Users_List_Table {
 
 	}
 
-
-
 	/**
 	 * Markup for the checkbox used to select items for bulk actions.
 	 *
@@ -465,8 +438,6 @@ class CAU_Single_Users_List_Table extends WP_Users_List_Table {
 		<?php
 
 	}
-
-
 
 	/**
 	 * The row actions (sync_to_civicrm).
@@ -525,8 +496,6 @@ class CAU_Single_Users_List_Table extends WP_Users_List_Table {
 
 	}
 
-
-
 	/**
 	 * Display user name, if any.
 	 *
@@ -540,8 +509,6 @@ class CAU_Single_Users_List_Table extends WP_Users_List_Table {
 		echo esc_html( $user_object->display_name );
 
 	}
-
-
 
 	/**
 	 * Display User email.
@@ -557,8 +524,6 @@ class CAU_Single_Users_List_Table extends WP_Users_List_Table {
 
 	}
 
-
-
 	/**
 	 * Display User creation date.
 	 *
@@ -573,8 +538,6 @@ class CAU_Single_Users_List_Table extends WP_Users_List_Table {
 
 	}
 
-
-
 	/**
 	 * Display User ID.
 	 *
@@ -588,8 +551,6 @@ class CAU_Single_Users_List_Table extends WP_Users_List_Table {
 		echo esc_html( $user_object->ID );
 
 	}
-
-
 
 	/**
 	 * Display Contact ID.
@@ -608,8 +569,6 @@ class CAU_Single_Users_List_Table extends WP_Users_List_Table {
 		}
 
 	}
-
-
 
 	/**
 	 * Display User post counts.
@@ -647,8 +606,6 @@ class CAU_Single_Users_List_Table extends WP_Users_List_Table {
 
 	}
 
-
-
 	/**
 	 * Allow plugins to add custom columns.
 	 *
@@ -672,9 +629,4 @@ class CAU_Single_Users_List_Table extends WP_Users_List_Table {
 
 	}
 
-
-
 }
-
-
-

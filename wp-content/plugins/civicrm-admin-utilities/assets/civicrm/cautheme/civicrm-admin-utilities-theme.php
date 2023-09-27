@@ -13,11 +13,11 @@
 class CiviCRM_Admin_Utilities_Theme {
 
   /**
-   * Plugin (calling) object.
+   * Plugin object.
    *
    * @since 0.7.4
    * @access public
-   * @var object $plugin The plugin object.
+   * @var object
    */
   public $plugin;
 
@@ -26,11 +26,9 @@ class CiviCRM_Admin_Utilities_Theme {
    *
    * @since 0.7.4
    * @access public
-   * @var str $slug The Theme "slug".
+   * @var string
    */
   public $slug = 'cautheme';
-
-
 
   /**
    * Constructor.
@@ -48,8 +46,6 @@ class CiviCRM_Admin_Utilities_Theme {
     add_action( 'civicrm_admin_utilities_loaded', [ $this, 'initialise' ] );
 
   }
-
-
 
   /**
    * Initialise this object.
@@ -73,8 +69,6 @@ class CiviCRM_Admin_Utilities_Theme {
     add_action( 'civicrm_config', [ $this, 'activate_theme' ], 10 );
 
   }
-
-
 
   /**
    * Check if we want to allow the Theme functionality in this class.
@@ -114,8 +108,6 @@ class CiviCRM_Admin_Utilities_Theme {
 
   }
 
-
-
   /**
    * Register our Theme.
    *
@@ -147,8 +139,6 @@ class CiviCRM_Admin_Utilities_Theme {
     ];
 
   }
-
-
 
   /**
    * Maybe modify a bundle.
@@ -182,8 +172,6 @@ class CiviCRM_Admin_Utilities_Theme {
 
   }
 
-
-
   /**
    * Is the current Theme our Theme?
    *
@@ -203,8 +191,6 @@ class CiviCRM_Admin_Utilities_Theme {
 		return false;
 
   }
-
-
 
   /**
    * Get the current Theme.
@@ -234,8 +220,6 @@ class CiviCRM_Admin_Utilities_Theme {
     return $theme;
 
   }
-
-
 
   /**
    * Maybe enable our Theme.
@@ -276,8 +260,6 @@ class CiviCRM_Admin_Utilities_Theme {
 
   }
 
-
-
   /**
    * Maybe disable our Theme.
    *
@@ -312,8 +294,6 @@ class CiviCRM_Admin_Utilities_Theme {
 
   }
 
-
-
   /**
    * Enable or disable our Theme.
    *
@@ -344,8 +324,6 @@ class CiviCRM_Admin_Utilities_Theme {
     add_action( 'civicrm_postSave_civicrm_setting', [ $this, 'settings_change' ], 10 );
 
   }
-
-
 
   /**
    * Reverse sync with the CiviCRM Admin Utilities setting.
@@ -385,6 +363,4 @@ class CiviCRM_Admin_Utilities_Theme {
 
   }
 
-
-
-} // Class ends.
+}

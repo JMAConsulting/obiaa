@@ -200,24 +200,24 @@
         },
         {
             "name": "loginwp/core",
-            "version": "0.1.0-alpha.1662495367",
-            "version_normalized": "0.1.0.0-alpha1662495367",
+            "version": "0.1.0-alpha.1675789905",
+            "version_normalized": "0.1.0.0-alpha1675789905",
             "source": {
                 "type": "git",
                 "url": "https://github.com/loginwp/Core.git",
-                "reference": "2c0cb3cb80f44a109969c861e373d4ba7d9756ab"
+                "reference": "29c2ef01526a85eeeada9094cf9f9ed42a38d27c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/loginwp/Core/zipball/2c0cb3cb80f44a109969c861e373d4ba7d9756ab",
-                "reference": "2c0cb3cb80f44a109969c861e373d4ba7d9756ab",
+                "url": "https://api.github.com/repos/loginwp/Core/zipball/29c2ef01526a85eeeada9094cf9f9ed42a38d27c",
+                "reference": "29c2ef01526a85eeeada9094cf9f9ed42a38d27c",
                 "shasum": ""
             },
             "require": {
                 "collizo4sky/persist-admin-notices-dismissal": "^1.4",
                 "composer/installers": "~1.0"
             },
-            "time": "2022-09-06T20:16:02+00:00",
+            "time": "2023-02-07T16:24:50+00:00",
             "type": "wordpress-plugin",
             "installation-source": "dist",
             "autoload": {
@@ -233,7 +233,7 @@
             "description": "Core lib for LoginWP",
             "support": {
                 "issues": "https://github.com/loginwp/Core/issues",
-                "source": "https://github.com/loginwp/Core/tree/0.1.0-alpha.1662495367"
+                "source": "https://github.com/loginwp/Core/tree/0.1.0-alpha.1675789905"
             },
             "install-path": "../../src/core"
         }

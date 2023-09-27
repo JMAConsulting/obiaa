@@ -25,7 +25,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Custom_Field {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object $plugin The plugin object.
+	 * @var object
 	 */
 	public $plugin;
 
@@ -34,16 +34,16 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Custom_Field {
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var object $acf_loader The ACF Loader object.
+	 * @var object
 	 */
 	public $acf_loader;
 
 	/**
-	 * Parent (calling) object.
+	 * CiviCRM object.
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var object $civicrm The parent object.
+	 * @var object
 	 */
 	public $civicrm;
 
@@ -52,7 +52,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Custom_Field {
 	 *
 	 * @since 0.5.2
 	 * @access public
-	 * @var bool $mapper_hooks The Mapper hooks registered flag.
+	 * @var bool
 	 */
 	public $mapper_hooks = false;
 
@@ -63,7 +63,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Custom_Field {
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var string $custom_field_prefix The prefix of the "CiviCRM Field" value.
+	 * @var string
 	 */
 	public $custom_field_prefix = 'caicustom_';
 
@@ -73,8 +73,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Custom_Field {
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var array $data_types The data types that can have "Select", "Radio"
-	 *                        and "CheckBox" HTML subtypes.
+	 * @var array
 	 */
 	public $data_types = [
 		'String',
@@ -90,7 +89,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Custom_Field {
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var array $data_types The Custom Fields that are of type "Select".
+	 * @var array
 	 */
 	public $select_types = [
 		'Select',
@@ -1067,7 +1066,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Custom_Field {
 		// Get the mapped Custom Field ID if present.
 		if ( isset( $field[ $acf_field_key ] ) ) {
 			if ( false !== strpos( $field[ $acf_field_key ], $this->custom_field_prefix ) ) {
-				$custom_field_id = absint( str_replace( $this->custom_field_prefix, '', $field[ $acf_field_key ] ) );
+				$custom_field_id = (int) str_replace( $this->custom_field_prefix, '', $field[ $acf_field_key ] );
 			}
 		}
 
@@ -1213,7 +1212,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Custom_Field {
 
 		// Populate with child options where possible.
 		if ( ! empty( $field_data['option_group_id'] ) ) {
-			$choices = CRM_Core_OptionGroup::valuesByID( absint( $field_data['option_group_id'] ) );
+			$choices = CRM_Core_OptionGroup::valuesByID( (int) $field_data['option_group_id'] );
 		}
 
 		// "Country" selects require special handling.
@@ -1355,7 +1354,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Custom_Field {
 
 		// Get options.
 		if ( ! empty( $field_data['option_group_id'] ) ) {
-			$choices = CRM_Core_OptionGroup::valuesByID( absint( $field_data['option_group_id'] ) );
+			$choices = CRM_Core_OptionGroup::valuesByID( (int) $field_data['option_group_id'] );
 		}
 
 		// --<
@@ -1465,7 +1464,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Custom_Field {
 
 		// Get options.
 		if ( ! empty( $field_data['option_group_id'] ) ) {
-			$choices = CRM_Core_OptionGroup::valuesByID( absint( $field_data['option_group_id'] ) );
+			$choices = CRM_Core_OptionGroup::valuesByID( (int) $field_data['option_group_id'] );
 		}
 
 		// --<

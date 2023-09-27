@@ -109,6 +109,13 @@ function loginwp_get_current_url_query_string()
     return esc_url_raw($url);
 }
 
+function loginwp_is_json($str)
+{
+    $json = json_decode($str);
+
+    return $json && $str != $json;
+}
+
 function redirect_to_front_page($redirect_to, $requested_redirect_to, $user)
 {
     return Helpers::login_redirect_logic_callback($redirect_to, $requested_redirect_to, $user);

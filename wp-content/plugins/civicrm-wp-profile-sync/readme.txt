@@ -3,9 +3,9 @@ Contributors: needle, cuny-academic-commons, kcristiano, tadpolecc
 Donate link: https://www.paypal.me/interactivist
 Tags: civicrm, user, buddypress, acf, profile, xprofile, sync
 Requires at least: 4.9
-Tested up to: 6.0
+Tested up to: 6.3
 Requires PHP: 7.1
-Stable tag: 0.6.0
+Stable tag: 0.6.5
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -85,6 +85,29 @@ I'll say it again: test early, test often and - above all - test on a developmen
 
 
 == Changelog ==
+
+= 0.6.5 =
+
+* Enable template tags in the Contact ID field for ACFE forms
+
+= 0.6.4 =
+
+* Fixes spurious Website error log entries
+
+= 0.6.3 =
+
+* Better compatibility with Integrate CiviCRM with WooCommerce
+* Fixes creation of empty Website records
+
+= 0.6.2 =
+
+* Fixes potential fatal error on CiviCRM 5.62.x.
+* Enable Registration Receipts in ACFE Form Participants action.
+
+= 0.6.1 =
+
+* Allow ACF integration to be disabled.
+* Enable "Remove from Group" in ACFE Form Contact action.
 
 = 0.6.0 =
 

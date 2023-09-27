@@ -108,7 +108,7 @@ function mtnc_admin_print_custom_styles()
   wp_enqueue_style('plugin-install');
   wp_enqueue_script('plugin-install');
 
-  wp_enqueue_style('arvo', '//fonts.googleapis.com/css?family=Open+Sans:400,300,600,700|Arvo:400,400italic,700,700italic');
+  wp_enqueue_style('arvo', '//fonts.bunny.net/css?family=Open+Sans:400,300,600,700|Arvo:400,400italic,700,700italic');
   wp_enqueue_style('wp-color-picker');
 
   wp_enqueue_script('uploads_', MTNC_URI . 'js/uploads_.min.js', 'jquery', filemtime(MTNC_DIR . 'js/uploads_.min.js'), '');

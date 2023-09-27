@@ -2,10 +2,10 @@
 Contributors: liip, tschortsch
 Donate link: https://liip.ch/
 Tags: gutenberg, blocks, bootstrap
-Requires at least: 5.0
-Tested up to: 6.0
+Requires at least: 5.3
+Tested up to: 6.1
 Requires PHP: 5.6
-Stable tag: 4.2.1
+Stable tag: 5.1.0
 License: GPLv2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -74,7 +74,7 @@ The version can be selected in the plugin settings (Settings > Bootstrap Blocks)
 * Bootstrap 4 (default): `define( 'WP_BOOTSTRAP_BLOCKS_BOOTSTRAP_VERSION', '4' );`
 * Bootstrap 5: `define( 'WP_BOOTSTRAP_BLOCKS_BOOTSTRAP_VERSION', '5' );`
 
-Possible values right now are `'4'` or `'5'`. By default Bootstrap version **4** is selected.
+Possible values right now are `'4'` or `'5'`. By default Bootstrap version **5** is selected.
 
 = CSS Grid =
 
@@ -143,10 +143,35 @@ Please create a new GitHub issue and let us know: [https://github.com/liip/boots
 
 == Changelog ==
 
-= 4.2.1 =
+= 5.1.0 =
+
+* [CHANGE] Renamed `color` attribute of the `styleOptions` for the button block to `bgColor`. Additionally added `textColor` attribute to be able to change the text color of the button in the editor as well. If you are modifying the `styleOptions` via the [`wpBootstrapBlocks.button.styleOptions`](https://github.com/liip/bootstrap-blocks-wordpress-plugin#wpbootstrapblocksbuttonstyleoptions) JavaScript filter please add the according colors to your style objects.
+* [FIX] Remove usage of deprecated `IconButton` component (will be removed in WordPress 6.2).
+
+= 5.0.0 =
+
+Starting with this version the plugin only supports WordPress versions >= 5.3.
+This step was needed to be able to catch up with the current development practices and remove a lot of deprecations.
+
+* **Breaking Change** [CHANGE] The default Bootstrap version is now `5.x`. Please check in the settings if your using the appropriate version of Bootstrap after updating to this release.
+* **[COMPATIBILITY] Dropped support for WordPress < 5.3.** Please update your website if you still would like to receive updates for this plugin.
+* [FEATURE] Added block.json meta files to describe and register blocks (supported in WordPress >= 5.8).
+* [CHANGE] Rewrite all blocks to functional components.
+
+= 4.3.1 =
 
 **NOTICE:** Version 4.x of the plugin will be the last version to support WordPress versions lower than 5.3.
 If you're on a lower version of WordPress think about updating it if you still would like receive updates for this plugin.
+
+* [FIX] Apply default color to button if `color` attribute is missing in `styleOptions`.
+
+= 4.3.0 =
+
+* [COMPATIBILITY] Tested up to WordPress 6.1.
+* [CHANGE] Set default `style` attribute of the Button block to `primary`. This shouldn't be a breaking change since the template already added the `btn-primary` class if no `style` was selected.
+* [FEATURE] Add `color` attribute to the `styleOptions` to be able to display the buttons in the correct color in the editor. If you have changed the `styleOptions` via the [`wpBootstrapBlocks.button.styleOptions`](https://github.com/liip/bootstrap-blocks-wordpress-plugin#wpbootstrapblocksbuttonstyleoptions) JavaScript filter please add the according colors to your style objects.
+
+= 4.2.1 =
 
 * [FIX] Rename blocks to `<Blockname> (Bootstrap)` for better discoverability when searching for a block.
 

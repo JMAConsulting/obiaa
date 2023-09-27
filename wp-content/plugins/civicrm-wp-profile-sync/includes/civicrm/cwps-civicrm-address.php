@@ -25,16 +25,16 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Address {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object $plugin The plugin object.
+	 * @var object
 	 */
 	public $plugin;
 
 	/**
-	 * Parent (calling) object.
+	 * CiviCRM object.
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object $civicrm The parent object.
+	 * @var object
 	 */
 	public $civicrm;
 
@@ -728,6 +728,37 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Address {
 	}
 
 	// -------------------------------------------------------------------------
+
+	/**
+	 * Gets the default Location Type ID.
+	 *
+	 * @since 0.6.1
+	 *
+	 * @return integer|bool $default The ID of default Location Type, or false on failure.
+	 */
+	public function location_type_id_get_default() {
+
+		// Init default Location Type ID.
+		$default = false;
+
+		// Get all Location Types.
+		$location_types = $this->location_types_get();
+		if ( empty( $location_types ) ) {
+			return $default;
+		}
+
+		// Try and find the one flagged with "is_default".
+		foreach ( $location_types as $location_type ) {
+			if ( ! empty( $location_type['is_default'] ) ) {
+				$default = (int) $location_type['id'];
+				break;
+			}
+		}
+
+		// --<
+		return $default;
+
+	}
 
 	/**
 	 * Get a Location Type by its numeric ID.

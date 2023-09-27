@@ -25,7 +25,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_Field {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object $plugin The plugin object.
+	 * @var object
 	 */
 	public $plugin;
 
@@ -34,16 +34,16 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_Field {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object $acf_loader The ACF Loader object.
+	 * @var object
 	 */
 	public $acf_loader;
 
 	/**
-	 * Parent (calling) object.
+	 * CiviCRM object.
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object $civicrm The parent object.
+	 * @var object
 	 */
 	public $civicrm;
 
@@ -54,7 +54,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_Field {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var array $participant_fields The public Participant Fields.
+	 * @var array
 	 */
 	public $participant_fields = [
 		'contact_id' => [
@@ -296,7 +296,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_Field {
 			case 'checkbox':
 
 				// Convert if the value has the special CiviCRM array-like format.
-				if ( false !== strpos( $value, CRM_Core_DAO::VALUE_SEPARATOR ) ) {
+				if ( is_string( $value ) && false !== strpos( $value, CRM_Core_DAO::VALUE_SEPARATOR ) ) {
 					$value = CRM_Utils_Array::explodePadded( $value );
 				}
 
