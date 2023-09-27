@@ -4,7 +4,9 @@
  * Description: Redirect users to specific page after login, based on their the role and also option for hide adminbar and restrict dashboard access.
  * Author: MohammedYasar Khalifa
  * Author URI: https://myasark.wordpress.com/
- * Version: 1.4
+ * Text Domain: role-based-redirect
+ * Domain Path: /languages
+ * Version: 1.5
  * License: GPLv2
  */
 // Exit if accessed directly.
