@@ -11,8 +11,6 @@
 // Exit if accessed directly.
 defined( 'ABSPATH' ) || exit;
 
-
-
 /**
  * CiviCRM Admin Utilities Multidomain Class.
  *
@@ -23,11 +21,11 @@ defined( 'ABSPATH' ) || exit;
 class CiviCRM_Admin_Utilities_Multidomain {
 
 	/**
-	 * Plugin (calling) object.
+	 * Plugin object.
 	 *
 	 * @since 0.5.4
 	 * @access public
-	 * @var object $plugin The plugin object.
+	 * @var object
 	 */
 	public $plugin;
 
@@ -36,11 +34,9 @@ class CiviCRM_Admin_Utilities_Multidomain {
 	 *
 	 * @since 0.5.4
 	 * @access public
-	 * @var array $multidomain_page The reference to the Multidomain Settings page.
+	 * @var array
 	 */
 	public $multidomain_page;
-
-
 
 	/**
 	 * Constructor.
@@ -59,8 +55,6 @@ class CiviCRM_Admin_Utilities_Multidomain {
 
 	}
 
-
-
 	/**
 	 * Initialise this object.
 	 *
@@ -73,8 +67,6 @@ class CiviCRM_Admin_Utilities_Multidomain {
 
 	}
 
-
-
 	/**
 	 * Register hooks.
 	 *
@@ -86,16 +78,18 @@ class CiviCRM_Admin_Utilities_Multidomain {
 		add_action( 'network_admin_menu', [ $this, 'network_admin_menu' ], 30 );
 
 		// Add meta boxes to Network Domain subpage.
-		add_action( 'add_meta_boxes', [ $this, 'network_meta_boxes_add' ], 11, 1 );
+		add_action( 'cau/multidomain/network/settings/add_meta_boxes', [ $this, 'network_meta_boxes_add' ], 11, 1 );
 
 		// Add Domain subpage to Single Site Settings menu.
 		add_action( 'admin_menu', [ $this, 'admin_menu' ] );
 
 		// Add meta boxes to Single Site Domain subpage.
-		add_action( 'add_meta_boxes', [ $this, 'meta_boxes_add' ], 11, 1 );
+		add_action( 'cau/multidomain/settings/add_meta_boxes', [ $this, 'meta_boxes_add' ], 11, 1 );
 
+		/*
 		// Add Domains AJAX handler.
 		add_action( 'wp_ajax_cau_domains_get', [ $this, 'domains_ajax_get' ] );
+		*/
 
 		// Add Domain Groups AJAX handler.
 		add_action( 'wp_ajax_cau_domain_groups_get', [ $this, 'domain_groups_ajax_get' ] );
@@ -105,11 +99,7 @@ class CiviCRM_Admin_Utilities_Multidomain {
 
 	}
 
-
-
 	// -------------------------------------------------------------------------
-
-
 
 
 	/**
@@ -134,6 +124,9 @@ class CiviCRM_Admin_Utilities_Multidomain {
 			[ $this, 'page_network_multidomain' ] // Callback.
 		);
 
+		// Register our form submit hander.
+		add_action( 'load-' . $this->network_multidomain_page, [ $this, 'settings_update_router' ] );
+
 		// Ensure correct menu item is highlighted.
 		add_action( 'admin_head-' . $this->network_multidomain_page, [ $this->plugin->multisite, 'network_menu_highlight' ], 50 );
 
@@ -144,9 +137,6 @@ class CiviCRM_Admin_Utilities_Multidomain {
 		add_action( 'admin_print_styles-' . $this->network_multidomain_page, [ $this, 'page_network_multidomain_css' ] );
 		// phpcs:ignore Squiz.Commenting.InlineComment.InvalidEndChar
 		//add_action( 'admin_print_scripts-' . $this->network_multidomain_page, [ $this, 'page_network_multidomain_js' ] );
-
-		// Try and update options.
-		$saved = $this->settings_update_router();
 
 		// Filter the list of Single Site subpages and add Multidomain page.
 		add_filter( 'civicrm_admin_utilities_network_subpages', [ $this, 'network_admin_subpages_filter' ] );
@@ -161,8 +151,6 @@ class CiviCRM_Admin_Utilities_Multidomain {
 		add_filter( 'civicrm_admin_utilities_network_nav_tabs', [ $this, 'page_network_add_tab' ], 10, 2 );
 
 	}
-
-
 
 	/**
 	 * Append the Multidomain Settings page to network subpages.
@@ -185,8 +173,6 @@ class CiviCRM_Admin_Utilities_Multidomain {
 
 	}
 
-
-
 	/**
 	 * Initialise plugin help for network admin.
 	 *
@@ -206,8 +192,6 @@ class CiviCRM_Admin_Utilities_Multidomain {
 		wp_enqueue_script( 'dashboard' );
 
 	}
-
-
 
 	/**
 	 * Adds help copy to network admin page.
@@ -241,8 +225,6 @@ class CiviCRM_Admin_Utilities_Multidomain {
 
 	}
 
-
-
 	/**
 	 * Get help text for network admin.
 	 *
@@ -260,11 +242,7 @@ class CiviCRM_Admin_Utilities_Multidomain {
 
 	}
 
-
-
 	// -------------------------------------------------------------------------
-
-
 
 	/**
 	 * Show our network Multidomain Settings page.
@@ -298,7 +276,7 @@ class CiviCRM_Admin_Utilities_Multidomain {
 		 *
 		 * @param str $screen_id The ID of the current screen.
 		 */
-		do_action( 'add_meta_boxes', $screen->id, null );
+		do_action( 'cau/multidomain/network/settings/add_meta_boxes', $screen->id, null );
 
 		// Grab columns.
 		$columns = ( 1 == $screen->get_columns() ? '1' : '2' );
@@ -310,8 +288,6 @@ class CiviCRM_Admin_Utilities_Multidomain {
 		include CIVICRM_ADMIN_UTILITIES_PATH . 'assets/templates/network-multidomain.php';
 
 	}
-
-
 
 	/**
 	 * Enqueue stylesheet for the Network Admin Domain page.
@@ -331,8 +307,6 @@ class CiviCRM_Admin_Utilities_Multidomain {
 
 	}
 
-
-
 	/**
 	 * Enqueue Javascript on the Network Admin Domain page.
 	 *
@@ -350,8 +324,6 @@ class CiviCRM_Admin_Utilities_Multidomain {
 		);
 
 	}
-
-
 
 	/**
 	 * Append the Multidomain page URL to network subpage URLs.
@@ -371,8 +343,6 @@ class CiviCRM_Admin_Utilities_Multidomain {
 
 	}
 
-
-
 	/**
 	 * Show subpage tabs on network settings pages.
 	 *
@@ -390,8 +360,6 @@ class CiviCRM_Admin_Utilities_Multidomain {
 		return $show_tabs;
 
 	}
-
-
 
 	/**
 	 * Add subpage tab to tabs on network settings pages.
@@ -419,11 +387,24 @@ class CiviCRM_Admin_Utilities_Multidomain {
 
 	}
 
+	/**
+	 * Get the URL for the form action.
+	 *
+	 * @since 0.5.4
+	 *
+	 * @return string $target_url The URL for the admin form action.
+	 */
+	public function page_network_submit_url_get() {
 
+		// Use Site Multi Domain admin page URL.
+		$target_url = $this->plugin->multisite->network_menu_page_url( 'cau_network_multidomain', false );
+
+		// --<
+		return $target_url;
+
+	}
 
 	// -------------------------------------------------------------------------
-
-
 
 
 	/**
@@ -501,8 +482,6 @@ class CiviCRM_Admin_Utilities_Multidomain {
 
 	}
 
-
-
 	/**
 	 * Render a Submit meta box for our Network "Domain" page.
 	 *
@@ -515,8 +494,6 @@ class CiviCRM_Admin_Utilities_Multidomain {
 
 	}
 
-
-
 	/**
 	 * Render "CiviCRM Domains" meta box for our Network "Domain" page.
 	 *
@@ -525,14 +502,12 @@ class CiviCRM_Admin_Utilities_Multidomain {
 	 * @param mixed $unused Unused param.
 	 * @param array $metabox Array containing id, title, callback, and args elements.
 	 */
-	public function meta_box_network_domain_info_render( $unused = null, $metabox ) {
+	public function meta_box_network_domain_info_render( $unused = null, $metabox = [] ) {
 
 		// Include template file.
 		include CIVICRM_ADMIN_UTILITIES_PATH . 'assets/templates/metaboxes/network-metabox-domain-info.php';
 
 	}
-
-
 
 	/**
 	 * Render "Create Domain" meta box for our Network "Domain" page.
@@ -542,18 +517,14 @@ class CiviCRM_Admin_Utilities_Multidomain {
 	 * @param mixed $unused Unused param.
 	 * @param array $metabox Array containing id, title, callback, and args elements.
 	 */
-	public function meta_box_network_domain_create_render( $unused = null, $metabox ) {
+	public function meta_box_network_domain_create_render( $unused = null, $metabox = [] ) {
 
 		// Include template file.
 		include CIVICRM_ADMIN_UTILITIES_PATH . 'assets/templates/metaboxes/network-metabox-domain-create.php';
 
 	}
 
-
-
 	// -------------------------------------------------------------------------
-
-
 
 
 	/**
@@ -615,8 +586,6 @@ class CiviCRM_Admin_Utilities_Multidomain {
 
 	}
 
-
-
 	/**
 	 * Append the Multidomain Settings page to Single Site subpages.
 	 *
@@ -638,8 +607,6 @@ class CiviCRM_Admin_Utilities_Multidomain {
 
 	}
 
-
-
 	/**
 	 * Initialise plugin help.
 	 *
@@ -659,8 +626,6 @@ class CiviCRM_Admin_Utilities_Multidomain {
 		wp_enqueue_script( 'dashboard' );
 
 	}
-
-
 
 	/**
 	 * Adds help copy to admin page.
@@ -694,8 +659,6 @@ class CiviCRM_Admin_Utilities_Multidomain {
 
 	}
 
-
-
 	/**
 	 * Get help text.
 	 *
@@ -713,11 +676,7 @@ class CiviCRM_Admin_Utilities_Multidomain {
 
 	}
 
-
-
 	// -------------------------------------------------------------------------
-
-
 
 	/**
 	 * Register meta boxes.
@@ -816,8 +775,6 @@ class CiviCRM_Admin_Utilities_Multidomain {
 
 	}
 
-
-
 	/**
 	 * Render a "Domain Info" meta box on Admin screen.
 	 *
@@ -826,14 +783,12 @@ class CiviCRM_Admin_Utilities_Multidomain {
 	 * @param mixed $unused Unused param.
 	 * @param array $metabox Array containing id, title, callback, and args elements.
 	 */
-	public function meta_box_info_render( $unused = null, $metabox ) {
+	public function meta_box_info_render( $unused = null, $metabox = [] ) {
 
 		// Include template file.
 		include CIVICRM_ADMIN_UTILITIES_PATH . 'assets/templates/metaboxes/site-metabox-domain-info.php';
 
 	}
-
-
 
 	/**
 	 * Render "Edit Domain" meta box on Admin screen.
@@ -843,14 +798,12 @@ class CiviCRM_Admin_Utilities_Multidomain {
 	 * @param mixed $unused Unused param.
 	 * @param array $metabox Array containing id, title, callback, and args elements.
 	 */
-	public function meta_box_edit_render( $unused = null, $metabox ) {
+	public function meta_box_edit_render( $unused = null, $metabox = [] ) {
 
 		// Include template file.
 		include CIVICRM_ADMIN_UTILITIES_PATH . 'assets/templates/metaboxes/site-metabox-domain-edit.php';
 
 	}
-
-
 
 	/**
 	 * Render a Submit meta box on Admin screen.
@@ -864,11 +817,7 @@ class CiviCRM_Admin_Utilities_Multidomain {
 
 	}
 
-
-
 	// -------------------------------------------------------------------------
-
-
 
 	/**
 	 * Show our Multidomain Settings page.
@@ -912,7 +861,7 @@ class CiviCRM_Admin_Utilities_Multidomain {
 		 *
 		 * @param str $screen_id The ID of the current screen.
 		 */
-		do_action( 'add_meta_boxes', $screen->id, null );
+		do_action( 'cau/multidomain/settings/add_meta_boxes', $screen->id, null );
 
 		// Grab columns.
 		$columns = ( 1 == $screen->get_columns() ? '1' : '2' );
@@ -921,8 +870,6 @@ class CiviCRM_Admin_Utilities_Multidomain {
 		include CIVICRM_ADMIN_UTILITIES_PATH . 'assets/templates/site-multidomain.php';
 
 	}
-
-
 
 	/**
 	 * Enqueue stylesheets for the Site Domain page.
@@ -934,7 +881,7 @@ class CiviCRM_Admin_Utilities_Multidomain {
 		// Register Select2 styles.
 		wp_register_style(
 			'cau_site_domain_select2_css',
-			set_url_scheme( 'http://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css' ),
+			set_url_scheme( 'https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css' ),
 			false,
 			'4.0.13',
 			'all'
@@ -954,8 +901,6 @@ class CiviCRM_Admin_Utilities_Multidomain {
 
 	}
 
-
-
 	/**
 	 * Enqueue Javascripts on the Site Domain page.
 	 *
@@ -966,7 +911,7 @@ class CiviCRM_Admin_Utilities_Multidomain {
 		// Register Select2.
 		wp_register_script(
 			'cau_site_domain_select2_js',
-			set_url_scheme( 'http://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js' ),
+			set_url_scheme( 'https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js' ),
 			[ 'jquery' ],
 			'4.0.13',
 			true
@@ -1002,8 +947,6 @@ class CiviCRM_Admin_Utilities_Multidomain {
 
 	}
 
-
-
 	/**
 	 * Append the Multidomain Settings page URL to Single Site subpage URLs.
 	 *
@@ -1022,8 +965,6 @@ class CiviCRM_Admin_Utilities_Multidomain {
 
 	}
 
-
-
 	/**
 	 * Show subpage tabs on settings pages.
 	 *
@@ -1041,8 +982,6 @@ class CiviCRM_Admin_Utilities_Multidomain {
 		return $show_tabs;
 
 	}
-
-
 
 	/**
 	 * Add subpage tab to tabs on settings pages.
@@ -1070,8 +1009,6 @@ class CiviCRM_Admin_Utilities_Multidomain {
 
 	}
 
-
-
 	/**
 	 * Get the URL for the form action.
 	 *
@@ -1079,67 +1016,65 @@ class CiviCRM_Admin_Utilities_Multidomain {
 	 *
 	 * @return string $target_url The URL for the admin form action.
 	 */
-	public function page_submit_url_get() {
+	public function page_multidomain_submit_url_get() {
 
-		// Sanitise admin page URL.
-		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-		$target_url = isset( $_SERVER['REQUEST_URI'] ) ? wp_unslash( $_SERVER['REQUEST_URI'] ) : '';
-		if ( ! empty( $target_url ) ) {
-			$url_array = explode( '&', $target_url );
-			if ( ! empty( $url_array ) ) {
-				$url_raw = str_replace( '&amp;updated=true', '', $url_array[0] );
-				$target_url = htmlentities( $url_raw . '&updated=true' );
-			}
-		}
+		// Use Site Multi Domain admin page URL.
+		$target_url = menu_page_url( 'civicrm_au_multidomain', false );
 
 		// --<
 		return $target_url;
 
 	}
 
-
-
 	// -------------------------------------------------------------------------
-
-
 
 	/**
 	 * Route settings updates to relevant methods.
 	 *
 	 * @since 0.5.4
-	 *
-	 * @return bool $result True on success, false otherwise.
 	 */
 	public function settings_update_router() {
-
-		// Init return.
-		$result = false;
 
 		// Was the "Network Domain" form submitted?
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
 		if ( isset( $_POST['cau_network_multidomain_submit'] ) ) {
-			return $this->settings_network_multidomain_update();
+			$this->settings_network_multidomain_update();
+			$url = $this->plugin->multisite->network_menu_page_url( 'cau_network_multidomain', false );
+			$this->settings_update_redirect( $url );
 		}
 
 		// Was the "Domain" form submitted?
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
 		if ( isset( $_POST['cau_multidomain_submit'] ) ) {
-			return $this->settings_multidomain_update();
+			$this->settings_multidomain_update();
+			$url = menu_page_url( 'civicrm_au_multidomain', false );
+			$this->settings_update_redirect( $url );
 		}
-
-		// --<
-		return $result;
 
 	}
 
+	/**
+	 * Form redirection handler.
+	 *
+	 * @since 1.0.1
+	 *
+	 * @param string $url The menu page URL.
+	 */
+	public function settings_update_redirect( $url ) {
 
+		// Our array of arguments.
+		$args = [ 'updated' => 'true' ];
+
+		// Redirect to our Settings Page.
+		wp_safe_redirect( add_query_arg( $args, $url ) );
+		exit;
+
+	}
 
 	/**
 	 * Update options supplied by our Network Multidomain Settings page.
 	 *
 	 * @since 0.6.2
-	 *
-	 * @return bool True if successful, false otherwise (always true at present).
 	 */
 	public function settings_network_multidomain_update() {
 
@@ -1151,7 +1086,7 @@ class CiviCRM_Admin_Utilities_Multidomain {
 
 		// Bail if we get nothing through.
 		if ( empty( $domain_name ) ) {
-			return false;
+			return;
 		}
 
 		// Okay, create domain.
@@ -1175,19 +1110,12 @@ class CiviCRM_Admin_Utilities_Multidomain {
 		 */
 		do_action( 'civicrm_admin_utilities_network_multidomain_updated' );
 
-		// --<
-		return true;
-
 	}
-
-
 
 	/**
 	 * Update options supplied by our Multidomain Settings page.
 	 *
 	 * @since 0.5.4
-	 *
-	 * @return bool True if successful, false otherwise (always true at present).
 	 */
 	public function settings_multidomain_update() {
 
@@ -1195,8 +1123,8 @@ class CiviCRM_Admin_Utilities_Multidomain {
 		check_admin_referer( 'cau_multidomain_action', 'cau_multidomain_nonce' );
 
 		// Sanitise inputs.
-		$domain_org_id = isset( $_POST['cau_domain_org_select'] ) ? absint( wp_unslash( $_POST['cau_domain_org_select'] ) ) : '';
-		$domain_group_id = isset( $_POST['cau_domain_group_select'] ) ? absint( wp_unslash( $_POST['cau_domain_group_select'] ) ) : '';
+		$domain_org_id = isset( $_POST['cau_domain_org_select'] ) ? (int) sanitize_text_field( wp_unslash( $_POST['cau_domain_org_select'] ) ) : '';
+		$domain_group_id = isset( $_POST['cau_domain_group_select'] ) ? (int) sanitize_text_field( wp_unslash( $_POST['cau_domain_group_select'] ) ) : '';
 
 		// Maybe set new Domain Org.
 		$this->domain_org_set( $domain_org_id );
@@ -1211,16 +1139,9 @@ class CiviCRM_Admin_Utilities_Multidomain {
 		 */
 		do_action( 'civicrm_admin_utilities_multidomain_updated' );
 
-		// --<
-		return true;
-
 	}
 
-
-
 	// -------------------------------------------------------------------------
-
-
 
 	/**
 	 * Get the Domains registered in CiviCRM.
@@ -1269,22 +1190,28 @@ class CiviCRM_Admin_Utilities_Multidomain {
 
 	}
 
-
-
 	/**
 	 * Get the Domains registered in CiviCRM.
+	 *
+	 * Not used.
 	 *
 	 * @since 0.6.2
 	 */
 	public function domains_ajax_get() {
 
-		// Bail if CiviCRM is not active.
-		if ( ! $this->plugin->is_civicrm_initialised() ) {
-			return;
-		}
-
 		// Init return.
 		$json = [];
+
+		// Bail if CiviCRM is not active.
+		if ( ! $this->plugin->is_civicrm_initialised() ) {
+			wp_send_json( $json );
+		}
+
+		// Since this is an AJAX request, check security.
+		$result = check_ajax_referer( 'cau_domains', false, false );
+		if ( $result === false ) {
+			wp_send_json( $json );
+		}
 
 		// Sanitise search input.
 		$search = isset( $_POST['s'] ) ? sanitize_text_field( wp_unslash( $_POST['s'] ) ) : '';
@@ -1300,7 +1227,7 @@ class CiviCRM_Admin_Utilities_Multidomain {
 
 		// Sanity check.
 		if ( ! empty( $domains['is_error'] ) && $domains['is_error'] == 1 ) {
-			return;
+			wp_send_json( $json );
 		}
 
 		// Loop through our domains.
@@ -1319,8 +1246,6 @@ class CiviCRM_Admin_Utilities_Multidomain {
 		wp_send_json( $json );
 
 	}
-
-
 
 	/**
 	 * Get the Domain data for a given ID.
@@ -1383,8 +1308,6 @@ class CiviCRM_Admin_Utilities_Multidomain {
 
 	}
 
-
-
 	/**
 	 * Create a Domain.
 	 *
@@ -1436,8 +1359,6 @@ class CiviCRM_Admin_Utilities_Multidomain {
 		return $id;
 
 	}
-
-
 
 	/**
 	 * Get the Domain Groups registered in CiviCRM.
@@ -1495,8 +1416,6 @@ class CiviCRM_Admin_Utilities_Multidomain {
 
 	}
 
-
-
 	/**
 	 * Get the Domain Group data for a given ID.
 	 *
@@ -1550,8 +1469,6 @@ class CiviCRM_Admin_Utilities_Multidomain {
 		return $domain_group;
 
 	}
-
-
 
 	/**
 	 * Get the current Domain Group ID.
@@ -1643,8 +1560,6 @@ class CiviCRM_Admin_Utilities_Multidomain {
 
 	}
 
-
-
 	/**
 	 * Create a Domain Group.
 	 *
@@ -1655,8 +1570,6 @@ class CiviCRM_Admin_Utilities_Multidomain {
 		// Nothing to see yet.
 
 	}
-
-
 
 	/**
 	 * Set a Group as a Domain Group.
@@ -1779,8 +1692,6 @@ class CiviCRM_Admin_Utilities_Multidomain {
 
 	}
 
-
-
 	/**
 	 * Get the Domain Orgs registered in CiviCRM.
 	 *
@@ -1836,8 +1747,6 @@ class CiviCRM_Admin_Utilities_Multidomain {
 		wp_send_json( $json );
 
 	}
-
-
 
 	/**
 	 * Get domain org data for a given ID.
@@ -1906,8 +1815,6 @@ class CiviCRM_Admin_Utilities_Multidomain {
 
 	}
 
-
-
 	/**
 	 * Create a Domain Organisation.
 	 *
@@ -1918,8 +1825,6 @@ class CiviCRM_Admin_Utilities_Multidomain {
 		// Nothing to see yet.
 
 	}
-
-
 
 	/**
 	 * Set an Organisation as a Domain Organisation.
@@ -1968,9 +1873,4 @@ class CiviCRM_Admin_Utilities_Multidomain {
 
 	}
 
-
-
-} // Class ends.
-
-
-
+}

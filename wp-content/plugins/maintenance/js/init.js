@@ -128,7 +128,7 @@ jQuery(window).ready(function($) {
   wp.codeEditor.initialize(jQuery('#custom_css'), mtnc.cm_settings);
 
   var t = null,
-    t = jQuery.getJSON(mtnc.path + 'includes/fonts/googlefonts.json');
+    t = jQuery.getJSON(mtnc.path + 'includes/fonts/fonts.json');
   jQuery('#body_font_family').on('change', function() {
     var e = jQuery(this).val();
     n(e);

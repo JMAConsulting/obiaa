@@ -3,10 +3,10 @@ Contributors: needle, cuny-academic-commons
 Donate link: https://www.paypal.me/interactivist
 Tags: civicrm, admin, utility, styling, menu
 Requires at least: 4.9
-Tested up to: 6.0
-Stable tag: 0.9.3
+Tested up to: 6.2
+Stable tag: 1.0.1
 License: GPLv2 or later
-License URI: http://www.gnu.org/licenses/gpl-2.0.html
+License URI: https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 
 Utilities for customising CiviCRM's behaviour and appearance in single site and multisite installs.
 
@@ -70,6 +70,20 @@ Network Administrators can now set site defaults for any further activations of 
 
 
 == Changelog ==
+
+= 1.0.1 =
+
+* Introduces fix for API timezone mismatch
+* Uses API4 for retrieving Dedupe Rule Groups if available
+
+= 1.0.0 =
+
+* Theme improvements
+
+= 0.9.4 =
+
+* Avoid PHP8 warnings
+* Custom "add_meta_boxes" action for admin pages
 
 = 0.9.3 =
 

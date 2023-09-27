@@ -5,11 +5,10 @@
  * GitHub Plugin URI: https://github.com/christianwach/civicrm-wp-profile-sync
  * Description: Keeps a WordPress User profile in sync with a CiviCRM Contact and integrates WordPress and CiviCRM Entities with data synced via Advanced Custom Fields.
  * Author: Christian Wach
- * Version: 0.6.0
+ * Version: 0.6.5
  * Author URI: https://haystack.co.uk
  * Text Domain: civicrm-wp-profile-sync
  * Domain Path: /languages
- * Depends: CiviCRM
  *
  * @package CiviCRM_WP_Profile_Sync
  * @since 0.1
@@ -19,7 +18,7 @@
 defined( 'ABSPATH' ) || exit;
 
 // Set plugin version here.
-define( 'CIVICRM_WP_PROFILE_SYNC_VERSION', '0.6.0' );
+define( 'CIVICRM_WP_PROFILE_SYNC_VERSION', '0.6.5' );
 
 // Set our bulk operations flag here.
 if ( ! defined( 'CIVICRM_WP_PROFILE_SYNC_BULK' ) ) {
@@ -65,7 +64,7 @@ class CiviCRM_WP_Profile_Sync {
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var object $admin The Admin object.
+	 * @var object
 	 */
 	public $admin;
 
@@ -74,7 +73,7 @@ class CiviCRM_WP_Profile_Sync {
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var object $mapper The Mapper object.
+	 * @var object
 	 */
 	public $mapper;
 
@@ -83,7 +82,7 @@ class CiviCRM_WP_Profile_Sync {
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var object $wp The WordPress compatibility object.
+	 * @var object
 	 */
 	public $wp;
 
@@ -92,7 +91,7 @@ class CiviCRM_WP_Profile_Sync {
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var object $civicrm The CiviCRM compatibility object.
+	 * @var object
 	 */
 	public $civicrm;
 
@@ -101,7 +100,7 @@ class CiviCRM_WP_Profile_Sync {
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var object $bp The BuddyPress compatibility object.
+	 * @var object
 	 */
 	public $bp;
 
@@ -110,7 +109,7 @@ class CiviCRM_WP_Profile_Sync {
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var object $acf The ACF compatibility object.
+	 * @var object
 	 */
 	public $acf;
 
@@ -119,7 +118,7 @@ class CiviCRM_WP_Profile_Sync {
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var object $cai The CiviCRM ACF Integration compatibility object.
+	 * @var object
 	 */
 	public $cai;
 

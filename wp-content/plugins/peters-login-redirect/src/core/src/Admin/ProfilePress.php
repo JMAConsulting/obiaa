@@ -19,9 +19,9 @@ class ProfilePress
 
     public function __construct()
     {
-        add_action('loginwp_admin_hooks', function () {
+        /* add_action('loginwp_admin_hooks', function () {
             $this->register_settings_page();
-        });
+        }); */
 
         add_action('wp_ajax_loginwp_activate_plugin', [$this, 'loginwp_activate_plugin']);
         add_action('wp_ajax_loginwp_install_plugin', [$this, 'loginwp_install_plugin']);
@@ -164,7 +164,7 @@ class ProfilePress
         wp_send_json_error(esc_html__('Could not activate plugin. Please activate from the Plugins page.', 'peters-login-redirect'));
     }
 
-    public function register_settings_page()
+    /* public function register_settings_page()
     {
         add_submenu_page(
             PTR_LOGINWP_SETTINGS_PAGE_SLUG,
@@ -174,7 +174,7 @@ class ProfilePress
             self::SLUG,
             array($this, 'output')
         );
-    }
+    } */
 
     public function enqueue_assets()
     {

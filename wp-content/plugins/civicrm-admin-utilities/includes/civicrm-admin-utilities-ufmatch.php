@@ -11,8 +11,6 @@
 // Exit if accessed directly.
 defined( 'ABSPATH' ) || exit;
 
-
-
 /**
  * CiviCRM Admin Utilities UFMatch Class.
  *
@@ -23,15 +21,13 @@ defined( 'ABSPATH' ) || exit;
 class CiviCRM_Admin_Utilities_UFMatch {
 
 	/**
-	 * Plugin (calling) object.
+	 * Plugin object.
 	 *
 	 * @since 0.6.8
 	 * @access public
-	 * @var object $plugin The plugin object.
+	 * @var object
 	 */
 	public $plugin;
-
-
 
 	/**
 	 * Constructor.
@@ -50,8 +46,6 @@ class CiviCRM_Admin_Utilities_UFMatch {
 
 	}
 
-
-
 	/**
 	 * Initialise this object.
 	 *
@@ -63,8 +57,6 @@ class CiviCRM_Admin_Utilities_UFMatch {
 		$this->register_hooks();
 
 	}
-
-
 
 	/**
 	 * Register hooks.
@@ -79,11 +71,7 @@ class CiviCRM_Admin_Utilities_UFMatch {
 
 	}
 
-
-
 	// -------------------------------------------------------------------------
-
-
 
 	/**
 	 * Get details for a set of Contacts.
@@ -132,8 +120,6 @@ class CiviCRM_Admin_Utilities_UFMatch {
 
 	}
 
-
-
 	/**
 	 * Get a Contact's Details.
 	 *
@@ -176,8 +162,6 @@ class CiviCRM_Admin_Utilities_UFMatch {
 		return $contact;
 
 	}
-
-
 
 	/**
 	 * Get a CiviCRM Contact ID for a given WordPress User ID.
@@ -227,8 +211,6 @@ class CiviCRM_Admin_Utilities_UFMatch {
 
 	}
 
-
-
 	/**
 	 * Get a CiviCRM Contact for a given WordPress user ID.
 	 *
@@ -256,11 +238,7 @@ class CiviCRM_Admin_Utilities_UFMatch {
 
 	}
 
-
-
 	// -------------------------------------------------------------------------
-
-
 
 	/**
 	 * Get a WordPress User ID given a CiviCRM Contact ID.
@@ -298,8 +276,6 @@ class CiviCRM_Admin_Utilities_UFMatch {
 
 	}
 
-
-
 	/**
 	 * Get a WordPress User given a CiviCRM Contact ID.
 	 *
@@ -327,11 +303,7 @@ class CiviCRM_Admin_Utilities_UFMatch {
 
 	}
 
-
-
 	// -------------------------------------------------------------------------
-
-
 
 	/**
 	 * Act when a Contact is about to be moved into the Trash.
@@ -354,8 +326,6 @@ class CiviCRM_Admin_Utilities_UFMatch {
 		$this->ufmatch_entries = $entries;
 
 	}
-
-
 
 	/**
 	 * Act when a Contact has been moved into the Trash.
@@ -391,11 +361,7 @@ class CiviCRM_Admin_Utilities_UFMatch {
 
 	}
 
-
-
 	// -------------------------------------------------------------------------
-
-
 
 	/**
 	 * Create a link between a WordPress User and a CiviCRM Contact.
@@ -456,8 +422,6 @@ class CiviCRM_Admin_Utilities_UFMatch {
 
 	}
 
-
-
 	/**
 	 * Delete the link between a WordPress User and a CiviCRM Contact.
 	 *
@@ -505,11 +469,7 @@ class CiviCRM_Admin_Utilities_UFMatch {
 
 	}
 
-
-
 	// -------------------------------------------------------------------------
-
-
 
 	/**
 	 * Get the User and Contact IDs of all UFMatch entries.
@@ -575,11 +535,7 @@ class CiviCRM_Admin_Utilities_UFMatch {
 
 	}
 
-
-
 	// -------------------------------------------------------------------------
-
-
 
 	/**
 	 * Get the UFMatch data for a given CiviCRM Contact ID.
@@ -654,8 +610,6 @@ class CiviCRM_Admin_Utilities_UFMatch {
 
 	}
 
-
-
 	/**
 	 * Get the UFMatch data for a given WordPress User ID.
 	 *
@@ -728,8 +682,6 @@ class CiviCRM_Admin_Utilities_UFMatch {
 		return false;
 
 	}
-
-
 
 	/**
 	 * Get the UFMatch data for a given WordPress User email.
@@ -804,11 +756,7 @@ class CiviCRM_Admin_Utilities_UFMatch {
 
 	}
 
-
-
 	// -------------------------------------------------------------------------
-
-
 
 	/**
 	 * Get Dedupe Rules.
@@ -832,24 +780,61 @@ class CiviCRM_Admin_Utilities_UFMatch {
 		// Init return.
 		$dedupe_rules = [];
 
-		// Init Contact Types.
-		$types = [ 'Organization', 'Household', 'Individual' ];
+		/*
+		 * If the API4 Entity is available, use it.
+		 *
+		 * @see https://github.com/civicrm/civicrm-core/blob/master/Civi/Api4/DedupeRuleGroup.php#L20
+		 */
+		$version = CRM_Utils_System::version();
+		if ( version_compare( $version, '5.39', '>=' ) ) {
 
-		// Add the Dedupe rules.
-		foreach ( $types as $type ) {
-			if ( empty( $contact_type ) ) {
-				$dedupe_rules[ $type ] = CRM_Dedupe_BAO_RuleGroup::getByType( $type );
-			} elseif ( $contact_type == $type ) {
-				$dedupe_rules[ $type ] = CRM_Dedupe_BAO_RuleGroup::getByType( $type );
+			// Build params to get Dedupe Rule Groups.
+			$params = [
+				'limit' => 0,
+				'checkPermissions' => false,
+			];
+
+			// Maybe limit by Contact Type.
+			if ( ! empty( $contact_type ) ) {
+				$params['where'] = [
+					[ 'contact_type', '=', 'Individual' ],
+				];
 			}
+
+			// Call CiviCRM API4.
+			$result = civicrm_api4( 'DedupeRuleGroup', 'get', $params );
+
+			// Bail if there are no results.
+			if ( empty( $result->count() ) ) {
+				return $dedupe_rules;
+			}
+
+			// Add the results to the return array.
+			foreach ( $result as $item ) {
+				$title = ! empty( $item['title'] ) ? $item['title'] : ( ! empty( $item['name'] ) ? $item['name'] : $item['contact_type'] );
+				$dedupe_rules[ $item['contact_type'] ][ $item['id'] ] = $title . ' - ' . $item['used'];
+			}
+
+		} else {
+
+			// Init Contact Types.
+			$types = [ 'Organization', 'Household', 'Individual' ];
+
+			// Add the Dedupe rules.
+			foreach ( $types as $type ) {
+				if ( empty( $contact_type ) ) {
+					$dedupe_rules[ $type ] = CRM_Dedupe_BAO_RuleGroup::getByType( $type );
+				} elseif ( $contact_type == $type ) {
+					$dedupe_rules[ $type ] = CRM_Dedupe_BAO_RuleGroup::getByType( $type );
+				}
+			}
+
 		}
 
 		// --<
 		return $dedupe_rules;
 
 	}
-
-
 
 	/**
 	 * Dedupe a CiviCRM Contact.
@@ -889,9 +874,4 @@ class CiviCRM_Admin_Utilities_UFMatch {
 
 	}
 
-
-
-} // Class ends.
-
-
-
+}

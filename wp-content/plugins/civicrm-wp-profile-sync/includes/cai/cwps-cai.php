@@ -25,16 +25,16 @@ class CiviCRM_WP_Profile_Sync_CAI {
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var object $plugin The plugin object.
+	 * @var object
 	 */
 	public $plugin;
 
 	/**
-	 * CiviCRM ACF Integration reference.
+	 * CiviCRM ACF Integration plugin reference, or false if not present.
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var object|bool $cai The CiviCRM ACF Integration plugin reference, or false if not present.
+	 * @var object|bool
 	 */
 	public $cai = false;
 
@@ -334,7 +334,7 @@ class CiviCRM_WP_Profile_Sync_CAI {
 
 		// Get the WordPress User ID.
 		$tmp = explode( '_', $args['post_id'] );
-		$user_id = absint( $tmp[1] );
+		$user_id = (int) $tmp[1];
 
 		// We need the User object.
 		$user = new WP_User( $user_id );
@@ -1928,7 +1928,7 @@ class CiviCRM_WP_Profile_Sync_CAI {
 
 		// Get the WordPress User ID.
 		$tmp = explode( '_', $post_id );
-		$user_id = absint( $tmp[1] );
+		$user_id = (int) $tmp[1];
 
 		// We need the User itself.
 		$user = new WP_User( $user_id );
@@ -1947,7 +1947,7 @@ class CiviCRM_WP_Profile_Sync_CAI {
 		}
 
 		// Make sure we return an integer.
-		$is_mapped = absint( $contact_id );
+		$is_mapped = (int) $contact_id;
 
 		// --<
 		return $is_mapped;

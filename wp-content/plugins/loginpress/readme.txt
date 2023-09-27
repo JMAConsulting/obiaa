@@ -1,10 +1,11 @@
-=== LoginPress | Custom Login Page Customizer ===
+=== LoginPress | wp-login Custom Login Page Customizer ===
 Requires at least: 4.0
-Tested up to: 6.0
+Tested up to: 6.2
 Contributors: WPBrigade, hiddenpearls, AbdulWahab610
+Donate link: https://loginpress.pro/pricing/?utm_source=loginpress-lite
 Author URI: https://wpbrigade.com/?utm_source=loginpress-lite&utm_medium=author-url-link
 Tags: wp-login, login, login customizer, custom login, wordpress login,
-Stable tag: 1.6.2
+Stable tag: 1.8.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -221,9 +222,24 @@ Please visit <a target="_blank" rel="friend" href="https://loginpress.pro?utm_so
 
 == Changelog ==
 
+= 1.8.0 – 2023-06-05 =
+* New Feature: Introducing [PCI Compliance](https://loginpress.pro/doc/wordpress-login-page-pci-compliance/) (Enable / Disable) settings for login and registration forms.
+
+= 1.7.1 – 2023-04-03 =
+* Enhancement: Improved Responsive of default login screen.
+* Compatibility: Compatible with WordPress 6.2
+
+= 1.7.0 – 2023-01-10 =
+* Enhancement: Added a filter `loginpress_disable_default_style` to prevent LoginPress default style.
+* Compatibility: Compatible with WordPress 6.1
+
+= 1.6.3 – 2022-11-02 =
+* BugFix: Nonce check applied on opt-in and opt-out screens.
+* Compatibility: Compatible with WordPress 6.0
+
 = 1.6.2 – 2022-07-18 =
-* BugFix: Apply escaping at multiples places in code for security protection.
-* Compatibility: Compatible with WordPress 6.0.1
+* BugFix: Apply escaping at multiple places in code for security protection. Special thanks to <a href="https://profiles.wordpress.org/risecste/" rel="friend">n0tst3</a> for identifying a bug.
+* Compatibility: Compatible with WordPress 6.0
 
 = 1.6.1 – 2022-06-24 =
 * BugFix: Import/Export issue with PHP 8.1
@@ -660,5 +676,5 @@ Please visit <a target="_blank" rel="friend" href="https://loginpress.pro?utm_so
 
 == Upgrade Notice ==
 
-= 1.6.2 =
-* Important Release, upgrade immediately. Compatible with 6.0
+= 1.8.0 =
+* Upgrade immediately. Compatible with 6.2

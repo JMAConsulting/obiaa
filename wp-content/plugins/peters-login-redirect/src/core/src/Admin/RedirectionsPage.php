@@ -15,7 +15,7 @@ class RedirectionsPage extends AbstractSettingsPage
 
     public function __construct()
     {
-        ProfilePress::get_instance();
+        FuseWP::get_instance();
 
         parent::__construct();
 
@@ -49,10 +49,11 @@ class RedirectionsPage extends AbstractSettingsPage
         $hook = add_submenu_page(
             PTR_LOGINWP_SETTINGS_PAGE_SLUG,
             $page_title,
-            __('Redirections', 'peters-login-redirect'),
+            __('Redirection Rules', 'peters-login-redirect'),
             'manage_options',
             PTR_LOGINWP_REDIRECTION_PAGE_SLUG,
-            [$this, 'admin_page_callback']
+            [$this, 'admin_page_callback'],
+            0
         );
 
         add_action("load-$hook", array($this, 'screen_option'));
@@ -133,7 +134,7 @@ class RedirectionsPage extends AbstractSettingsPage
             'option'  => 'redirections_per_page',
         );
 
-        if ( ! isset($_GET['new'], $_GET['action'])) {
+        if (!isset($_GET['new'], $_GET['action'])) {
             add_screen_option($option, $args);
         }
 
@@ -213,7 +214,7 @@ class RedirectionsPage extends AbstractSettingsPage
     {
         $condition = wp_list_filter(self::get_rule_conditions(), ['id' => $condition_id]);
 
-        if ( ! empty($condition)) : $condition = array_values($condition)[0]; ?>
+        if (!empty($condition)) : $condition = array_values($condition)[0]; ?>
             <label>
                 <select name="rul_condition_value">
                     <option value=""><?php esc_html_e('Select...', 'peters-login-redirect'); ?></option>
@@ -230,7 +231,7 @@ class RedirectionsPage extends AbstractSettingsPage
     {
         $order_support_conditions = wp_list_filter(self::get_rule_conditions(), ['order_support' => true]);
 
-        if ( ! empty($order_support_conditions)) {
+        if (!empty($order_support_conditions)) {
 
             $order_support_conditions = array_reduce($order_support_conditions, function ($carry, $item) {
                 $carry[] = $item['id'];
@@ -253,7 +254,7 @@ class RedirectionsPage extends AbstractSettingsPage
         <script>
             var rul_conditions_order_support = <?php echo json_encode(self::order_support_conditions()) ?>;
         </script>
-        <?php
+    <?php
     }
 
     public function save_redirect_rule_changes()
@@ -273,12 +274,13 @@ class RedirectionsPage extends AbstractSettingsPage
 
             $this->trigger_admin_notices(
                 esc_html__('Redirect rule deleted', 'peters-login-redirect'),
-                'success');
+                'success'
+            );
         }
 
         if (empty($_POST['loginwp_save_rule'])) return;
 
-        if ( ! $this->security_check('loginwp_save_rule', 'rul-loginwp-nonce')) return;
+        if (!$this->security_check('loginwp_save_rule', 'rul-loginwp-nonce')) return;
 
         global $wpdb;
 
@@ -296,19 +298,19 @@ class RedirectionsPage extends AbstractSettingsPage
             $error_message = __('ERROR: No Login or Logout URL specified', 'peters-login-redirect');
         }
 
-        if ($type == 'user' && ! username_exists($typeValue)) {
+        if ($type == 'user' && !username_exists($typeValue)) {
             $error_message = __('ERROR: Non-existent username submitted', 'peters-login-redirect');
         }
 
-        if ($type == 'role' && ! in_array($typeValue, array_keys(Helpers::user_role_list()))) {
+        if ($type == 'role' && !in_array($typeValue, array_keys(Helpers::user_role_list()))) {
             $error_message = __('ERROR: Non-existent role submitted', 'peters-login-redirect');
         }
 
-        if ($type == 'level' && ! in_array($typeValue, Helpers::capability_list())) {
+        if ($type == 'level' && !in_array($typeValue, Helpers::capability_list())) {
             $error_message = __('ERROR: Non-existent level submitted', 'peters-login-redirect');
         }
 
-        if ( ! empty($error_message)) {
+        if (!empty($error_message)) {
 
             $this->trigger_admin_notices($error_message);
 
@@ -317,7 +319,11 @@ class RedirectionsPage extends AbstractSettingsPage
 
         if ($order > 99) $order = 0;
 
-        if ( ! empty($_GET['id'])) {
+        $rule_id = false;
+
+        if (!empty($_GET['id'])) {
+
+            $rule_id = absint($_GET['id']);
 
             $result = $wpdb->update(
                 PTR_LOGINWP_DB_TABLE,
@@ -329,7 +335,7 @@ class RedirectionsPage extends AbstractSettingsPage
                     'rul_url_logout' => sanitize_text_field($_POST['rul_logout_url'])
                 ],
                 [
-                    'id' => absint($_GET['id'])
+                    'id' => $rule_id
                 ],
                 ['%s', '%s', '%d', '%s', '%s'],
                 ['%d']
@@ -345,7 +351,7 @@ class RedirectionsPage extends AbstractSettingsPage
             }
         }
 
-        if ( ! isset($_GET['id'])) {
+        if (!isset($_GET['id'])) {
 
             $result = $wpdb->insert(
                 PTR_LOGINWP_DB_TABLE,
@@ -366,19 +372,25 @@ class RedirectionsPage extends AbstractSettingsPage
                 );
             }
 
-            wp_safe_redirect(add_query_arg('saved', 'true', RedirectWPList::edit_rule_url($wpdb->insert_id)));
-            exit;
+            $rule_id = $wpdb->insert_id;
         }
 
-        wp_safe_redirect(esc_url_raw(add_query_arg('saved', 'true')));
+        $first_login_data = Helpers::get_meta($rule_id, Helpers::FIRST_LOGIN_DB_KEY);
+
+        Helpers::update_meta($rule_id, Helpers::FIRST_LOGIN_DB_KEY, [
+            'value' => sanitize_text_field(loginwpPOST_var('rul_first_login', '')),
+            'date'  => isset($first_login_data['date']) ? $first_login_data['date'] : current_time('mysql', true)
+        ]);
+
+        wp_safe_redirect(add_query_arg('saved', 'true', RedirectWPList::edit_rule_url($rule_id)));
         exit;
     }
 
     public function save_other_settings_changes()
     {
-        if ( ! empty($_POST['rul_allupdatesubmit'])) {
+        if (!empty($_POST['rul_allupdatesubmit'])) {
 
-            if ( ! $this->security_check('rul_allupdatesubmit')) return;
+            if (!$this->security_check('rul_allupdatesubmit')) return;
 
             global $wpdb;
 
@@ -401,9 +413,9 @@ class RedirectionsPage extends AbstractSettingsPage
             exit;
         }
 
-        if ( ! empty($_POST['rul_registerupdatesubmit'])) {
+        if (!empty($_POST['rul_registerupdatesubmit'])) {
 
-            if ( ! $this->security_check('rul_registerupdatesubmit')) return;
+            if (!$this->security_check('rul_registerupdatesubmit')) return;
 
             global $wpdb;
 
@@ -424,9 +436,9 @@ class RedirectionsPage extends AbstractSettingsPage
             exit;
         }
 
-        if ( ! empty($_POST['rul_settingssubmit'])) {
+        if (!empty($_POST['rul_settingssubmit'])) {
 
-            if ( ! $this->security_check('rul_settingssubmit')) return;
+            if (!$this->security_check('rul_settingssubmit')) return;
 
             $rul_settings = Helpers::redirectFunctionCollection_get_settings();
 
@@ -453,7 +465,7 @@ class RedirectionsPage extends AbstractSettingsPage
 
     public function security_check($nonce_action, $query_arg = 'rul-security')
     {
-        if ( ! current_user_can('manage_options')) return false;
+        if (!current_user_can('manage_options')) return false;
 
         check_admin_referer($nonce_action, $query_arg);
 
@@ -468,7 +480,7 @@ class RedirectionsPage extends AbstractSettingsPage
             'user_slug'   => esc_html__('Author URL slug or user nicename', 'peters-login-redirect'),
             'website_url' => esc_html__('Website URL', 'peters-login-redirect')
         ]);
-        ?>
+    ?>
         <div id="loginwp-view-placeholders" style="display:none;">
             <div class="loginwp-view-placeholders-wrap">
                 <?php foreach ($available_placeholders as $placeholder => $description) : ?>
@@ -476,13 +488,14 @@ class RedirectionsPage extends AbstractSettingsPage
                         <strong>{{<?= esc_html($placeholder) ?>}}:</strong> <?= esc_html($description) ?>
                     </div>
                 <?php endforeach; ?>
-                <?php if ( ! defined('LOGINWP_DETACH_LIBSODIUM')) : ?>
+                <?php if (!defined('LOGINWP_DETACH_LIBSODIUM')) : ?>
                     <?php $upsell_url = 'https://loginwp.com/pricing/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=login_redirect_placeholder_modal'; ?>
                     <div class="loginwp-placeholder-upsell">
                         <p>
                             <?php printf(
                                 esc_html__('With %sLoginWP PRO%s, you can redirect users to the current page they are logging in from or back to the previous (referrer) page after login.', 'peters-login-redirect'),
-                                '<a target="_blank" href="' . $upsell_url . '">', '</a>'
+                                '<a target="_blank" href="' . $upsell_url . '">',
+                                '</a>'
                             ); ?>
                         </p>
                         <div>
@@ -492,7 +505,7 @@ class RedirectionsPage extends AbstractSettingsPage
                 <?php endif; ?>
             </div>
         </div>
-        <?php
+<?php
     }
 
     public static function get_instance()

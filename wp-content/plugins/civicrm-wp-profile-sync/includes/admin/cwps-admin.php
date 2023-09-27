@@ -25,7 +25,7 @@ class CiviCRM_WP_Profile_Sync_Admin {
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var object $plugin The plugin object.
+	 * @var object
 	 */
 	public $plugin;
 
@@ -34,7 +34,7 @@ class CiviCRM_WP_Profile_Sync_Admin {
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var object $multisite The Multisite Admin object.
+	 * @var object
 	 */
 	public $multisite;
 
@@ -43,7 +43,7 @@ class CiviCRM_WP_Profile_Sync_Admin {
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var string $plugin_version The plugin version.
+	 * @var string
 	 */
 	public $plugin_version;
 
@@ -52,7 +52,7 @@ class CiviCRM_WP_Profile_Sync_Admin {
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var array $settings The plugin settings data.
+	 * @var array
 	 */
 	public $settings = [];
 
@@ -61,7 +61,7 @@ class CiviCRM_WP_Profile_Sync_Admin {
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var bool $is_upgrade An upgrade flag.
+	 * @var bool
 	 */
 	public $is_upgrade = false;
 
@@ -70,7 +70,7 @@ class CiviCRM_WP_Profile_Sync_Admin {
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var bool $has_warning A warning flag.
+	 * @var bool
 	 */
 	public $has_warning = false;
 
@@ -79,7 +79,7 @@ class CiviCRM_WP_Profile_Sync_Admin {
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var string $parent_page The reference to the parent page.
+	 * @var string
 	 */
 	public $parent_page;
 
@@ -88,7 +88,7 @@ class CiviCRM_WP_Profile_Sync_Admin {
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var string $parent_page_slug The slug of the parent page.
+	 * @var string
 	 */
 	public $parent_page_slug = 'cwps_parent';
 
@@ -97,7 +97,7 @@ class CiviCRM_WP_Profile_Sync_Admin {
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var string $settings_page The reference to the Settings Page.
+	 * @var string
 	 */
 	public $settings_page;
 
@@ -106,7 +106,7 @@ class CiviCRM_WP_Profile_Sync_Admin {
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var string $settings_page_slug The slug of the Settings Page.
+	 * @var string
 	 */
 	public $settings_page_slug = 'cwps_settings';
 
@@ -228,7 +228,7 @@ class CiviCRM_WP_Profile_Sync_Admin {
 		add_action( 'admin_menu', [ $this, 'admin_menu' ], 20 );
 
 		// Add our meta boxes.
-		add_action( 'add_meta_boxes', [ $this, 'meta_boxes_add' ], 11 );
+		add_action( 'cwps/admin/page/settings/add_meta_boxes', [ $this, 'meta_boxes_add' ], 11 );
 
 	}
 
@@ -242,7 +242,7 @@ class CiviCRM_WP_Profile_Sync_Admin {
 		// Remove the callbacks registered by this class.
 		remove_action( 'admin_notices', [ $this, 'upgrade_warning' ] );
 		remove_action( 'admin_menu', [ $this, 'admin_menu' ], 20 );
-		remove_action( 'add_meta_boxes', [ $this, 'meta_boxes_add' ], 11 );
+		remove_action( 'cwps/admin/page/settings/add_meta_boxes', [ $this, 'meta_boxes_add' ], 11 );
 
 	}
 
@@ -642,7 +642,7 @@ class CiviCRM_WP_Profile_Sync_Admin {
 		 *
 		 * @param string $screen_id The ID of the current screen.
 		 */
-		do_action( 'add_meta_boxes', $screen->id, null );
+		do_action( 'cwps/admin/page/settings/add_meta_boxes', $screen->id, null );
 
 		// Grab columns.
 		$columns = ( 1 == $screen->get_columns() ? '1' : '2' );
@@ -811,6 +811,15 @@ class CiviCRM_WP_Profile_Sync_Admin {
 			'core' // Vertical placement: options are 'core', 'high', 'low'.
 		);
 
+		/**
+		 * Allow plugins to add meta boxes.
+		 *
+		 * @since 0.6.1
+		 *
+		 * @param string $screen_id The Admin Page Screen ID.
+		 */
+		do_action( 'cwps/admin/page/settings/meta_boxes/added', $screen_id );
+
 	}
 
 	/**
@@ -880,8 +889,8 @@ class CiviCRM_WP_Profile_Sync_Admin {
 		// Set impossible default "User Email Sync" value.
 		$settings['user_profile_email_sync'] = 2;
 
-		// Default "User Nickname Sync" to "on" since that's previous behaviour.
-		$settings['user_profile_nickname_sync'] = 1;
+		// Default "User Nickname Sync" to "off".
+		$settings['user_profile_nickname_sync'] = 0;
 
 		/**
 		 * Filter default settings.

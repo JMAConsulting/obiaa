@@ -25,7 +25,7 @@ class CiviCRM_WP_Profile_Sync_WordPress {
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var object $plugin The plugin object.
+	 * @var object
 	 */
 	public $plugin;
 
@@ -34,7 +34,7 @@ class CiviCRM_WP_Profile_Sync_WordPress {
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var object $user The WordPress User object.
+	 * @var object
 	 */
 	public $user;
 
@@ -43,7 +43,7 @@ class CiviCRM_WP_Profile_Sync_WordPress {
 	 *
 	 * @since 0.5.2
 	 * @access public
-	 * @var bool $mapper_hooks The Mapper hooks registered flag.
+	 * @var bool
 	 */
 	public $mapper_hooks = false;
 
@@ -262,7 +262,7 @@ class CiviCRM_WP_Profile_Sync_WordPress {
 		 * (reversed) POSIX style signs.
 		 *
 		 * @see https://github.com/stephenharris/Event-Organiser/issues/287
-		 * @see http://us.php.net/manual/en/timezones.others.php
+		 * @see https://www.php.net/manual/en/timezones.others.php
 		 * @see https://bugs.php.net/bug.php?id=45543
 		 * @see https://bugs.php.net/bug.php?id=45528
 		 */

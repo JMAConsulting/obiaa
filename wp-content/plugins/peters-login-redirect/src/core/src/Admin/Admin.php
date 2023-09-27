@@ -55,9 +55,10 @@ class Admin
         add_action('admin_notices', [$this, 'ptlr_is_now_loginwp_notice']);
     }
 
-    public static function set_admin_notice_cache( $id, $timeout ) {
-        $cache_key = 'pand-' . md5( $id );
-        update_site_option( $cache_key, $timeout );
+    public static function set_admin_notice_cache($id, $timeout)
+    {
+        $cache_key = 'pand-' . md5($id);
+        update_site_option($cache_key, $timeout);
 
         return true;
     }
@@ -195,6 +196,8 @@ class Admin
      */
     public function review_plugin_notice()
     {
+        if ( ! current_user_can('manage_options')) return;
+
         if ( ! PAnD::is_admin_notice_active('loginwp-review-plugin-notice-forever')) return;
 
         $install_date = get_option('loginwp_install_date', '');

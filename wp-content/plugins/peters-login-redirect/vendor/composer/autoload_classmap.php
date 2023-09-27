@@ -114,7 +114,7 @@ return array(
     'LoginWP\\Core\\Admin\\Installer\\LoginWP_Install_Skin' => $baseDir . '/src/core/src/Admin/Installer/LoginWP_Install_Skin.php',
     'LoginWP\\Core\\Admin\\Installer\\PluginSilentUpgrader' => $baseDir . '/src/core/src/Admin/Installer/PluginSilentUpgrader.php',
     'LoginWP\\Core\\Admin\\Installer\\PluginSilentUpgraderSkin' => $baseDir . '/src/core/src/Admin/Installer/PluginSilentUpgraderSkin.php',
-    'LoginWP\\Core\\Admin\\ProfilePress' => $baseDir . '/src/core/src/Admin/ProfilePress.php',
+    'LoginWP\\Core\\Admin\\FuseWP' => $baseDir . '/src/core/src/Admin/FuseWP.php',
     'LoginWP\\Core\\Admin\\RedirectWPList' => $baseDir . '/src/core/src/Admin/RedirectWPList.php',
     'LoginWP\\Core\\Admin\\RedirectionsPage' => $baseDir . '/src/core/src/Admin/RedirectionsPage.php',
     'LoginWP\\Core\\Admin\\SettingsPage' => $baseDir . '/src/core/src/Admin/SettingsPage.php',

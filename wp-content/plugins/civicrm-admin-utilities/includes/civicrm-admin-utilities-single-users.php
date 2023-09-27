@@ -11,8 +11,6 @@
 // Exit if accessed directly.
 defined( 'ABSPATH' ) || exit;
 
-
-
 /**
  * CiviCRM Admin Utilities Users Class.
  *
@@ -23,11 +21,11 @@ defined( 'ABSPATH' ) || exit;
 class CiviCRM_Admin_Utilities_Single_Users {
 
 	/**
-	 * Plugin (calling) object.
+	 * Plugin object.
 	 *
 	 * @since 0.9
 	 * @access public
-	 * @var object $plugin The plugin object.
+	 * @var object
 	 */
 	public $plugin;
 
@@ -36,7 +34,7 @@ class CiviCRM_Admin_Utilities_Single_Users {
 	 *
 	 * @since 0.9
 	 * @access public
-	 * @var str $page The identifier for which Users Page is displayed.
+	 * @var string
 	 */
 	public $page = 'user_table';
 
@@ -45,7 +43,7 @@ class CiviCRM_Admin_Utilities_Single_Users {
 	 *
 	 * @since 0.9
 	 * @access public
-	 * @var str $users_page_slug The slug of the Users Page.
+	 * @var string
 	 */
 	public $users_page_slug = 'civicrm_au_users';
 
@@ -54,7 +52,7 @@ class CiviCRM_Admin_Utilities_Single_Users {
 	 *
 	 * @since 0.9
 	 * @access public
-	 * @var str $users_page The reference to the Users Listing page.
+	 * @var string
 	 */
 	public $users_page;
 
@@ -63,11 +61,9 @@ class CiviCRM_Admin_Utilities_Single_Users {
 	 *
 	 * @since 0.9
 	 * @access public
-	 * @var CAU_Single_Users_List_Table $user_table The User Table object.
+	 * @var CAU_Single_Users_List_Table
 	 */
 	public $user_table;
-
-
 
 	/**
 	 * Constructor.
@@ -86,8 +82,6 @@ class CiviCRM_Admin_Utilities_Single_Users {
 
 	}
 
-
-
 	/**
 	 * Initialise this object.
 	 *
@@ -99,8 +93,6 @@ class CiviCRM_Admin_Utilities_Single_Users {
 		$this->register_hooks();
 
 	}
-
-
 
 	/**
 	 * Register hooks.
@@ -126,11 +118,7 @@ class CiviCRM_Admin_Utilities_Single_Users {
 
 	}
 
-
-
 	// -------------------------------------------------------------------------
-
-
 
 	/**
 	 * Handle save/update of screen options for the Single Users page.
@@ -160,8 +148,6 @@ class CiviCRM_Admin_Utilities_Single_Users {
 
 	}
 
-
-
 	/**
 	 * Set the default visibility of the list table columns.
 	 *
@@ -187,11 +173,7 @@ class CiviCRM_Admin_Utilities_Single_Users {
 
 	}
 
-
-
 	// -------------------------------------------------------------------------
-
-
 
 	/**
 	 * Add admin menu item(s) for this plugin.
@@ -253,8 +235,6 @@ class CiviCRM_Admin_Utilities_Single_Users {
 
 	}
 
-
-
 	/**
 	 * Append the Users Listing page to Single Site subpages.
 	 *
@@ -276,8 +256,6 @@ class CiviCRM_Admin_Utilities_Single_Users {
 
 	}
 
-
-
 	/**
 	 * Initialise plugin help.
 	 *
@@ -292,8 +270,6 @@ class CiviCRM_Admin_Utilities_Single_Users {
 		$this->admin_help( $screen );
 
 	}
-
-
 
 	/**
 	 * Adds help copy to admin page.
@@ -327,8 +303,6 @@ class CiviCRM_Admin_Utilities_Single_Users {
 
 	}
 
-
-
 	/**
 	 * Get help text.
 	 *
@@ -349,11 +323,7 @@ class CiviCRM_Admin_Utilities_Single_Users {
 
 	}
 
-
-
 	// -------------------------------------------------------------------------
-
-
 
 	/**
 	 * Initialise our Users Listing page.
@@ -390,8 +360,6 @@ class CiviCRM_Admin_Utilities_Single_Users {
 
 	}
 
-
-
 	/**
 	 * Show our Users page.
 	 *
@@ -426,8 +394,6 @@ class CiviCRM_Admin_Utilities_Single_Users {
 
 	}
 
-
-
 	/**
 	 * Show our User Table page.
 	 *
@@ -459,8 +425,6 @@ class CiviCRM_Admin_Utilities_Single_Users {
 
 	}
 
-
-
 	/**
 	 * Enqueue stylesheets for the Site User page.
 	 *
@@ -478,8 +442,6 @@ class CiviCRM_Admin_Utilities_Single_Users {
 		);
 
 	}
-
-
 
 	/**
 	 * Enqueue Javascripts on the Site User page.
@@ -516,8 +478,6 @@ class CiviCRM_Admin_Utilities_Single_Users {
 
 	}
 
-
-
 	/**
 	 * Append the Users Listing page URL to Single Site subpage URLs.
 	 *
@@ -536,8 +496,6 @@ class CiviCRM_Admin_Utilities_Single_Users {
 
 	}
 
-
-
 	/**
 	 * Show subpage tabs on settings pages.
 	 *
@@ -555,8 +513,6 @@ class CiviCRM_Admin_Utilities_Single_Users {
 		return $show_tabs;
 
 	}
-
-
 
 	/**
 	 * Add subpage tab to tabs on settings pages.
@@ -583,8 +539,6 @@ class CiviCRM_Admin_Utilities_Single_Users {
 		echo '<a href="' . $urls['users'] . '" class="nav-tab' . $active . '">' . $title . '</a>' . "\n";
 
 	}
-
-
 
 	/**
 	 * Get the URL of the Users Page.
@@ -613,8 +567,6 @@ class CiviCRM_Admin_Utilities_Single_Users {
 
 	}
 
-
-
 	/**
 	 * Get the Users Page submit URL.
 	 *
@@ -642,9 +594,4 @@ class CiviCRM_Admin_Utilities_Single_Users {
 
 	}
 
-
-
-} // Class ends.
-
-
-
+}

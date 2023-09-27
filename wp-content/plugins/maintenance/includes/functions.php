@@ -216,11 +216,11 @@ function mtnc_get_color_field($title, $id, $name, $value, $default_color)
   mtnc_wp_kses($out_filed);
 }
 
-function mtnc_get_google_font($font = null)
+function mtnc_get_bunny_font($font = null)
 {
   $font_params = $full_link = $gg_fonts = '';
 
-  $gg_fonts = json_decode(mtnc_get_google_fonts());
+  $gg_fonts = json_decode(mtnc_get_bunny_fonts());
 
   if (property_exists($gg_fonts, $font)) {
     $curr_font = $gg_fonts->{$font};
@@ -253,7 +253,7 @@ function mtnc_get_fonts_field($title, $id, $name, $value)
   global $standart_fonts;
   $out_items = $gg_fonts = '';
 
-  $gg_fonts = json_decode(mtnc_get_google_fonts());
+  $gg_fonts = json_decode(mtnc_get_bunny_fonts());
 
   $out_filed  = '';
   $out_filed .= '<tr valign="top">';
@@ -261,14 +261,14 @@ function mtnc_get_fonts_field($title, $id, $name, $value)
   $out_filed .= '<td>';
   $out_filed .= '<fieldset>';
   if (!empty($standart_fonts)) {
-    $out_items .= '<optgroup label="' . __('Standard Fonts', 'maintenance') . '">';
+    $out_items .= '<optgroup label="' . __('Standard, Built-in Fonts', 'maintenance') . '">';
     foreach ($standart_fonts as $key => $options) {
       $out_items .= '<option value="' . $key . '" ' . selected($value, $key, false) . '>' . $options . '</option>';
     }
   }
 
   if (!empty($gg_fonts)) {
-    $out_items .= '<optgroup label="' . __('Google Web Fonts', 'maintenance') . '">';
+    $out_items .= '<optgroup label="' . __('Bunny Web Fonts', 'maintenance') . '">';
     foreach ($gg_fonts as $key => $options) {
       $out_items .= '<option value="' . $key . '" ' . selected($value, $key, false) . '>' . $key . '</option>';
     }
@@ -280,6 +280,7 @@ function mtnc_get_fonts_field($title, $id, $name, $value)
     $out_filed .= '</select>';
   }
   $out_filed .= '<fieldset>';
+  $out_filed .= '<p>Maintenance uses Bunny Fonts instead of Google fonts. Bunny Fonts is an open-source, privacy-first web font platform designed to put privacy back into the internet. With a zero-tracking and no-logging policy, <strong>Bunny Fonts helps you stay GDPR compliant</strong> and puts your user\'s personal data into their own hands. Additionally, you can enjoy lightning-fast load times thanks to bunny.net\'s global CDN network to help improve SEO and deliver a better user experience.</p>';
   $out_filed .= '</td>';
   $out_filed .= '</tr>';
   return $out_filed; // phpcs:ignore WordPress.Security.EscapeOutput
@@ -293,7 +294,7 @@ function mtnc_get_fonts_subsets($title, $id, $name, $value)
   $curr_font = esc_attr($mt_option['body_font_family']);
   $vars      = 'subsets';
 
-  $gg_fonts = json_decode(mtnc_get_google_fonts(), true);
+  $gg_fonts = json_decode(mtnc_get_bunny_fonts(), true);
 
   if (!empty($gg_fonts)) {
 
@@ -1188,10 +1189,10 @@ function mtnc_get_default_array()
   return apply_filters('mtnc_get_default_array', $defaults);
 }
 
-if (!function_exists('mtnc_get_google_fonts')) {
-  function mtnc_get_google_fonts()
+if (!function_exists('mtnc_get_bunny_fonts')) {
+  function mtnc_get_bunny_fonts()
   {
-    $gg_fonts = file_get_contents(MTNC_DIR . 'includes/fonts/googlefonts.json');
+    $gg_fonts = file_get_contents(MTNC_DIR . 'includes/fonts/fonts.json');
     return $gg_fonts;
   }
 }

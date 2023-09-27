@@ -1,11 +1,11 @@
 === LoginWP (Formerly Peter's Login Redirect) ===
-Contributors: properfraction, collizo4sky
-Donate link: https://loginwp.com/pricing
+Contributors: marketingfire, collizo4sky
+Donate link: https://loginwp.com/pricing/
 Tags: login, logout, redirect, login form, user registration, admin, administration, dashboard, users, authentication
-Requires at least: 4.7
+Requires at least: 4.9
 Requires PHP: 5.6
-Tested up to: 6.0
-Stable tag: 3.0.3.0
+Tested up to: 6.3
+Stable tag: 3.0.8.5
 License: GPL-2.0+
 
 Redirect users to different locations after they log in, log out and register based on different conditions.
@@ -24,8 +24,9 @@ You can add your own code logic before and between any of the plugin's normal re
 
 ### Pro Integrations
 
-This is the lite version that works with the default WordPress login page and limited other user registration and login form plugins. Upgrade to Pro to avail the support for the following plugins.
+This is the lite version that works with the default WordPress login page and limited other user registration and login form plugins. Upgrade to Pro to avail the support for the following features and plugins.
 
+* [Redirect After First Login](https://loginwp.com/article/redirect-wordpress-users-after-first-login/?utm_source=wprepo&utm_medium=link&utm_campaign=liteversion#pro-integrations)
 * [WooCommerce](https://loginwp.com/?utm_source=wprepo&utm_medium=link&utm_campaign=liteversion#pro-integrations)
 * [Gravity Forms](https://loginwp.com/?utm_source=wprepo&utm_medium=link&utm_campaign=liteversion#pro-integrations)
 * [WPForms](https://loginwp.com/?utm_source=wprepo&utm_medium=link&utm_campaign=liteversion#pro-integrations)
@@ -36,21 +37,17 @@ This is the lite version that works with the default WordPress login page and li
 * [ProfilePress](https://loginwp.com/?utm_source=wprepo&utm_medium=link&utm_campaign=liteversion#pro-integrations)
 * [MemberPress](https://loginwp.com/?utm_source=wprepo&utm_medium=link&utm_campaign=liteversion#pro-integrations)
 * [MemberMouse](https://loginwp.com/?utm_source=wprepo&utm_medium=link&utm_campaign=liteversion#pro-integrations)
+* [LearnPress](https://loginwp.com/?utm_source=wprepo&utm_medium=link&utm_campaign=liteversion#pro-integrations)
 * [Easy Digital Downloads](https://loginwp.com/?utm_source=wprepo&utm_medium=link&utm_campaign=liteversion#pro-integrations)
 * [Restrict Content Pro](https://loginwp.com/?utm_source=wprepo&utm_medium=link&utm_campaign=liteversion#pro-integrations)
 * [Ultimate Member](https://loginwp.com/?utm_source=wprepo&utm_medium=link&utm_campaign=liteversion#pro-integrations)
 * [WP User Manager](https://loginwp.com/?utm_source=wprepo&utm_medium=link&utm_campaign=liteversion#pro-integrations)
 * [WP User Frontend](https://loginwp.com/?utm_source=wprepo&utm_medium=link&utm_campaign=liteversion#pro-integrations)
-* [Paid Membership Pro](https://loginwp.com/?utm_source=wprepo&utm_medium=link&utm_campaign=liteversion#pro-integrations)
+* [Paid Memberships Pro](https://loginwp.com/?utm_source=wprepo&utm_medium=link&utm_campaign=liteversion#pro-integrations)
+* [WishList Member](https://loginwp.com/?utm_source=wprepo&utm_medium=link&utm_campaign=liteversion#pro-integrations)
 * [Theme My Login](https://loginwp.com/?utm_source=wprepo&utm_medium=link&utm_campaign=liteversion#pro-integrations)
 * [User Registration (WPEverest)](https://loginwp.com/?utm_source=wprepo&utm_medium=link&utm_campaign=liteversion#pro-integrations)
 
-= What's Next =
-
-If you like this plugin, then consider checking out our other products:
-
-* <a href="https://profilepress.com/?utm_source=wprepo&utm_medium=link&utm_campaign=loginwp">ProfilePress</a> - The perfect user registration, login form, user profile & membership plugin.
-* <a href="https://mailoptin.io/?utm_source=wprepo&utm_medium=link&utm_campaign=loginwp" title="MailOptin">MailOptin</a> - Create popups and optin forms for capturing email newsletter subscribers. Integrates with Mailchimp, ConvertKit, Infusionsoft, ActiveCampaign, Campaign Monitor, Constant Contact & more.
 
 == Installation ==
 
@@ -76,20 +73,26 @@ Login redirects not working? This plugin uses WordPress's standard login_redirec
 
 == Changelog ==
 
-= 3.0.3.0 =
-* Fixed bug with wp list pagination per page not working.
+= 3.0.8.5 =
+* Fixed: Cookie issue
 
-= 3.0.2.0 =
-* Pro: Added [Polylang integration](https://loginwp.com/?utm_source=wprepo&utm_medium=changelog&utm_campaign=3020#pro-conditions)
-* Pro: Added [WPML integration](https://loginwp.com/?utm_source=wprepo&utm_medium=changelog&utm_campaign=3020#pro-conditions)
-* Fixed fatal error caused by other plugin metaboxes.
+= 3.0.8.4 =
+* Fixed: Advert dismissing issue
 
-= 3.0.1.1 =
-* Added logout support to all [Pro conditions](https://loginwp.com/?utm_source=wprepo&utm_medium=changelog&utm_campaign=4011#pro-conditions).
-* [Pro features](https://loginwp.com/pricing/?utm_source=wprepo&utm_medium=changelog&utm_campaign=4011) support for Uncanny Toolkit.
+= 3.0.8.3 =
+* Improved: Compatibility PHP 8.1
+* Added: UserSync (Collaboration with FuseWP)
 
-= 3.0.1.0 =
-* Added [TutorLMS integration](https://loginwp.com/?utm_source=wprepo&utm_medium=changelog&utm_campaign=4010#pro-conditions).
-* Improved admin page loading speed.
+= 3.0.8.0 =
+* Improved: Compatibility PHP 8
+* Improved: Compatibility with WP 6.2
+* Fixed: Assets URL
+* Updated: Plugin’s Description
+
+= 3.0.7.0 =
+* Added [LearnPress](https://loginwp.com/redirect-wordpress-users-after-login-learnpress/?ref=changelog) integration.
+* PHP 8 improvements.
+* Fixed Warning: Undefined array key "rul_first_login"
+* Added filter to execute integrations conditions last.
 
 See the [changelog file](https://plugins.svn.wordpress.org/peters-login-redirect/trunk/changelog.txt) for full changelog information.

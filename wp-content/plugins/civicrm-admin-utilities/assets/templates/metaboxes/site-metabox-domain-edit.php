@@ -11,7 +11,8 @@
 // Exit if accessed directly.
 defined( 'ABSPATH' ) || exit;
 
-?><!-- assets/templates/metaboxes/site-metabox-domain-edit.php -->
+?>
+<!-- assets/templates/metaboxes/site-metabox-domain-edit.php -->
 <div class="notice notice-warning inline">
 	<p><?php esc_html_e( 'Edit this Domain with caution &mdash; it could cause problems if you make edits to a Domain which is not completely new and unused.', 'civicrm-admin-utilities' ); ?><br>
 	<strong><?php esc_html_e( 'You have been warned.', 'civicrm-admin-utilities' ); ?></strong></p>
@@ -29,10 +30,10 @@ defined( 'ABSPATH' ) || exit;
 			</th>
 
 			<td>
-				<select id="cau_domain_group_select" name="cau_domain_group_select" data-security="' . esc_attr( wp_create_nonce( 'cau_domain_group' ) ) . '">
+				<select id="cau_domain_group_select" name="cau_domain_group_select" data-security="<?php echo esc_attr( wp_create_nonce( 'cau_domain_group' ) ); ?>">
 					<option value=""><?php esc_html_e( 'Select existing Group', 'civicrm-admin-utilities' ); ?></option>
 					<?php if ( $metabox['args']['domain_group']['id'] !== 0 ) : ?>
-						<option value="<?php echo $metabox['args']['domain_group']['id']; ?>" selected="selected"><?php echo $metabox['args']['domain_group']['name']; ?></option>
+						<option value="<?php echo esc_attr( $metabox['args']['domain_group']['id'] ); ?>" selected="selected"><?php echo esc_html( $metabox['args']['domain_group']['name'] ); ?></option>
 					<?php endif; ?>
 				</select>
 			</td>
@@ -46,10 +47,10 @@ defined( 'ABSPATH' ) || exit;
 			</th>
 
 			<td>
-				<select id="cau_domain_org_select" name="cau_domain_org_select" data-security="' . esc_attr( wp_create_nonce( 'cau_domain_org' ) ) . '">
+				<select id="cau_domain_org_select" name="cau_domain_org_select" data-security="<?php echo esc_attr( wp_create_nonce( 'cau_domain_org' ) ); ?>">
 					<option value=""><?php esc_html_e( 'Select existing Organisation', 'civicrm-admin-utilities' ); ?></option>
 					<?php if ( $metabox['args']['domain_org']['id'] !== 0 ) : ?>
-						<option value="<?php echo $metabox['args']['domain_org']['id']; ?>" selected="selected"><?php echo $metabox['args']['domain_org']['name']; ?></option>
+						<option value="<?php echo esc_attr( $metabox['args']['domain_org']['id'] ); ?>" selected="selected"><?php echo esc_html( $metabox['args']['domain_org']['name'] ); ?></option>
 					<?php endif; ?>
 				</select>
 			</td>

@@ -35,7 +35,8 @@ class SettingsPage extends AbstractSettingsPage
             __('Settings', 'peters-login-redirect'),
             'manage_options',
             PTR_LOGINWP_SETTINGS_PAGE_SLUG,
-            [$this, 'admin_page_callback']
+            [$this, 'admin_page_callback'],
+            1
         );
     }
 
@@ -49,11 +50,6 @@ class SettingsPage extends AbstractSettingsPage
         $tabs['general'] = esc_html__('General', 'peters-login-redirect');
 
         return apply_filters('loginwp_settings_header_menu_tabs', $tabs);
-    }
-
-    public function save_redirect_rule_changes()
-    {
-
     }
 
     public function settings_page_callback()

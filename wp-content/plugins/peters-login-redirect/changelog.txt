@@ -1,5 +1,38 @@
 == Changelog ==
 
+= 3.0.8.5 =
+* Fixed: Cookie issue
+
+= 3.0.8.4 =
+* Fixed: Advert dismissing issue for Widget Options
+
+= 3.0.8.3 =
+* Improved: Compatibility PHP 8.1
+* Added: UserSync (Collaboration with FuseWP)
+
+= 3.0.8.0 =
+* Improved: Compatibility PHP 8
+* Improved: Compatibility with WP 6.2
+* Fixed: Assets URL
+* Updated: Plugin’s Description
+
+= 3.0.7.0 =
+* Added [LearnPress](https://loginwp.com/redirect-wordpress-users-after-login-learnpress/?ref=changelog) integration.
+* PHP 8 improvements.
+* Fixed Warning: Undefined array key "rul_first_login"
+* Added filter to execute integrations conditions last.
+
+= 3.0.6.0 =
+* Pro: [WishList Member integration](https://loginwp.com/redirect-wordpress-users-after-login-wishlist-members/?ref=changelog).
+
+= 3.0.5.0 =
+* Pro: [Paid Memberships Pro condition](https://loginwp.com/redirect-wordpress-users-after-login-paid-memberships-pro-levels/?ref=changelog).
+* Fixed error message: syntax error, unexpected ‘?’
+
+= 3.0.4.0 =
+* Pro: ["After First Login" condition](https://loginwp.com/article/redirect-wordpress-users-after-first-login/?ref=changelog).
+* Fixed: PHP Notice Trying to get property ‘user_login’ of non-object.
+
 = 3.0.3.0 =
 * Fixed bug with wp list pagination per page not working.
 

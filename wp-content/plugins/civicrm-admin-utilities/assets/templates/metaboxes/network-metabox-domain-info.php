@@ -11,7 +11,8 @@
 // Exit if accessed directly.
 defined( 'ABSPATH' ) || exit;
 
-?><!-- assets/templates/metaboxes/network-metabox-domain-info.php -->
+?>
+<!-- assets/templates/metaboxes/network-metabox-domain-info.php -->
 <?php if ( ! $metabox['args']['multisite'] ) : ?>
 	<div class="updated error inline" style="background-color: #f7f7f7;">
 		<p>
@@ -37,7 +38,7 @@ defined( 'ABSPATH' ) || exit;
 
 	<tr>
 		<th scope="row">
-			<?php echo $civicrm_domain['name']; ?>
+			<?php echo esc_html( $civicrm_domain['name'] ); ?>
 		</th>
 
 		<td>
@@ -46,7 +47,7 @@ defined( 'ABSPATH' ) || exit;
 			echo sprintf(
 				/* translators: %s: The ID of the CiviCRM Domain. */
 				__( 'ID %s', 'civicrm-admin-utilities' ),
-				'<span class="cau_domain_id">' . $civicrm_domain['id'] . '</span>'
+				'<span class="cau_domain_id">' . esc_html( $civicrm_domain['id'] ) . '</span>'
 			);
 
 			?>

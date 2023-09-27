@@ -34,7 +34,7 @@ if ( ! empty( $mt_options['bg_image_portrait'] ) ) {
 	$bg_image_portrait = wp_get_attachment_image_src( $mt_options['bg_image_portrait'], 'full' );
 	$bg_image_portrait = ! empty( $bg_image_portrait ) ? $bg_image_portrait[0] : false;
 }
-$google_fonts = mtnc_add_google_fonts();
+$bunny_fonts = mtnc_add_bunny_fonts();
 ?>
 <!DOCTYPE html>
 <html <?php language_attributes(); ?>>
@@ -75,10 +75,10 @@ $google_fonts = mtnc_add_google_fonts();
 	<script type="text/javascript" src="<?php echo esc_url( MTNC_URI . 'load/js/jquery.backstretch.min.js' ); ?>"></script>
 	<![endif]-->
 	<?php
-	if ( ! empty( $google_fonts[1] ) ) {
-		echo '<link rel="stylesheet" href="' . esc_url( 'https://fonts.googleapis.com/css?family=' . esc_attr( $google_fonts[1] ) . '|' . esc_attr( $google_fonts[0] ) ) . '">';
-	} elseif ( ! empty( $google_fonts[0] ) ) {
-		echo '<link rel="stylesheet" href="' . esc_url( 'https://fonts.googleapis.com/css?family=' . esc_attr( $google_fonts[0] ) ) . '">';
+	if ( ! empty( $bunny_fonts[1] ) ) {
+		echo '<link rel="stylesheet" href="' . esc_url( 'https://fonts.bunny.net/css?family=' . esc_attr( $bunny_fonts[1] ) . '|' . esc_attr( $bunny_fonts[0] ) ) . '">';
+	} elseif ( ! empty( $bunny_fonts[0] ) ) {
+		echo '<link rel="stylesheet" href="' . esc_url( 'https://fonts.bunny.net/css?family=' . esc_attr( $bunny_fonts[0] ) ) . '">';
   }
 	?>
 </head>

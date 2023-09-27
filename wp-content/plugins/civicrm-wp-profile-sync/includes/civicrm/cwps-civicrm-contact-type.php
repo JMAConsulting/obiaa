@@ -25,7 +25,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Contact_Type {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object $plugin The plugin object.
+	 * @var object
 	 */
 	public $plugin;
 
@@ -34,7 +34,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Contact_Type {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object $civicrm The CiviCRM object.
+	 * @var object
 	 */
 	public $civicrm;
 
@@ -43,7 +43,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Contact_Type {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var array $top_level_types The top level CiviCRM Contact Types.
+	 * @var array
 	 */
 	public $top_level_types = [
 		'Individual',
@@ -101,7 +101,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Contact_Type {
 	/**
 	 * Get all top-level CiviCRM Contact Types.
 	 *
-	 * @since 0.4
+	 * @since 0.5
 	 *
 	 * @return array $top_level_types The top level CiviCRM Contact Types.
 	 */

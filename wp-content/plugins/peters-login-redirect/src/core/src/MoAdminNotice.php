@@ -1,8 +1,8 @@
 <?php
 
-if ( ! class_exists('\MO_Admin_Notice')) {
+if (!class_exists('\WO_Admin_Notice')) {
 
-    class MO_Admin_Notice
+    class WO_Admin_Notice
     {
         public function __construct()
         {
@@ -14,12 +14,12 @@ if ( ! class_exists('\MO_Admin_Notice')) {
 
         public function dismiss_admin_notice()
         {
-            if ( ! isset($_GET['mo-adaction']) || $_GET['mo-adaction'] != 'mo_dismiss_adnotice') {
+            if (!isset($_GET['wo-adaction']) || $_GET['wo-adaction'] != 'wo_dismiss_adnotice') {
                 return;
             }
 
             $url = admin_url();
-            update_option('mo_dismiss_adnotice', 'true');
+            update_option('wo_dismiss_adnotice', 'true');
 
             wp_redirect($url);
             exit;
@@ -30,9 +30,14 @@ if ( ! class_exists('\MO_Admin_Notice')) {
 
             global $pagenow;
 
+            //Remove this condition to display the admin notice for widget option plugin
+            if (1 == 1) {
+                return;
+            }
+
             if ($pagenow != 'index.php') return;
 
-            if (get_option('mo_dismiss_adnotice', 'false') == 'true') {
+            if (get_option('wo_dismiss_adnotice', 'false') == 'true') {
                 return;
             }
 
@@ -43,43 +48,46 @@ if ( ! class_exists('\MO_Admin_Notice')) {
             $dismiss_url = esc_url_raw(
                 add_query_arg(
                     array(
-                        'mo-adaction' => 'mo_dismiss_adnotice'
+                        'wo-adaction' => 'wo_dismiss_adnotice'
                     ),
                     admin_url()
                 )
             );
             $this->notice_css();
             $install_url = wp_nonce_url(
-                admin_url('update.php?action=install-plugin&plugin=mailoptin'),
-                'install-plugin_mailoptin'
+                admin_url('update.php?action=install-plugin&plugin=widget-options'),
+                'install-plugin_widget-options'
             );
 
-            $activate_url = wp_nonce_url(admin_url('plugins.php?action=activate&plugin=mailoptin%2Fmailoptin.php'), 'activate-plugin_mailoptin/mailoptin.php');
-            ?>
-            <div class="mo-admin-notice notice notice-success">
-                <div class="mo-notice-first-half">
+            $activate_url = wp_nonce_url(admin_url('plugins.php?action=activate&plugin=widget-options%2Fplugin.php'), 'activate-plugin_widget-options/plugin.php');
+?>
+            <div class="wo-admin-notice notice notice-success">
+                <div class="wo-notice-first-half">
+                    <p>Take Full Control over your WordPress Widgets</p>
                     <p>
                         <?php
                         printf(
-                            __('Free optin form plugin that will %1$sincrease your email list subscribers%2$s and keep them engaged with %1$sautomated and schedule newsletters%2$s.', 'peters-login-redirect'),
-                            '<span class="mo-stylize"><strong>', '</strong></span>');
+                            __("Add Widget options for better widget control. It is the best WordPress widgets settings plugin available. Widget Options lets you add more options to widget settings so you can take full control of your website's widgets.", 'peters-login-redirect'),
+                            '<span class="mo-stylize"><strong>',
+                            '</strong></span>'
+                        );
                         ?>
                     </p>
-                    <p style="text-decoration: underline;font-size: 12px;">Recommended by "LoginWP (Peter's Login Redirect)" plugin</p>
+                    <p style="text-decoration: underline;font-size: 12px;">Recommended by LoginWP</p>
                 </div>
-                <div class="mo-notice-other-half">
-                    <?php if ( ! $this->is_plugin_installed()) : ?>
-                        <a class="button button-primary button-hero" id="mo-install-mailoptin-plugin" href="<?php echo $install_url; ?>">
-                            <?php _e('Install MailOptin Now for Free!', 'peters-login-redirect'); ?>
+                <div class="wo-notice-other-half">
+                    <?php if (!$this->is_plugin_installed()) : ?>
+                        <a class="button button-primary button-hero" id="wo-install-widget-options-plugin" href="<?php echo $install_url; ?>">
+                            <?php _e('Install Widget Options Now for Free!', 'peters-login-redirect'); ?>
                         </a>
                     <?php endif; ?>
-                    <?php if ($this->is_plugin_installed() && ! $this->is_plugin_active()) : ?>
-                        <a class="button button-primary button-hero" id="mo-activate-mailoptin-plugin" href="<?php echo $activate_url; ?>">
-                            <?php _e('Activate MailOptin Now!', 'peters-login-redirect'); ?>
+                    <?php if ($this->is_plugin_installed() && !$this->is_plugin_active()) : ?>
+                        <a class="button button-primary button-hero" id="wo-activate-mailoptin-plugin" href="<?php echo $activate_url; ?>">
+                            <?php _e('Activate Widget Options Now!', 'peters-login-redirect'); ?>
                         </a>
                     <?php endif; ?>
-                    <div class="mo-notice-learn-more">
-                        <a target="_blank" href="https://mailoptin.io/">Learn more</a>
+                    <div class="wo-notice-learn-more">
+                        <a target="_blank" href="https://widget-options.com/">Learn more</a>
                     </div>
                 </div>
                 <a href="<?php echo $dismiss_url; ?>">
@@ -88,7 +96,7 @@ if ( ! class_exists('\MO_Admin_Notice')) {
                     </button>
                 </a>
             </div>
-            <?php
+        <?php
         }
 
         public function current_admin_url()
@@ -109,47 +117,47 @@ if ( ! class_exists('\MO_Admin_Notice')) {
         {
             $installed_plugins = get_plugins();
 
-            return isset($installed_plugins['mailoptin/mailoptin.php']);
+            return isset($installed_plugins['widget-options/plugin.php']);
         }
 
         public function is_plugin_active()
         {
-            return is_plugin_active('mailoptin/mailoptin.php');
+            return is_plugin_active('widget-options/plugin.php');
         }
 
         public function notice_css()
         {
-            ?>
+        ?>
             <style type="text/css">
-                .mo-admin-notice {
+                .wo-admin-notice {
                     background: #fff;
                     color: #000;
                     border-left-color: #46b450;
                     position: relative;
                 }
 
-                .mo-admin-notice .notice-dismiss:before {
+                .wo-admin-notice .notice-dismiss:before {
                     color: #72777c;
                 }
 
-                .mo-admin-notice .mo-stylize {
+                .wo-admin-notice .wo-stylize {
                     line-height: 2;
                 }
 
-                .mo-admin-notice .button-primary {
+                .wo-admin-notice .button-primary {
                     background: #006799;
                     text-shadow: none;
                     border: 0;
                     box-shadow: none;
                 }
 
-                .mo-notice-first-half {
+                .wo-notice-first-half {
                     width: 66%;
                     display: inline-block;
                     margin: 10px 0;
                 }
 
-                .mo-notice-other-half {
+                .wo-notice-other-half {
                     width: 33%;
                     display: inline-block;
                     padding: 20px 0;
@@ -157,19 +165,19 @@ if ( ! class_exists('\MO_Admin_Notice')) {
                     text-align: center;
                 }
 
-                .mo-notice-first-half p {
+                .wo-notice-first-half p {
                     font-size: 14px;
                 }
 
-                .mo-notice-learn-more a {
+                .wo-notice-learn-more a {
                     margin: 10px;
                 }
 
-                .mo-notice-learn-more {
+                .wo-notice-learn-more {
                     margin-top: 10px;
                 }
             </style>
-            <?php
+<?php
         }
 
         public static function instance()
@@ -184,5 +192,5 @@ if ( ! class_exists('\MO_Admin_Notice')) {
         }
     }
 
-    MO_Admin_Notice::instance();
+    WO_Admin_Notice::instance();
 }

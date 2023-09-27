@@ -11,8 +11,6 @@
 // Exit if accessed directly.
 defined( 'ABSPATH' ) || exit;
 
-
-
 /**
  * CiviCRM Admin Utilities Single Site Class.
  *
@@ -23,11 +21,11 @@ defined( 'ABSPATH' ) || exit;
 class CiviCRM_Admin_Utilities_Single {
 
 	/**
-	 * Plugin (calling) object.
+	 * Plugin object.
 	 *
 	 * @since 0.5.4
 	 * @access public
-	 * @var object $plugin The plugin object.
+	 * @var object
 	 */
 	public $plugin;
 
@@ -36,7 +34,7 @@ class CiviCRM_Admin_Utilities_Single {
 	 *
 	 * @since 0.5.4
 	 * @access public
-	 * @var str $plugin_version The plugin version. (numeric string)
+	 * @var string
 	 */
 	public $plugin_version;
 
@@ -45,7 +43,7 @@ class CiviCRM_Admin_Utilities_Single {
 	 *
 	 * @since 0.5.4
 	 * @access public
-	 * @var array $parent_page The reference to the parent page.
+	 * @var array
 	 */
 	public $parent_page;
 
@@ -54,7 +52,7 @@ class CiviCRM_Admin_Utilities_Single {
 	 *
 	 * @since 0.5.4
 	 * @access public
-	 * @var array $settings_page The reference to the settings page.
+	 * @var array
 	 */
 	public $settings_page;
 
@@ -63,20 +61,36 @@ class CiviCRM_Admin_Utilities_Single {
 	 *
 	 * @since 0.5.4
 	 * @access public
-	 * @var array $settings The plugin settings data.
+	 * @var array
 	 */
 	public $settings = [];
+
+	/**
+	 * Admin page URLs.
+	 *
+	 * @since 0.5.4
+	 * @access public
+	 * @var array
+	 */
+	public $urls = [];
 
 	/**
 	 * Upgrade flag.
 	 *
 	 * @since 0.7.4
 	 * @access public
-	 * @var array $settings An upgrade flag.
+	 * @var bool
 	 */
 	public $is_upgrade = false;
 
-
+	/**
+	 * Saved timezone.
+	 *
+	 * @since 1.0.1
+	 * @access public
+	 * @var string
+	 */
+	public $php_timezone = '';
 
 	/**
 	 * Constructor.
@@ -94,8 +108,6 @@ class CiviCRM_Admin_Utilities_Single {
 		add_action( 'civicrm_admin_utilities_loaded', [ $this, 'initialise' ] );
 
 	}
-
-
 
 	/**
 	 * Initialise this object.
@@ -131,8 +143,6 @@ class CiviCRM_Admin_Utilities_Single {
 
 	}
 
-
-
 	/**
 	 * Store the plugin version.
 	 *
@@ -145,8 +155,6 @@ class CiviCRM_Admin_Utilities_Single {
 		$this->option_set( 'civicrm_admin_utilities_version', CIVICRM_ADMIN_UTILITIES_VERSION );
 
 	}
-
-
 
 	/**
 	 * Utility to do stuff when an upgrade is required.
@@ -178,8 +186,6 @@ class CiviCRM_Admin_Utilities_Single {
 
 	}
 
-
-
 	/**
 	 * Delete the legacy "installed" option.
 	 *
@@ -194,8 +200,6 @@ class CiviCRM_Admin_Utilities_Single {
 		}
 
 	}
-
-
 
 	/**
 	 * Utility to do stuff when a settings upgrade is required.
@@ -326,6 +330,18 @@ class CiviCRM_Admin_Utilities_Single {
 
 		}
 
+		// Fix API timezone setting may not exist.
+		if ( ! $this->setting_exists( 'fix_api_timezone' ) ) {
+
+			// Add it from defaults.
+			if ( ! isset( $settings ) ) {
+				$settings = $this->settings_get_defaults();
+			}
+			$this->setting_set( 'fix_api_timezone', $settings['fix_api_timezone'] );
+			$save = true;
+
+		}
+
 		// If this is an upgrade.
 		if ( $this->is_upgrade ) {
 
@@ -342,8 +358,6 @@ class CiviCRM_Admin_Utilities_Single {
 
 	}
 
-
-
 	/**
 	 * Register hooks.
 	 *
@@ -355,7 +369,7 @@ class CiviCRM_Admin_Utilities_Single {
 		add_action( 'admin_menu', [ $this, 'admin_menu' ], 11 );
 
 		// Add our meta boxes.
-		add_action( 'add_meta_boxes', [ $this, 'meta_boxes_add' ], 11, 1 );
+		add_action( 'cau/single/admin/add_meta_boxes', [ $this, 'meta_boxes_add' ], 11, 1 );
 
 		// Kill CiviCRM shortcode button.
 		add_action( 'admin_head', [ $this, 'kill_civi_button' ] );
@@ -403,6 +417,9 @@ class CiviCRM_Admin_Utilities_Single {
 		// Add callback for CiviCRM Processor Params.
 		add_action( 'civicrm_alterPaymentProcessorParams', [ $this, 'paypal_params' ], 10, 3 );
 
+		// Listen for API calls.
+		add_action( 'civicrm_config', [ $this, 'api_timezone_sync' ], 10, 1 );
+
 		// If the debugging flag is set.
 		if ( CIVICRM_ADMIN_UTILITIES_DEBUG === true ) {
 
@@ -415,11 +432,7 @@ class CiviCRM_Admin_Utilities_Single {
 
 	}
 
-
-
 	// -------------------------------------------------------------------------
-
-
 
 	/**
 	 * Add link to CiviCRM Contact on the Users screen.
@@ -478,8 +491,6 @@ class CiviCRM_Admin_Utilities_Single {
 
 	}
 
-
-
 	/**
 	 * Add link to CiviCRM Contact on User Edit screen.
 	 *
@@ -528,11 +539,7 @@ class CiviCRM_Admin_Utilities_Single {
 
 	}
 
-
-
 	// -------------------------------------------------------------------------
-
-
 
 	/**
 	 * Set property when a CiviCRM contact's primary email address is updated.
@@ -574,8 +581,6 @@ class CiviCRM_Admin_Utilities_Single {
 
 	}
 
-
-
 	/**
 	 * Set property when a CiviCRM contact's primary email address is updated by
 	 * the CiviCRM WordPress Profile Sync plugin.
@@ -591,8 +596,6 @@ class CiviCRM_Admin_Utilities_Single {
 		$this->email_sync = true;
 
 	}
-
-
 
 	/**
 	 * Suppress notification email when WordPress user email changes.
@@ -625,8 +628,6 @@ class CiviCRM_Admin_Utilities_Single {
 		return $send;
 
 	}
-
-
 
 	/**
 	 * Get a CiviCRM Email record by its ID.
@@ -668,11 +669,7 @@ class CiviCRM_Admin_Utilities_Single {
 
 	}
 
-
-
 	// -------------------------------------------------------------------------
-
-
 
 	/**
 	 * Maybe hide CiviCRM on this site.
@@ -701,8 +698,6 @@ class CiviCRM_Admin_Utilities_Single {
 		remove_action( 'admin_bar_menu', [ $this, 'shortcuts_menu_add' ], 2000 );
 
 	}
-
-
 
 	/**
 	 * Hide the CiviCRM UI.
@@ -742,11 +737,7 @@ class CiviCRM_Admin_Utilities_Single {
 
 	}
 
-
-
 	// -------------------------------------------------------------------------
-
-
 
 	/**
 	 * Add an admin menu item(s) for this plugin.
@@ -815,8 +806,6 @@ class CiviCRM_Admin_Utilities_Single {
 
 	}
 
-
-
 	/**
 	 * Highlight the plugin's parent menu item.
 	 *
@@ -859,8 +848,6 @@ class CiviCRM_Admin_Utilities_Single {
 
 	}
 
-
-
 	/**
 	 * Initialise plugin help.
 	 *
@@ -880,8 +867,6 @@ class CiviCRM_Admin_Utilities_Single {
 		wp_enqueue_script( 'dashboard' );
 
 	}
-
-
 
 	/**
 	 * Adds help copy to admin page.
@@ -916,8 +901,6 @@ class CiviCRM_Admin_Utilities_Single {
 
 	}
 
-
-
 	/**
 	 * Get help text.
 	 *
@@ -934,8 +917,6 @@ class CiviCRM_Admin_Utilities_Single {
 		return $help;
 
 	}
-
-
 
 	/**
 	 * Enqueue stylesheet for this plugin's "Site Settings" page.
@@ -954,8 +935,6 @@ class CiviCRM_Admin_Utilities_Single {
 		);
 
 	}
-
-
 
 	/**
 	 * Enqueue scripts for this plugin's "Site Settings" page.
@@ -993,11 +972,7 @@ class CiviCRM_Admin_Utilities_Single {
 
 	}
 
-
-
 	// -------------------------------------------------------------------------
-
-
 
 	/**
 	 * Show our settings page.
@@ -1046,7 +1021,7 @@ class CiviCRM_Admin_Utilities_Single {
 		 *
 		 * @param str $screen_id The ID of the current screen.
 		 */
-		do_action( 'add_meta_boxes', $screen->id, null );
+		do_action( 'cau/single/admin/add_meta_boxes', $screen->id, null );
 
 		// Grab columns.
 		$columns = ( 1 == $screen->get_columns() ? '1' : '2' );
@@ -1055,8 +1030,6 @@ class CiviCRM_Admin_Utilities_Single {
 		include CIVICRM_ADMIN_UTILITIES_PATH . 'assets/templates/site-settings.php';
 
 	}
-
-
 
 	/**
 	 * Get admin page URLs.
@@ -1068,7 +1041,7 @@ class CiviCRM_Admin_Utilities_Single {
 	public function page_get_urls() {
 
 		// Only calculate once.
-		if ( isset( $this->urls ) ) {
+		if ( ! empty( $this->urls ) ) {
 			return $this->urls;
 		}
 
@@ -1093,8 +1066,6 @@ class CiviCRM_Admin_Utilities_Single {
 
 	}
 
-
-
 	/**
 	 * Get the URL for the form action.
 	 *
@@ -1104,27 +1075,15 @@ class CiviCRM_Admin_Utilities_Single {
 	 */
 	public function page_submit_url_get() {
 
-		// Sanitise admin page URL.
-		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-		$target_url = isset( $_SERVER['REQUEST_URI'] ) ? wp_unslash( $_SERVER['REQUEST_URI'] ) : '';
-		if ( ! empty( $target_url ) ) {
-			$url_array = explode( '&', $target_url );
-			if ( ! empty( $url_array ) ) {
-				$url_raw = str_replace( '&amp;updated=true', '', $url_array[0] );
-				$target_url = htmlentities( $url_raw . '&updated=true' );
-			}
-		}
+		// Use Settings page URL.
+		$target_url = menu_page_url( 'cau_settings', false );
 
 		// --<
 		return $target_url;
 
 	}
 
-
-
 	// -------------------------------------------------------------------------
-
-
 
 	/**
 	 * Register meta boxes.
@@ -1244,6 +1203,16 @@ class CiviCRM_Admin_Utilities_Single {
 			'core' // Vertical placement: options are 'core', 'high', 'low'.
 		);
 
+		// Create Other Fixes metabox.
+		add_meta_box(
+			'civicrm_au_fixes',
+			__( 'Other Fixes', 'civicrm-admin-utilities' ),
+			[ $this, 'meta_box_fixes_render' ], // Callback.
+			$screen_id, // Screen ID.
+			'normal', // Column: options are 'normal' and 'side'.
+			'core' // Vertical placement: options are 'core', 'high', 'low'.
+		);
+
 		// If this user can administer CiviCRM.
 		if ( $this->check_permission( 'administer CiviCRM' ) ) {
 
@@ -1261,8 +1230,6 @@ class CiviCRM_Admin_Utilities_Single {
 
 	}
 
-
-
 	/**
 	 * Render a Submit meta box on Admin screen.
 	 *
@@ -1274,8 +1241,6 @@ class CiviCRM_Admin_Utilities_Single {
 		include CIVICRM_ADMIN_UTILITIES_PATH . 'assets/templates/metaboxes/site-metabox-submit.php';
 
 	}
-
-
 
 	/**
 	 * Render CiviCRM Access meta box on Admin screen.
@@ -1294,8 +1259,6 @@ class CiviCRM_Admin_Utilities_Single {
 		include CIVICRM_ADMIN_UTILITIES_PATH . 'assets/templates/metaboxes/site-metabox-access.php';
 
 	}
-
-
 
 	/**
 	 * Render CiviCRM Admin Appearance meta box on Admin screen.
@@ -1328,8 +1291,6 @@ class CiviCRM_Admin_Utilities_Single {
 		include CIVICRM_ADMIN_UTILITIES_PATH . 'assets/templates/metaboxes/site-metabox-appearance.php';
 
 	}
-
-
 
 	/**
 	 * Render CiviCRM Stylesheets meta box on Admin screen.
@@ -1392,8 +1353,6 @@ class CiviCRM_Admin_Utilities_Single {
 
 	}
 
-
-
 	/**
 	 * Render CiviCRM Contacts & WordPress Users meta box on Admin screen.
 	 *
@@ -1417,8 +1376,6 @@ class CiviCRM_Admin_Utilities_Single {
 		include CIVICRM_ADMIN_UTILITIES_PATH . 'assets/templates/metaboxes/site-metabox-contacts.php';
 
 	}
-
-
 
 	/**
 	 * Render Admin Bar Options meta box on Admin screen.
@@ -1444,8 +1401,6 @@ class CiviCRM_Admin_Utilities_Single {
 
 	}
 
-
-
 	/**
 	 * Render Post Type Options meta box on Admin screen.
 	 *
@@ -1461,7 +1416,23 @@ class CiviCRM_Admin_Utilities_Single {
 
 	}
 
+	/**
+	 * Render Other Fixes meta box on Admin screen.
+	 *
+	 * @since 1.0.1
+	 */
+	public function meta_box_fixes_render() {
 
+		// Init fix API timezone checkbox.
+		$fix_api_timezone = '';
+		if ( $this->setting_get( 'fix_api_timezone', '0' ) == '1' ) {
+			$fix_api_timezone = ' checked="checked"';
+		}
+
+		// Include template file.
+		include CIVICRM_ADMIN_UTILITIES_PATH . 'assets/templates/metaboxes/site-metabox-fixes.php';
+
+	}
 
 	/**
 	 * Render Shortcuts meta box on Admin screen.
@@ -1475,11 +1446,7 @@ class CiviCRM_Admin_Utilities_Single {
 
 	}
 
-
-
 	// -------------------------------------------------------------------------
-
-
 
 	/**
 	 * Get post type options.
@@ -1544,8 +1511,6 @@ class CiviCRM_Admin_Utilities_Single {
 
 	}
 
-
-
 	/**
 	 * Clear CiviCRM caches.
 	 *
@@ -1580,11 +1545,7 @@ class CiviCRM_Admin_Utilities_Single {
 
 	}
 
-
-
 	// -------------------------------------------------------------------------
-
-
 
 	/**
 	 * Register directory that CiviCRM searches for the menu template file.
@@ -1623,8 +1584,6 @@ class CiviCRM_Admin_Utilities_Single {
 		set_include_path( $template_include_path );
 
 	}
-
-
 
 	/**
 	 * Admin style tweaks.
@@ -1735,11 +1694,7 @@ class CiviCRM_Admin_Utilities_Single {
 
 	}
 
-
-
 	// -------------------------------------------------------------------------
-
-
 
 	/**
 	 * Disable CiviCRM resources from front-end.
@@ -1814,8 +1769,6 @@ class CiviCRM_Admin_Utilities_Single {
 
 	}
 
-
-
 	/**
 	 * Disable a resource enqueued by CiviCRM.
 	 *
@@ -1844,8 +1797,6 @@ class CiviCRM_Admin_Utilities_Single {
 		CRM_Core_Region::instance( 'html-header' )->update( $url, [ 'disabled' => true ] );
 
 	}
-
-
 
 	/**
 	 * Get the URL of a resource if it is enqueued by CiviCRM.
@@ -1879,8 +1830,6 @@ class CiviCRM_Admin_Utilities_Single {
 		return $url;
 
 	}
-
-
 
 	/**
 	 * Disable any custom CSS file enqueued by CiviCRM.
@@ -1926,8 +1875,6 @@ class CiviCRM_Admin_Utilities_Single {
 
 	}
 
-
-
 	/**
 	 * Determine if the Shoreditch CSS file is being used.
 	 *
@@ -1959,8 +1906,6 @@ class CiviCRM_Admin_Utilities_Single {
 		return $shoreditch;
 
 	}
-
-
 
 	/**
 	 * Determine if the Keyboard Accessible Menu Extension is being used.
@@ -2004,8 +1949,6 @@ class CiviCRM_Admin_Utilities_Single {
 
 	}
 
-
-
 	/**
 	 * Do not load the CiviCRM shortcode button unless we explicitly enable it.
 	 *
@@ -2036,8 +1979,6 @@ class CiviCRM_Admin_Utilities_Single {
 		}
 
 	}
-
-
 
 	/**
 	 * Prevent the loading of the CiviCRM shortcode button.
@@ -2083,11 +2024,7 @@ class CiviCRM_Admin_Utilities_Single {
 
 	}
 
-
-
 	// -------------------------------------------------------------------------
-
-
 
 	/**
 	 * Add a CiviCRM menu to the WordPress admin bar.
@@ -2339,8 +2276,6 @@ class CiviCRM_Admin_Utilities_Single {
 
 	}
 
-
-
 	/**
 	 * Get a CiviCRM admin link.
 	 *
@@ -2376,8 +2311,6 @@ class CiviCRM_Admin_Utilities_Single {
 		return $link;
 
 	}
-
-
 
 	/**
 	 * Check a CiviCRM permission.
@@ -2416,11 +2349,7 @@ class CiviCRM_Admin_Utilities_Single {
 
 	}
 
-
-
 	// -------------------------------------------------------------------------
-
-
 
 	/**
 	 * Before a Contact is updated, establish if they are being moved "to the
@@ -2511,8 +2440,6 @@ class CiviCRM_Admin_Utilities_Single {
 
 	}
 
-
-
 	/**
 	 * Act when a Contact has been moved in or out of Trash.
 	 *
@@ -2562,11 +2489,7 @@ class CiviCRM_Admin_Utilities_Single {
 
 	}
 
-
-
 	// -------------------------------------------------------------------------
-
-
 
 	/**
 	 * Add link to CiviCRM Contact on the Users screen.
@@ -2590,8 +2513,6 @@ class CiviCRM_Admin_Utilities_Single {
 		);
 
 	}
-
-
 
 	/**
 	 * Add link to CiviCRM Contact on the Users screen.
@@ -2655,11 +2576,7 @@ class CiviCRM_Admin_Utilities_Single {
 
 	}
 
-
-
 	// -------------------------------------------------------------------------
-
-
 
 	/**
 	 * Filter the CiviCRM Processor Params.
@@ -2699,8 +2616,6 @@ class CiviCRM_Admin_Utilities_Single {
 		$cooked_params['notify_url'] = rawurldecode( $cooked_params['notify_url'] );
 
 	}
-
-
 
 	/**
 	 * Check if PayPal IPN URLs have been fixed.
@@ -2746,8 +2661,6 @@ class CiviCRM_Admin_Utilities_Single {
 
 	}
 
-
-
 	/**
 	 * Check if this version of CiviCRM predates the need for a fix.
 	 *
@@ -2781,11 +2694,169 @@ class CiviCRM_Admin_Utilities_Single {
 
 	}
 
-
-
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Listens for API calls and makes sure the timezone is set correctly.
+	 *
+	 * @since 1.0.1
+	 *
+	 * @param object $config The CiviCRM config object.
+	 */
+	public function api_timezone_sync( &$config ) {
 
+		// Bail if disabled.
+		if ( $this->setting_get( 'fix_api_timezone', '0' ) == '0' ) {
+			return;
+		}
+
+		// Add callback for CiviCRM "civi.api.prepare" hook.
+		Civi::service( 'dispatcher' )->addListener(
+			'civi.api.prepare',
+			[ $this, 'api_timezone_set' ],
+			-100 // Default priority.
+		);
+
+		// Add callback for CiviCRM "civi.api.respond" hook.
+		Civi::service( 'dispatcher' )->addListener(
+			'civi.api.respond',
+			[ $this, 'api_timezone_reset' ],
+			-100 // Default priority.
+		);
+
+	}
+
+	/**
+	 * Sets the timezone just before for API calls are made.
+	 *
+	 * @since 1.0.1
+	 *
+	 * @param object $event The event object.
+	 * @param string $hook The hook name.
+	 */
+	public function api_timezone_set( $event, $hook ) {
+
+		// Extract args for this hook.
+		$action = $event->getActionName();
+
+		// Bail if not an action that modifies the database.
+		if ( ! in_array( $action, [ 'create', 'replace', 'validate', 'update', 'setvalue' ] ) ) {
+			return;
+		}
+
+		// Store current PHP timezone.
+		if ( empty( $this->php_timezone ) ) {
+			$this->php_timezone = date_default_timezone_get();
+		}
+
+		// Get the timezone defined by the WordPress Site.
+		$site_timezone = $this->site_timezone_get();
+
+		// Configure timezone for CiviCRM.
+		if ( $site_timezone !== $this->php_timezone ) {
+			// phpcs:ignore WordPress.DateTime.RestrictedFunctions.timezone_change_date_default_timezone_set
+			date_default_timezone_set( $site_timezone );
+			CRM_Core_Config::singleton()->userSystem->setMySQLTimeZone();
+		}
+
+	}
+
+	/**
+	 * Resets the timezone just after API calls have been made.
+	 *
+	 * @since 1.0.1
+	 *
+	 * @param object $event The event object.
+	 * @param string $hook The hook name.
+	 */
+	public function api_timezone_reset( $event, $hook ) {
+
+		// Extract args for this hook.
+		$action = $event->getActionName();
+
+		// Bail if not an action that modifies the database.
+		if ( ! in_array( $action, [ 'create', 'replace', 'validate', 'update', 'setvalue' ] ) ) {
+			return;
+		}
+
+		// Restore current PHP timezone.
+		if ( ! empty( $this->php_timezone ) ) {
+			// phpcs:ignore WordPress.DateTime.RestrictedFunctions.timezone_change_date_default_timezone_set
+			date_default_timezone_set( $this->php_timezone );
+			$this->php_timezone = '';
+		}
+
+	}
+
+	/**
+	 * Returns the timezone string for the current site.
+	 *
+	 * If a timezone identifier is used, this method returns that.
+	 * If an offset is used, tries to build a suitable timezone.
+	 * If all else fails, uses UTC.
+	 *
+	 * This is a modified version of the "eo_get_blog_timezone" function in the
+	 * Event Organiser plugin.
+	 *
+	 * @see https://github.com/stephenharris/Event-Organiser/blob/develop/includes/event-organiser-utility-functions.php#L352
+	 *
+	 * @since 1.0.1
+	 *
+	 * @return string $tzstring The site timezone string.
+	 */
+	public function site_timezone_get() {
+
+		// Check our cached value first.
+		$tzstring = wp_cache_get( 'civicrm_admin_utilities_timezone' );
+
+		/**
+		 * Filters the cached timezone string.
+		 *
+		 * @since 1.0.1
+		 *
+		 * @param string $tzstring The cached timezone string.
+		 */
+		$tzstring = apply_filters( 'civicrm_admin_utilities_timezone', $tzstring );
+
+		// Build value if none is cached.
+		if ( false === $tzstring ) {
+
+			// Get relevant WordPress settings.
+			$tzstring = get_option( 'timezone_string' );
+			$offset = get_option( 'gmt_offset' );
+
+			/*
+			 * Setting manual offsets should be discouraged.
+			 *
+			 * The IANA timezone database that provides PHP's timezone support
+			 * uses (reversed) POSIX style signs.
+			 *
+			 * @see https://github.com/stephenharris/Event-Organiser/issues/287
+			 * @see https://www.php.net/manual/en/timezones.others.php
+			 * @see https://bugs.php.net/bug.php?id=45543
+			 * @see https://bugs.php.net/bug.php?id=45528
+			 */
+			if ( empty( $tzstring ) && 0 != $offset && floor( $offset ) == $offset ) {
+				$offset_string = $offset > 0 ? "-$offset" : '+' . absint( $offset );
+				$tzstring = 'Etc/GMT' . $offset_string;
+			}
+
+			// Default to 'UTC' if the timezone string is empty.
+			if ( empty( $tzstring ) ) {
+				$tzstring = 'UTC';
+			}
+
+			// Cache timezone string.
+			wp_cache_set( 'civicrm_admin_utilities_timezone', $tzstring );
+
+		}
+
+		// --<
+		return $tzstring;
+
+	}
+
+	// -------------------------------------------------------------------------
 
 	/**
 	 * Utility for tracing calls to hook_civicrm_pre.
@@ -2812,8 +2883,6 @@ class CiviCRM_Admin_Utilities_Single {
 
 	}
 
-
-
 	/**
 	 * Utility for tracing calls to hook_civicrm_post.
 	 *
@@ -2839,8 +2908,6 @@ class CiviCRM_Admin_Utilities_Single {
 
 	}
 
-
-
 	/**
 	 * Utility for tracing calls to hook_civicrm_postProcess.
 	 *
@@ -2862,11 +2929,7 @@ class CiviCRM_Admin_Utilities_Single {
 
 	}
 
-
-
 	// -------------------------------------------------------------------------
-
-
 
 	/**
 	 * Get default settings values for this plugin.
@@ -2915,6 +2978,9 @@ class CiviCRM_Admin_Utilities_Single {
 		// Init post types with defaults.
 		$settings['post_types'] = [ 'post', 'page' ];
 
+		// Fix API timezone by default.
+		$settings['fix_api_timezone'] = '1';
+
 		/**
 		 * Filter default settings.
 		 *
@@ -2930,79 +2996,89 @@ class CiviCRM_Admin_Utilities_Single {
 
 	}
 
-
-
 	/**
 	 * Route settings updates to relevant methods.
 	 *
 	 * @since 0.5.4
-	 *
-	 * @return bool $result True on success, false otherwise.
 	 */
 	public function settings_update_router() {
-
-		// Init return.
-		$result = false;
 
 		// Was the "Settings" form submitted?
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
 		if ( isset( $_POST['civicrm_admin_utilities_settings_submit'] ) ) {
-			return $this->settings_update();
+			$this->settings_update();
+			$this->settings_update_redirect();
 		}
-
-		// --<
-		return $result;
 
 	}
 
+	/**
+	 * Form redirection handler.
+	 *
+	 * @since 1.0.1
+	 */
+	public function settings_update_redirect() {
 
+		// Get the Site Settings Page URL.
+		$url = $this->page_submit_url_get();
+
+		// Our array of arguments.
+		$args = [ 'updated' => 'true' ];
+
+		// Redirect to our Settings Page.
+		wp_safe_redirect( add_query_arg( $args, $url ) );
+		exit;
+
+	}
 
 	/**
 	 * Update options supplied by our Settings admin page.
 	 *
 	 * @since 0.5.4
 	 * @since 0.5.4 Moved from admin class and made site-specific.
-	 *
-	 * @return bool True if successful, false otherwise (always true at present).
 	 */
 	public function settings_update() {
 
 		// Check that we trust the source of the data.
 		check_admin_referer( 'civicrm_admin_utilities_settings_action', 'civicrm_admin_utilities_settings_nonce' );
 
-		// Init vars.
-		$civicrm_admin_utilities_hide_civicrm = '';
-		$civicrm_admin_utilities_dashboard_title = '';
-		$civicrm_admin_utilities_menu = '';
-		$civicrm_admin_utilities_styles_admin = '';
-		$civicrm_admin_utilities_styles_default = '';
-		$civicrm_admin_utilities_styles_nav = '';
-		$civicrm_admin_utilities_styles_custom = '';
-		$civicrm_admin_utilities_styles_custom_public = '';
-		$civicrm_admin_utilities_styles_shoreditch = '';
-		$civicrm_admin_utilities_styles_bootstrap = '';
-		$civicrm_admin_utilities_email_suppress = '';
-		$civicrm_admin_utilities_fix_soft_delete = '';
-		$civicrm_admin_utilities_admin_bar = '';
-		$civicrm_admin_utilities_admin_bar_groups = '';
-		$civicrm_admin_utilities_post_types = [];
-		$civicrm_admin_utilities_cache = '';
+		// Retrieve variables from POST.
+		$prefix = 'civicrm_admin_utilities_';
+		$hide_civicrm = isset( $_POST[ $prefix . 'hide_civicrm' ] ) ? (int) sanitize_text_field( wp_unslash( $_POST[ $prefix . 'hide_civicrm' ] ) ) : 0;
+		$dashboard_title = isset( $_POST[ $prefix . 'dashboard_title' ] ) ? (int) sanitize_text_field( wp_unslash( $_POST[ $prefix . 'dashboard_title' ] ) ) : 0;
+		$menu = isset( $_POST[ $prefix . 'menu' ] ) ? (int) sanitize_text_field( wp_unslash( $_POST[ $prefix . 'menu' ] ) ) : 0;
+		$styles_admin = isset( $_POST[ $prefix . 'styles_admin' ] ) ? (int) sanitize_text_field( wp_unslash( $_POST[ $prefix . 'styles_admin' ] ) ) : 0;
+		$styles_default = isset( $_POST[ $prefix . 'styles_default' ] ) ? (int) sanitize_text_field( wp_unslash( $_POST[ $prefix . 'styles_default' ] ) ) : 0;
+		$styles_nav = isset( $_POST[ $prefix . 'styles_nav' ] ) ? (int) sanitize_text_field( wp_unslash( $_POST[ $prefix . 'styles_nav' ] ) ) : 0;
+		$styles_custom = isset( $_POST[ $prefix . 'styles_custom' ] ) ? (int) sanitize_text_field( wp_unslash( $_POST[ $prefix . 'styles_custom' ] ) ) : 0;
+		$styles_custom_public = isset( $_POST[ $prefix . 'styles_custom_public' ] ) ? (int) sanitize_text_field( wp_unslash( $_POST[ $prefix . 'styles_custom_public' ] ) ) : 0;
+		$styles_shoreditch = isset( $_POST[ $prefix . 'styles_shoreditch' ] ) ? (int) sanitize_text_field( wp_unslash( $_POST[ $prefix . 'styles_shoreditch' ] ) ) : 0;
+		$styles_bootstrap = isset( $_POST[ $prefix . 'styles_bootstrap' ] ) ? (int) sanitize_text_field( wp_unslash( $_POST[ $prefix . 'styles_bootstrap' ] ) ) : 0;
+		$email_suppress = isset( $_POST[ $prefix . 'email_suppress' ] ) ? (int) sanitize_text_field( wp_unslash( $_POST[ $prefix . 'email_suppress' ] ) ) : 0;
+		$fix_soft_delete = isset( $_POST[ $prefix . 'fix_soft_delete' ] ) ? (int) sanitize_text_field( wp_unslash( $_POST[ $prefix . 'fix_soft_delete' ] ) ) : 0;
+		$admin_bar = isset( $_POST[ $prefix . 'admin_bar' ] ) ? (int) sanitize_text_field( wp_unslash( $_POST[ $prefix . 'admin_bar' ] ) ) : 0;
+		$admin_bar_groups = isset( $_POST[ $prefix . 'admin_bar_groups' ] ) ? (int) sanitize_text_field( wp_unslash( $_POST[ $prefix . 'admin_bar_groups' ] ) ) : 0;
+		$fix_api_timezone = isset( $_POST[ $prefix . 'fix_api_timezone' ] ) ? (int) sanitize_text_field( wp_unslash( $_POST[ $prefix . 'fix_api_timezone' ] ) ) : 0;
+		$flush_cache = isset( $_POST[ $prefix . 'cache' ] ) ? (int) sanitize_text_field( wp_unslash( $_POST[ $prefix . 'cache' ] ) ) : 0;
 
-		// Get variables.
-		extract( $_POST );
+		// Retrieve Post Types array.
+		$post_types = filter_input( INPUT_POST, $prefix . 'post_types', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY );
+		if ( empty( $post_types ) ) {
+			$post_types = [];
+		}
 
 		// Init force cache-clearing flag.
 		$force = false;
 
 		// Did we ask to hide CiviCRM?
-		if ( $civicrm_admin_utilities_hide_civicrm == '1' ) {
+		if ( 1 === $hide_civicrm ) {
 			$this->setting_set( 'hide_civicrm', '1' );
 		} else {
 			$this->setting_set( 'hide_civicrm', '0' );
 		}
 
 		// Did we ask to prettify Dashboard Title?
-		if ( $civicrm_admin_utilities_dashboard_title == '1' ) {
+		if ( 1 === $dashboard_title ) {
 			$this->setting_set( 'dashboard_title', '1' );
 		} else {
 			$this->setting_set( 'dashboard_title', '0' );
@@ -3010,12 +3086,12 @@ class CiviCRM_Admin_Utilities_Single {
 
 		// Get existing menu setting.
 		$existing_menu = $this->setting_get( 'prettify_menu', '0' );
-		if ( $civicrm_admin_utilities_menu != $existing_menu ) {
+		if ( $menu !== (int) $existing_menu ) {
 			$force = true;
 		}
 
 		// Did we ask to prettify the menu?
-		if ( $civicrm_admin_utilities_menu == '1' ) {
+		if ( 1 === $menu ) {
 			$this->setting_set( 'prettify_menu', '1' );
 		} else {
 			$this->setting_set( 'prettify_menu', '0' );
@@ -3023,12 +3099,12 @@ class CiviCRM_Admin_Utilities_Single {
 
 		// Get existing Admin Theme setting.
 		$existing_theme = $this->setting_get( 'css_admin', '0' );
-		if ( $civicrm_admin_utilities_styles_admin != $existing_theme ) {
+		if ( $styles_admin !== (int) $existing_theme ) {
 			$force = true;
 		}
 
 		// Did we ask to override CiviCRM Default styleheet?
-		if ( $civicrm_admin_utilities_styles_admin == '1' ) {
+		if ( 1 === $styles_admin ) {
 			$this->setting_set( 'css_admin', '1' );
 
 			/**
@@ -3055,98 +3131,105 @@ class CiviCRM_Admin_Utilities_Single {
 		}
 
 		// Did we ask to prevent default styleheet?
-		if ( $civicrm_admin_utilities_styles_default == '1' ) {
+		if ( 1 === $styles_default ) {
 			$this->setting_set( 'css_default', '1' );
 		} else {
 			$this->setting_set( 'css_default', '0' );
 		}
 
 		// Did we ask to prevent navigation styleheet?
-		if ( $civicrm_admin_utilities_styles_nav == '1' ) {
+		if ( 1 === $styles_nav ) {
 			$this->setting_set( 'css_navigation', '1' );
 		} else {
 			$this->setting_set( 'css_navigation', '0' );
 		}
 
 		// Did we ask to prevent CiviCRM custom styleheet from front-end?
-		if ( $civicrm_admin_utilities_styles_custom == '1' ) {
+		if ( 1 === $styles_custom ) {
 			$this->setting_set( 'css_custom', '1' );
 		} else {
 			$this->setting_set( 'css_custom', '0' );
 		}
 
 		// Did we ask to prevent CiviCRM custom styleheet from admin?
-		if ( $civicrm_admin_utilities_styles_custom_public == '1' ) {
+		if ( 1 === $styles_custom_public ) {
 			$this->setting_set( 'css_custom_public', '1' );
 		} else {
 			$this->setting_set( 'css_custom_public', '0' );
 		}
 
 		// Did we ask to prevent Shoreditch styleheet?
-		if ( $civicrm_admin_utilities_styles_shoreditch == '1' ) {
+		if ( 1 === $styles_shoreditch ) {
 			$this->setting_set( 'css_shoreditch', '1' );
 		} else {
 			$this->setting_set( 'css_shoreditch', '0' );
 		}
 
 		// Did we ask to prevent Shoreditch Bootstrap styleheet?
-		if ( $civicrm_admin_utilities_styles_bootstrap == '1' ) {
+		if ( 1 === $styles_bootstrap ) {
 			$this->setting_set( 'css_bootstrap', '1' );
 		} else {
 			$this->setting_set( 'css_bootstrap', '0' );
 		}
 
 		// Did we ask to suppress Notification Emails?
-		if ( $civicrm_admin_utilities_email_suppress == '1' ) {
+		if ( 1 === $email_suppress ) {
 			$this->setting_set( 'email_suppress', '1' );
 		} else {
 			$this->setting_set( 'email_suppress', '0' );
 		}
 
 		// Did we ask to fix Contact Soft Delete?
-		if ( $civicrm_admin_utilities_fix_soft_delete == '1' ) {
+		if ( 1 === $fix_soft_delete ) {
 			$this->setting_set( 'fix_soft_delete', '1' );
 		} else {
 			$this->setting_set( 'fix_soft_delete', '0' );
 		}
 
 		// Did we ask to add the shortcuts menu to the admin bar?
-		if ( $civicrm_admin_utilities_admin_bar == '1' ) {
+		if ( 1 === $admin_bar ) {
 			$this->setting_set( 'admin_bar', '1' );
 		} else {
 			$this->setting_set( 'admin_bar', '0' );
 		}
 
 		// Did we ask to hide the "Manage Groups" menu item from the shortcuts menu?
-		if ( $civicrm_admin_utilities_admin_bar_groups == '1' ) {
+		if ( 1 === $admin_bar_groups ) {
 			$this->setting_set( 'admin_bar_groups', '1' );
 		} else {
 			$this->setting_set( 'admin_bar_groups', '0' );
 		}
 
 		// Which post types are we enabling the CiviCRM button on?
-		if ( count( $civicrm_admin_utilities_post_types ) > 0 ) {
+		if ( ! empty( $post_types ) ) {
 
 			// Sanitise array.
 			array_walk(
-				$civicrm_admin_utilities_post_types,
+				$post_types,
 				function( &$item ) {
-					$item = esc_sql( trim( $item ) );
+					$item = sanitize_text_field( wp_unslash( $item ) );
 				}
 			);
 
 			// Set option.
-			$this->setting_set( 'post_types', $civicrm_admin_utilities_post_types );
+			$this->setting_set( 'post_types', $post_types );
 
 		} else {
 			$this->setting_set( 'post_types', [] );
+		}
+
+		// Did we ask to fix API timezone?
+		if ( 1 === $fix_api_timezone ) {
+			$this->setting_set( 'fix_api_timezone', '1' );
+		} else {
+			$this->setting_set( 'fix_api_timezone', '0' );
 		}
 
 		// Save options.
 		$this->settings_save();
 
 		// Clear caches if asked to - or if forced to do so.
-		if ( $civicrm_admin_utilities_cache == '1' || $force ) {
+		if ( $flush_cache || $force ) {
 			$this->clear_caches();
 		}
 
@@ -3157,16 +3240,9 @@ class CiviCRM_Admin_Utilities_Single {
 		 */
 		do_action( 'civicrm_admin_utilities_single_settings_updated' );
 
-		// --<
-		return true;
-
 	}
 
-
-
 	// -------------------------------------------------------------------------
-
-
 
 	/**
 	 * Save array as option.
@@ -3182,8 +3258,6 @@ class CiviCRM_Admin_Utilities_Single {
 		return $this->option_set( 'civicrm_admin_utilities_settings', $this->settings );
 
 	}
-
-
 
 	/**
 	 * Check whether a specified setting exists.
@@ -3206,8 +3280,6 @@ class CiviCRM_Admin_Utilities_Single {
 
 	}
 
-
-
 	/**
 	 * Return a value for a specified setting.
 	 *
@@ -3229,8 +3301,6 @@ class CiviCRM_Admin_Utilities_Single {
 		return ( array_key_exists( $setting_name, $this->settings ) ) ? $this->settings[ $setting_name ] : $default;
 
 	}
-
-
 
 	/**
 	 * Sets a value for a specified setting.
@@ -3258,8 +3328,6 @@ class CiviCRM_Admin_Utilities_Single {
 
 	}
 
-
-
 	/**
 	 * Deletes a specified setting.
 	 *
@@ -3280,11 +3348,7 @@ class CiviCRM_Admin_Utilities_Single {
 
 	}
 
-
-
 	// -------------------------------------------------------------------------
-
-
 
 	/**
 	 * Test existence of a specified option.
@@ -3311,8 +3375,6 @@ class CiviCRM_Admin_Utilities_Single {
 
 	}
 
-
-
 	/**
 	 * Return a value for a specified option.
 	 *
@@ -3338,8 +3400,6 @@ class CiviCRM_Admin_Utilities_Single {
 
 	}
 
-
-
 	/**
 	 * Set a value for a specified option.
 	 *
@@ -3362,8 +3422,6 @@ class CiviCRM_Admin_Utilities_Single {
 
 	}
 
-
-
 	/**
 	 * Delete a specified option.
 	 *
@@ -3385,9 +3443,4 @@ class CiviCRM_Admin_Utilities_Single {
 
 	}
 
-
-
-} // Class ends.
-
-
-
+}
