@@ -214,7 +214,7 @@ class CRM_Biasync_Utils {
   private static function comparePropertyRecord(array $biaPropertyRecord, array $centralPropertyRecord): bool {
     $recordsDiffer = FALSE;
     foreach ($biaPropertyRecord as $fieldName => $value) {
-      if ($fieldName !== 'id' && $value != $centralPropertyRecord[$fieldName]) {
+      if ($fieldName !== 'id' && (!empty($value) && (!isset($centralPropertyRecord[$fieldName]) || $value != $centralPropertyRecord[$fieldName]) || (empty($value) && !empty($centralPropertyRecord[$fieldName])))) {
         $recordsDiffer = TRUE;
       }
     }
@@ -231,7 +231,7 @@ class CRM_Biasync_Utils {
   private static function compareUnitRecord(array $biaUnitRecord, array $centralUnitRecord): bool {
     $recordsDiffer = FALSE;
     foreach ($biaUnitRecord as $fieldName => $value) {
-      if ($fieldName !== 'id' && $fieldName !== 'property_id' && $fieldName !== 'address_id' && $value != $centralUnitRecord[$fieldName]) {
+      if ($fieldName !== 'id' && $fieldName !== 'property_id' && $fieldName !== 'address_id' && ((!empty($value) && (!isset($centralUnitRecord[$fieldName]) || $value != $centralUnitRecord[$fieldName])) || (empty($value) && !empty($centralUnitRecord[$fieldName])))) {
         $recordsDiffer = TRUE;
       }
     }
@@ -454,7 +454,7 @@ class CRM_Biasync_Utils {
   private static function compareRemoteAddressRecord(array $localAddressRecord, array $centralAddressRecord): bool {
     $recordsDiffer = FALSE;
     foreach ($localAddressRecord as $fieldName => $value) {
-      if ($fieldName !== 'id' && $fieldName !== 'contact_id' && $value !== $centralAddressRecord[$fieldName]) {
+      if ($fieldName !== 'id' && $fieldName !== 'contact_id' && ((!empty($value) && (!isset($centralAddressRecord[$fieldName]) || $value !== $centralAddressRecord[$fieldName])) || (empty($value) && !empty($centralAddressRecord[$fieldName])))) {
         return $recordsDiffer = TRUE;
       }
     }
