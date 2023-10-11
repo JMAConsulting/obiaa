@@ -216,6 +216,7 @@ class CRM_Biasync_Utils {
     foreach ($biaPropertyRecord as $fieldName => $value) {
       if ($fieldName !== 'id' && (!empty($value) && (!isset($centralPropertyRecord[$fieldName]) || $value != $centralPropertyRecord[$fieldName]) || (empty($value) && !empty($centralPropertyRecord[$fieldName])))) {
         $recordsDiffer = TRUE;
+        \Civi::log()->debug('BIA Sync: Property fields differ ' . $fieldName, ['local value' => $value, 'remote value' => $centralPropertyRecord[$fieldName]]);
       }
     }
     return $recordsDiffer;
@@ -233,6 +234,7 @@ class CRM_Biasync_Utils {
     foreach ($biaUnitRecord as $fieldName => $value) {
       if ($fieldName !== 'id' && $fieldName !== 'property_id' && $fieldName !== 'address_id' && ((!empty($value) && (!isset($centralUnitRecord[$fieldName]) || $value != $centralUnitRecord[$fieldName])) || (empty($value) && !empty($centralUnitRecord[$fieldName])))) {
         $recordsDiffer = TRUE;
+        \Civi::log()->debug('BIA Sync: Unit fields differ ' . $fieldName, ['local value' => $value, 'remote value' => $centralUnitRecord[$fieldName]]);
       }
     }
     return $recordsDiffer;
@@ -285,11 +287,12 @@ class CRM_Biasync_Utils {
        'id' => $contact['id'],
        'return' => array_merge(array_keys($contactCustomFields), array_keys($localSocialMediaAPIFields)),
     ])['values'][$contact['id']];
-    if (in_array('Members_Property_Owners_', $contact['contact_sub_type'])) {
+    $contact_sub_type = is_array($contact['contact_sub_type']) ? $contact['contact_sub_type'] : implode(CRM_Utils_Array::explodePadded($contact['contact_sub_type']));
+    if (in_array('Members_Property_Owners_', $contact_sub_type)) {
       $contactAddress = civicrm_api3('Address', 'get', ['contact_id' => $contact['id'], 'is_primary' => 1, 'sequential' => 1])['values'][0];
       $properties = PropertyOwner::get(FALSE)->addWhere('owner_id', '=', $contact['id'])->execute();
       // lets also look to see if we are a member business.
-      if (in_array('Members_Businesses_', $contact['contact_sub_type'])) {
+      if (in_array('Members_Businesses_', $contact_sub_type)) {
         $unitBusinesses = UnitBusiness::get(FALSE)->addWhere('business_id', '=', $contact['id'])->execute();
       }
     }
@@ -455,6 +458,7 @@ class CRM_Biasync_Utils {
     $recordsDiffer = FALSE;
     foreach ($localAddressRecord as $fieldName => $value) {
       if ($fieldName !== 'id' && $fieldName !== 'contact_id' && ((!empty($value) && (!isset($centralAddressRecord[$fieldName]) || $value !== $centralAddressRecord[$fieldName])) || (empty($value) && !empty($centralAddressRecord[$fieldName])))) {
+        \Civi::log()->debug('BIA Sync: Address fields differ ' . $fieldName, ['local value' => $value, 'remote value' => $centralAddressRecord[$fieldName]]);
         return $recordsDiffer = TRUE;
       }
     }
