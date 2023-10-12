@@ -276,7 +276,7 @@ class CRM_Biasync_Utils {
   protected static function syncContact($contact, $syncParams): void {
     [$biaContactID, $biaSource, $biaRef, $contactCustomFields, $localSocialMediaAPIFields, $biaContactCustomFields, $domainDefaultInformation, $biaRegionField, $activityBiaSource, $activityBiaId, $membershipCustomFields, $remoteSocialMediaAPIFields] = $syncParams;
     $options = $contactAddress = $unitBusinesses = $properties = [];
-      // Get the BIA contact ID if exists, else create a new contact.
+      // Get the Central BIA contact ID if exists, else create a new contact.
     $biaContact = wpcmrf_api('Contact', 'get', [
       'sequential' => 1,
       'return' => ['first_name', 'last_name', 'email', 'phone'],
@@ -287,7 +287,7 @@ class CRM_Biasync_Utils {
        'id' => $contact['id'],
        'return' => array_merge(array_keys($contactCustomFields), array_keys($localSocialMediaAPIFields)),
     ])['values'][$contact['id']];
-    $contact_sub_type = is_array($contact['contact_sub_type']) ? $contact['contact_sub_type'] : implode(CRM_Utils_Array::explodePadded($contact['contact_sub_type']));
+    $contact_sub_type = is_array($contact['contact_sub_type']) ? $contact['contact_sub_type'] : CRM_Utils_Array::explodePadded($contact['contact_sub_type']);
     if (in_array('Members_Property_Owners_', $contact_sub_type)) {
       $contactAddress = civicrm_api3('Address', 'get', ['contact_id' => $contact['id'], 'is_primary' => 1, 'sequential' => 1])['values'][0];
       $properties = PropertyOwner::get(FALSE)->addWhere('owner_id', '=', $contact['id'])->execute();
@@ -330,7 +330,7 @@ class CRM_Biasync_Utils {
       }
     }
     else {
-      // Contact is found, we update it.
+      // Contact is found in Central BIA, Lets work out if we need to update or not.
       $contactParams = self::prepareContactParams($contact, $contactCustomFields, $membershipCustomFields, $localSocialMediaAPIFields, $additionalContactCustomInfo, $biaContactCustomFields, $domainDefaultInformation, $biaContactID, $biaSource, $biaRef, $biaRegionField, $remoteSocialMediaAPIFields);
       $contactParams['id'] = $biaContact['id'];
       if (self::compareContactRemoteRecord($contactParams, $biaContact['id'], $biaContactCustomFields)) {
