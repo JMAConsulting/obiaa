@@ -32,6 +32,32 @@ function biasync_civicrm_enable() {
   _biasync_civix_civicrm_enable();
 }
 
+/**
+* This hook is called after a db write on property entities.
+*
+* @param string $op
+*   The type of operation being performed.
+* @param string $objectName
+*   The name of the object.
+* @param int $objectId
+*   The unique identifier for the object.
+* @param object $objectRef
+*   The reference to the object.
+*/
+function biasync_civicrm_post(string $op, string $objectName, int $objectId, &$objectRef) {
+  $modified = ['edit','create','delete'];
+    if ($objectName === 'Property') {
+      if (in_array($op,$modified)) {
+        $log = \Civi\Api4\CiviCRMPropertyLog::update(TRUE)
+          ->addJoin('Property AS property', 'LEFT', ['property_id', '=', 'property.id'])
+          ->addWhere('property_id','=',$objectId)
+          ->addValue('is_synced',FALSE)
+          ->execute();
+    }
+  }
+}
+
+
 // --- Functions below this ship commented out. Uncomment as required. ---
 
 /**
