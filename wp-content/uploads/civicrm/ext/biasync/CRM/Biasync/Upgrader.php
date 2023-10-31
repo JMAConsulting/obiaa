@@ -16,9 +16,9 @@ class CRM_Biasync_Upgrader extends CRM_Extension_Upgrader_Base {
    *
    * Note that if a file is present sql\auto_install that will run regardless of this hook.
    */
-  public function install(): void {
-    $this->executeSqlFile('sql/import_properties.sql');
-  }
+  // public function install(): void {
+  //   $this->executeSqlFile('sql/my_install.sql');
+  // }
 
   /**
    * Example: Work with entities usually not available during the install step.
