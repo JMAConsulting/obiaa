@@ -120,7 +120,11 @@ class CRM_Biasync_Utils {
    * @param array $options APIv3Options.
    */
   protected static function syncProperties($options) {
-    $properties = Property::get()->execute();
+    $properties = \Civi\Api4\Property::get(TRUE)
+      ->addJoin('CivicrmPropertyLog AS property_log', 'LEFT', ['id', '=', 'property_log.property_id'])
+      ->addWhere('property_log.is_synced', '=', FALSE)
+      ->execute();
+
     $options = $propertyIds = [];
     foreach ($properties as $property) {
       $propertyArray = (array) $property;
