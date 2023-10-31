@@ -184,12 +184,6 @@ class CRM_Biasync_Utils {
             $unitArray['source_record'] = get_bloginfo( 'name' );
             wpcmrf_api('Unit', 'create', $unitArray, $options, WPCMRF_ID)->getReply();
           }
-          
-          $log = \Civi\Api4\CivicrmPropertyLog::update(TRUE)
-            ->addJoin('Property AS property', 'LEFT', ['property_id', '=', 'property.id'])
-            ->addWhere('property_id','=',$property['id'])
-            ->addValue('is_synced',TRUE)
-            ->execute();
         }
         $missingUnits = wpcmrf_api('Unit', 'get', ['property_id' => $propertyCheck['id'], 'source_record_id' => ['NOT IN' => $unitIds], 'source_record' => get_bloginfo('name')], $options, WPCMRF_ID)->getReply();
         foreach ($missingUnits['values'] as $missingUnit) {
@@ -200,6 +194,10 @@ class CRM_Biasync_Utils {
           wpcmrf_api('Unit', 'delete', ['id' => $missingUnit['id']], $options, WPCMRF_ID);
         }
       }
+      $log = \Civi\Api4\CivicrmPropertyLog::update(TRUE)
+        ->addWhere('property_id','=',$property['id'])
+        ->addValue('is_synced',TRUE)
+        ->execute();
     }
     $missingProperties = wpcmrf_api('Property', 'get', ['source_record_id' => ['NOT IN' => $propertyIds], 'source_record' => get_bloginfo('name')], $options, WPCMRF_ID)->getReply();
     foreach ($missingProperties['values'] as $missingProperties) {

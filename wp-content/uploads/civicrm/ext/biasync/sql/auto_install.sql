@@ -35,9 +35,12 @@ SET FOREIGN_KEY_CHECKS=1;
 -- *******************************************************/
 CREATE TABLE `civicrm_civicrm_property_log` (
   `id` int unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique CivicrmPropertyLog ID',
-  `property_id` int unsigned NOT NULL COMMENT 'Property ID',
-  `modified_date` date NULL DEFAULT CURRENT_DATE ON UPDATE CURRENT_DATE COMMENT 'When the property was last modified.',
-  `is_synced` boolean DEFAULT false ON UPDATE false COMMENT 'Has property been synced?',
-  PRIMARY KEY (`id`),
+  `property_id` int unsigned COMMENT 'Unique Property ID',
+  `modified_date` date COMMENT 'When the property was last modified.',
+  `is_synced` tinyint DEFAULT 0 COMMENT 'Has property been synced?',
+  PRIMARY KEY (`id`)
 )
 ENGINE=InnoDB;
+
+INSERT INTO `civicrm_civicrm_property_log` (`property_id`) 
+SELECT `id` FROM  `civicrm_property`;
