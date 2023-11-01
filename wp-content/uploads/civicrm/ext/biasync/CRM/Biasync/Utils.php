@@ -120,7 +120,7 @@ class CRM_Biasync_Utils {
    * @param array $options APIv3Options.
    */
   protected static function syncProperties($options) {
-    $properties = Property::get()->execute();
+    //$properties = Property::get()->execute();
     $options = $propertyIds = [];
     foreach ($properties as $property) {
       $propertyArray = (array) $property;
