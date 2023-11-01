@@ -9,9 +9,6 @@ use CRM_Biasynchandler_ExtensionUtil as E;
  *
  * @see https://docs.civicrm.org/dev/en/latest/framework/api-architecture/
  */
-function _civicrm_api3_biasync_Create_spec(&$spec) {
-  #$spec['magicword']['api.required'] = 1;
-}
 
 /**
  * Biasync.Create API
@@ -25,97 +22,195 @@ function _civicrm_api3_biasync_Create_spec(&$spec) {
  *
  * @throws API_Exception
  */
+
 function civicrm_api3_biasync_Create($request) {
   if (!empty($request)) {
     //get entity name from the parameter
     $entity = $request['entity'];
     $params = $request['params'];
-    $options = [];
-    //check if this id exists in the entity
-    $response = civicrm_api3($entity, 'get', ['id' => $params['source_record_id']]);
-    if (!empty($response)) {
-      // If we receive a $response['id'], then entity exists and we proceed to update   the entity with the params sent.
-      switch ($entity) {
-        case "Property":
-          //***************************************** */
-          //get property entity changes
-          $prop = wpcmrf_api('Property', 'create', ['source_record_id' => $params['source_record_id'], 'source_record' => $params['source_record']], $options, WPCMRF_ID)->getReply();
-          $units = unit::get()->addWhere('property_id', '=', $params['source_record_id'])->execute();
-          $unitIds = [];
-          foreach ($units as $unit) {
-            $unitArray = (array) $unit;
-            $unitIds[] = $unit['id'];
-            $unitAddress = civicrm_api3('Address', 'get', ['id' => $unit['address_id']])['values'][$unit['address_id']];
-            $remoteUnit = wpcmrf_api('Unit', 'get', ['source_record_id' => $unit['id'], 'source_record' => $params['source_record'], 'sequential' => 1], $options, WPCMRF_ID)->getReply();
-            // If we have a remote unit replace the id field in unitArray and the id of the unitAddress array with the relevant id from the remote unit record.
-            $unitAddress['contact_id'] = 'Null';
-            if (!empty($remoteUnit['values'])) {
-              $unitAddress['id'] = $remoteUnit['values'][0]['address_id'];
-              $unitArray['id'] = $remoteUnit['id'];
-            }
-            else {
-              // Otherwise we are going to be creating a unit so unset the id fields. 
-              unset($unitAddress['id']);
-              unset($unitArray['id']);
-            }
-            $unitArray['property_id'] = $propertyCheck['id'];
-            $remoteAddress = wpcmrf_api('Address', 'create', $unitAddress, $options, WPCMRF_ID)->getReply();
-            $unitArray['address_id'] = $remoteAddress['id'];
-            $unitArray['source_record_id'] = $unit['id'];
-            $unitArray['source_record'] = $params['source_record'];
-            wpcmrf_api('Unit', 'create', $unitArray, $options, WPCMRF_ID)->getReply();
-          }
-          $missingUnits = wpcmrf_api('Unit', 'get', ['property_id' => $params['source_record_id'], 'source_recor_id' => ['NOT IN' => $unitIds], 'source_record' => $params['source_record']], $options, WPCMRF_ID)->getReply();
-          foreach ($missingUnits['values'] as $missingUnit) {
-            $businesses = wpcmrf_api('UnitBusiness', 'get', ['unit_id' => $missingUnit['id']], $options, WPCMRF_ID)->getReply();
-            foreach ($businesses['values'] as $business) {
-              wpcmrf_api('UnitBusiness', 'delete', ['id' => $business['id']], $options, WPCMRF_ID);
-            }
-            wpcmrf_api('Unit', 'delete', ['id' => $missingUnit['id']], $options, WPCMRF_ID);
-          }
-
-          break;
-        case "Contact":
-          //***************************************** */
-          //get contact entity changes
-          break;
-        default:
-          echo "No changes!";
-      }
-    } else {
-      // If we do not receive anything in $response['id'], then we proceed to create the entity using the params.
-      switch ($entity) {
-        case "Property":
-          //***************************************** */
-          //get property entity changes
-          $prop = wpcmrf_api('Property', 'create', ['source_record_id' => $params['source_record_id'], 'source_record' => $params['source_record']], $options, WPCMRF_ID)->getReply();
-          $units = unit::get()->addWhere('property_id', '=', $params['source_record_id'])->execute();
-          foreach ($units as $unit) {
-            $unitArray = (array) $unit;
-            $unitAddress = civicrm_api3('Address', 'get', ['id' => $unit['address_id']])['values'][$unit['address_id']];
-            $unitArray['source_record_id'] = $unit['id'];
-            unset($unitAddress['id']);
-            unset($unitArray['id']);
-            $unitAddress['contact_id'] = 'Null';
-            $remoteUnitAddress = wpcmrf_api('Address', 'create', $unitAddress, $options, WPCMRF_ID)->getReply();
-            $unitArray['address_id'] = $remoteUnitAddress['id'];
-            $unitArray['source_record'] = $params['source_record'];
-            $unitArray['property_id'] = $prop['id'];
-            wpcmrf_api('Unit', 'create', $unitArray, $options, WPCMRF_ID)->getReply();
-          }
-  
-          break;
-        case "Contact":
-          //***************************************** */
-          //get contact entity changes
-          
-          break;
-        default:
-          echo "No changes!";
-      }
+    
+    // If we receive a $response['id'], then entity exists and we proceed to update   the entity with the params sent.
+    switch ($entity) {
+      case "Property":
+        //synchronized property changes
+        syncProperties($params);
+        break;
+      case "Contact":
+        //synchronized contact changes
+        syncContact($Params);
+        break;
+      default:
+        break;
     }
     
     // Spec: civicrm_api3_create_success($values = 1, $params = [], $entity = NULL, $action = NULL)
-    return civicrm_api3_create_success($response, $request, 'Biasync', 'Create');
+    return civicrm_api3_create_success($entity, $request, 'Biasync', 'Create');
+  } 
+}
+
+/**
+ * Create, update and delete property
+ */
+function syncProperties($params) {
+  //check duplicates for property
+  //parameters from Lauren  how to know deleted ids????????????
+  // $request = [
+  //   "entity" => "Property",
+  //   "params" => [
+  //     'id' => 45,
+  //     'created_id' => 1, 
+  //     'modified_id' => 1,
+  //     'roll_no' => 12345678,
+  //     'property_address' => 'test',
+  //     'city' => 'test',
+  //     'postal_code' => 'test',
+  //     'name' => 'test',
+  //     'source_record_id' => 45,
+  //     'source_record' => 'bia1',
+  //     'delete_property_id' => ???????
+  //   ]
+  // ];
+ 
+  
+  // check if record exists by source id and source record name
+  $propertyCheck = civicrm_api3('Property', 'get', ['source_record_id' => $params['source_record_id'], 'source_record' => $params['source_record']]);
+  /************************* add new property **************************/  
+  //get address_id by property address
+  $propertyAddress = civicrm_api3('Address', 'get', ['street_address' => $propertyCheck['property_address']]);
+  $addressId = (!empty($propertyAddress['id'])) ? $propertyAddress['id'] : null;
+
+  // check if server id exists
+  if (empty($propertyCheck['id'])) {
+    //*** 1 *** create a new property
+    if (array_key_exists('id', $params)) {
+      unset($params['id']);
+    }
+    $prop = civicrm_api3('Property', 'create', $params);
+    //*** 2 *** create a new unit
+    civicrm_api3('Unit', 'create', ['address_id' => $addressId, 'property_id' => $prop['id'], 'source_record_id' => $params['source_record_id'], 'source_record' => $params['source_record']]);
+  } else {
+    /************************* update property **************************/  
+    //*** 1 ***  update existing property
+    $params['id'] = $propertyCheck['id'];
+    $prop = civicrm_api3('Property', 'create', $params);
+    $units = unit::get()->addWhere('property_id', '=', $propertyCheck['id'])->addWhere('source_record_id', '=', $params['source_record_id'])->addWhere('source_record', '=', $params['source_record'])->execute();
+    if (!empty($units)) {
+      foreach ($units as $unit) {
+        //*** 2 *** update existing unit
+        civicrm_api3('Unit', 'create', ['id' => $unit['id'], 'address_id' => $addressId, 'property_id' => $propertyCheck['id'], 'source_record_id' => $params['source_record_id'], 'source_record' => $params['source_record']]);
+      }
+    }
   }
+  /************************* delete property **************************/  
+  if (!empty($params['delete_property_id'])) {
+    $missingProperties = civicrm_api3('Property', 'get', ['source_record_id' => $params['delete_property_id'], 'source_record' => $params['source_record']]);
+    if (!empty($missingProperties)) {
+      //*** 1 *** delete propertyowner by property_id
+      $propertyOwners = civicrm_api3('PropertyOwner', 'get', ['property_id' => $params['delete_property_id']]);
+      if (!empty($propertyOwners['id'])) {
+        civicrm_api3('PropertyOwner', 'delete', ['property_id' => $params['delete_property_id']]);
+      }
+      //*** 2 *** delete unit by property_id
+      $Units = civicrm_api3('Unit', 'get', ['property_id' => $params['delete_property_id'], 'source_record_id' => $params['source_record_id'], 'source_record' => $params['source_record']]);
+      if (!empty($Units['id'])) {
+        civicrm_api3('Unit', 'delete', ['property_id' => $params['delete_property_id'], 'source_record_id' => $params['source_record_id'], 'source_record' => $params['source_record']]);
+      }
+    }
+  }
+}
+/**
+ * Create, update and delete contact
+*/
+function syncContacts($params) {
+  // $request = [
+  //   "entity" => "Contact",
+  //   "params" => [
+  //     'id' => $contact['contact_id'], 
+  //     'source_record_id' => 45,
+  //     'source_record' => 'bia1',
+  //     'contact_type' => 'Individual',
+  //     'contact_sub_type' => 'Obiaa_Staff',
+  //     'first_name' => 'test',
+  //     'last_name' => 'test',
+  //     'organization_name' => 'test1',
+  //     'custom_' . $biaContactID => $contact['id'],
+  //     'Membership_Status.Voting_Status' => '',
+  //     'Membership_Status.Region' => 'South Central',
+  //     'Membership_Status.BIA' => 'My Bia bia1',
+  //     'street_address' => 'test',
+  //     'is_primary' => 1,
+  //     'street_number' => 14,
+  //     'is_billing' => 0,
+  //     'location_type_id' => 1,
+  //     'street_name' => 'test',
+  //     'street_type' => 'test',
+  //     'city' => 'test',
+  //     'state_province_id' => 'test',
+  //     'postal_code' => 'test',
+  //     'country_id' => 'test',
+  //     'geo_code_1' => null,
+  //     'geo_code_2' => null,
+  //     'manual_geo_code' => 0
+  //   ]
+  // ];
+
+  $contactCheck = civicrm_api3('Contact', 'get', ['id' => $params['id']]);
+  /************************* add or update contact **************************/  
+  //*** 1 *** add a new contact or update existing contact
+  if (empty($contactCheck['id'])) {
+    $contactParams = ['contact_type' => $params['contact_type'], 'contact_sub_type' => $params['contact_sub_type'], 'first_name' => $params['first_name'], 'last_name' => $params['last_name'], 'organization_name' => $params['organization_name'], 'street_address' => $params['street_address'], 'is_primary' => $params['is_primary'], 'street_number' => $params['street_number'], 'is_billing' => $params['is_billing'], 'location_type_id' => $params['location_type_id'], 'street_name' => $params['street_name'], 'street_type' => $params['street_type'], 'city' => $params['city'], 'state_province_id' => $params['state_province_id'], 'postal_code' => $params['postal_code'], 'country_id' => $params['country_id'], 'geo_code_1' => $params['geo_code_1'], 'geo_code_2' => $params['geo_code_2'], 'manual_geo_code' => $params['manual_geo_code']];
+  } else {
+    $contactParams = ['id' => $params['id'], 'contact_type' => $params['contact_type'], 'contact_sub_type' => $params['contact_sub_type'], 'first_name' => $params['first_name'], 'last_name' => $params['last_name'], 'organization_name' => $params['organization_name'], 'street_address' => $params['street_address'], 'is_primary' => $params['is_primary'], 'street_number' => $params['street_number'], 'is_billing' => $params['is_billing'], 'location_type_id' => $params['location_type_id'], 'street_name' => $params['street_name'], 'street_type' => $params['street_type'], 'city' => $params['city'], 'state_province_id' => $params['state_province_id'], 'postal_code' => $params['postal_code'], 'country_id' => $params['country_id'], 'geo_code_1' => $params['geo_code_1'], 'geo_code_2' => $params['geo_code_2'], 'manual_geo_code' => $params['manual_geo_code']];
+  }
+  civicrm_api3('Contact', 'create', $contactParams);
+  /************************* sync activity **************************/
+  //*** 2 *** sync activities
+  syncActivities($params);
+  /************************* add or update address **************************/
+  //*** 3 *** add a new address
+  $addressCheck = civicrm_api3('Address', 'get', ['contact_id' => $params['id']]);
+  if (empty($addressCheck['id'])) {
+    $addressParam = ['contact_id' => $params['id'],'street_address' => $params['street_address'], 'is_primary' => $params['is_primary'], 'street_number' => $params['street_number'], 'is_billing' => $params['is_billing'], 'location_type_id' => $params['location_type_id'], 'street_name' => $params['street_name'], 'street_type' => $params['street_type'], 'city' => $params['city'], 'state_province_id' => $params['state_province_id'], 'postal_code' => $params['postal_code'], 'country_id' => $params['country_id'], 'geo_code_1' => $params['geo_code_1'], 'geo_code_2' => $params['geo_code_2'], 'manual_geo_code' => $params['manual_geo_code']];
+  } else {
+    $addressParam = ['id' => $addressCheck['id'],'contact_id' => $params['id'],'street_address' => $params['street_address'], 'is_primary' => $params['is_primary'], 'street_number' => $params['street_number'], 'is_billing' => $params['is_billing'], 'location_type_id' => $params['location_type_id'], 'street_name' => $params['street_name'], 'street_type' => $params['street_type'], 'city' => $params['city'], 'state_province_id' => $params['state_province_id'], 'postal_code' => $params['postal_code'], 'country_id' => $params['country_id'], 'geo_code_1' => $params['geo_code_1'], 'geo_code_2' => $params['geo_code_2'], 'manual_geo_code' => $params['manual_geo_code']];
+  }
+  civicrm_api3('Address', 'create', $addressParam);
+  /************************* add or update unitbusiness **************************/
+  //*** 4 *** add a new UnitBusiness
+  // get unit id by source_record_id and source_record
+  $unitCheck = civicrm_api3('Unit', 'get', ['source_record_id' => $params['source_record_id'], 'source_record' => $params['source_record']]);
+  $unitId = (!empty($unitCheck['id'])) ? $unitCheck['id'] : null ;
+
+  $unitBusinessesCheck = UnitBusiness::get(FALSE)->addWhere('business_id', '=', $params['id'])->execute();
+  if (empty($unitBusinessesCheck)) {
+    //add new unitbusiness
+    civicrm_api3('UnitBusiness', 'create', ['unit_id' => $unitId, 'business_id' => $params['id']]);
+  } else {
+    //update unitbusiness
+    foreach ($unitBusinessesCheck as $unitBusiness) {
+      civicrm_api3('UnitBusiness', 'create', ['id' => $unitBusiness['id'], 'unit_id' => $unitId, 'business_id' => $params['id']]);
+    }
+  }
+  /************************* add or update property owner **************************/
+  //*** 5 *** add a new property owner
+  $propertyOwnerCheck = PropertyOwner::get(FALSE)->addWhere('owner_id', '=', $params['id'])->execute();
+  $propertyCheck = civicrm_api3('Property', 'get', ['source_record_id' => $params['source_record_id'], 'source_record' => $params['source_record']]);
+  $propertyId = (!empty($propertyCheck['id'])) ? $propertyCheck['id'] : null ;
+  if (empty($propertyOwnerCheck)) {
+    //add new property owner
+    civicrm_api3('PropertyOwner', 'create', ['property_id' => $propertyId, 'owner_id' => $params['id'], 'is_voter' => 1]);
+  } else {
+    //update property owner
+    foreach ($propertyOwnerCheck as $propertyOwner) {
+      civicrm_api3('PropertyOwner', 'create', ['id' => $propertyOwner['id'],'property_id' => $propertyId, 'owner_id' => $params['id'], 'is_voter' => 1]);
+    }
+  }
+  
+  /************************* delete missing contact **************************/
+}
+/** 
+ * Create, update and delete activity
+ * */
+function syncActivies($params) {
+  //will do it
 }
