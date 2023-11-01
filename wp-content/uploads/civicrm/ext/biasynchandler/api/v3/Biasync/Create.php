@@ -22,31 +22,32 @@ use CRM_Biasynchandler_ExtensionUtil as E;
  *
  * @throws API_Exception
  */
-
 function civicrm_api3_biasync_Create() {
   // Civi::log()->debug('testetset');
   if (!empty($request)) {
     //get entity name from the parameter
     $entity = $request['entity'];
     $params = $request['params'];
-    
+
     // If we receive a $response['id'], then entity exists and we proceed to update   the entity with the params sent.
     switch ($entity) {
       case "Property":
         //synchronized property changes
         syncProperties($params);
         break;
+
       case "Contact":
         //synchronized contact changes
         syncContact($Params);
         break;
+
       default:
         break;
     }
-    
+
     // Spec: civicrm_api3_create_success($values = 1, $params = [], $entity = NULL, $action = NULL)
     return civicrm_api3_create_success($entity, $request, 'Biasync', 'Create');
-  } 
+  }
 }
 
 /**
@@ -59,7 +60,7 @@ function syncProperties($params) {
   //   "entity" => "Property",
   //   "params" => [
   //     'id' => 45,
-  //     'created_id' => 1, 
+  //     'created_id' => 1,
   //     'modified_id' => 1,
   //     'roll_no' => 12345678,
   //     'property_address' => 'test',
@@ -71,14 +72,13 @@ function syncProperties($params) {
   //     'delete_property_id' => ???????
   //   ]
   // ];
- 
-  
+
   // check if record exists by source id and source record name
   $propertyCheck = civicrm_api3('Property', 'get', ['source_record_id' => $params['source_record_id'], 'source_record' => $params['source_record']]);
-  /************************* add new property **************************/  
+  /************************* add new property **************************/
   //get address_id by property address
   $propertyAddress = civicrm_api3('Address', 'get', ['street_address' => $propertyCheck['property_address']]);
-  $addressId = (!empty($propertyAddress['id'])) ? $propertyAddress['id'] : null;
+  $addressId = (!empty($propertyAddress['id'])) ? $propertyAddress['id'] : NULL;
 
   // check if server id exists
   if (empty($propertyCheck['id'])) {
@@ -89,8 +89,9 @@ function syncProperties($params) {
     $prop = civicrm_api3('Property', 'create', $params);
     //*** 2 *** create a new unit
     civicrm_api3('Unit', 'create', ['address_id' => $addressId, 'property_id' => $prop['id'], 'source_record_id' => $params['source_record_id'], 'source_record' => $params['source_record']]);
-  } else {
-    /************************* update property **************************/  
+  }
+  else {
+    /************************* update property **************************/
     //*** 1 ***  update existing property
     $params['id'] = $propertyCheck['id'];
     $prop = civicrm_api3('Property', 'create', $params);
@@ -102,7 +103,7 @@ function syncProperties($params) {
       }
     }
   }
-  /************************* delete property **************************/  
+  /************************* delete property **************************/
   // if (!empty($params['delete_property_id'])) {
   //   $missingProperties = civicrm_api3('Property', 'get', ['source_record_id' => $params['delete_property_id'], 'source_record' => $params['source_record']]);
   //   if (!empty($missingProperties)) {
@@ -119,14 +120,15 @@ function syncProperties($params) {
   //   }
   // }
 }
+
 /**
  * Create, update and delete contact
-*/
+ */
 function syncContacts($params) {
   // $request = [
   //   "entity" => "Contact",
   //   "params" => [
-  //     'id' => $contact['contact_id'], 
+  //     'id' => $contact['contact_id'],
   //     'source_record_id' => 45,
   //     'source_record' => 'bia1',
   //     'contact_type' => 'Individual',
@@ -156,13 +158,14 @@ function syncContacts($params) {
   // ];
 
   $contactCheck = civicrm_api3('Contact', 'get', ['id' => $params['id']]);
-  /************************* add or update contact **************************/  
+  /************************* add or update contact **************************/
   //*** 1 *** add a new contact or update existing contact
   if (empty($contactCheck['id'])) {
     if (array_key_exists('id', $params)) {
       unset($params['id']);
     }
-  } else {
+  }
+  else {
     $params['id'] = $contactCheck['id'];
   }
   civicrm_api3('Contact', 'create', $params);
@@ -176,7 +179,8 @@ function syncContacts($params) {
     if (array_key_exists('id', $params)) {
       unset($params['id']);
     }
-  } else {
+  }
+  else {
     $params['id'] = $addressCheck['id'];
   }
   civicrm_api3('Address', 'create', $params);
@@ -184,13 +188,14 @@ function syncContacts($params) {
   //*** 4 *** add a new UnitBusiness
   // get unit id by source_record_id and source_record
   $unitCheck = civicrm_api3('Unit', 'get', ['source_record_id' => $params['source_record_id'], 'source_record' => $params['source_record']]);
-  $unitId = (!empty($unitCheck['id'])) ? $unitCheck['id'] : null ;
+  $unitId = (!empty($unitCheck['id'])) ? $unitCheck['id'] : NULL;
 
   $unitBusinessesCheck = UnitBusiness::get(FALSE)->addWhere('business_id', '=', $params['id'])->execute();
   if (empty($unitBusinessesCheck)) {
     //add new unitbusiness
     civicrm_api3('UnitBusiness', 'create', ['unit_id' => $unitId, 'business_id' => $params['id']]);
-  } else {
+  }
+  else {
     //update unitbusiness
     foreach ($unitBusinessesCheck as $unitBusiness) {
       civicrm_api3('UnitBusiness', 'create', ['id' => $unitBusiness['id'], 'unit_id' => $unitId, 'business_id' => $params['id']]);
@@ -200,40 +205,42 @@ function syncContacts($params) {
   //*** 5 *** add a new property owner
   $propertyOwnerCheck = PropertyOwner::get(FALSE)->addWhere('owner_id', '=', $params['id'])->execute();
   $propertyCheck = civicrm_api3('Property', 'get', ['source_record_id' => $params['source_record_id'], 'source_record' => $params['source_record']]);
-  $propertyId = (!empty($propertyCheck['id'])) ? $propertyCheck['id'] : null ;
+  $propertyId = (!empty($propertyCheck['id'])) ? $propertyCheck['id'] : NULL;
   if (empty($propertyOwnerCheck)) {
     //add new property owner
     civicrm_api3('PropertyOwner', 'create', ['property_id' => $propertyId, 'owner_id' => $params['id'], 'is_voter' => 1]);
-  } else {
+  }
+  else {
     //update property owner
     foreach ($propertyOwnerCheck as $propertyOwner) {
-      civicrm_api3('PropertyOwner', 'create', ['id' => $propertyOwner['id'],'property_id' => $propertyId, 'owner_id' => $params['id'], 'is_voter' => 1]);
+      civicrm_api3('PropertyOwner', 'create', ['id' => $propertyOwner['id'], 'property_id' => $propertyId, 'owner_id' => $params['id'], 'is_voter' => 1]);
     }
   }
-  
+
   /************************* delete missing contact **************************/
 }
-/** 
+
+/**
  * Create, update and delete activity
  * */
 function syncActivies($params) {
   // $request = [
   //   "entity" => "Activity",
   //   "params" => [
-  //     'id' => $activity['id'], 
+  //     'id' => $activity['id'],
   //     'target_contact_id' => 0,
   //     'source_contact_id' => 0,
   //   ]
   // ];
-
   $activityCheck = civicrm_api3('Activity', 'get', ['id' => $params['id']]);
   if (empty($activityCheck['id'])) {
     if (array_key_exists('id', $params)) {
       unset($params['id']);
     }
-  } else {
+  }
+  else {
     $params['id'] = $activityCheck['id'];
   }
-  
+
   civicrm_api3('Activity', 'create', ['target_contact_id' => $params['target_contact_id'], 'source_contact_id' => $params['source_contact_id']]);
 }
