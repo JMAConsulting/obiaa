@@ -33,7 +33,7 @@ function biasync_civicrm_enable() {
 }
 
 /**
-* This hook is called after a db write on property entities.
+* This hook is called after a db write on entities.
 *
 * @param string $op
 *   The type of operation being performed.
@@ -45,16 +45,7 @@ function biasync_civicrm_enable() {
 *   The reference to the object.
 */
 function biasync_civicrm_post(string $op, string $objectName, int $objectId, &$objectRef) {
-  $modified = ['edit','create','delete'];
-  if ($objectName === 'Property') {
-    if (in_array($op,$modified)) {
-      $log = \Civi\Api4\PropertyLog::update(TRUE)
-        ->addJoin('Property AS property', 'LEFT', ['property_id', '=', 'property.id'])
-        ->addWhere('property_id','=',$objectId)
-        ->addValue('is_synced',FALSE)
-        ->execute();
-    }
-  }
+  $modified = ['edit','create','delete','update','merge'];
   if ($objectName === 'Contact') {
     if (in_array($op,$modified)) {
       $results = \Civi\Api4\Contact::update(TRUE)
@@ -72,6 +63,21 @@ function biasync_civicrm_post(string $op, string $objectName, int $objectId, &$o
         ->execute();
     }
   }
+}
+
+function biasync_civicrm_custom($op, $groupID, $entityID, &$params)
+{
+  $modified = ['edit','create','delete','update','merge'];
+  if ($entityID === 'Property') {
+    if (in_array($op,$modified)) {
+      $log = \Civi\Api4\PropertyLog::update(TRUE)
+        ->addJoin('Property AS property', 'LEFT', ['property_id', '=', 'property.id'])
+        ->addWhere('property_id','=',$objectId)
+        ->addValue('is_synced',FALSE)
+        ->execute();
+    }
+  }
+
 }
 
 
