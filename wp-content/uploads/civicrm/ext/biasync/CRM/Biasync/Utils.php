@@ -256,11 +256,12 @@ class CRM_Biasync_Utils {
    * @param string $activityBiaId
    */
   protected static function syncActivities($biaSourceContactId, $centralBiaContactId, $activityBiaSource, $activityBiaId, $options): void {
-    $activities = civicrm_api3('Activity', 'get', [
-      'target_contact_id' => $biaSourceContactId,
-      'activity_type_id' => ['IN' => [82, 83, 84, 86, 87]],
-      'options' => ['limit' => 0],
-    ]);
+    $activities = \Civi\Api4\Activity::get(TRUE)
+      ->addWhere('target_contact_id', '=', $biaSourceContactId)
+      ->addWhere('activity_type_id', 'IN', [82, 83, 84, 86, 87])
+      ->addWhere('Is_Synced_Activities.is_synced', '=', 0)
+      ->execute();
+      
     foreach ($activities['values'] as $activity) {
       $check = wpcmrf_api('Activity', 'get', ['custom_' . $activityBiaSource => get_bloginfo( 'name' ), 'custom_' . $activityBiaId => $activity['id']], $options, WPCMRF_ID)->getReply();
       if ($check['count'] > 0) {

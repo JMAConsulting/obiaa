@@ -4,15 +4,15 @@ use CRM_Biasync_ExtensionUtil as E;
 
 return [
     [
-      'name' => 'CustomGroup_Synced',
+      'name' => 'CustomGroup_Is_Synced_Contacts',
       'entity' => 'CustomGroup',
       'cleanup' => 'unused',
       'update' => 'unmodified',
       'params' => [
         'version' => 4,
         'values' => [
-          'name' => 'Synced',
-          'title' => E::ts('Is Synced'),
+          'name' => 'Is_Synced_Contacts',
+          'title' => E::ts('Is Synced Contacts'),
           'extends' => 'Contact',
           'extends_entity_column_id' => NULL,
           'extends_entity_column_value' => NULL,
@@ -37,14 +37,14 @@ return [
       ],
     ],
     [
-      'name' => 'CustomGroup_Synced_CustomField_is_synced',
+      'name' => 'CustomGroup_Is_Synced_Contacts_CustomField_is_synced',
       'entity' => 'CustomField',
       'cleanup' => 'unused',
       'update' => 'unmodified',
       'params' => [
         'version' => 4,
         'values' => [
-          'custom_group_id.name' => 'Synced',
+          'custom_group_id.name' => 'Is_Synced_Contacts',
           'name' => 'is_synced',
           'label' => E::ts('is_synced'),
           'data_type' => 'Boolean',
