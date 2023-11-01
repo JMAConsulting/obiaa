@@ -261,7 +261,7 @@ class CRM_Biasync_Utils {
       ->addWhere('activity_type_id', 'IN', [82, 83, 84, 86, 87])
       ->addWhere('Is_Synced_Activities.is_synced', '=', 0)
       ->execute();
-      
+
     foreach ($activities['values'] as $activity) {
       $check = wpcmrf_api('Activity', 'get', ['custom_' . $activityBiaSource => get_bloginfo( 'name' ), 'custom_' . $activityBiaId => $activity['id']], $options, WPCMRF_ID)->getReply();
       if ($check['count'] > 0) {
@@ -284,9 +284,10 @@ class CRM_Biasync_Utils {
    */
   protected static function syncContact($contact, $syncParams): void {
     $isSynced = \Civi\Api4\Contact::get(TRUE)
+      ->addWhere('id','=',$contact['id'])
       ->addSelect('Synced.is_synced')
       ->execute();
-    
+
     if($isSynced == false) 
     {
       [$biaContactID, $biaSource, $biaRef, $contactCustomFields, $localSocialMediaAPIFields, $biaContactCustomFields, $domainDefaultInformation, $biaRegionField, $activityBiaSource, $activityBiaId, $membershipCustomFields, $remoteSocialMediaAPIFields] = $syncParams;
