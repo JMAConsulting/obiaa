@@ -17,7 +17,7 @@
 
 SET FOREIGN_KEY_CHECKS=0;
 
-DROP TABLE IF EXISTS `civicrm_civicrm_property_log`;
+DROP TABLE IF EXISTS `civicrm_property_log`;
 
 SET FOREIGN_KEY_CHECKS=1;
 -- /*******************************************************
@@ -28,19 +28,18 @@ SET FOREIGN_KEY_CHECKS=1;
 
 -- /*******************************************************
 -- *
--- * civicrm_civicrm_property_log
+-- * civicrm_property_log
 -- *
 -- * FIXME
 -- *
 -- *******************************************************/
-CREATE TABLE `civicrm_civicrm_property_log` (
-  `id` int unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique CivicrmPropertyLog ID',
+CREATE TABLE `civicrm_property_log` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique PropertyLog ID',
   `property_id` int unsigned COMMENT 'Unique Property ID',
-  `modified_date` date COMMENT 'When the property was last modified.',
   `is_synced` tinyint DEFAULT 0 COMMENT 'Has property been synced?',
   PRIMARY KEY (`id`)
 )
 ENGINE=InnoDB;
 
-INSERT INTO `civicrm_civicrm_property_log` (`property_id`) 
+INSERT INTO `civicrm_property_log` (`property_id`) 
 SELECT `id` FROM  `civicrm_property`;

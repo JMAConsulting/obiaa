@@ -2,8 +2,8 @@
 
 <table>
   <base>CRM/Biasync</base>
-  <class>CivicrmPropertyLog</class>
-  <name>civicrm_civicrm_property_log</name>
+  <class>PropertyLog</class>
+  <name>civicrm_property_log</name>
   <comment>FIXME</comment>
   <log>true</log>
 
@@ -11,7 +11,7 @@
     <name>id</name>
     <type>int unsigned</type>
     <required>true</required>
-    <comment>Unique CivicrmPropertyLog ID</comment>
+    <comment>Unique PropertyLog ID</comment>
     <html>
       <type>Number</type>
     </html>
@@ -25,12 +25,6 @@
     <name>property_id</name>
     <type>int unsigned</type>
     <comment>Unique Property ID</comment>
-  </field>
-
-  <field>
-    <name>modified_date</name>
-    <type>date</type>
-    <comment>When the property was last modified.</comment>
   </field>
 
   <field>

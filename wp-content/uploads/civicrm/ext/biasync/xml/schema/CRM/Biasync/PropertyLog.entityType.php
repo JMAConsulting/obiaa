@@ -3,8 +3,8 @@
 // https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_entityTypes
 return [
   [
-    'name' => 'CivicrmPropertyLog',
-    'class' => 'CRM_Biasync_DAO_CivicrmPropertyLog',
-    'table' => 'civicrm_civicrm_property_log',
+    'name' => 'PropertyLog',
+    'class' => 'CRM_Biasync_DAO_PropertyLog',
+    'table' => 'civicrm_property_log',
   ],
 ];

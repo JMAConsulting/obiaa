@@ -2,12 +2,12 @@
 namespace Civi\Api4;
 
 /**
- * CivicrmPropertyLog entity.
+ * PropertyLog entity.
  *
  * Provided by the OBIAA Central Sync extension.
  *
  * @package Civi\Api4
  */
-class CivicrmPropertyLog extends Generic\DAOEntity {
+class PropertyLog extends Generic\DAOEntity {
 
 }

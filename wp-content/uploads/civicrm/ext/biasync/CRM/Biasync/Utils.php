@@ -121,7 +121,7 @@ class CRM_Biasync_Utils {
    */
   protected static function syncProperties($options) {
     $properties = \Civi\Api4\Property::get(TRUE)
-      ->addJoin('CivicrmPropertyLog AS property_log', 'LEFT', ['id', '=', 'property_log.property_id'])
+      ->addJoin('PropertyLog AS property_log', 'LEFT', ['id', '=', 'property_log.property_id'])
       ->addWhere('property_log.is_synced', '=', FALSE)
       ->execute();
 
@@ -194,7 +194,7 @@ class CRM_Biasync_Utils {
           wpcmrf_api('Unit', 'delete', ['id' => $missingUnit['id']], $options, WPCMRF_ID);
         }
       }
-      $log = \Civi\Api4\CivicrmPropertyLog::update(TRUE)
+      $log = \Civi\Api4\PropertyLog::update(TRUE)
         ->addWhere('property_id','=',$property['id'])
         ->addValue('is_synced',TRUE)
         ->execute();

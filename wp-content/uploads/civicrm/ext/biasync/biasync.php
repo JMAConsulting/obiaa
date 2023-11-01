@@ -48,25 +48,13 @@ function biasync_civicrm_post(string $op, string $objectName, int $objectId, &$o
   $modified = ['edit','create','delete'];
   if ($objectName === 'Property') {
     if (in_array($op,$modified)) {
-      $log = \Civi\Api4\CiviCRMPropertyLog::update(TRUE)
+      $log = \Civi\Api4\PropertyLog::update(TRUE)
         ->addJoin('Property AS property', 'LEFT', ['property_id', '=', 'property.id'])
         ->addWhere('property_id','=',$objectId)
         ->addValue('is_synced',FALSE)
         ->execute();
     }
   }
-  // elseif($objectName === )
-  // {
-  //   if ($objectName === 'Property') {
-  //     if (in_array($op,$modified)) {
-  //       $log = \Civi\Api4\CiviCRMPropertyLog::update(TRUE)
-  //         ->addJoin('Property AS property', 'LEFT', ['property_id', '=', 'property.id'])
-  //         ->addWhere('property_id','=',$objectId)
-  //         ->addValue('is_synced',FALSE)
-  //         ->execute();
-  //     }
-  //   }
-  // }
 }
 
 
