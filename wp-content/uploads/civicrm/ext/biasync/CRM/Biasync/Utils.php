@@ -285,7 +285,7 @@ class CRM_Biasync_Utils {
   protected static function syncContact($contact, $syncParams): void {
     $isSynced = \Civi\Api4\Contact::get(TRUE)
       ->addWhere('id','=',$contact['id'])
-      ->addSelect('Synced.is_synced')
+      ->addSelect('Is_Synced_Contacts.is_synced')
       ->execute();
 
     if($isSynced == false) 
@@ -395,8 +395,8 @@ class CRM_Biasync_Utils {
         }
       }
       $results = \Civi\Api4\Contact::update(TRUE)
-        ->addValue('Synced_.is_synced', 1)
-        ->addWhere('id', '=', 1)
+        ->addValue('Is_Synced_Contacts.is_synced', 1)
+        ->addWhere('id', '=', $contact['id'])
         ->execute();
     }
   }
