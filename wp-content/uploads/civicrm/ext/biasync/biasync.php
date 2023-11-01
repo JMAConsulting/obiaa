@@ -24,24 +24,6 @@ function biasync_civicrm_install() {
 }
 
 /**
- * Implements hook_civicrm_postInstall().
- *
- * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_postInstall
- */
-function biasync_civicrm_postInstall() {
-  _biasync_civix_civicrm_postInstall();
-}
-
-/**
- * Implements hook_civicrm_uninstall().
- *
- * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_uninstall
- */
-function biasync_civicrm_uninstall() {
-  _biasync_civix_civicrm_uninstall();
-}
-
-/**
  * Implements hook_civicrm_enable().
  *
  * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_enable
@@ -51,33 +33,42 @@ function biasync_civicrm_enable() {
 }
 
 /**
- * Implements hook_civicrm_disable().
- *
- * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_disable
- */
-function biasync_civicrm_disable() {
-  _biasync_civix_civicrm_disable();
+* This hook is called after a db write on property entities.
+*
+* @param string $op
+*   The type of operation being performed.
+* @param string $objectName
+*   The name of the object.
+* @param int $objectId
+*   The unique identifier for the object.
+* @param object $objectRef
+*   The reference to the object.
+*/
+function biasync_civicrm_post(string $op, string $objectName, int $objectId, &$objectRef) {
+  $modified = ['edit','create','delete'];
+  if ($objectName === 'Property') {
+    if (in_array($op,$modified)) {
+      $log = \Civi\Api4\CiviCRMPropertyLog::update(TRUE)
+        ->addJoin('Property AS property', 'LEFT', ['property_id', '=', 'property.id'])
+        ->addWhere('property_id','=',$objectId)
+        ->addValue('is_synced',FALSE)
+        ->execute();
+    }
+  }
+  // elseif($objectName === )
+  // {
+  //   if ($objectName === 'Property') {
+  //     if (in_array($op,$modified)) {
+  //       $log = \Civi\Api4\CiviCRMPropertyLog::update(TRUE)
+  //         ->addJoin('Property AS property', 'LEFT', ['property_id', '=', 'property.id'])
+  //         ->addWhere('property_id','=',$objectId)
+  //         ->addValue('is_synced',FALSE)
+  //         ->execute();
+  //     }
+  //   }
+  // }
 }
 
-/**
- * Implements hook_civicrm_upgrade().
- *
- * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_upgrade
- */
-function biasync_civicrm_upgrade($op, CRM_Queue_Queue $queue = NULL) {
-  return _biasync_civix_civicrm_upgrade($op, $queue);
-}
-
-/**
- * Implements hook_civicrm_entityTypes().
- *
- * Declare entity types provided by this module.
- *
- * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_entityTypes
- */
-function biasync_civicrm_entityTypes(&$entityTypes) {
-  _biasync_civix_civicrm_entityTypes($entityTypes);
-}
 
 // --- Functions below this ship commented out. Uncomment as required. ---
 
