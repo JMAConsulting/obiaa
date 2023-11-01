@@ -23,7 +23,8 @@ use CRM_Biasynchandler_ExtensionUtil as E;
  * @throws API_Exception
  */
 
-function civicrm_api3_biasync_Create($request) {
+function civicrm_api3_biasync_Create() {
+  // Civi::log()->debug('testetset');
   if (!empty($request)) {
     //get entity name from the parameter
     $entity = $request['entity'];
@@ -102,21 +103,21 @@ function syncProperties($params) {
     }
   }
   /************************* delete property **************************/  
-  if (!empty($params['delete_property_id'])) {
-    $missingProperties = civicrm_api3('Property', 'get', ['source_record_id' => $params['delete_property_id'], 'source_record' => $params['source_record']]);
-    if (!empty($missingProperties)) {
-      //*** 1 *** delete propertyowner by property_id
-      $propertyOwners = civicrm_api3('PropertyOwner', 'get', ['property_id' => $params['delete_property_id']]);
-      if (!empty($propertyOwners['id'])) {
-        civicrm_api3('PropertyOwner', 'delete', ['property_id' => $params['delete_property_id']]);
-      }
-      //*** 2 *** delete unit by property_id
-      $Units = civicrm_api3('Unit', 'get', ['property_id' => $params['delete_property_id'], 'source_record_id' => $params['source_record_id'], 'source_record' => $params['source_record']]);
-      if (!empty($Units['id'])) {
-        civicrm_api3('Unit', 'delete', ['property_id' => $params['delete_property_id'], 'source_record_id' => $params['source_record_id'], 'source_record' => $params['source_record']]);
-      }
-    }
-  }
+  // if (!empty($params['delete_property_id'])) {
+  //   $missingProperties = civicrm_api3('Property', 'get', ['source_record_id' => $params['delete_property_id'], 'source_record' => $params['source_record']]);
+  //   if (!empty($missingProperties)) {
+  //     //*** 1 *** delete propertyowner by property_id
+  //     $propertyOwners = civicrm_api3('PropertyOwner', 'get', ['property_id' => $params['delete_property_id']]);
+  //     if (!empty($propertyOwners['id'])) {
+  //       civicrm_api3('PropertyOwner', 'delete', ['property_id' => $params['delete_property_id']]);
+  //     }
+  //     //*** 2 *** delete unit by property_id
+  //     $Units = civicrm_api3('Unit', 'get', ['property_id' => $params['delete_property_id'], 'source_record_id' => $params['source_record_id'], 'source_record' => $params['source_record']]);
+  //     if (!empty($Units['id'])) {
+  //       civicrm_api3('Unit', 'delete', ['property_id' => $params['delete_property_id'], 'source_record_id' => $params['source_record_id'], 'source_record' => $params['source_record']]);
+  //     }
+  //   }
+  // }
 }
 /**
  * Create, update and delete contact
@@ -158,11 +159,13 @@ function syncContacts($params) {
   /************************* add or update contact **************************/  
   //*** 1 *** add a new contact or update existing contact
   if (empty($contactCheck['id'])) {
-    $contactParams = ['contact_type' => $params['contact_type'], 'contact_sub_type' => $params['contact_sub_type'], 'first_name' => $params['first_name'], 'last_name' => $params['last_name'], 'organization_name' => $params['organization_name'], 'street_address' => $params['street_address'], 'is_primary' => $params['is_primary'], 'street_number' => $params['street_number'], 'is_billing' => $params['is_billing'], 'location_type_id' => $params['location_type_id'], 'street_name' => $params['street_name'], 'street_type' => $params['street_type'], 'city' => $params['city'], 'state_province_id' => $params['state_province_id'], 'postal_code' => $params['postal_code'], 'country_id' => $params['country_id'], 'geo_code_1' => $params['geo_code_1'], 'geo_code_2' => $params['geo_code_2'], 'manual_geo_code' => $params['manual_geo_code']];
+    if (array_key_exists('id', $params)) {
+      unset($params['id']);
+    }
   } else {
-    $contactParams = ['id' => $params['id'], 'contact_type' => $params['contact_type'], 'contact_sub_type' => $params['contact_sub_type'], 'first_name' => $params['first_name'], 'last_name' => $params['last_name'], 'organization_name' => $params['organization_name'], 'street_address' => $params['street_address'], 'is_primary' => $params['is_primary'], 'street_number' => $params['street_number'], 'is_billing' => $params['is_billing'], 'location_type_id' => $params['location_type_id'], 'street_name' => $params['street_name'], 'street_type' => $params['street_type'], 'city' => $params['city'], 'state_province_id' => $params['state_province_id'], 'postal_code' => $params['postal_code'], 'country_id' => $params['country_id'], 'geo_code_1' => $params['geo_code_1'], 'geo_code_2' => $params['geo_code_2'], 'manual_geo_code' => $params['manual_geo_code']];
+    $params['id'] = $contactCheck['id'];
   }
-  civicrm_api3('Contact', 'create', $contactParams);
+  civicrm_api3('Contact', 'create', $params);
   /************************* sync activity **************************/
   //*** 2 *** sync activities
   syncActivities($params);
@@ -170,11 +173,13 @@ function syncContacts($params) {
   //*** 3 *** add a new address
   $addressCheck = civicrm_api3('Address', 'get', ['contact_id' => $params['id']]);
   if (empty($addressCheck['id'])) {
-    $addressParam = ['contact_id' => $params['id'],'street_address' => $params['street_address'], 'is_primary' => $params['is_primary'], 'street_number' => $params['street_number'], 'is_billing' => $params['is_billing'], 'location_type_id' => $params['location_type_id'], 'street_name' => $params['street_name'], 'street_type' => $params['street_type'], 'city' => $params['city'], 'state_province_id' => $params['state_province_id'], 'postal_code' => $params['postal_code'], 'country_id' => $params['country_id'], 'geo_code_1' => $params['geo_code_1'], 'geo_code_2' => $params['geo_code_2'], 'manual_geo_code' => $params['manual_geo_code']];
+    if (array_key_exists('id', $params)) {
+      unset($params['id']);
+    }
   } else {
-    $addressParam = ['id' => $addressCheck['id'],'contact_id' => $params['id'],'street_address' => $params['street_address'], 'is_primary' => $params['is_primary'], 'street_number' => $params['street_number'], 'is_billing' => $params['is_billing'], 'location_type_id' => $params['location_type_id'], 'street_name' => $params['street_name'], 'street_type' => $params['street_type'], 'city' => $params['city'], 'state_province_id' => $params['state_province_id'], 'postal_code' => $params['postal_code'], 'country_id' => $params['country_id'], 'geo_code_1' => $params['geo_code_1'], 'geo_code_2' => $params['geo_code_2'], 'manual_geo_code' => $params['manual_geo_code']];
+    $params['id'] = $addressCheck['id'];
   }
-  civicrm_api3('Address', 'create', $addressParam);
+  civicrm_api3('Address', 'create', $params);
   /************************* add or update unitbusiness **************************/
   //*** 4 *** add a new UnitBusiness
   // get unit id by source_record_id and source_record
@@ -212,5 +217,23 @@ function syncContacts($params) {
  * Create, update and delete activity
  * */
 function syncActivies($params) {
-  //will do it
+  // $request = [
+  //   "entity" => "Activity",
+  //   "params" => [
+  //     'id' => $activity['id'], 
+  //     'target_contact_id' => 0,
+  //     'source_contact_id' => 0,
+  //   ]
+  // ];
+
+  $activityCheck = civicrm_api3('Activity', 'get', ['id' => $params['id']]);
+  if (empty($activityCheck['id'])) {
+    if (array_key_exists('id', $params)) {
+      unset($params['id']);
+    }
+  } else {
+    $params['id'] = $activityCheck['id'];
+  }
+  
+  civicrm_api3('Activity', 'create', ['target_contact_id' => $params['target_contact_id'], 'source_contact_id' => $params['source_contact_id']]);
 }
