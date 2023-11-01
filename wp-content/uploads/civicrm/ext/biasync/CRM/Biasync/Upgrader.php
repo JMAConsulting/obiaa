@@ -16,9 +16,13 @@ class CRM_Biasync_Upgrader extends CRM_Extension_Upgrader_Base {
    *
    * Note that if a file is present sql\auto_install that will run regardless of this hook.
    */
-  // public function install(): void {
-  //   $this->executeSqlFile('sql/my_install.sql');
-  // }
+
+  public function postInstall(): void {
+    $results = \Civi\Api4\Contact::update(TRUE)
+    ->addValue('Synced.is_synced', 0)
+    ->addWhere('Synced.is_synced', 'IS NULL')
+    ->execute();
+  }
 
   /**
    * Example: Work with entities usually not available during the install step.

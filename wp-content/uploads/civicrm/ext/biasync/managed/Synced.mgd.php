@@ -1,17 +1,18 @@
 <?php
 
 use CRM_Biasync_ExtensionUtil as E;
+
 return [
     [
-      'name' => 'CustomGroup_Is_Synced_',
+      'name' => 'CustomGroup_Synced',
       'entity' => 'CustomGroup',
       'cleanup' => 'unused',
       'update' => 'unmodified',
       'params' => [
         'version' => 4,
         'values' => [
-          'name' => 'Is_Synced_',
-          'title' => E::ts('Is Synced?'),
+          'name' => 'Synced',
+          'title' => E::ts('Is Synced'),
           'extends' => 'Contact',
           'extends_entity_column_id' => NULL,
           'extends_entity_column_value' => NULL,
@@ -26,7 +27,7 @@ return [
           'max_multiple' => NULL,
           'collapse_adv_display' => TRUE,
           'created_date' => '2023-11-01 10:00:34',
-          'is_reserved' => FALSE,
+          'is_reserved' => TRUE,
           'is_public' => FALSE,
           'icon' => '',
         ],
@@ -36,14 +37,14 @@ return [
       ],
     ],
     [
-      'name' => 'CustomGroup_Is_Synced_CustomField_is_synced',
+      'name' => 'CustomGroup_Synced_CustomField_is_synced',
       'entity' => 'CustomField',
       'cleanup' => 'unused',
       'update' => 'unmodified',
       'params' => [
         'version' => 4,
         'values' => [
-          'custom_group_id.name' => 'Is_Synced_',
+          'custom_group_id.name' => 'Synced',
           'name' => 'is_synced',
           'label' => E::ts('is_synced'),
           'data_type' => 'Boolean',
@@ -65,7 +66,7 @@ return [
           'time_format' => NULL,
           'note_columns' => 60,
           'note_rows' => 4,
-          'column_name' => 'is_synced_111',
+          'column_name' => 'is_synced',
           'option_group_id' => NULL,
           'serialize' => 0,
           'filter' => NULL,

@@ -55,6 +55,12 @@ function biasync_civicrm_post(string $op, string $objectName, int $objectId, &$o
         ->execute();
     }
   }
+  if ($objectName === 'Contact') {
+    $results = \Civi\Api4\Contact::update(TRUE)
+      ->addValue('Synced.is_synced', 0)
+      ->addWhere('id', '=', $objectId)
+      ->execute();
+  }
 }
 
 
