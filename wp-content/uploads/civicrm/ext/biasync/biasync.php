@@ -46,22 +46,17 @@ function biasync_civicrm_enable() {
 */
 function biasync_civicrm_post(string $op, string $objectName, int $objectId, &$objectRef) {
   $modified = ['edit','create','delete','update','merge'];
-  if ($objectName === 'Contact') {
-    if (in_array($op,$modified)) {
+  if ($objectName === 'Contact' && in_array($op,$modified)) {
       $results = \Civi\Api4\Contact::update(TRUE)
         ->addValue('Is_Synced_Contacts.is_synced', 0)
         ->addWhere('id', '=', $objectId)
         ->execute();
     }
-  }
-  if ($objectName === 'Activity') {
-    if($op == 'create')
-    {
+  if ($objectName === 'Activity' && $op == 'create') {
       $results = \Civi\Api4\Activity::update(TRUE)
         ->addValue('Is_Synced_Activites.is_synced', 0)
         ->addWhere('id', '=', $objectId)
         ->execute();
-    }
   }
 }
 
