@@ -263,6 +263,11 @@ class CRM_Biasync_Utils {
       ->execute();
 
     foreach ($activities['values'] as $activity) {
+      $activities = \Civi\Api4\Activity::update(TRUE)
+      ->addWhere('id', '=', $activity['id'])
+      ->addValue('Is_Synced_Activities.is_synced', 1)
+      ->execute();
+      
       $check = wpcmrf_api('Activity', 'get', ['custom_' . $activityBiaSource => get_bloginfo( 'name' ), 'custom_' . $activityBiaId => $activity['id']], $options, WPCMRF_ID)->getReply();
       if ($check['count'] > 0) {
         continue;
