@@ -46,13 +46,35 @@ function biasync_civicrm_enable() {
 */
 function biasync_civicrm_post(string $op, string $objectName, int $objectId, &$objectRef) {
   $modified = ['edit','create','delete','update','merge'];
+  
+  // Check if contact has been modified
   if ($objectName === 'Contact' && in_array($op,$modified)) {
-      $results = \Civi\Api4\Contact::update(TRUE)
-        ->addValue('Is_Synced_Contacts.is_synced', 0)
-        ->addWhere('id', '=', $objectId)
-        ->execute();
-    }
-  if ($objectName === 'Activity' && $op == 'create') {
+    $results = \Civi\Api4\Contact::update(TRUE)
+      ->addValue('Is_Synced_Contacts.is_synced', 0)
+      ->addWhere('id', '=', $objectId)
+      ->execute();
+  }
+
+  // Check if relationship has been modified
+  if ($objectName === 'Relationship' && in_array($op,$modified)) {
+    $results = \Civi\Api4\Relationship::get(TRUE)
+      ->addWhere('id', '=', $objectId)
+      ->execute();
+
+      foreach($results as $result)
+      {
+        // Mark both contacts in relationship as not synced
+        $contactsToUpdate = [$result['contact_id_a'],$result['contact_id_b']];
+
+        $results = \Civi\Api4\Contact::update(TRUE)
+          ->addValue('Is_Synced_Contacts.is_synced', 0)
+          ->addWhere('id', 'IN', $contactsToUpdate)
+          ->execute();
+      }
+  }
+  
+  // Check if activity has been created
+  elseif ($objectName === 'Activity' && $op == 'create') {
       $results = \Civi\Api4\Activity::update(TRUE)
         ->addValue('Is_Synced_Activites.is_synced', 0)
         ->addWhere('id', '=', $objectId)
@@ -62,19 +84,40 @@ function biasync_civicrm_post(string $op, string $objectName, int $objectId, &$o
 
 function biasync_civicrm_custom($op, $groupID, $entityID, &$params)
 {
+  // Check if custom contact fields have been modified
   $modified = ['edit','create','delete','update','merge'];
-  if ($entityID === 'Property') {
-    if (in_array($op,$modified)) {
-      $log = \Civi\Api4\PropertyLog::update(TRUE)
-        ->addJoin('Property AS property', 'LEFT', ['property_id', '=', 'property.id'])
-        ->addWhere('property_id','=',$objectId)
-        ->addValue('is_synced',FALSE)
-        ->execute();
+  $customContactGroups = \Civi\Api4\CustomGroup::get(TRUE)
+    ->addSelect('id')
+    ->addWhere('extends', '=', 'Contact')
+    ->addWhere('name', '!=', 'Is_Synced_Contacts')
+    ->execute();
+  
+  foreach ($customContactGroups as $group) {
+    if (isset($group['id']) && $group['id'] == $groupID) {
+        $groupFound = true;
+        break; // Break out of the loop as soon as the number is found
     }
   }
-
+  if($groupFound && in_array($op,$modified))
+  {
+    $results = \Civi\Api4\Contact::update(TRUE)
+    ->addValue('Is_Synced_Contacts.is_synced', 0)
+    ->addWhere('id', '=', $entityID)
+    ->execute();
+  }
 }
 
+function biasync_civicrm_apiWrappers(&$wrappers, $apiRequest) {
+  $modified = ['edit','create','delete','update'];
+  if ($apiRequest['entity'] == 'Property' && in_array($apiRequest['action'],$modified)) {
+    if ($apiRequest['version'] == '3') {
+      $wrappers[] = new CRM_Biasync_API3Wrappers_Property();
+    }
+    elseif ($apiRequest['version'] == '4') {
+      $wrappers[] = new CRM_Biasync_API4Wrappers_Property();
+    }
+  }
+}
 
 // --- Functions below this ship commented out. Uncomment as required. ---
 

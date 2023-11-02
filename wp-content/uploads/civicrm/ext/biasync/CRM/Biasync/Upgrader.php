@@ -18,7 +18,15 @@ class CRM_Biasync_Upgrader extends CRM_Extension_Upgrader_Base {
    */
 
   public function postInstall(): void {
+    // $contactIds = \Civi\Api4\Contact::get(TRUE)
+    // ->addSelect('id')
+    // ->addWhere('Is_Synced_Contacts.is_synced', 'IS NULL')
+    // ->execute();
 
+    // $results = \Civi\Api4\Contact::update(TRUE)
+    //   ->addValue('Is_Synced_Contacts.is_synced', 0)
+    //   ->addWhere('id', 'IN', $contactIds)
+    //   ->execute();
     $contactSync = \Civi\Api4\CustomGroup::get(TRUE)
       ->addWhere('name', '=', 'Is_Synced_Contacts')
       ->addSelect('table_name')
