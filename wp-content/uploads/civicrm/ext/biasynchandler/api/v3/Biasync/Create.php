@@ -22,14 +22,13 @@ use CRM_Biasynchandler_ExtensionUtil as E;
  *
  * @throws API_Exception
  */
-function civicrm_api3_biasync_Create() {
-  // Civi::log()->debug('testetset');
+function civicrm_api3_biasync_Create($request) {
   if (!empty($request)) {
-    //get entity name from the parameter
+    //get entity name from the parameters
     $entity = $request['entity'];
     $params = $request['params'];
 
-    // If we receive a $response['id'], then entity exists and we proceed to update   the entity with the params sent.
+    // If we receive a $response['id'], then entity exists and we proceed to update the entity with the params sent.
     switch ($entity) {
       case "Property":
         //synchronized property changes
@@ -38,7 +37,7 @@ function civicrm_api3_biasync_Create() {
 
       case "Contact":
         //synchronized contact changes
-        syncContact($Params);
+        syncContact($params);
         break;
 
       default:
@@ -55,13 +54,13 @@ function civicrm_api3_biasync_Create() {
  */
 function syncProperties($params) {
   //check duplicates for property
-  //parameters from Lauren  how to know deleted ids????????????
   // $request = [
   //   "entity" => "Property",
   //   "params" => [
   //     'id' => 45,
   //     'created_id' => 1,
   //     'modified_id' => 1,
+  //     'modified_date' => 1,
   //     'roll_no' => 12345678,
   //     'property_address' => 'test',
   //     'city' => 'test',
@@ -69,7 +68,6 @@ function syncProperties($params) {
   //     'name' => 'test',
   //     'source_record_id' => 45,
   //     'source_record' => 'bia1',
-  //     'delete_property_id' => ???????
   //   ]
   // ];
 
