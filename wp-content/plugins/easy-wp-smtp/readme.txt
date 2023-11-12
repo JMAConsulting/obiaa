@@ -2,7 +2,7 @@
 Contributors: sendlayer, jaredatch, smub, capuderg
 Tags: mail, wordpress smtp, phpmailer, smtp, wp_mail, email, gmail, google, g-suite, outgoing mail, privacy, security, sendmail, ssl, tls, wp-phpmailer, mail smtp, wp smtp, mailer, sendlayer, brevo, sendinblue, mailgun, smtp.com, sendgrid
 Requires at least: 5.2
-Tested up to: 6.2
+Tested up to: 6.3
 Requires PHP: 5.6
 Stable tag: 2.2.0
 License: GPLv2 or later
