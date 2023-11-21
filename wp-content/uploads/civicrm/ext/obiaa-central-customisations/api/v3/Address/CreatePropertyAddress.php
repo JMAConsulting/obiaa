@@ -7,35 +7,43 @@
  *   Array of parameters determined by getfields.
  */
 function _civicrm_api3_address_create_property_address_spec(&$params) {
-  $params['location_type_id']['api.required'] = 1;
-  $params['street_parsing'] = [
-    'title' => 'Street Address Parsing',
-    'description' => 'Optional param to indicate you want the street_address field parsed into individual params',
-    'type' => CRM_Utils_Type::T_BOOLEAN,
-  ];
-  $params['skip_geocode'] = [
-    'title' => 'Skip geocode',
-    'description' => 'Optional param to indicate you want to skip geocoding (useful when importing a lot of addresses
-      at once, the job \'Geocode and Parse Addresses\' can execute this task after the import)',
-    'type' => CRM_Utils_Type::T_BOOLEAN,
-  ];
-  $params['fix_address'] = [
-    'title' => ts('Fix address'),
-    'description' => ts('When true, apply various fixes to the address before insert. Default true.'),
-    'type' => CRM_Utils_Type::T_BOOLEAN,
-    'api.default' => TRUE,
-  ];
-  $params['world_region'] = [
-    'title' => ts('World Region'),
-    'name' => 'world_region',
-    'type' => CRM_Utils_Type::T_TEXT,
-  ];
-  $defaultLocation = CRM_Core_BAO_LocationType::getDefault();
-  if ($defaultLocation) {
-    $params['location_type_id']['api.default'] = $defaultLocation->id;
-  }
+  $params = civicrm_api3('address', 'getfields', ['action' => 'create'])['values'];
+  unset($params['contact_id']['api.required']);
 }
 
 function civicrm_api3_address_create_property_address($params) {
-  return civicrm_api3_address_create($params);
+  /**
+   * If street_parsing, street_address has to be parsed into
+   * separate parts
+   */
+  if (array_key_exists('street_parsing', $params)) {
+    if ($params['street_parsing'] == 1) {
+      if (array_key_exists('street_address', $params)) {
+        if (!empty($params['street_address'])) {
+          $parsedItems = CRM_Core_BAO_Address::parseStreetAddress(
+            $params['street_address']
+          );
+          if (array_key_exists('street_name', $parsedItems)) {
+            $params['street_name'] = $parsedItems['street_name'];
+          }
+          if (array_key_exists('street_unit', $parsedItems)) {
+            $params['street_unit'] = $parsedItems['street_unit'];
+          }
+          if (array_key_exists('street_number', $parsedItems)) {
+            $params['street_number'] = $parsedItems['street_number'];
+          }
+          if (array_key_exists('street_number_suffix', $parsedItems)) {
+            $params['street_number_suffix'] = $parsedItems['street_number_suffix'];
+          }
+        }
+      }
+    }
+  }
+
+  $params['check_permissions'] = 0;
+  if (!isset($params['fix_address']) || $params['fix_address']) {
+    CRM_Core_BAO_Address::fixAddress($params);
+  }
+
+  return _civicrm_api3_basic_create('CRM_Core_BAO_Address', $params, 'Address');
 }
