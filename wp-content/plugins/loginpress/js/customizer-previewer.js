@@ -3,7 +3,7 @@
  * @since 1.0.23
  * @varsion 1.5.3
  */
-(function(wp, $) {
+ (function(wp, $) {
     "use strict";
 
     // Bail if the customizer isn't initialized
@@ -11,8 +11,7 @@
         return;
     }
 
-    var api = wp.customize,
-        OldPreview;
+    var api = wp.customize, OldPreview;
 
     // Custom Customizer Preview class (attached to the Customize API)
     api.myCustomizerPreview = {
@@ -61,11 +60,11 @@
 
                 $body.append('<span class="loginpress-background-partial loginpress-partial customize-partial-edit-shortcut" data-title="Change Background"><button class="loginpress-event-button customize-partial-edit-shortcut-button" data-customizer-event="section_background"><span class="dashicons dashicons-images-alt"></span></button></span>');
 
-                $body.append('<span class="loginpress-footer-partial loginpress-partial customize-partial-edit-shortcut" data-title="Change Footer"><button class="loginpress-event-button customize-partial-edit-shortcut-button" data-customizer-event="section_fotter"><span class="dashicons dashicons-edit"></span></button></span>');
+                $body.append('<span class="loginpress-footer-partial loginpress-partial customize-partial-edit-shortcut" data-title="Change Footer"><button class="loginpress-event-button customize-partial-edit-shortcut-button" data-customizer-event="section_footer"><span class="dashicons dashicons-edit"></span></button></span>');
 
                 $button.append('<span class="loginpress-button-partial loginpress-partial customize-partial-edit-shortcut" data-title="Customize Button"><button class="loginpress-event-button customize-partial-edit-shortcut-button" data-customizer-event="section_button"><span class="dashicons dashicons-edit"></span></button></span>');
 
-                $('<span class="loginpress-nav-partial loginpress-partial customize-partial-edit-shortcut" data-title="Customize Navigation"><button class="loginpress-event-button customize-partial-edit-shortcut-button" data-customizer-event="section_fotter"><span class="dashicons dashicons-edit"></span></button></span>').insertAfter($nav);
+                $('<span class="loginpress-nav-partial loginpress-partial customize-partial-edit-shortcut" data-title="Customize Navigation"><button class="loginpress-event-button customize-partial-edit-shortcut-button" data-customizer-event="section_footer"><span class="dashicons dashicons-edit"></span></button></span>').insertAfter($nav);
 
                 $form.append('<span class="loginpress-input-partial loginpress-partial customize-partial-edit-shortcut" data-title="Customize Form"><button class="loginpress-event-button customize-partial-edit-shortcut-button" data-customizer-event="section_form"><span class="dashicons dashicons-edit"></span></button></span>');
             }
@@ -127,7 +126,7 @@
                     var newHtml = $(this).html().replace(currentText, "<span>" + currentText + "</span>");
                     $(this).html(newHtml);
                 });
-                if($('.login-container').length==0){
+				if($('.login-container').length==0){
                     $('.language-switcher').appendTo($('#login'));
                 }else{
                     $('.language-switcher').appendTo($('.login-container'));

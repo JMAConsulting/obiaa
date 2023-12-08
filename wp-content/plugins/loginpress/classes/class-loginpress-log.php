@@ -4,9 +4,9 @@
  * Log file to know more about users website environment.
  * helps in debugging and providing support.
  *
- * @package LoginPress
- * @since 1.0.19
- * @version 1.6.4
+ * @package    LoginPress
+ * @since      1.0.19
+ * @version	   3.0.0
  */
 
 class LoginPress_Log_Info {
@@ -14,6 +14,9 @@ class LoginPress_Log_Info {
 	/**
 	 * Returns the plugin & system information.
 	 * @access public
+	 * @package LoginPress
+	 * @since 1.0.19
+	 * @version 3.0.0
 	 * @return string
 	 */
 	public static function get_sysinfo() {
@@ -22,29 +25,30 @@ class LoginPress_Log_Info {
 		$loginpress_setting    = get_option( 'loginpress_setting' );
 		$loginpress_config 	   = get_option( 'loginpress_customization' );
 		$session_expiration    = ( isset( $loginpress_setting['session_expiration'] ) && '0' != $loginpress_setting['session_expiration'] ) ? $loginpress_setting['session_expiration'] . ' Minute' : 'Not Set';
-		$login_order 	       = isset( $loginpress_setting['login_order'] ) ? $loginpress_setting['login_order'] : 'Default';
+		$login_order 	         = isset( $loginpress_setting['login_order'] ) ? $loginpress_setting['login_order'] : 'Default';
 		$customization 	       = isset( $loginpress_config ) ? print_r( $loginpress_config, true ) : 'No customization yet';
-		$lostpassword_url 	   = isset( $loginpress_setting['lostpassword_url'] ) ? $loginpress_setting['lostpassword_url'] : 'off';
+		$lostpassword_url 	   = isset( $loginpress_setting['lostpassword_url'] ) ? $loginpress_setting['lostpassword_url'] : 'Off';
 
 		if ( version_compare( $GLOBALS['wp_version'], '5.9', '>=' ) && ! empty( get_available_languages() ) ) {
 			$lang_switcher     = isset( $loginpress_setting['enable_language_switcher'] ) ? $loginpress_setting['enable_language_switcher'] : 'Off';
 		}
 		$pci_compliance        = isset( $loginpress_setting['enable_pci_compliance'] ) ? $loginpress_setting['enable_pci_compliance'] : 'Off';
 		$_loginpassword_url    = ( $lostpassword_url == 'on' ) ? 'WordPress Default' : "WooCommerce Custom URL";
-		$loginpress_uninstall  = isset( $loginpress_setting['loginpress_uninstall'] ) ? $loginpress_setting['loginpress_uninstall'] : 'off';
+		$loginpress_uninstall  = isset( $loginpress_setting['loginpress_uninstall'] ) ? $loginpress_setting['loginpress_uninstall'] : 'Off';
 		$disable_default_style = (bool) apply_filters( 'loginpress_disable_default_style', false );
+		$enable_password_reset = isset( $loginpress_setting['enable_password_reset'] ) ? $loginpress_setting['enable_password_reset'] : 'Off';
 
 		$html = '### Begin System Info ###' . "\n\n";
 
 		// Basic site info
-		$html .= '-- WordPress Configuration --' . "\n\n";
+		$html  = '-- WordPress Configuration --' . "\n\n";
 		$html .= 'Site URL:                 ' . site_url() . "\n";
 		$html .= 'Home URL:                 ' . home_url() . "\n";
 		$html .= 'Multisite:                ' . ( is_multisite() ? 'Yes' : 'No' ) . "\n";
 		$html .= 'Version:                  ' . get_bloginfo( 'version' ) . "\n";
 		$html .= 'Language:                 ' . get_locale() . "\n";
 		$html .= 'Table Prefix:             ' . 'Length: ' . strlen( $wpdb->prefix ) . "\n";
-		$html .= 'WP_DEBUG:                 ' . ( defined( 'WP_DEBUG' ) ? WP_DEBUG ? 'Enabled' : 'Disabled' : 'Not set' ) . "\n";
+		$html .= 'WP_DEBUG:                 ' . ( defined( 'WP_DEBUG' ) ? ( WP_DEBUG ? 'Enabled' : 'Disabled' ) : 'Not set' ) . "\n";
 		$html .= 'Memory Limit:             ' . WP_MEMORY_LIMIT . "\n";
 
 		/**
@@ -59,11 +63,22 @@ class LoginPress_Log_Info {
 		// Plugin Configuration
 		$html .= "\n" . '-- LoginPress Configuration --' . "\n\n";
 		$html .= 'Plugin Version:           ' . LOGINPRESS_VERSION . "\n";
-		$html .= 'Expiration:           	  ' . $session_expiration . "\n";
+		$html .= 'Expiration:               ' . $session_expiration . "\n";
 		$html .= 'Login Order:              ' . ucfirst( $login_order ) . "\n";
 		$html .= 'PCI Compliance:           ' . ucfirst( $pci_compliance ) . "\n";
+		$html .= 'Force Password Reset:     ' . ucfirst( $enable_password_reset ) . "\n";
+
 		if ( class_exists( 'WooCommerce' ) ) {
 			$html .= 'Lost Password URL:        ' . $_loginpassword_url . "\n";
+		}
+
+		/**
+		 * Add a filter to disable the LoginPress default template style.
+		 *
+		 * @since 1.6.4
+		 */
+		if ( $disable_default_style ) {
+			$html .= "\n" . '-- *LoginPress Default Style is disabled by using Hook* --' . "\n";
 		}
 
 		/**
@@ -74,38 +89,39 @@ class LoginPress_Log_Info {
 		if ( version_compare( $GLOBALS['wp_version'], '5.9', '>=' ) && ! empty( get_available_languages() ) ) {
 			$html .= 'Language Switcher:        ' . ucfirst( $lang_switcher ) . "\n";
 		}
-		$html .= 'Uninstallation:       	  ' . ucfirst( $loginpress_uninstall ) . "\n";
+		$html .= 'Uninstallation:       	  ' . $loginpress_uninstall . "\n";
 		$html .= 'Total Customized Fields:  ' . count( $loginpress_config ) . "\n";
 		$html .= 'Customization Detail:     ' . $customization . "\n";
 
 		// Pro Plugin Configuration
 		if ( class_exists( 'LoginPress_Pro' ) ) {
 
-			$enable_repatcha     = ( isset( $loginpress_setting['enable_repatcha'] ) ) ? $loginpress_setting['enable_repatcha'] : 'Off';
-			$enable_force 			 = ( isset( $loginpress_setting['force_login'] ) ) ? $loginpress_setting['force_login'] : 'Off';
-			$loginpress_preset	 = get_option( 'customize_presets_settings', 'default1' );
-			$license_key         = LoginPress_Pro::get_registered_license_status();
+			$enable_recaptcha  = ( isset( $loginpress_setting['enable_repatcha'] ) ) ? $loginpress_setting['enable_repatcha'] : 'Off';
+			$enable_force      = ( isset( $loginpress_setting['force_login'] ) ) ? $loginpress_setting['force_login'] : 'Off';
+			$loginpress_preset = get_option( 'customize_presets_settings', 'minimalist' );
+			$license_key       = LoginPress_Pro::get_registered_license_status();
+
 			$html .= "\n" . '-- LoginPress Pro Configuration --' . "\n\n";
 			$html .= 'Plugin Version:           ' . LOGINPRESS_PRO_VERSION . "\n";
 			$html .= 'LoginPress Template:      ' . $loginpress_preset . "\n";
 			$html .= 'License Status:           ' . $license_key . "\n";
 			$html .= 'Force Login:              ' . $enable_force . "\n";
-			$html .= 'Google Repatcha Status:   ' . $enable_repatcha . "\n";
+			$html .= 'Google Recaptcha Status:  ' . $enable_recaptcha . "\n";
 
-			if ( 'on' == $enable_repatcha ) {
+			if ( 'on' == $enable_recaptcha ) {
 				$site_key          = ( isset( $loginpress_setting['site_key'] ) ) ? $loginpress_setting['site_key'] : 'Not Set';
 				$secret_key        = ( isset( $loginpress_setting['secret_key'] ) ) ? $loginpress_setting['secret_key'] : 'Not Set';
 				$captcha_theme     = ( isset( $loginpress_setting['captcha_theme'] ) ) ? $loginpress_setting['captcha_theme'] : 'Light';
 				$captcha_language  = ( isset( $loginpress_setting['captcha_language'] ) ) ? $loginpress_setting['captcha_language'] : 'English (US)';
 				$captcha_enable_on = ( isset( $loginpress_setting['captcha_enable'] ) ) ? $loginpress_setting['captcha_enable'] : 'Not Set';
 
-				$html .= 'Repatcha Site Key:        ' . LoginPress_Pro::mask_license( $site_key ) . "\n";
-				$html .= 'Repatcha Secret Key:      ' . LoginPress_Pro::mask_license( $secret_key ) . "\n";
-				$html .= 'Repatcha Theme Used:      ' . $captcha_theme . "\n";
-				$html .= 'Repatcha Language Used:   ' . $captcha_language . "\n";
+				$html .= 'Recaptcha Site Key:        ' . LoginPress_Pro::mask_license( $site_key ) . "\n";
+				$html .= 'Recaptcha Secret Key:      ' . LoginPress_Pro::mask_license( $secret_key ) . "\n";
+				$html .= 'Recaptcha Theme Used:      ' . $captcha_theme . "\n";
+				$html .= 'Recaptcha Language Used:   ' . $captcha_language . "\n";
 				if ( is_array( $captcha_enable_on ) ) {
 					foreach ( $captcha_enable_on as $key ) {
-						$html .= 'Repatcha Enable On:       ' . ucfirst( str_replace( "_", " ", $key ) )  . "\n";
+						$html .= 'Recaptcha Enable On:       ' . ucfirst( str_replace( "_", " ", $key ) )  . "\n";
 					}
 				}
 			}

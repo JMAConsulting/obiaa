@@ -1,11 +1,11 @@
 === LoginPress | wp-login Custom Login Page Customizer ===
 Requires at least: 4.0
-Tested up to: 6.2
+Tested up to: 6.4
 Contributors: WPBrigade, hiddenpearls, AbdulWahab610
 Donate link: https://loginpress.pro/pricing/?utm_source=loginpress-lite
 Author URI: https://wpbrigade.com/?utm_source=loginpress-lite&utm_medium=author-url-link
 Tags: wp-login, login, login customizer, custom login, wordpress login,
-Stable tag: 1.8.0
+Stable tag: 3.0.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -161,7 +161,7 @@ Absolutely not. You can create and manage custom login page without any coding k
 
 = Is LoginPress translation ready? =
 
-Yes, LoginPress has full translation and localization support via the loginpress textdomain. All .mo and .po translation files should go into the languages folder in the base of the plugin.
+Yes, LoginPress has full translation and localization support via the loginpress text domain. All .mo and .po translation files should go into the languages folder in the base of the plugin.
 
 = Is LoginPress WPML Compatible? =
 Yes.
@@ -221,6 +221,35 @@ Please visit <a target="_blank" rel="friend" href="https://loginpress.pro?utm_so
 23. Custom Login page (Company theme) Example #23 with Captcha [Pro feature](https://loginpress.pro?utm_source=loginpress-lite&utm_medium=screenshots&utm_campaign=pro-upgrade)
 
 == Changelog ==
+
+= 3.0.2 – 2023-12-06 =
+* Bugfix: Background/Logo image customization issue.
+* Bugfix: Fixes from 3.0.1 version.
+
+= 3.0.1 – 2023-12-05 =
+* Bugfix: Revert the default layout of the LoginPress from 3.0.0
+* New Feature: Introducing a new and trendy LoginPress template named as `Minimalist`.
+* Compatibility: Compatible with PHP 8.2
+* Compatibility: Compatible with WordPress 6.4
+
+
+= 3.0.0 – 2023-12-04 =
+* New Feature: Introducing a new and trendy default LoginPress design.
+* New Feature: Introducing a new dashboard UI/UX for LoginPress pages.
+* New Feature: Introducing a new control to customize the Password miss-match error message.
+* New Feature: Force newly register users to reset their password after a certain time limit, by default six months.
+* New Feature: Introducing new control for YouTube video as login page background support.
+* Enhancement: Added a filter `increase_force_time_limit` to change the limit of force login beyond 6 Months.
+* Enhancement: Added a filter `loginpress_password_reset_for_all` to force all user/s to forcefully reset password after a specific time.
+* Enhancement: Added a filter `loginpress_change_reset_message` to change reset email.
+* Enhancement: Added a filter `loginpress_username_label` to change label for username field.
+* Enhancement: Code re-factorization and optimization.
+* Enhancement: UI/UX design updates.
+* Enhancement: Update All supportive language `.pot` files.
+* BugFix: WordFence 2FA layout breaks issue.
+* BugFix: Import/Export settings updated.
+* Compatibility: Compatible with PHP 8.2
+* Compatibility: Compatible with WordPress 6.4
 
 = 1.8.0 – 2023-06-05 =
 * New Feature: Introducing [PCI Compliance](https://loginpress.pro/doc/wordpress-login-page-pci-compliance/) (Enable / Disable) settings for login and registration forms.
@@ -319,7 +348,7 @@ Please visit <a target="_blank" rel="friend" href="https://loginpress.pro?utm_so
 * Bugfix: "Back to" control in customizer.
 * Bugfix: Button text size control in customizer.
 * Bugfix: Logo control in customizer.
-* Enhancement: Update Deutsch German language strings.
+* Enhancement: Update Deutsche German language strings.
 
 = 1.4.6 – 2020-08-12 =
 * New Feature: Created a new control for change wp-login.php page title.
@@ -336,7 +365,7 @@ Please visit <a target="_blank" rel="friend" href="https://loginpress.pro?utm_so
 = 1.4.3 – 2020-02-27 =
 * New Feature: Created a new control for button text color on hover.
 * Bugfix: Video background works on iOS devices as well.
-* Bugfix: Compatible with Listing Pro Themes. Dequeue their stylesheet on login page only.
+* Bugfix: Compatible with Listing Pro Themes. Dequeue their style sheet on login page only.
 * Enhancement: Added a filter `loginpress_footer_copyright` to extend the copyright note functionality.
 
 = 1.4.2 – 2020-01-14 =
@@ -361,7 +390,7 @@ Please visit <a target="_blank" rel="friend" href="https://loginpress.pro?utm_so
 
 = 1.3.2 – 2019-10-23 =
 * Bugfix: Firefox CSS conflict with premium templates.
-* Bugfix: Compatible with Thrive Themes. Dequeue their stylesheet on login page only.
+* Bugfix: Compatible with Thrive Themes. Dequeue their style sheet on login page only.
 * Bugfix: Compatible with Oxygen Builder.
 * Enhancement: Added a filter `loginpress_exclude_role_session` to exclude the user roles from session expiration.
 * Enhancement: Compatible with Password Protected plugin. Login logo title fixed.
@@ -385,7 +414,7 @@ Please visit <a target="_blank" rel="friend" href="https://loginpress.pro?utm_so
 * New Feature: Add settings for "remember me" option already checked on login form.
 * New Feature: Create a hook for change the default login page background.
 * Bugfix: Footer issue in Safari Browser.
-* Bugfix: LoginPress Dashicon confliction with other custom dashicons.
+* Bugfix: LoginPress Dashicons conflicting with other custom dashicons.
 * Bugfix: Video Previewer issue in customizer.
 
 = 1.2.2 - 2019-07-15 =
@@ -416,7 +445,7 @@ Please visit <a target="_blank" rel="friend" href="https://loginpress.pro?utm_so
 * Compatibility: LoginPress is compatible with Dutch (Netherlands) language now. Special thanks to <a href="https://profiles.wordpress.org/harm10/" rel="friend">Harm10</a> to contribute.
 
 = 1.1.23 - 2019-04-29 =
-* Bugfix: PHP callout error in LoginPress settings page.
+* Bugfix: PHP call out error in LoginPress settings page.
 
 = 1.1.22 - 2019-04-25 =
 * New Feature: Play Background Video at login page.
@@ -467,7 +496,7 @@ Please visit <a target="_blank" rel="friend" href="https://loginpress.pro?utm_so
 * Bugfix: On load hide login form control if transparency enabled. (in customizer)
 
 = 1.1.11 - 2018-09-19 =
-* Bugfix: Social Login CSS Confliction with Default Template.
+* Bugfix: Social Login CSS Conflicting with Default Template.
 * Update: Arabic language.
 
 = 1.1.10 - 2018-09-11 =
@@ -625,7 +654,7 @@ Please visit <a target="_blank" rel="friend" href="https://loginpress.pro?utm_so
 * Enhancement: Code improvement.
 
 = 1.0.12 - 2017-03-23 =
-* Bugfix: Remove conflictions.
+* Bugfix: Remove confliction.
 * Enhancement: Add Button to deactivate plugin without feedback.
 
 
@@ -676,5 +705,5 @@ Please visit <a target="_blank" rel="friend" href="https://loginpress.pro?utm_so
 
 == Upgrade Notice ==
 
-= 1.8.0 =
-* Upgrade immediately. Compatible with 6.2
+= 3.0.2 =
+* Upgrade carefully. New Feature Release and Compatible with 6.4

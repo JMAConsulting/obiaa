@@ -1,27 +1,28 @@
 <?php
 /**
-* Class for Radio Button Control.
-*
-* @since  1.0.23
-* @access public
-*/
+ * Class for Radio Button Control.
+ *
+ * @since 1.0.23
+ * @version 3.0.0
+ * @access public
+ */
 class LoginPress_Misc_Control extends WP_Customize_Control {
 
 	/**
-	* The type of customize control being rendered.
-	*
-	* @since  1.0.23
-	* @access public
-	* @var    string
-	*/
+	 * The type of customize control being rendered.
+	 *
+	 * @since  1.0.23
+	 * @access public
+	 * @var    string
+	 */
 	public $type = '';
 
 	/**
 	 * Enqueue scripts/styles.
 	 *
 	 * @since 1.0.23
-   * @access public
-   * @return void
+	 * @access public
+	 * @return void
 	 */
 	public function enqueue() {
 
@@ -31,20 +32,20 @@ class LoginPress_Misc_Control extends WP_Customize_Control {
 	}
 
 	/**
-  * Displays the control content.
-  *
-  * @since  1.0.23
-  * @access public
-  * @return void
-  */
+	 * Displays the control content.
+	 *
+	 * @since  1.0.23
+	 * @access public
+	 * @return void
+	 */
 	public function render_content() {
 
 		switch ( $this->type ) {
-            default:
+			default:
 
-            case 'hr' :
-                echo '<hr />';
-                break;
-        }
+			case 'hr' :
+				echo '<hr />';
+				break;
+		}
 	}
 }

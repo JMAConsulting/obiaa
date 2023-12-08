@@ -18,6 +18,7 @@
  * @return bool Whether the checkbox is checked.
  */
 function loginpress_sanitize_checkbox( $checked ) {
+	
 	// Boolean check.
 	return ( ( isset( $checked ) && true == $checked ) ? true : false );
 }
@@ -67,11 +68,11 @@ function loginpress_sanitize_select( $input, $setting ) {
  *
  * @since 1.1.17
  *
- * @version 1.6.1
+ * @version 3.0.0
  */
 function loginpress_sanitize_image( $image, $setting ) {
 
-	/*
+	/**
 	 * Array of valid image file types.
 	 *
 	 * The array includes image mime types that are included in wp_get_mime_types()
@@ -85,28 +86,53 @@ function loginpress_sanitize_image( $image, $setting ) {
         'ico'          => 'image/x-icon',
     );
 
-		$allowed_mime   = get_allowed_mime_types();
+	// Allowed svg mime type in version 1.2.2
+	$allowed_mime   = get_allowed_mime_types();
 
-		/**
-		 * Filter the list of mime types that are allowed for uploads.
-		 *
-		 * @since 1.6.1
-		 */
-		$extra_mimes    = array(
-			'svg'  => 'image/svg+xml', // Allowed svg mime type in version 1.2.2
-			'webp' => 'image/webp',   // Allowed webp mime type in version 1.6.1
-		);
+	/**
+	 * Filter the list of mime types that are allowed for uploads.
+	 *
+	 * @since 1.6.1
+	 */
+	$extra_mimes    = array(
+		'svg'  => 'image/svg+xml', // Allowed svg mime type in version 1.2.2
+		'webp' => 'image/webp',   // Allowed webp mime type in version 1.6.1
+	);
 
-		foreach ( $extra_mimes as $key => $value ) {
-			$mime_check = isset( $allowed_mime[ $key ] ) ? true : false;
-			if ( $mime_check ) {
-				$allow_mime = array( $key => $value );
-				$mimes      = array_merge( $mimes, $allow_mime );
+	foreach ( $extra_mimes as $key => $value ) {
+		$mime_check = isset( $allowed_mime[ $key ] ) ? true : false;
+		if ( $mime_check ) {
+			$allow_mime = array( $key => $value );
+			$mimes      = array_merge( $mimes, $allow_mime );
+		}
+	}
+
+	$file_type = false;
+	/**
+	 * Return an array with file extension and mime_type.
+	 *
+	 * @since 3.0.0
+	 * @version 3.0.2
+	 */
+	if ( ! empty( $image ) ) {
+		$headers      = get_headers( $image, 1 );
+		$content_type = isset( $headers['Content-Type'] ) && ! empty( $headers['Content-Type'] ) ? $headers['Content-Type'] : false;
+		
+		if ( $content_type ) {
+
+			$file_type = $content_type ? in_array( $content_type, $mimes ) : false;
+
+			if ( is_array( $content_type ) ) {
+				foreach ( $content_type as $type ) {
+					$file_type = $type ? in_array( $type, $mimes ) : false;
+					if ( $file_type ) {
+						break;
+					}
+				}
 			}
 		}
+	}
 
-	// Return an array with file extension and mime_type.
-    $file = wp_check_filetype( $image, $mimes );
 	// If $image has a valid mime_type, return it; otherwise, return the default.
-    return ( $file['ext'] ? $image : $setting->default );
+    return ( $file_type ? $image : $setting->default );
 }
