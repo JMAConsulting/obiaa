@@ -1,7 +1,7 @@
 /**
  * Script run inside a Customizer control sidebar
  */
-(function($) {
+ (function($) {
     wp.customize.bind('ready', function() {
         rangeSlider();
     });
@@ -12,36 +12,29 @@
             value   = $('.loginpress-range-slider_val'),
             reset   = $('.loginpress-range-reset');
 
-        slider.each(function() {
+        slider.each( function() {
 
-          value.each(function() {
+			value.each( function() {
+				var eachVal = $(this).prev().attr('value');
+				$(this).val( eachVal );
+			} );
 
-            var eachVal = $(this).prev().attr('value');
+			value.on( 'keyup', function() {
+				var keyupVal = $(this).val();
+				$(this).prev().attr( 'value', keyupVal );
+				$(this).prev().trigger('input');
+			} );
 
-            $(this).val( eachVal );
-          });
+			range.on( 'input', function() {
+				$(this).next(value).val( this.value );
+			} );
 
-          value.on( 'keyup', function() {
-
-            var keyupVal = $(this).val();
-
-            $(this).prev().attr( 'value', keyupVal );
-            $(this).prev().trigger('input');
-          });
-
-          range.on( 'input', function() {
-
-            $(this).next(value).val( this.value );
-          });
-
-          reset.on( 'click', function () {
-
-            var rangeVal = $(this).parent().next().data('default-value');
-            $(this).parent().next().val( rangeVal );
-            $(this).parent().next().trigger('input');
-      		});
-        });
-
+          	reset.on( 'click', function () {
+            	var rangeVal = $(this).parent().next().data('default-value');
+				$(this).parent().next().val( rangeVal );
+				$(this).parent().next().trigger('input');
+      		} );
+        } );
     };
 
 })(jQuery);

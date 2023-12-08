@@ -4,7 +4,7 @@
  * @since 1.0.23
  * @version 1.5.2
  */
-( function ( exports, $ ) {
+ ( function ( exports, $ ) {
 	"use strict";
 
 	var api = wp.customize, OldPreviewer;
@@ -46,7 +46,7 @@
 				$(this).parent().next('.loginpress-group-info').slideToggle();
 			});
 
-			$( '<li class="accordion-section control-section control-section-default control-subsection"><h4 class="accordion-section-title"><a href="https://wordpress.org/support/plugin/loginpress/reviews/#new-post" target="_blank">Like our plugin? Leave a review here!</a></h4></li><li style="padding: 10px; text-align: center;">Made with ❤ by <a href="https://WPBrigade.com/wordpress/plugins/loginpress-pro/?utm_source=loginpress-lite&utm_medium=made-with&utm_campaign=pro-upgrade" target="_blank">Adnan</a></li>' ).appendTo( '#sub-accordion-panel-loginpress_panel' );
+			$( '<li class="accordion-section control-section control-section-default control-subsection"><h4 class="accordion-section-title"><a href="https://wordpress.org/support/plugin/loginpress/reviews/#new-post" target="_blank">Like our plugin? Leave a review here!</a></h4></li><li style="padding: 10px; text-align: center;">Made with ❤ by <a href="https://loginpress.pro/pricing/?utm_source=loginpress-lite&utm_medium=made-with&utm_campaign=pro-upgrade" target="_blank">Adnan</a></li>' ).appendTo( '#sub-accordion-panel-loginpress_panel' );
 
 		}
 	};

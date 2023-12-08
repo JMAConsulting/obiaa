@@ -8,38 +8,38 @@
 class LoginPress_Range_Control extends WP_Customize_Control {
 
 	/**
-  * The type of customize control being rendered.
-  *
-  * @since  1.0.23
-  * @access public
-  * @var    string
-  */
+	 * The type of customize control being rendered.
+	 *
+	 * @since  1.0.23
+	 * @access public
+	 * @var    string
+	 */
 	public $type = 'loginpress-range';
 
 	/**
-  * Default for the Controler
-  *
-  * @since  1.0.23
-  * @access public
-  * @var    string
-  */
-  public $default;
+	 * Default for the Controler
+	 *
+	 * @since  1.0.23
+	 * @access public
+	 * @var    string
+	 */
+	public $default;
 
 	/**
-  * Unit for the Controler
-  *
-  * @since  1.0.23
-  * @access public
-  * @var    string
-  */
-  public $unit = 'px';
+	 * Unit for the Controler
+	 *
+	 * @since  1.0.23
+	 * @access public
+	 * @var    string
+	 */
+	public $unit = 'px';
 
 	/**
 	 * Enqueue scripts/styles.
 	 *
 	 * @since 1.0.23
-   * @access public
-   * @return void
+	 * @access public
+	 * @return void
 	 */
 	public function enqueue() {
 
@@ -49,12 +49,12 @@ class LoginPress_Range_Control extends WP_Customize_Control {
 	}
 
 	/**
-  * Displays the control content.
-  *
-  * @since  1.0.23
-  * @access public
-  * @return void
-  */
+	 * Displays the control content.
+	 *
+	 * @since  1.0.23
+	 * @access public
+	 * @return void
+	 */
 	public function render_content() {
 		?>
 		<label>
@@ -68,7 +68,7 @@ class LoginPress_Range_Control extends WP_Customize_Control {
 				</span>
 			</div>
 			<?php if ( ! empty( $this->description ) ) : ?>
-			<span class="description customize-control-description"><?php echo $this->description; ?></span>
+				<span class="description customize-control-description"><?php echo $this->description; ?></span>
 			<?php endif; ?>
 		</label>
 		<?php

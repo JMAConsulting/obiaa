@@ -15,7 +15,7 @@
 	.loginpress-caps-lock{display: none;}
 	.loginpress-show-love{float: right; font-style: italic; padding-right: 20px; padding-bottom: 10px; position: absolute; bottom: 3px; right: 0; z-index: 10;}
 	.loginpress-show-love a{ text-decoration: none; }
-	.footer-wrapper{  position: -webkit-sticky; position: sticky; top: 100vh; }
+	.footer-wrapper{  position: -webkit-sticky; position: sticky; top: 100vh; width: 100%;}
 	.footer-cont{ right: 0; bottom: 0; left: 0; text-align: center; vertical-align: bottom; }
 	.login .copyRight{ background-color: #ffffff }
 	.login .copyRight{ color: #3c434a }

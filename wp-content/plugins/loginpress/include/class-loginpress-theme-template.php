@@ -11,141 +11,137 @@
  }
 
 if ( ! class_exists( 'LoginPress_Theme_Template' ) ) :
-/**
- * Add LoginPress Templates to to use in the theme.
- */
-class LoginPress_Theme_Template {
 
 	/**
-	 * A reference to an instance of this class.
-	 * @var string
+	 * Add LoginPress Templates to to use in the theme.
 	 */
-	private static $instance;
+	class LoginPress_Theme_Template {
 
-	/**
-	 * The array of templates that this plugin tracks.
-	 * @var string
-	 */
-	protected $templates;
+		/**
+		 * A reference to an instance of this class.
+		 * @var string
+		 */
+		private static $instance;
 
-	/**
-	 * Returns an instance of this class.
-	 */
-	public static function get_instance() {
+		/**
+		 * The array of templates that this plugin tracks.
+		 * @var string
+		 */
+		protected $templates;
 
-		if ( null == self::$instance ) {
-			self::$instance = new LoginPress_Theme_Template();
+		/**
+		 * Returns an instance of this class.
+		 */
+		public static function get_instance() {
+
+			if ( null === self::$instance ) {
+				self::$instance = new LoginPress_Theme_Template();
+			}
+
+			return self::$instance;
 		}
 
-		return self::$instance;
+		/**
+		 * Initializes the plugin by setting filters and administration functions.
+		 */
+		private function __construct() {
 
-	}
+			$this->templates = array();
 
-	/**
-	 * Initializes the plugin by setting filters and administration functions.
-	 */
-	private function __construct() {
+			// Add a filter to the attributes metabox to inject template into the cache.
+			if ( version_compare( floatval( get_bloginfo( 'version' ) ), '4.7', '<' ) ) {
+				// 4.6 and older
+				add_filter( 'page_attributes_dropdown_pages_args', array( $this, 'register_project_templates' ) );
+			} else {
+				// Add a filter to the wp 4.7 version attributes metabox
+				add_filter( 'theme_page_templates', array( $this, 'add_new_template' ) );
+			}
 
-		$this->templates = array();
+			// Add a filter to the save post to inject out template into the page cache.
+			add_filter(	'wp_insert_post_data', array( $this, 'register_project_templates' ) );
 
+			// Add a filter to the template include to determine if the page has our template assigned and return it's path.
+			add_filter( 'template_include', array( $this, 'view_project_template') );
 
-		// Add a filter to the attributes metabox to inject template into the cache.
-		if ( version_compare( floatval( get_bloginfo( 'version' ) ), '4.7', '<' ) ) {
-			// 4.6 and older
-			add_filter( 'page_attributes_dropdown_pages_args', array( $this, 'register_project_templates' ) );
-		} else {
-			// Add a filter to the wp 4.7 version attributes metabox
-			add_filter( 'theme_page_templates', array( $this, 'add_new_template' ) );
+			// Add templates.
+			$this->templates = array(
+				'template-loginpress.php' => 'LoginPress',
+			);
+
 		}
 
-		// Add a filter to the save post to inject out template into the page cache.
-		add_filter(	'wp_insert_post_data', array( $this, 'register_project_templates' ) );
+		/**
+		 * Adds our template to the page dropdown for v4.7+
+		 *
+		 */
+		public function add_new_template( $posts_templates ) {
 
-
-		// Add a filter to the template include to determine if the page has our template assigned and return it's path.
-		add_filter( 'template_include', array( $this, 'view_project_template') );
-
-
-		// Add templates.
-		$this->templates = array(
-			'template-loginpress.php' => 'LoginPress',
-		);
-
-	}
-
-	/**
-	 * Adds our template to the page dropdown for v4.7+
-	 *
-	 */
-	public function add_new_template( $posts_templates ) {
-
-		$posts_templates = array_merge( $posts_templates, $this->templates );
-		return $posts_templates;
-	}
-
-	/**
-	 * Adds our template to the pages cache in order to trick WordPress
-	 * into thinking the template file exists where it doens't really exist.
-	 */
-	public function register_project_templates( $atts ) {
-
-		// Create the key used for the themes cache.
-		$cache_key = 'page_templates-' . md5( get_theme_root() . '/' . get_stylesheet() );
-
-		// Retrieve the cache list.
-		// If it doesn't exist, or it's empty prepare an array.
-		$templates = wp_get_theme()->get_page_templates();
-		if ( empty( $templates ) ) {
-			$templates = array();
+			$posts_templates = array_merge( $posts_templates, $this->templates );
+			return $posts_templates;
 		}
 
-		// New cache, therefore remove the old one
-		wp_cache_delete( $cache_key , 'themes');
+		/**
+		 * Adds our template to the pages cache in order to trick WordPress
+		 * into thinking the template file exists where it doesn't really exist.
+		 */
+		public function register_project_templates( $atts ) {
 
-		// Now add our template to the list of templates by merging our templates
-		// with the existing templates array from the cache.
-		$templates = array_merge( $templates, $this->templates );
+			// Create the key used for the themes cache.
+			$cache_key = 'page_templates-' . md5( get_theme_root() . '/' . get_stylesheet() );
 
-		// Add the modified cache to allow WordPress to pick it up for listing
-		// available templates
-		wp_cache_add( $cache_key, $templates, 'themes', 1800 );
+			// Retrieve the cache list.
+			// If it doesn't exist, or it's empty prepare an array.
+			$templates = wp_get_theme()->get_page_templates();
+			if ( empty( $templates ) ) {
+				$templates = array();
+			}
 
-		return $atts;
+			// New cache, therefore remove the old one
+			wp_cache_delete( $cache_key , 'themes');
 
-	}
+			// Now add our template to the list of templates by merging our templates
+			// with the existing templates array from the cache.
+			$templates = array_merge( $templates, $this->templates );
 
-	/**
-	 * Checks if the template is assigned to the page.
-	 */
-	public function view_project_template( $template ) {
+			// Add the modified cache to allow WordPress to pick it up for listing
+			// available templates
+			wp_cache_add( $cache_key, $templates, 'themes', 1800 );
 
-		// Get global post
-		global $post;
+			return $atts;
 
-		// Return template if post is empty
-		if ( ! $post ) {
+		}
+
+		/**
+		 * Checks if the template is assigned to the page.
+		 */
+		public function view_project_template( $template ) {
+
+			// Get global post
+			global $post;
+
+			// Return template if post is empty
+			if ( ! $post ) {
+				return $template;
+			}
+
+			// Return default template if we don't have a custom one defined
+			if ( ! isset( $this->templates[ get_post_meta( $post->ID, '_wp_page_template', true ) ] ) ) {
+				return $template;
+			}
+
+			$file = plugin_dir_path( __FILE__ ). get_post_meta( $post->ID, '_wp_page_template', true );
+
+			// Just to be safe, we check if the file exist first
+			if ( file_exists( $file ) ) {
+				return $file;
+			} else {
+				echo $file;
+			}
+
+			// Return template
 			return $template;
+
 		}
-
-		// Return default template if we don't have a custom one defined
-		if ( ! isset( $this->templates[ get_post_meta( $post->ID, '_wp_page_template', true ) ] ) ) {
-			return $template;
-		}
-
-		$file = plugin_dir_path( __FILE__ ). get_post_meta( $post->ID, '_wp_page_template', true );
-
-		// Just to be safe, we check if the file exist first
-		if ( file_exists( $file ) ) {
-			return $file;
-		} else {
-			echo $file;
-		}
-
-		// Return template
-		return $template;
-
 	}
-
-}
 endif;
 add_action( 'plugins_loaded', array( 'LoginPress_Theme_Template', 'get_instance' ) );

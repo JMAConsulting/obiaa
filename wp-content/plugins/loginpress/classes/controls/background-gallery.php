@@ -1,10 +1,11 @@
 <?php
 /**
-* Class for Background Gallery Control.
-*
-* @since  1.1.0
-* @access public
-*/
+ * Class for Background Gallery Control.
+ *
+ * @since  1.1.0
+ * @version 3.0.0
+ * @access public
+ */
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -33,6 +34,9 @@ class LoginPress_Background_Gallery_Control extends WP_Customize_Control {
 
 	/**
 	 * Enqueue neccessary custom control scripts.
+	 *
+	 * @since 1.0.0
+	 * @version 3.0.0
 	 */
 	public function enqueue() {
 
@@ -41,30 +45,32 @@ class LoginPress_Background_Gallery_Control extends WP_Customize_Control {
 	}
 
 	/**
-  * Displays the control content.
-  *
-  * @since  1.1.0
-  * @access public
-  * @return void
-  */
+	 * Displays the control content.
+	 *
+	 * @since  1.1.0
+	 * @version 3.0.0
+	 *
+	 * @access public
+	 * @return void
+	 */
 	public function render_content() {
 
-		if ( empty( $this->choices ) )
+		if ( empty( $this->choices ) ) {
 			return;
+		}
 
 		$name = 'loginpress_gallery-' . $this->id; ?>
-
 		<span class="customize-control-title">
-      <?php echo esc_attr( $this->label ); ?>
-      <?php if ( ! empty( $this->description ) ) : ?>
-        <span class="description customize-control-description"><?php echo esc_html( $this->description ); ?></span>
-      <?php endif; ?>
-    </span>
+			<?php echo esc_attr( $this->label ); ?>
+			<?php if ( ! empty( $this->description ) ) : ?>
+				<span class="description customize-control-description"><?php echo esc_html( $this->description ); ?></span>
+			<?php endif; ?>
+		</span>
 
 		<div id="loginpress-gallery" class="gallery">
 			<?php foreach ( $this->choices as $value ) : ?>
 				<div class="loginpress_gallery_thumbnails">
-			   	<input id="<?php echo $this->id . esc_attr( $value['id'] ); ?>" class="image-select" type="radio" value="<?php echo esc_attr( $value['id'] ); ?>" name="<?php echo esc_attr( $name ); ?>" <?php $this->link(); checked( $this->value(), $value['id'] ); ?> />
+					<input id="<?php echo $this->id . esc_attr( $value['id'] ); ?>" class="image-select" type="radio" value="<?php echo esc_attr( $value['id'] ); ?>" name="<?php echo esc_attr( $name ); ?>" <?php $this->link(); checked( $this->value(), $value['id'] ); ?> />
 					<label for="<?php echo $this->id . esc_attr( $value['id'] ); ?>">
 						<div class="gallery_thumbnail_img">
 							<img src="<?php echo $value['thumbnail']; ?>" alt="<?php echo esc_attr( $value['id'] ); ?>" title="<?php echo esc_attr( $value['id'] ); ?>">
@@ -73,41 +79,47 @@ class LoginPress_Background_Gallery_Control extends WP_Customize_Control {
 				</div>
 			<?php endforeach; ?>
 		</div>
-
-  <input name='presets_hidden' type="hidden" <?php $this->link(); ?> value="<?php echo  $this->value(); ?>" />
-
+		<input name='presets_hidden' type="hidden" <?php $this->link(); ?> value="<?php echo $this->value(); ?>" />
 		<?php
 	}
 }
 
+/**
+ * LoginPress Gallery Control CSS.
+ *
+ * @since 1.0.0.
+ * @version 3.0.0
+ *
+ * @return void
+ */
 function loginpress_gallery_control_css() {
-  ?>
-  <style>
-	.loginpress_gallery_thumbnails {
-	    width: 33%;
-	    float: left;
-	    box-sizing: border-box;
-	    padding: 4px;
-	}
-	.loginpress_gallery_thumbnails .gallery_thumbnail_img{
-		border-radius: 2px;
-		transition: all .4s;
-		border: 1px solid transparent;
-	}
-	.loginpress_gallery_thumbnails .gallery_thumbnail_img img{
-		border:2px solid #fff;
-		display: block;
-		border-radius: 2px;
-		width: calc(100% - 4px)
-	}
-	.customize-control .loginpress_gallery_thumbnails input[type=radio] {
-	    display: none;
-	}
-	.customize-control .loginpress_gallery_thumbnails input[type=radio]:checked + label .gallery_thumbnail_img{
-		border-radius: 2px;
-		border: 1px solid #36bcf2;
-		box-shadow: 0 0 1px #36bcf2;
-	}
+	?>
+	<style>
+		.loginpress_gallery_thumbnails {
+			width: 33%;
+			float: left;
+			box-sizing: border-box;
+			padding: 4px;
+		}
+		.loginpress_gallery_thumbnails .gallery_thumbnail_img{
+			border-radius: 2px;
+			transition: all .4s;
+			border: 1px solid transparent;
+		}
+		.loginpress_gallery_thumbnails .gallery_thumbnail_img img{
+			border:2px solid #fff;
+			display: block;
+			border-radius: 2px;
+			width: calc(100% - 4px)
+		}
+		.customize-control .loginpress_gallery_thumbnails input[type=radio] {
+			display: none;
+		}
+		.customize-control .loginpress_gallery_thumbnails input[type=radio]:checked + label .gallery_thumbnail_img{
+			border-radius: 2px;
+			border: 1px solid #36bcf2;
+			box-shadow: 0 0 1px #36bcf2;
+		}
 	</style>
 	<?php
 }

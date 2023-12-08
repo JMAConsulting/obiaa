@@ -1,37 +1,37 @@
 <?php
 /**
-* Class for Radio Button Control.
-*
-* @since  1.0.23
-* @access public
-* @version 1.1.7
-*/
+ * Class for Radio Button Control.
+ *
+ * @since  1.0.23
+ * @access public
+ * @version 3.0.0
+ */
 class LoginPress_Radio_Control extends WP_Customize_Control {
 
 	/**
-	* The type of customize control being rendered.
-	*
-	* @since  1.0.23
-	* @access public
-	* @var    string
-	*/
+	 * The type of customize control being rendered.
+	 *
+	 * @since  1.0.23
+	 * @access public
+	 * @var    string
+	 */
 	public $type = 'ios';
 
 	/**
-	* The loader of customize control being rendered.
-	*
-	* @since  1.1.7
-	* @access public
-	* @var    bolean
-	*/
+	 * The loader of customize control being rendered.
+	 *
+	 * @since  1.1.7
+	 * @access public
+	 * @var    boolean
+	 */
 	public $loader = false;
 
 	/**
 	 * Enqueue scripts/styles.
 	 *
 	 * @since 1.0.23
-   * @access public
-   * @return void
+	 * @access public
+	 * @return void
 	 */
 	public function enqueue() {
 
@@ -39,41 +39,41 @@ class LoginPress_Radio_Control extends WP_Customize_Control {
 		wp_enqueue_style( 'loginpress-radio-control-css', LOGINPRESS_DIR_URL . 'css/controls/loginpress-radio-button-control.css', array(), LOGINPRESS_VERSION );
 
 		$css = '
-			.disabled-control-title {
-				color: #a0a5aa;
-			}
-			input[type=checkbox].loginpress-radio-light:checked + .loginpress-radio-btn {
-				background: #0085ba;
-			}
-			input[type=checkbox].loginpress-radio-light + .loginpress-radio-btn {
-			  background: #a0a5aa;
-			}
-			input[type=checkbox].loginpress-radio-light + .loginpress-radio-btn:after {
-			  background: #f7f7f7;
-			}
+		.disabled-control-title {
+			color: #a0a5aa;
+		}
+		input[type=checkbox].loginpress-radio-light:checked + .loginpress-radio-btn {
+			background: #0085ba;
+		}
+		input[type=checkbox].loginpress-radio-light + .loginpress-radio-btn {
+			background: #a0a5aa;
+		}
+		input[type=checkbox].loginpress-radio-light + .loginpress-radio-btn:after {
+			background: #f7f7f7;
+		}
 
-			input[type=checkbox].loginpress-radio-ios:checked + .loginpress-radio-btn {
-			  background: #0085ba;
-			}
+		input[type=checkbox].loginpress-radio-ios:checked + .loginpress-radio-btn {
+			background: #0085ba;
+		}
 
-			input[type=checkbox].loginpress-radio-flat:checked + .loginpress-radio-btn {
-			  border: 4px solid #0085ba;
-			}
-			input[type=checkbox].loginpress-radio-flat:checked + .loginpress-radio-btn:after {
-			  background: #0085ba;
-			}
-			';
+		input[type=checkbox].loginpress-radio-flat:checked + .loginpress-radio-btn {
+			border: 4px solid #0085ba;
+		}
+		input[type=checkbox].loginpress-radio-flat:checked + .loginpress-radio-btn:after {
+			background: #0085ba;
+		}
+		';
 		wp_add_inline_style( 'loginpress-radio-control-css' , $css );
 	}
 
 	/**
-  * Displays the control content.
-  *
-  * @since  1.0.23
-  * @access public
-  * @return void
-  * @version 1.1.7
-  */
+	 * Displays the control content.
+	 *
+	 * @since  1.0.23
+	 * @access public
+	 * @return void
+	 * @version 1.1.7
+	 */
 	public function render_content() {
 		?>
 		<label>
@@ -84,7 +84,7 @@ class LoginPress_Radio_Control extends WP_Customize_Control {
 				<label for="cb<?php echo $this->instance_number ?>" class="loginpress-radio-btn"></label>
 			</div>
 			<?php if ( ! empty( $this->description ) ) : ?>
-			<span class="description customize-control-description"><?php echo $this->description; ?></span>
+				<span class="description customize-control-description"><?php echo $this->description; ?></span>
 			<?php endif; ?>
 		</label>
 		<?php

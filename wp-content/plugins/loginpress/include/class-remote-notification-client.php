@@ -272,7 +272,8 @@ if ( ! class_exists( 'Remote_Dashboard_Notifications_Client' ) ) {
 		 */
 		public function style() { ?>
 			<style type="text/css">div.rn-alert{padding:15px 35px 15px 15px;margin-bottom:20px;border:1px solid transparent;-webkit-box-shadow:none;box-shadow:none}div.rn-alert p:empty{display:none}div.rn-alert ol,div.rn-alert ol li,div.rn-alert ul,div.rn-alert ul li{list-style:inherit!important}div.rn-alert ol,div.rn-alert ul{padding-left:30px}div.rn-alert hr{-moz-box-sizing:content-box;box-sizing:content-box;height:0;margin-top:20px;margin-bottom:20px;border:0;border-top:1px solid #eee}div.rn-alert h1,div.rn-alert h2,div.rn-alert h3,div.rn-alert h4,div.rn-alert h5,div.rn-alert h6{margin-top:0;color:inherit}div.rn-alert a{font-weight:700}div.rn-alert a:hover{text-decoration:underline}div.rn-alert>p{margin:0;padding:0;line-height:1}div.rn-alert>p,div.rn-alert>ul{margin-bottom:0}div.rn-alert>p+p{margin-top:5px}div.rn-alert .rn-dismiss-btn{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;position:relative;top:-2px;right:-21px;padding:0;cursor:pointer;background:0;border:0;-webkit-appearance:none;float:right;font-size:21px;font-weight:700;line-height:1;color:#000;text-shadow:0 1px 0 #fff;opacity:.2;filter:alpha(opacity=20);text-decoration:none}div.rn-alert-success{background-color:#dff0d8;border-color:#d6e9c6;color:#3c763d}div.rn-alert-success hr{border-top-color:#c9e2b3}div.rn-alert-success a{color:#2b542c}div.rn-alert-info{background-color:#d9edf7;border-color:#bce8f1;color:#31708f}div.rn-alert-info hr{border-top-color:#a6e1ec}div.rn-alert-info a{color:#245269}div.rn-alert-warning{background-color:#fcf8e3;border-color:#faebcc;color:#8a6d3b}div.rn-alert-warning hr{border-top-color:#f7e1b5}div.rn-alert-warning a{color:#66512c}div.rn-alert-danger{background-color:#f2dede;border-color:#ebccd1;color:#a94442}div.rn-alert-danger hr{border-top-color:#e4b9c0}div.rn-alert-danger a{color:#843534}</style>
-		<?php }
+			<?php 
+		}
 
 		/**
 		 * Display all the registered and available notifications
@@ -509,7 +510,7 @@ if ( ! class_exists( 'Remote_Dashboard_Notifications_Client' ) ) {
 		 *
 		 * When the user dismisses a notice, its slug
 		 * is added to the _rn_dismissed entry in the DB options table.
-		 * This entry is then used to check if a notie has been dismissed
+		 * This entry is then used to check if a notice has been dismissed
 		 * before displaying it on the dashboard.
 		 *
 		 * @since 0.1.0
@@ -548,47 +549,46 @@ if ( ! class_exists( 'Remote_Dashboard_Notifications_Client' ) ) {
 		 * @return void
 		 */
 		public function script() {
+
 			$maybe_fetch = array();
 
 			foreach ( $this->get_notifications() as $id => $n ) {
 				$maybe_fetch[] = (string) $id;
-      } 
+      		} 
 
-      // var_dump( 'RND_FETCH_NOTIFICATIONS' );
-      // var_dump( get_transient( 'loginpress_rdn_fetch_notifications' ) );
+			// var_dump( 'RND_FETCH_NOTIFICATIONS' );
+			// var_dump( get_transient( 'loginpress_rdn_fetch_notifications' ) );
 
-      if ( false === get_transient( 'loginpress_rdn_fetch_notifications' ) ) {      
-      ?>
+			if ( false === get_transient( 'loginpress_rdn_fetch_notifications' ) ) { ?>
 
-			<script type="text/javascript">
-				jQuery(document).ready(function ($) {
+				<script type="text/javascript">
+					jQuery(document).ready(function ($) {
 
-					// Hook into the heartbeat-send
-					$(document).on('heartbeat-send', function (e, data) {
-						data['rdn_maybe_fetch'] = <?php echo json_encode( $maybe_fetch ); ?>;
+						// Hook into the heartbeat-send
+						$(document).on('heartbeat-send', function (e, data) {
+							data['rdn_maybe_fetch'] = <?php echo json_encode( $maybe_fetch ); ?>;
+						});
+
+						// Listen for the custom event "heartbeat-tick" on $(document).
+						$(document).on('heartbeat-tick', function (e, data) {
+
+							if (data.rdn_fetch !== '') {
+
+								ajax_data = {
+									'action': 'rdn_fetch_notifications',
+									'notices': data.rdn_fetch
+								};
+
+								$.post(ajaxurl, ajax_data);
+
+							}
+
+						});
 					});
-
-					// Listen for the custom event "heartbeat-tick" on $(document).
-					$(document).on('heartbeat-tick', function (e, data) {
-
-						if (data.rdn_fetch !== '') {
-
-							ajax_data = {
-								'action': 'rdn_fetch_notifications',
-								'notices': data.rdn_fetch
-							};
-
-							$.post(ajaxurl, ajax_data);
-
-						}
-
-					});
-				});
-			</script>
-
-      <?php 
-      }  
-    }
+				</script>
+				<?php
+			} 
+    	}
 
 		/**
 		 * Hook into the Heartbeat API.
@@ -639,15 +639,14 @@ if ( ! class_exists( 'Remote_Dashboard_Notifications_Client' ) ) {
 		 * @return void
 		 */
 		public function remote_get_notice_ajax() {
-			// Trasnient set for 1 week.
-      set_transient( 'loginpress_rdn_fetch_notifications', 'rdn_fetch_notifications', 604800 ); 
+			// Transient set for 1 week.
+      		set_transient( 'loginpress_rdn_fetch_notifications', 'rdn_fetch_notifications', 604800 ); 
 
 			if ( isset( $_POST['notices'] ) ) {
 				$notices = $_POST['notices'];
 			} else {
-        echo 'No notice ID';
-        
-        die();
+        		echo 'No notice ID';
+        		die();
 			}
 
 			if ( ! is_array( $notices ) ) {
@@ -665,9 +664,10 @@ if ( ! class_exists( 'Remote_Dashboard_Notifications_Client' ) ) {
 					echo json_encode( $rn );
 				}
 
-      }
+      		}
       
 			die();
+
 		}
 
 		/**
@@ -786,8 +786,8 @@ if ( ! class_exists( 'Remote_Dashboard_Notifications_Client' ) ) {
 		 */
 		protected function get_payload( $notification ) {
 			return base64_encode( json_encode( array(
-				'channel' => $notification['channel_id'],
-				'key'     => $notification['channel_key']
+				'channel' => is_array( $notification ) && isset( $notification['channel_id'] ) ? $notification['channel_id'] : '',
+				'key'     => is_array( $notification ) && isset( $notification['channel_key'] ) ? $notification['channel_key'] : ''
 			) ) );
 		}
 

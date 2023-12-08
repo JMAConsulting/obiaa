@@ -1,19 +1,20 @@
 <?php
 /**
-* Uninstall LoginPress.
-*
-* @package loginpress
-* @author WPBrigade
-* @since 1.1.9
-*/
+ * Uninstall LoginPress.
+ *
+ * @package loginpress
+ * @author WPBrigade
+ * @since 1.1.9
+ * @version  3.0.0
+ */
 
 // Exit if accessed directly.
 if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 	exit;
 }
 
-$loginpress_setting      = get_option( 'loginpress_setting' );
-$loginpress_uninstall 	 = isset( $loginpress_setting['loginpress_uninstall'] ) ? $loginpress_setting['loginpress_uninstall'] : 'off';
+$loginpress_setting   = get_option( 'loginpress_setting' );
+$loginpress_uninstall = isset( $loginpress_setting['loginpress_uninstall'] ) ? $loginpress_setting['loginpress_uninstall'] : 'off';
 if ( 'on' != $loginpress_uninstall ) {
 	return;
 }
@@ -36,6 +37,8 @@ $loginpress_uninstall_options = array(
 );
 
 if ( ! is_multisite() ) {
+	// Handle the delete loginpress force rest password for all users.
+	loginpress_force_reset_password_remove();
 
 	// Delete all plugin Options.
 	foreach ( $loginpress_uninstall_options as $option ) {
@@ -52,6 +55,9 @@ if ( ! is_multisite() ) {
 	foreach ( $loginpress_blog_ids as $blog_id ) {
 
 		switch_to_blog( $blog_id );
+
+		// Handle the delete loginpress force rest password for all users.
+		loginpress_force_reset_password_remove();
 
 		// Pull the LoginPress page from options.
 		$loginpress             = new LoginPress();
@@ -72,5 +78,30 @@ if ( ! is_multisite() ) {
 }
 
 
+/**
+ * Handle the delete loginpress force rest password for all users.
+ *
+ * @return void
+ * @since 3.0.0
+ */
+function loginpress_force_reset_password_remove() {
+
+	$args = array(
+		'meta_query' => array(
+			array(
+				'key'     => 'loginpress_password_reset_limit',
+			),
+		),
+		'fields' => 'ID',
+	);
+
+	$blog_users = get_users($args);
+
+	if ( $blog_users ) {
+		foreach ( $blog_users as $users ) {
+			delete_user_meta( $users->ID, 'loginpress_password_reset_limit' );
+		}
+	}
+}
 // Clear any cached data that has been removed.
 // wp_cache_flush();
