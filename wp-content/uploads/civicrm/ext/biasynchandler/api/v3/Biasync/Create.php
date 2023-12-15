@@ -162,7 +162,9 @@ function syncPropertyOwners($params) {
   return $response;
 }
 
-
+function syncAddresses($params) {
+  
+}
 
 
 

@@ -275,17 +275,10 @@ class CRM_Biasync_Utils {
           foreach ($properties as $property) {
             $biaProperty = $property;
             unset($biaProperty['id']);
-
-            /** --------------------------------------REPLACE---------------------------------------- */
-            $biaProperty['property_id'] = wpcmrf_api('Property', 'get', ['source_record_id' => $property['property_id'], 'source_record' => get_bloginfo( 'name' )], $options, WPCMRF_ID)->getReply()['id'];
             $biaProperty['owner_id'] = $ff['id'];
-
-            /** --------------------------------------REPLACE---------------------------------------- */
-            $check = wpcmrf_api('PropertyOwner', 'get', ['property_id' => $biaProperty['property_id'], 'owner_id' => $biaProperty['owner_id']], $options, WPCMRF_ID)->getReply();
-            if (!empty($check['values'])) {
-              $biaProperty['id'] = $check['id'];
-            }
-            wpcmrf_api('PropertyOwner', 'create', $biaProperty, $options, WPCMRF_ID);
+            $biaProperty['source_record_id'] = $property['property_id'];
+            $biaProperty['source_record'] = get_bloginfo('name');
+            wpcmrf_api('Biasync', 'create', ['entity' => 'PropertyOwner', 'params' => $biaProperty], WPCMRF_ID);
           }
         }
       }
