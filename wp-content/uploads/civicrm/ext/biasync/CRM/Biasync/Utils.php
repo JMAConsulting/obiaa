@@ -291,13 +291,8 @@ class CRM_Biasync_Utils {
       wpcmrf_api('Contact', 'create', $contactParams, $options, WPCMRF_ID)->getReply();
       self::syncActivities($contact['id'], $biaContact['id'], $activityBiaSource, $activityBiaId, $options);
       if (!empty($contactAddress)) {
-        /** --------------------------------------REPLACE---------------------------------------- */
-        $biaAddress = wpcmrf_api('Address', 'get', ['contact_id' => $biaContact['id'], 'is_primary' => 1], $options, WPCMRF_ID)->getReply();
-        if (!empty($biaAddress['values'])) {
-          $contactAddress['id'] = $biaAddress['id'];
-        }
         $contactAddress['contact_id'] = $biaContact['id'];
-        wpcmrf_api('Address', 'create', $contactAddress, $options, WPCMRF_ID)->getReply();
+        wpcmrf_api('Biasync', 'create', ['entity' => 'Address', 'params' => $contactAddress], WPCMRF_ID)->getReply()
       }
       if (!empty($unitBusinesses)) {
         foreach ($unitBusinesses as $business) {
