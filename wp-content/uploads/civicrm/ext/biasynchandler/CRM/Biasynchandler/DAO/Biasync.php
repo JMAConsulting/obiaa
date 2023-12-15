@@ -41,15 +41,6 @@ class CRM_Biasynchandler_DAO_Biasync extends CRM_Core_DAO {
   public $id;
 
   /**
-   * FK to Contact
-   *
-   * @var int|string|null
-   *   (SQL type: int unsigned)
-   *   Note that values will be retrieved from the database as a string.
-   */
-  public $contact_id;
-
-  /**
    * Class constructor.
    */
   public function __construct() {
@@ -111,25 +102,6 @@ class CRM_Biasynchandler_DAO_Biasync extends CRM_Core_DAO {
             'type' => 'Number',
           ],
           'readonly' => TRUE,
-          'add' => NULL,
-        ],
-        'contact_id' => [
-          'name' => 'contact_id',
-          'type' => CRM_Utils_Type::T_INT,
-          'title' => E::ts('Contact ID'),
-          'description' => E::ts('FK to Contact'),
-          'usage' => [
-            'import' => FALSE,
-            'export' => FALSE,
-            'duplicate_matching' => FALSE,
-            'token' => FALSE,
-          ],
-          'where' => 'civicrm_biasync.contact_id',
-          'table_name' => 'civicrm_biasync',
-          'entity' => 'Biasync',
-          'bao' => 'CRM_Biasynchandler_DAO_Biasync',
-          'localizable' => 0,
-          'FKClassName' => 'CRM_Contact_DAO_Contact',
           'add' => NULL,
         ],
       ];

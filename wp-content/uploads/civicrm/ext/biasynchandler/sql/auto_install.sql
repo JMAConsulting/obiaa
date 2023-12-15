@@ -35,8 +35,6 @@ SET FOREIGN_KEY_CHECKS=1;
 -- *******************************************************/
 CREATE TABLE `civicrm_biasync` (
   `id` int unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Biasync ID',
-  `contact_id` int unsigned COMMENT 'FK to Contact',
-  PRIMARY KEY (`id`),
-  CONSTRAINT FK_civicrm_biasync_contact_id FOREIGN KEY (`contact_id`) REFERENCES `civicrm_contact`(`id`) ON DELETE CASCADE
+  PRIMARY KEY (`id`)
 )
 ENGINE=InnoDB;

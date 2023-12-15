@@ -20,17 +20,4 @@
     <name>id</name>
     <autoincrement>true</autoincrement>
   </primaryKey>
-
-  <field>
-    <name>contact_id</name>
-    <type>int unsigned</type>
-    <comment>FK to Contact</comment>
-  </field>
-  <foreignKey>
-    <name>contact_id</name>
-    <table>civicrm_contact</table>
-    <key>id</key>
-    <onDelete>CASCADE</onDelete>
-  </foreignKey>
-
 </table>

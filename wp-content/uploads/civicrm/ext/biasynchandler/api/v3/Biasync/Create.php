@@ -23,31 +23,130 @@ use CRM_Biasynchandler_ExtensionUtil as E;
  * @throws API_Exception
  */
 function civicrm_api3_biasync_Create($request) {
-  if (!empty($request)) {
+  if (!empty($request) && isset($request['entity']) && isset($request['params'])) {
     //get entity name from the parameters
     $entity = $request['entity'];
     $params = $request['params'];
 
-    // If we receive a $response['id'], then entity exists and we proceed to update the entity with the params sent.
-    switch ($entity) {
-      case "Property":
-        //synchronized property changes
-        syncProperties($params);
-        break;
+    $response = [];
 
-      case "Contact":
-        //synchronized contact changes
-        syncContact($params);
-        break;
-
-      default:
-        break;
+    if($entity == 'Activity') {
+      $response = syncActivities($params);
+      return civicrm_api3_create_success([$response], $request, 'Biasync', 'Create');
     }
 
-    // Spec: civicrm_api3_create_success($values = 1, $params = [], $entity = NULL, $action = NULL)
-    return civicrm_api3_create_success($entity, $request, 'Biasync', 'Create');
+    elseif($entity == 'UnitBusiness') {
+      $response = syncUnitBusinesses($params);
+      return civicrm_api3_create_success([$response], $request, 'Biasync', 'Create');
+    }
+    
+    // If an ID is received in the response, the entity exists, and an update operation is triggered.
+    $entityCheck = civicrm_api3($entity, 'get', ['source_record_id' => $params['source_record_id'], 'source_record' =>$params['source_record'], 'options' => ['limit' => 0],'sequential' => 1]);
+    $params['options'] = ['limit' => 0];
+    $params['sequential'] = 1;
+
+    // Perform update operation using the received parameters
+    if (isset($entityCheck['values'][0]['id'])) {
+      $params['id'] = $entityCheck['values'][0]['id'];
+      unset($params['source_record_id']);
+      unset($params['source_record']);
+      $response['new_entity_created'] = 0;
+    } 
+
+    // No ID received, so the entity does not exist. Proceed with creating the entity.
+    else {
+      unset($params['id']);
+      $response['new_entity_created'] = 1;
+    }
+
+    if($entity == 'Units') {
+      syncUnits($params, $entityCheck);
+    }
+
+    $currEntity = civicrm_api3($entity, 'create', $params);
+    $response['entity_id'] = $currEntity['values'][0]['id'];
+
+    return civicrm_api3_create_success([$response], $request, 'Biasync', 'Create');
+  }
+  return civicrm_api3_create_error("Request cannot be blank - ensure enitity and params for syncing are set");
+}
+
+
+function syncUnits(&$params, $entityCheck) {
+
+  if(isset($params['unitAddress']) && isset($params['unitArray'])) {
+    $unitAddress = $params['unitAddress'];
+    $unitArray = $params['unitArray'];
+
+    // If unit was found
+    if(isset($params['id'])){
+      $unitAddress['id'] = $entityCheck['values'][0]['address_id'];
+      $unitArray['id'] = $params['id'];
+      unset($unitArray['source_record_id']);
+      unset($unitArray['source_record']);
+    }
+
+    // If unit was not found
+    else {
+      unset($unitAddress['id']);
+      unset($unitArray['id']);
+    }
+    $unitAddress['options'] = ['limit' => 0];
+    $unitAddress['sequential'] = 1;
+
+    $remoteAddress = civicrm_api3('Address', 'create', $unitAddress);
+    $unitArray['address_id'] = $remoteAddress['values'][0]['id'];
   }
 }
+
+function syncActivities($params) {
+  $response = [];
+  $activity = civicrm_api3('Activity', 'get', ['custom_' . $params['activityBiaSource'] => $params['custom_' . $params['activityBiaSource']], 'custom_' . $params['activityBiaId'] => $params['custom_' . $params['activityBiaId']], 'options' => ['limit' => 0],'sequential' => 1]);
+
+  if($activity['count'] == 0) {
+    unset($params['$activityBiaSource']);
+    unset($params['$activityBiaId']);
+    $newActivity = civicrm_api3('Activity', 'create', $params);
+    $response['entity_id'] = $newActivity['values'][0]['id'];
+    $response['new_entity_created'] = 1;
+  }
+
+  return $response;
+}
+
+function syncUnitBusinesses($params) {
+  $response = [];
+  $params['unit_id'] = civicrm_api3('Unit', 'get', ['source_record_id' => $params['source_record_id'], 'source_record' => $params['source_record'], 'options' => ['limit' => 0],'sequential' => 1])['values'][0]['id'];
+  unset($params['source_record_id']);
+  unset($params['source_record']);
+
+  $remoteBiaUnitBusiness = civicrm_api3('UnitBusiness', 'get', ['unit_id' => $params['unit_id'], 'business_id' => $params['business_id'], 'options' => ['limit' => 0],'sequential' => 1]);
+
+  if ($remoteBiaUnitBusiness['count'] > 0) {
+    $params['id'] = $remoteBiaUnitBusiness['id'];
+    $response['new_entity_created'] = 0;
+  }
+  else {
+    unset($params['id']);
+    $response['new_entity_created'] = 1;
+  }
+  $unitBusiness = civicrm_api3('UnitBusiness', 'create', $params);
+  $response['entity_id'] = $unitBusiness['values'][0]['id'];
+  return $response;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /**
  * Create, update and delete property
@@ -57,7 +156,6 @@ function syncProperties($params) {
   // $request = [
   //   "entity" => "Property",
   //   "params" => [
-  //     'id' => 45,
   //     'created_id' => 1,
   //     'modified_id' => 1,
   //     'modified_date' => 1,
@@ -72,7 +170,17 @@ function syncProperties($params) {
   // ];
 
   // check if record exists by source id and source record name
-  $propertyCheck = civicrm_api3('Property', 'get', ['source_record_id' => $params['source_record_id'], 'source_record' => $params['source_record']]);
+  $properties = \Civi\Api4\Property::get(TRUE)
+    ->addWhere('source_record_id', '=', $params['source_record_id'])
+    ->addWhere('source_record', '=', $params['source_record'])
+    ->execute();
+  
+    if($properties->count() != 0)
+    {
+      
+    }
+
+
   /************************* add new property **************************/
   //get address_id by property address
   $propertyAddress = civicrm_api3('Address', 'get', ['street_address' => $propertyCheck['property_address']]);
@@ -155,7 +263,7 @@ function syncContacts($params) {
   //   ]
   // ];
 
-  $contactCheck = civicrm_api3('Contact', 'get', ['id' => $params['id']]);
+  $contactCheck = civicrm_api3('Contact', 'get', ['source_record_id' => $params['id'], 'source_record' => $params['source_record']]);
   /************************* add or update contact **************************/
   //*** 1 *** add a new contact or update existing contact
   if (empty($contactCheck['id'])) {
@@ -167,6 +275,7 @@ function syncContacts($params) {
     $params['id'] = $contactCheck['id'];
   }
   civicrm_api3('Contact', 'create', $params);
+
   /************************* sync activity **************************/
   //*** 2 *** sync activities
   syncActivities($params);
@@ -182,6 +291,7 @@ function syncContacts($params) {
     $params['id'] = $addressCheck['id'];
   }
   civicrm_api3('Address', 'create', $params);
+
   /************************* add or update unitbusiness **************************/
   //*** 4 *** add a new UnitBusiness
   // get unit id by source_record_id and source_record
@@ -199,6 +309,7 @@ function syncContacts($params) {
       civicrm_api3('UnitBusiness', 'create', ['id' => $unitBusiness['id'], 'unit_id' => $unitId, 'business_id' => $params['id']]);
     }
   }
+
   /************************* add or update property owner **************************/
   //*** 5 *** add a new property owner
   $propertyOwnerCheck = PropertyOwner::get(FALSE)->addWhere('owner_id', '=', $params['id'])->execute();
@@ -215,7 +326,30 @@ function syncContacts($params) {
     }
   }
 
-  /************************* delete missing contact **************************/
+  /************************* add or update custom fields **************************/
+  //*** 6 *** add a new custom field
+  $contactCustomFields = \Civi\Api4\CustomField::get(TRUE)
+  ->addWhere('custom_group_id.extends', '=', 'Contact')
+  ->execute();
+
+  if (empty($customFieldCheck)) {
+    if (array_key_exists('id', $params)) {
+      unset($params['id']);
+    }
+  }
+  else {
+    //update custom field
+    foreach ($customFieldCheck as $customField) {
+      $customName = "custom_$customField";
+      civicrm_api3('Contact', 'create', [
+        $customName => "hold",
+        'id' => $params['id'],
+      ]);
+    }
+  }
+
+
+  /************************* add or update relationships **************************/
 }
 
 /**
