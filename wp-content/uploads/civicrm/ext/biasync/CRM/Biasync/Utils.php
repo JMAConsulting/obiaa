@@ -229,8 +229,7 @@ class CRM_Biasync_Utils {
   protected static function syncContact($contact, $syncParams): void {
     list($biaContactID, $biaSource, $biaRef, $contactCustomFields, $localSocialMediaAPIFields, $biaContactCustomFields, $domainDefaultInformation, $biaRegionField, $activityBiaSource, $activityBiaId, $membershipCustomFields, $remoteSocialMediaAPIFields) = $syncParams;
     $options = $contactAddress = $unitBusinesses = $properties = [];
-      // Get the BIA contact ID if exists, else create a new contact.
-      /** --------------------------------------REPLACE---------------------------------------- */
+    // Get the BIA contact ID if exists, else create a new contact.
     $biaContact = wpcmrf_api('Contact', 'get', [
       'sequential' => 1,
       'return' => ['first_name', 'last_name', 'email', 'phone'],
@@ -292,7 +291,7 @@ class CRM_Biasync_Utils {
       self::syncActivities($contact['id'], $biaContact['id'], $activityBiaSource, $activityBiaId, $options);
       if (!empty($contactAddress)) {
         $contactAddress['contact_id'] = $biaContact['id'];
-        wpcmrf_api('Biasync', 'create', ['entity' => 'Address', 'params' => $contactAddress], WPCMRF_ID)->getReply()
+        wpcmrf_api('Biasync', 'create', ['entity' => 'Address', 'params' => $contactAddress], WPCMRF_ID)->getReply();
       }
       if (!empty($unitBusinesses)) {
         foreach ($unitBusinesses as $business) {

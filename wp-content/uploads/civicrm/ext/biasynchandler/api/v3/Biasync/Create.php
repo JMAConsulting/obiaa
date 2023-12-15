@@ -54,31 +54,33 @@ function civicrm_api3_biasync_Create($request) {
       return civicrm_api3_create_success([$response], $request, 'Biasync', 'Create');
     }
 
-    // If an ID is received in the response, the entity exists, and an update operation is triggered.
-    $entityCheck = civicrm_api3($entity, 'get', ['source_record_id' => $params['source_record_id'], 'source_record' =>$params['source_record'], 'options' => ['limit' => 0],'sequential' => 1]);
-
-    // Perform update operation using the received parameters
-    if (isset($entityCheck['values'][0]['id'])) {
-      $params['id'] = $entityCheck['values'][0]['id'];
-      unset($params['source_record_id']);
-      unset($params['source_record']);
-      $response['new_entity_created'] = 0;
-    } 
-
-    // No ID received, so the entity does not exist. Proceed with creating the entity.
     else {
-      unset($params['id']);
-      $response['new_entity_created'] = 1;
+      // If an ID is received in the response, the entity exists, and an update operation is triggered.
+      $entityCheck = civicrm_api3($entity, 'get', ['source_record_id' => $params['source_record_id'], 'source_record' =>$params['source_record'], 'options' => ['limit' => 0],'sequential' => 1]);
+
+      // Perform update operation using the received parameters
+      if (isset($entityCheck['values'][0]['id'])) {
+        $params['id'] = $entityCheck['values'][0]['id'];
+        unset($params['source_record_id']);
+        unset($params['source_record']);
+        $response['new_entity_created'] = 0;
+      } 
+
+      // No ID received, so the entity does not exist. Proceed with creating the entity.
+      else {
+        unset($params['id']);
+        $response['new_entity_created'] = 1;
+      }
+
+      if($entity == 'Units') {
+        syncUnits($params, $entityCheck);
+      }
+
+      $currEntity = civicrm_api3($entity, 'create', $params);
+      $response['entity_id'] = $currEntity['values'][0]['id'];
+
+      return civicrm_api3_create_success([$response], $request, 'Biasync', 'Create');
     }
-
-    if($entity == 'Units') {
-      syncUnits($params, $entityCheck);
-    }
-
-    $currEntity = civicrm_api3($entity, 'create', $params);
-    $response['entity_id'] = $currEntity['values'][0]['id'];
-
-    return civicrm_api3_create_success([$response], $request, 'Biasync', 'Create');
   }
   return civicrm_api3_create_error("Request cannot be blank - ensure enitity and params for syncing are set");
 }
