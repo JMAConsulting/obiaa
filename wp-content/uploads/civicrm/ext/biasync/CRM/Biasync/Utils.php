@@ -15,7 +15,6 @@ class CRM_Biasync_Utils {
     self::syncProperties($options);
 
     // Pull in the custom fields from the BIA
-    /** --------------------------------------REPLACE---------------------------------------- */
     $biaCustomFields = wpcmrf_api('CustomField', 'get', [
       'sequential' => 1,
       'name' => ['IN' => ["BIA_Contact_ID", "BIA_Source", "BIA_Contact_Reference", "BIA_Activity_Source", "BIA_Activity_Source_ID"]],
@@ -58,7 +57,6 @@ class CRM_Biasync_Utils {
       $contactCustomFields['custom_' . $apiCustomField['id']] = $apiCustomField['name'];
     }
 
-    /** --------------------------------------REPLACE---------------------------------------- */
     $biaAPICustomFields = wpcmrf_api('CustomField', 'get', [
       'sequential' => 1,
       'custom_group_id' => ['IN' => ["Membership_Status", "Ownership_Demographics", "Business_Details"]],
@@ -67,7 +65,6 @@ class CRM_Biasync_Utils {
       $biaContactCustomFields[$biaAPICustomField['name']] = 'custom_' . $biaAPICustomField['id'];
     }
 
-    /** --------------------------------------REPLACE---------------------------------------- */
     $membershipCustomFields = wpcmrf_api('CustomField', 'get', [
       'sequential' => 1,
       'name' => ['IN' => ['BIA', 'Region']],
@@ -84,12 +81,10 @@ class CRM_Biasync_Utils {
       $localSocialMediaAPIFields['custom_' . $localSocialMediaField['id']] = $localSocialMediaField['name'];
     }
 
-    /** --------------------------------------REPLACE---------------------------------------- */
     $remoteSocialMediaGroup = wpcmrf_api('CustomGroup', 'get', [
       'name' => 'Social_Media',
     ], $options, WPCMRF_ID)->getReply();
 
-    /** --------------------------------------REPLACE---------------------------------------- */
     $remoteSocialMediaFields = wpcmrf_api('CustomField', 'get', [
       'custom_group_id' => $remoteSocialMediaGroup['id'],
     ], $options, WPCMRF_ID)->getReply()['values'];
@@ -176,11 +171,7 @@ class CRM_Biasync_Utils {
           $remoteUnit = wpcmrf_api('Biasnyc', 'create', ['entity' => 'Unit', 'params' => $params], WPCMRF_ID)->getReply();
         }
 
-        /** --------------------------------------REPLACE---------------------------------------- */
-        $missingUnits = wpcmrf_api('Unit', 'get', ['property_id' => $propertyCheck['id'], 'source_record_id' => ['NOT IN' => $unitIds], 'source_record' => get_bloginfo('name')], $options, WPCMRF_ID)->getReply();
         foreach ($missingUnits['values'] as $missingUnit) {
-
-          /** --------------------------------------REPLACE---------------------------------------- */
           $businesses = wpcmrf_api('UnitBusiness', 'get', ['unit_id' => $missingUnit['id']], $options, WPCMRF_ID)->getReply();
           foreach ($businesses['values'] as $business) {
             wpcmrf_api('UnitBusiness', 'delete', ['id' => $business['id']], $options, WPCMRF_ID);
@@ -190,12 +181,9 @@ class CRM_Biasync_Utils {
       }
     }
 
-    /** --------------------------------------REPLACE---------------------------------------- */
     $missingProperties = wpcmrf_api('Property', 'get', ['source_record_id' => ['NOT IN' => $propertyIds], 'source_record' => get_bloginfo('name')], $options, WPCMRF_ID)->getReply();
     foreach ($missingProperties['values'] as $missingProperties) {
-      /** --------------------------------------REPLACE---------------------------------------- */
       $owners = wpcmrf_api('PropertyOwner', 'get', ['property_id' => $missingProperties['id']], $options, WPCMRF_ID)->getReply();
-      /** --------------------------------------REPLACE---------------------------------------- */
       $units = wpcmrf_api('Unit', 'get', ['property_id' => $missingProperties['id']], $options, WPCMRF_ID)->getReply();
       foreach ($owners['values'] as $owner) {
         wpcmrf_api('PropertyOwner', 'delete', ['id' => $owner['id']], $options, WPCMRF_ID);
@@ -220,7 +208,6 @@ class CRM_Biasync_Utils {
       'options' => ['limit' => 0],
     ]);
     foreach ($activities['values'] as $activity) {
-
       $activity['custom_' . $activityBiaSource] = get_bloginfo('name');
       $activity['target_contact_id'] = $centralBiaContactId;
       $activity['source_contact_id'] = 'user_contact_id';
@@ -340,16 +327,10 @@ class CRM_Biasync_Utils {
         foreach ($properties as $property) {
           $biaProperty = $property;
           unset($biaProperty['id']);
-          /** --------------------------------------REPLACE---------------------------------------- */
-          $biaProperty['property_id'] = wpcmrf_api('Property', 'get', ['source_record_id' => $property['property_id'], 'source_record' => get_bloginfo( 'name' )], $options, WPCMRF_ID)->getReply()['id'];
-          unset($biaProperty['id']);
+          $biaProperty['source_record_id'] = $property['property_id'];
+          $biaProperty['source_record'] = get_bloginfo( 'name' );
           $biaProperty['owner_id'] = $biaContact['id'];
-          /** --------------------------------------REPLACE---------------------------------------- */
-          $check = wpcmrf_api('PropertyOwner', 'get', ['property_id' => $biaProperty['property_id'], 'owner_id' => $biaProperty['owner_id']], $options, WPCMRF_ID)->getReply();
-          if (!empty($check['values'])) {
-            $biaProperty['id'] = $check['id'];
-          }
-          wpcmrf_api('PropertyOwner', 'create', $biaProperty, $options, WPCMRF_ID);
+          wpcmrf_api('Biasync', 'create', ['entity' => 'PropertyOwner', 'params' => $biaProperty], WPCMRF_ID);
         }
       }
     }
@@ -406,7 +387,6 @@ class CRM_Biasync_Utils {
 
   private static function compareRemoteRecord($contactParams, $biaContactId, $biaContactCustomFields): void {
     $options = $differences = [];
-    /** --------------------------------------REPLACE---------------------------------------- */
     $remoteRecord = wpcmrf_api('Contact', 'get', ['id' => $biaContactId, 'return' => array_values($biaContactCustomFields)], $options, WPCMRF_ID)->getReply();
     foreach ($biaContactCustomFields as $customFieldName => $customField) {
       if (isset($contactParams[$customField]) && $contactParams[$customField] != $remoteRecord['values'][0][$customField]) {

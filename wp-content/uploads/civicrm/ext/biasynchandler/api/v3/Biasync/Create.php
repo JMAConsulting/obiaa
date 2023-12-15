@@ -40,6 +40,11 @@ function civicrm_api3_biasync_Create($request) {
       return civicrm_api3_create_success([$response], $request, 'Biasync', 'Create');
     }
     
+    elseif($entity == 'PropertyOwner') {
+      $response = syncUnitBusinesses($params);
+      return civicrm_api3_create_success([$response], $request, 'Biasync', 'Create');
+    }
+
     // If an ID is received in the response, the entity exists, and an update operation is triggered.
     $entityCheck = civicrm_api3($entity, 'get', ['source_record_id' => $params['source_record_id'], 'source_record' =>$params['source_record'], 'options' => ['limit' => 0],'sequential' => 1]);
     $params['options'] = ['limit' => 0];
@@ -123,7 +128,7 @@ function syncUnitBusinesses($params) {
   $remoteBiaUnitBusiness = civicrm_api3('UnitBusiness', 'get', ['unit_id' => $params['unit_id'], 'business_id' => $params['business_id'], 'options' => ['limit' => 0],'sequential' => 1]);
 
   if ($remoteBiaUnitBusiness['count'] > 0) {
-    $params['id'] = $remoteBiaUnitBusiness['id'];
+    $params['id'] = $remoteBiaUnitBusiness['values'][0]['id'];
     $response['new_entity_created'] = 0;
   }
   else {
@@ -132,6 +137,27 @@ function syncUnitBusinesses($params) {
   }
   $unitBusiness = civicrm_api3('UnitBusiness', 'create', $params);
   $response['entity_id'] = $unitBusiness['values'][0]['id'];
+  return $response;
+}
+
+function syncPropertyOwners($params) {
+  $response = [];
+  $params['property_id'] = civicrm_api3('Property', 'get', ['source_record_id' => $params['source_record_id'], 'source_record' => $params['source_record'], 'options' => ['limit' => 0],'sequential' => 1])['values'][0]['id'];
+  unset($params['source_record_id']);
+  unset($params['source_record']);
+
+  $check = civicrm_api3('PropertyOwner', 'get', ['property_id' => $params['property_id'], 'owner_id' => $params['owner_id'],'options' => ['limit' => 0],'sequential' => 1]);
+  if ($check['count'] > 0) {
+    $params['id'] = $check['values'][0]['id'];
+    $response['new_entity_created'] = 0;
+  }
+  else {
+    unset($params['id']);
+    $response['new_entity_created'] = 1;
+  }
+  
+  $propertyOwner = civicrm_api3('PropertyOwner', 'create', $params);
+  $response['entity_id'] = $propertyOwner['values'][0]['id'];
   return $response;
 }
 
