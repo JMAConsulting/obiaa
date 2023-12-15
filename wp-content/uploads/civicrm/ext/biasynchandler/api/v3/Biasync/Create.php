@@ -28,6 +28,9 @@ function civicrm_api3_biasync_Create($request) {
     $entity = $request['entity'];
     $params = $request['params'];
 
+    $params['options'] = ['limit' => 0];
+    $params['sequential'] = 1;
+
     $response = [];
 
     if($entity == 'Activity') {
@@ -47,8 +50,6 @@ function civicrm_api3_biasync_Create($request) {
 
     // If an ID is received in the response, the entity exists, and an update operation is triggered.
     $entityCheck = civicrm_api3($entity, 'get', ['source_record_id' => $params['source_record_id'], 'source_record' =>$params['source_record'], 'options' => ['limit' => 0],'sequential' => 1]);
-    $params['options'] = ['limit' => 0];
-    $params['sequential'] = 1;
 
     // Perform update operation using the received parameters
     if (isset($entityCheck['values'][0]['id'])) {

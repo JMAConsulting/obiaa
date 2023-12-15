@@ -310,17 +310,10 @@ class CRM_Biasync_Utils {
         foreach ($unitBusinesses as $business) {
           $biaUnitBusiness = (array) $business;
           $biaUnitBusiness['business_id'] = $biaContact['id'];
-          /** --------------------------------------REPLACE---------------------------------------- */
           $biaUnitBusiness['source_record_id'] = $business['unit_id'];
           $biaUnitBusiness['source_record'] = get_bloginfo('name');
           $biaUnitBusiness['business_id'] = $biaContact['id'];
-          
-          $biaUnitBusiness['unit_id'] = wpcmrf_api('Unit', 'get', ['source_record_id' => $business['unit_id'], 'source_record' => get_bloginfo( 'name' )], $options, WPCMRF_ID)->getReply()['id'];
-          /** --------------------------------------REPLACE---------------------------------------- */
           $remoteBiaUnitBusiness = wpcmrf_api('Biasync', 'create', ['entity' => 'UnitBusiness', 'params' => $biaUnitBusiness], WPCMRF_ID)->getReply();
-          
-
-
         }
       }
       if (!empty($properties)) {
