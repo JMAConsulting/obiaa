@@ -266,9 +266,9 @@ class CRM_Biasync_Utils {
           foreach ($unitBusinesses as $business) {
             $biaUnitBusiness = (array) $business;
             $biaUnitBusiness['business_id'] = $ff['id'];
-            /** --------------------------------------REPLACE---------------------------------------- */
-            $biaUnitBusiness['unit_id'] = wpcmrf_api('Unit', 'get', ['source_record_id' => $business['unit_id'], 'source_record' => get_bloginfo( 'name' )], $options, WPCMRF_ID)->getReply()['id'];
-            wpcmrf_api('UnitBusiness', 'create', $biaUnitBusiness, $options, WPCMRF_ID);
+            $biaUnitBusiness['source_record_id'] = $business['unit_id'];
+            $biaUnitBusiness['source_record'] = get_bloginfo('name');
+            wpcmrf_api('Biasync', 'create', ['entity' => 'UnitBusiness', 'params' => $biaUnitBusiness], WPCMRF_ID);
           }
         }
         if (!empty($properties)) {
