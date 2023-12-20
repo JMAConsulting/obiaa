@@ -50,6 +50,10 @@ function civicrm_api3_biasync_Create($request) {
       $response = syncAddresses($params);
     }
 
+    elseif($entity == 'Contact') {
+      $response = syncContacts($params);
+    }
+
     else {
       $response = syncGeneralEntity($params, $entity);
     }
@@ -197,7 +201,6 @@ function syncContacts(&$params) {
     unset($contactParams['id']);
     $response['new_entity_created'] = 1;
   }
-
   $params = $contactParams;
   return $response;
 }

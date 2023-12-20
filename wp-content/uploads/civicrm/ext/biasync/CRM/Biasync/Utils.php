@@ -230,20 +230,20 @@ class CRM_Biasync_Utils {
   protected static function syncContact($contact, $syncParams): void {
     list($biaContactID, $biaSource, $biaRef, $contactCustomFields, $localSocialMediaAPIFields, $biaContactCustomFields, $domainDefaultInformation, $biaRegionField, $activityBiaSource, $activityBiaId, $membershipCustomFields, $remoteSocialMediaAPIFields) = $syncParams;
     $options = $contactAddress = $unitBusinesses = $properties = [];
-    // Get the BIA contact ID if exists, else create a new contact.
+    // Set params to create/update BIA Contact
     $params = [];
     $params['custom_' . $biaContactID] = $contact['id'];
     $params['custom_' . $biaSource] = get_bloginfo( 'name' );
     $params['$biaSource'] = $biaSource;
     $params['biaContactID'] = $biaContactID;
     $params['biaContactCustomFields'] = $biaContactCustomFields;
-   
     $additionalContactCustomInfo = civicrm_api3('Contact', 'get', [
        'id' => $contact['id'],
        'return' => array_merge(array_keys($contactCustomFields), array_keys($localSocialMediaAPIFields)),
     ])['values'][$contact['id']];
     $contactParams = self::prepareContactParams($contact, $contactCustomFields, $membershipCustomFields, $localSocialMediaAPIFields, $additionalContactCustomInfo, $biaContactCustomFields, $domainDefaultInformation, $biaContactID, $biaSource, $biaRef, $biaRegionField, $remoteSocialMediaAPIFields);
     $params['contactParams'] = $contactParams;
+    // Update/create BIA Contact and get new central site ID
     $contactCheck = wpcmrf_api('Biasync', 'create', ['entity' => 'Contact', 'params' => $params], WPCMRF_ID)->getReply();
     $biaContactID = $contactCheck['values'][0]['entity_id'];
     if (in_array('Members_Property_Owners_', $contact['contact_sub_type'])) {
@@ -259,7 +259,6 @@ class CRM_Biasync_Utils {
       $unitBusinesses = UnitBusiness::get(FALSE)->addWhere('business_id', '=', $contact['id'])->execute();
     }
     if ($contactCheck['values'][0]['new_entity_created'] == 1) {
-      // No contact exists, proceed to create.
       self::syncActivities($contact['id'], $biaContactID, $activityBiaSource, $activityBiaId, $options);
       if (!empty($contactAddress)) {
         unset($contactAddress['id']);
