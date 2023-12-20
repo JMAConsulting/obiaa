@@ -156,6 +156,7 @@ class CRM_Biasync_Utils {
         $units = unit::get()->addWhere('property_id', '=', $property['id'])->execute();
         $unitIds = [];
         foreach ($units as $unit) {
+          $params = [];
           $unitIds[] = $unit['id'];
           $unitArray = (array) $unit;
           $unitArray['property_id'] = $propertyCheck['values']['entity_id'];
