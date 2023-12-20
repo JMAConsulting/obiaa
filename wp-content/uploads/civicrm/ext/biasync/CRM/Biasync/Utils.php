@@ -259,7 +259,6 @@ class CRM_Biasync_Utils {
     }
     if ($contactCheck['values'][0]['new_entity_created'] == 1) {
       // No contact exists, proceed to create.
-      $ff = wpcmrf_api('Contact', 'create', $contactParams, $options, WPCMRF_ID)->getReply();
       self::syncActivities($contact['id'], $biaContactID, $activityBiaSource, $activityBiaId, $options);
       if (!empty($contactAddress)) {
         unset($contactAddress['id']);
