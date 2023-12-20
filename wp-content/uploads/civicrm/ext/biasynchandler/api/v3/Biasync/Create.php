@@ -99,7 +99,6 @@ function syncGeneralEntity(&$params, $entity) {
 }
 
 function syncUnits(&$params, $entityCheck) {
-
   if(isset($params['unitAddress']) && isset($params['unitArray'])) {
     $unitAddress = $params['unitAddress'];
     $unitArray = $params['unitArray'];
@@ -176,6 +175,7 @@ function syncPropertyOwners(&$params) {
 }
 
 function syncAddresses(&$params) {
+  $response = [];
   $biaAddress = civicrm_api3('Address', 'get', ['contact_id' => $params['contact_id'], 'is_primary' => 1, 'options' => ['limit' => 0],'sequential' => 1]);
   // If an address was found, update ID to match
   if ($biaAddress['count'] > 0) {
@@ -191,6 +191,7 @@ function syncAddresses(&$params) {
 }
 
 function syncContacts(&$params) {
+  $response = [];
   $biaContact = civicrm_api3('Contact', 'get', [
   'sequential' => 1,
     'return' => ['first_name', 'last_name', 'email', 'phone'],
