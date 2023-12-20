@@ -85,7 +85,7 @@ function syncGeneralEntity(&$params, $entity) {
     }
     return $response;
 }
-git a
+
 function syncUnits(&$params, $entityCheck) {
 
   if(isset($params['unitAddress']) && isset($params['unitArray'])) {
