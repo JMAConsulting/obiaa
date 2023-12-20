@@ -36,56 +36,56 @@ function civicrm_api3_biasync_Create($request) {
 
     if($entity == 'Activity') {
       $response = syncActivities($params);
-      return civicrm_api3_create_success([$response], $request, 'Biasync', 'Create');
     }
 
     elseif($entity == 'UnitBusiness') {
       $response = syncUnitBusinesses($params);
-      return civicrm_api3_create_success([$response], $request, 'Biasync', 'Create');
     }
     
     elseif($entity == 'PropertyOwner') {
       $response = syncUnitBusinesses($params);
-      return civicrm_api3_create_success([$response], $request, 'Biasync', 'Create');
     }
 
     elseif($entity == 'Address') {
       $response = syncAddresses($params);
-      return civicrm_api3_create_success([$response], $request, 'Biasync', 'Create');
     }
 
     else {
-      // If an ID is received in the response, the entity exists, and an update operation is triggered.
-      $entityCheck = civicrm_api3($entity, 'get', ['source_record_id' => $params['source_record_id'], 'source_record' =>$params['source_record'], 'options' => ['limit' => 0],'sequential' => 1]);
-
-      // Perform update operation using the received parameters
-      if (isset($entityCheck['values'][0]['id'])) {
-        $params['id'] = $entityCheck['values'][0]['id'];
-        unset($params['source_record_id']);
-        unset($params['source_record']);
-        $response['new_entity_created'] = 0;
-      } 
-
-      // No ID received, so the entity does not exist. Proceed with creating the entity.
-      else {
-        unset($params['id']);
-        $response['new_entity_created'] = 1;
-      }
-
-      if($entity == 'Units') {
-        syncUnits($params, $entityCheck);
-      }
-
-      $currEntity = civicrm_api3($entity, 'create', $params);
-      $response['entity_id'] = $currEntity['values'][0]['id'];
-
-      return civicrm_api3_create_success([$response], $request, 'Biasync', 'Create');
+      $response = syncGeneralEntity($params, $entity);
     }
+
+    $currEntity = civicrm_api3($entity, 'create', $params);
+    $response['entity_id'] = $currEntity['values'][0]['id'];
+
+    return civicrm_api3_create_success([$response], $request, 'Biasync', 'Create');
   }
   return civicrm_api3_create_error("Request cannot be blank - ensure enitity and params for syncing are set");
 }
 
+function syncGeneralEntity(&$params, $entity) {
+    // If an ID is received in the response, the entity exists, and an update operation is triggered.
+    $entityCheck = civicrm_api3($entity, 'get', ['source_record_id' => $params['source_record_id'], 'source_record' =>$params['source_record'], 'options' => ['limit' => 0],'sequential' => 1]);
 
+    // Perform update operation using the received parameters
+    if (isset($entityCheck['values'][0]['id'])) {
+      $params['id'] = $entityCheck['values'][0]['id'];
+      unset($params['source_record_id']);
+      unset($params['source_record']);
+      $response['new_entity_created'] = 0;
+    } 
+
+    // No ID received, so the entity does not exist. Proceed with creating the entity.
+    else {
+      unset($params['id']);
+      $response['new_entity_created'] = 1;
+    }
+
+    if($entity == 'Units') {
+      syncUnits($params, $entityCheck);
+    }
+    return $response;
+}
+git a
 function syncUnits(&$params, $entityCheck) {
 
   if(isset($params['unitAddress']) && isset($params['unitArray'])) {
@@ -113,22 +113,19 @@ function syncUnits(&$params, $entityCheck) {
   }
 }
 
-function syncActivities($params) {
+function syncActivities(&$params) {
   $response = [];
   $activity = civicrm_api3('Activity', 'get', ['custom_' . $params['activityBiaSource'] => $params['custom_' . $params['activityBiaSource']], 'custom_' . $params['activityBiaId'] => $params['custom_' . $params['activityBiaId']], 'options' => ['limit' => 0],'sequential' => 1]);
 
   if($activity['count'] == 0) {
     unset($params['$activityBiaSource']);
     unset($params['$activityBiaId']);
-    $newActivity = civicrm_api3('Activity', 'create', $params);
-    $response['entity_id'] = $newActivity['values'][0]['id'];
     $response['new_entity_created'] = 1;
   }
-
   return $response;
 }
 
-function syncUnitBusinesses($params) {
+function syncUnitBusinesses(&$params) {
   $response = [];
   $params['unit_id'] = civicrm_api3('Unit', 'get', ['source_record_id' => $params['source_record_id'], 'source_record' => $params['source_record'], 'options' => ['limit' => 0],'sequential' => 1])['values'][0]['id'];
   unset($params['source_record_id']);
@@ -144,12 +141,10 @@ function syncUnitBusinesses($params) {
     unset($params['id']);
     $response['new_entity_created'] = 1;
   }
-  $unitBusiness = civicrm_api3('UnitBusiness', 'create', $params);
-  $response['entity_id'] = $unitBusiness['values'][0]['id'];
   return $response;
 }
 
-function syncPropertyOwners($params) {
+function syncPropertyOwners(&$params) {
   $response = [];
   $params['property_id'] = civicrm_api3('Property', 'get', ['source_record_id' => $params['source_record_id'], 'source_record' => $params['source_record'], 'options' => ['limit' => 0],'sequential' => 1])['values'][0]['id'];
   unset($params['source_record_id']);
@@ -164,13 +159,10 @@ function syncPropertyOwners($params) {
     unset($params['id']);
     $response['new_entity_created'] = 1;
   }
-  
-  $propertyOwner = civicrm_api3('PropertyOwner', 'create', $params);
-  $response['entity_id'] = $propertyOwner['values'][0]['id'];
   return $response;
 }
 
-function syncAddresses($params) {
+function syncAddresses(&$params) {
   $biaAddress = civicrm_api3('Address', 'get', ['contact_id' => $params['contact_id'], 'is_primary' => 1, 'options' => ['limit' => 0],'sequential' => 1]);
   if ($biaAddress['count'] > 0) {
     $params['id'] = $biaAddress['values'][0]['id'];
@@ -180,8 +172,6 @@ function syncAddresses($params) {
     unset($params['id']);
     $response['new_entity_created'] = 1;
   }
-  $address = civicrm_api3('Address', 'create', $params);
-  $response['entity_id'] = $address['values'][0]['id'];
   return $response;
 }
 
