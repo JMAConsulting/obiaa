@@ -175,6 +175,58 @@ function syncAddresses(&$params) {
   return $response;
 }
 
+function syncContacts(&$params) {
+  $biaContact = civicrm_api3('Contact', 'get', [
+  'sequential' => 1,
+    'return' => ['first_name', 'last_name', 'email', 'phone'],
+    'custom_' . $params['biaContactID'] => $params['custom_' . $params['biaContactID']],
+    'custom_' . $params['$biaSource'] => $params['custom_' . $params['$biaSource']],
+    'options' => ['limit' => 0],
+  ]);
+
+  $contactParams = $params['contactParams'];
+
+  if ($biaContact['count'] > 0) {
+    $contactParams['id'] = $biaContact['values'][0]['id'];
+    $biaContactId = $biaContact['values'][0]['id'];
+    $biaContactCustomFields = $params['biaContactCustomFields'];
+    compareRemoteRecord($contactParams, $biaContactId, $biaContactCustomFields);
+    $response['new_entity_created'] = 0;
+  }
+  else {
+    unset($contactParams['id']);
+    $response['new_entity_created'] = 1;
+  }
+
+  $params = $contactParams;
+  return $response;
+}
+
+function compareRemoteRecord($contactParams, $biaContactId, $biaContactCustomFields): void {
+  $options = $differences = [];
+  $remoteRecord = civicrm_api3('Contact', 'get', ['id' => $biaContactId, 'return' => array_values($biaContactCustomFields), 'options' => ['limit' => 0]]);
+  foreach ($biaContactCustomFields as $customFieldName => $customField) {
+    if (isset($contactParams[$customField]) && $contactParams[$customField] != $remoteRecord['values'][0][$customField]) {
+      $differences[$customFieldName] = $remoteRecord['values'][$biaContactId][$customField];
+    }
+  }
+  if (!empty($differences)) {
+    $message = '<p>The following contact details were changed in the remote sync</p>';
+    foreach ($differences as $customField => $originalValue) {
+      $message .= '<p>' . $customField . ' Original value was ' . $originalValue . '</p>';
+    }
+    civicrm_api3('Activity', 'create', [
+      'source_contact_id' => 'user_contact_id',
+      'target_contact_id' => $biaContactId,
+      'activity_type_id' => 'changed_contact_details',
+      'subject' => 'Contact Details changed via sync from bia site',
+      'details' => $message,
+      'status_id' => 'Completed',
+      'options' => ['limit' => 0]
+    ]);
+  }
+}
+
 // /**
 //  * Create, update and delete property
 //  */
