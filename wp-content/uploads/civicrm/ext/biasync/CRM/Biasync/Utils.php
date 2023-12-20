@@ -128,13 +128,15 @@ class CRM_Biasync_Utils {
     $options = $propertyIds = [];
     foreach ($properties as $property) {
       $propertyIds[] = $property['id'];
+      // Set params for Property creation/update
       $propertyArray = (array) $property;
       $propertyArray['source_record'] = get_bloginfo('name');
       $propertyArray['source_record_id'] = $property['id'];
       $propertyArray['source_record_id'] = $property['id'];
+      // Update/create a property on the central site
       $propertyCheck = wpcmrf_api('Biasync', 'create', ['entity' => 'Property', 'params'=>$propertyArray], WPCMRF_ID)->getReply();
 
-      // No property found, Biasync had to create one
+      // If a property was created by Biasync
       if ($propertyCheck['values'][0]['new_entity_created'] == 1) {
         $units = unit::get()->addWhere('property_id', '=', $property['id'])->execute();
         foreach ($units as $unit) {
@@ -156,6 +158,7 @@ class CRM_Biasync_Utils {
         $units = unit::get()->addWhere('property_id', '=', $property['id'])->execute();
         $unitIds = [];
         foreach ($units as $unit) {
+          // Set params for Unit creation/update
           $params = [];
           $unitIds[] = $unit['id'];
           $unitArray = (array) $unit;
@@ -168,7 +171,7 @@ class CRM_Biasync_Utils {
           $params['unitArray'] = $unitArray;
           $params['source_record_id'] = $unit['id'];
           $params['source_record'] = $unitArray['source_record_id'];
-          
+          // Update/create a Unit on the central site
           $remoteUnit = wpcmrf_api('Biasnyc', 'create', ['entity' => 'Unit', 'params' => $params], WPCMRF_ID)->getReply();
         }
 
@@ -209,6 +212,7 @@ class CRM_Biasync_Utils {
       'options' => ['limit' => 0],
     ]);
     foreach ($activities['values'] as $activity) {
+      // Set params for Activity creation/update
       $activity['custom_' . $activityBiaSource] = get_bloginfo('name');
       $activity['target_contact_id'] = $centralBiaContactId;
       $activity['source_contact_id'] = 'user_contact_id';
@@ -217,7 +221,7 @@ class CRM_Biasync_Utils {
       $activity['$activityBiaSource'] = $activityBiaSource;
       unset($activity['id']);
       unset($activity['source_contact_name']);
-
+      // Update/create an Activity on the central site
       $check = wpcmrf_api('Biasync', 'create', ['entity' => 'Activity', 'params' => $activity], WPCMRF_ID)->getReply();
     }
   }
@@ -241,11 +245,14 @@ class CRM_Biasync_Utils {
        'id' => $contact['id'],
        'return' => array_merge(array_keys($contactCustomFields), array_keys($localSocialMediaAPIFields)),
     ])['values'][$contact['id']];
+
     $contactParams = self::prepareContactParams($contact, $contactCustomFields, $membershipCustomFields, $localSocialMediaAPIFields, $additionalContactCustomInfo, $biaContactCustomFields, $domainDefaultInformation, $biaContactID, $biaSource, $biaRef, $biaRegionField, $remoteSocialMediaAPIFields);
     $params['contactParams'] = $contactParams;
+
     // Update/create BIA Contact and get new central site ID
     $contactCheck = wpcmrf_api('Biasync', 'create', ['entity' => 'Contact', 'params' => $params], WPCMRF_ID)->getReply();
     $biaContactID = $contactCheck['values'][0]['entity_id'];
+    
     if (in_array('Members_Property_Owners_', $contact['contact_sub_type'])) {
       $contactAddress = civicrm_api3('Address', 'get', ['contact_id' => $contact['id'], 'is_primary' => 1, 'sequential' => 1])['values'][0];
       $properties = PropertyOwner::get(FALSE)->addWhere('owner_id', '=', $contact['id'])->execute();
@@ -258,6 +265,7 @@ class CRM_Biasync_Utils {
       // We are just a member business.
       $unitBusinesses = UnitBusiness::get(FALSE)->addWhere('business_id', '=', $contact['id'])->execute();
     }
+    // If a new Contact was created by Biasync
     if ($contactCheck['values'][0]['new_entity_created'] == 1) {
       self::syncActivities($contact['id'], $biaContactID, $activityBiaSource, $activityBiaId, $options);
       if (!empty($contactAddress)) {
@@ -266,6 +274,7 @@ class CRM_Biasync_Utils {
         wpcmrf_api('Address', 'create', $contactAddress, $options, WPCMRF_ID)->getReply();
         if (!empty($unitBusinesses)) {
           foreach ($unitBusinesses as $business) {
+            // Set params for UnitBusiness creation/update
             $biaUnitBusiness = (array) $business;
             $biaUnitBusiness['business_id'] = $biaContactID;
             $biaUnitBusiness['source_record_id'] = $business['unit_id'];
@@ -275,6 +284,7 @@ class CRM_Biasync_Utils {
         }
         if (!empty($properties)) {
           foreach ($properties as $property) {
+            // Set params for PropertyOwner creation/update
             $biaProperty = $property;
             unset($biaProperty['id']);
             $biaProperty['owner_id'] = $biaContactID;
@@ -285,6 +295,7 @@ class CRM_Biasync_Utils {
         }
       }
     }
+    // If Biasync found and updated a contact
     else {
       self::syncActivities($contact['id'], $biaContactID, $activityBiaSource, $activityBiaId, $options);
       if (!empty($contactAddress)) {
@@ -293,6 +304,7 @@ class CRM_Biasync_Utils {
       }
       if (!empty($unitBusinesses)) {
         foreach ($unitBusinesses as $business) {
+          // Set params for UnitBusiness creation/update
           $biaUnitBusiness = (array) $business;
           $biaUnitBusiness['business_id'] = $biaContactID;
           $biaUnitBusiness['source_record_id'] = $business['unit_id'];
@@ -303,6 +315,7 @@ class CRM_Biasync_Utils {
       }
       if (!empty($properties)) {
         foreach ($properties as $property) {
+          // Set params for PropertyOwner creation/update
           $biaProperty = $property;
           unset($biaProperty['id']);
           $biaProperty['source_record_id'] = $property['property_id'];
@@ -362,7 +375,4 @@ class CRM_Biasync_Utils {
     }
     return $contactParams;
   }
-
-  
-
 }
