@@ -1,12 +1,12 @@
 <?xml version="1.0"?>
-<extension key="biasync" type="module">
-  <file>biasync</file>
-  <name>OBIAA Central Sync</name>
-  <description>Extension to handle sync to OBIAA Central</description>
+<extension key="biasynchandler" type="module">
+  <file>biasynchandler</file>
+  <name>biasynchandler</name>
+  <description>FIXME</description>
   <license>AGPL-3.0</license>
   <maintainer>
-    <author>Edsel Lopez</author>
-    <email>edsel.lopez@jmaconsulting.biz</email>
+    <author>pipeline</author>
+    <email>pipeline@jmaconsulting.biz</email>
   </maintainer>
   <urls>
     <url desc="Main Extension Page">http://FIXME</url>
@@ -14,26 +14,26 @@
     <url desc="Support">http://FIXME</url>
     <url desc="Licensing">http://www.gnu.org/licenses/agpl-3.0.html</url>
   </urls>
-  <releaseDate>2022-06-29</releaseDate>
+  <releaseDate>2023-10-30</releaseDate>
   <version>1.0</version>
   <develStage>alpha</develStage>
   <compatibility>
-    <ver>5.45</ver>
+    <ver>5.65</ver>
   </compatibility>
   <comments>This is a new, undeveloped module</comments>
   <classloader>
-    <psr4 prefix="Civi\" path="Civi"/>
     <psr0 prefix="CRM_" path="."/>
+    <psr4 prefix="Civi\" path="Civi"/>
   </classloader>
   <civix>
-    <namespace>CRM/Biasync</namespace>
+    <namespace>CRM/Biasynchandler</namespace>
     <format>23.02.1</format>
-    <angularModule>crmBiasync</angularModule>
+    <angularModule>crmBiasynchandler</angularModule>
   </civix>
   <mixins>
     <mixin>mgd-php@1.0.0</mixin>
     <mixin>setting-php@1.0.0</mixin>
+    <mixin>smarty-v2@1.0.1</mixin>
     <mixin>entity-types-php@1.0.0</mixin>
   </mixins>
-  <upgrader>CRM_Biasync_Upgrader</upgrader>
 </extension>

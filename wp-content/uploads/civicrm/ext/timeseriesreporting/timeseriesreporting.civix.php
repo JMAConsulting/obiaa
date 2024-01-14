@@ -6,10 +6,10 @@
  * The ExtensionUtil class provides small stubs for accessing resources of this
  * extension.
  */
-class CRM_Biasync_ExtensionUtil {
-  const SHORT_NAME = 'biasync';
-  const LONG_NAME = 'biasync';
-  const CLASS_PREFIX = 'CRM_Biasync';
+class CRM_Timeseriesreporting_ExtensionUtil {
+  const SHORT_NAME = 'timeseriesreporting';
+  const LONG_NAME = 'timeseriesreporting';
+  const CLASS_PREFIX = 'CRM_Timeseriesreporting';
 
   /**
    * Translate a string using the extension's domain.
@@ -77,14 +77,14 @@ class CRM_Biasync_ExtensionUtil {
 
 }
 
-use CRM_Biasync_ExtensionUtil as E;
+use CRM_Timeseriesreporting_ExtensionUtil as E;
 
 /**
  * (Delegated) Implements hook_civicrm_config().
  *
  * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_config
  */
-function _biasync_civix_civicrm_config($config = NULL) {
+function _timeseriesreporting_civix_civicrm_config($config = NULL) {
   static $configured = FALSE;
   if ($configured) {
     return;
@@ -102,8 +102,8 @@ function _biasync_civix_civicrm_config($config = NULL) {
  *
  * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_install
  */
-function _biasync_civix_civicrm_install() {
-  _biasync_civix_civicrm_config();
+function _timeseriesreporting_civix_civicrm_install() {
+  _timeseriesreporting_civix_civicrm_config();
   // Based on <compatibility>, this does not currently require mixin/polyfill.php.
 }
 
@@ -112,8 +112,8 @@ function _biasync_civix_civicrm_install() {
  *
  * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_enable
  */
-function _biasync_civix_civicrm_enable(): void {
-  _biasync_civix_civicrm_config();
+function _timeseriesreporting_civix_civicrm_enable(): void {
+  _timeseriesreporting_civix_civicrm_config();
   // Based on <compatibility>, this does not currently require mixin/polyfill.php.
 }
 
@@ -128,7 +128,7 @@ function _biasync_civix_civicrm_enable(): void {
  *
  * @return bool
  */
-function _biasync_civix_insert_navigation_menu(&$menu, $path, $item) {
+function _timeseriesreporting_civix_insert_navigation_menu(&$menu, $path, $item) {
   // If we are done going down the path, insert menu
   if (empty($path)) {
     $menu[] = [
@@ -149,7 +149,7 @@ function _biasync_civix_insert_navigation_menu(&$menu, $path, $item) {
         if (!isset($entry['child'])) {
           $entry['child'] = [];
         }
-        $found = _biasync_civix_insert_navigation_menu($entry['child'], implode('/', $path), $item);
+        $found = _timeseriesreporting_civix_insert_navigation_menu($entry['child'], implode('/', $path), $item);
       }
     }
     return $found;
@@ -159,9 +159,9 @@ function _biasync_civix_insert_navigation_menu(&$menu, $path, $item) {
 /**
  * (Delegated) Implements hook_civicrm_navigationMenu().
  */
-function _biasync_civix_navigationMenu(&$nodes) {
+function _timeseriesreporting_civix_navigationMenu(&$nodes) {
   if (!is_callable(['CRM_Core_BAO_Navigation', 'fixNavigationMenu'])) {
-    _biasync_civix_fixNavigationMenu($nodes);
+    _timeseriesreporting_civix_fixNavigationMenu($nodes);
   }
 }
 
@@ -169,17 +169,17 @@ function _biasync_civix_navigationMenu(&$nodes) {
  * Given a navigation menu, generate navIDs for any items which are
  * missing them.
  */
-function _biasync_civix_fixNavigationMenu(&$nodes) {
+function _timeseriesreporting_civix_fixNavigationMenu(&$nodes) {
   $maxNavID = 1;
   array_walk_recursive($nodes, function($item, $key) use (&$maxNavID) {
     if ($key === 'navID') {
       $maxNavID = max($maxNavID, $item);
     }
   });
-  _biasync_civix_fixNavigationMenuItems($nodes, $maxNavID, NULL);
+  _timeseriesreporting_civix_fixNavigationMenuItems($nodes, $maxNavID, NULL);
 }
 
-function _biasync_civix_fixNavigationMenuItems(&$nodes, &$maxNavID, $parentID) {
+function _timeseriesreporting_civix_fixNavigationMenuItems(&$nodes, &$maxNavID, $parentID) {
   $origKeys = array_keys($nodes);
   foreach ($origKeys as $origKey) {
     if (!isset($nodes[$origKey]['attributes']['parentID']) && $parentID !== NULL) {
@@ -194,7 +194,7 @@ function _biasync_civix_fixNavigationMenuItems(&$nodes, &$maxNavID, $parentID) {
       $origKey = $newKey;
     }
     if (isset($nodes[$origKey]['child']) && is_array($nodes[$origKey]['child'])) {
-      _biasync_civix_fixNavigationMenuItems($nodes[$origKey]['child'], $maxNavID, $nodes[$origKey]['attributes']['navID']);
+      _timeseriesreporting_civix_fixNavigationMenuItems($nodes[$origKey]['child'], $maxNavID, $nodes[$origKey]['attributes']['navID']);
     }
   }
 }

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="iso-8859-1" ?>
+
+<table>
+  <base>CRM/Timeseriesreporting</base>
+  <class>TsrGroupRefs</class>
+  <name>civicrm_tsr_group_refs</name>
+  <comment>References between original and TSR custom fields</comment>
+  <log>true</log>
+
+  <field>
+    <name>id</name>
+    <type>int unsigned</type>
+    <required>true</required>
+    <comment>Unique TsrGroupRefs ID</comment>
+    <html>
+      <type>Number</type>
+    </html>
+  </field>
+  <primaryKey>
+    <name>id</name>
+    <autoincrement>true</autoincrement>
+  </primaryKey>
+
+  <field>
+    <name>original_custom_group</name>
+    <type>int unsigned</type>
+    <comment>FK to Custom Group</comment>
+  </field>
+  <foreignKey>
+    <name>original_custom_group</name>
+    <table>civicrm_custom_group</table>
+    <key>id</key>
+    <onDelete>CASCADE</onDelete>
+  </foreignKey>
+
+  <field>
+    <name>tsr_custom_group</name>
+    <type>int unsigned</type>
+    <comment>FK to Custom Group</comment>
+  </field>
+  <foreignKey>
+    <name>tsr_custom_group</name>
+    <table>civicrm_custom_group</table>
+    <key>id</key>
+    <onDelete>CASCADE</onDelete>
+  </foreignKey>
+
+</table>

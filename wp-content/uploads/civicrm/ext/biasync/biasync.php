@@ -24,24 +24,6 @@ function biasync_civicrm_install() {
 }
 
 /**
- * Implements hook_civicrm_postInstall().
- *
- * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_postInstall
- */
-function biasync_civicrm_postInstall() {
-  _biasync_civix_civicrm_postInstall();
-}
-
-/**
- * Implements hook_civicrm_uninstall().
- *
- * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_uninstall
- */
-function biasync_civicrm_uninstall() {
-  _biasync_civix_civicrm_uninstall();
-}
-
-/**
  * Implements hook_civicrm_enable().
  *
  * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_enable
@@ -51,32 +33,90 @@ function biasync_civicrm_enable() {
 }
 
 /**
- * Implements hook_civicrm_disable().
- *
- * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_disable
- */
-function biasync_civicrm_disable() {
-  _biasync_civix_civicrm_disable();
+* This hook is called after a db write on entities.
+*
+* @param string $op
+*   The type of operation being performed.
+* @param string $objectName
+*   The name of the object.
+* @param int $objectId
+*   The unique identifier for the object.
+* @param object $objectRef
+*   The reference to the object.
+*/
+function biasync_civicrm_post(string $op, string $objectName, int $objectId, &$objectRef) {
+  $modified = ['edit','create','delete','update','merge'];
+  
+  // Check if contact has been modified
+  if ($objectName === 'Contact' && in_array($op,$modified)) {
+    $results = \Civi\Api4\Contact::update(TRUE)
+      ->addValue('Is_Synced_Contacts.is_synced', 0)
+      ->addWhere('id', '=', $objectId)
+      ->execute();
+  }
+
+  // Check if relationship has been modified
+  if ($objectName === 'Relationship' && in_array($op,$modified)) {
+    $results = \Civi\Api4\Relationship::get(TRUE)
+      ->addWhere('id', '=', $objectId)
+      ->execute();
+
+      foreach($results as $result)
+      {
+        // Mark both contacts in relationship as not synced
+        $contactsToUpdate = [$result['contact_id_a'],$result['contact_id_b']];
+
+        $results = \Civi\Api4\Contact::update(TRUE)
+          ->addValue('Is_Synced_Contacts.is_synced', 0)
+          ->addWhere('id', 'IN', $contactsToUpdate)
+          ->execute();
+      }
+  }
+  
+  // Check if activity has been created
+  elseif ($objectName === 'Activity' && $op == 'create') {
+      $results = \Civi\Api4\Activity::update(TRUE)
+        ->addValue('Is_Synced_Activites.is_synced', 0)
+        ->addWhere('id', '=', $objectId)
+        ->execute();
+  }
 }
 
-/**
- * Implements hook_civicrm_upgrade().
- *
- * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_upgrade
- */
-function biasync_civicrm_upgrade($op, CRM_Queue_Queue $queue = NULL) {
-  return _biasync_civix_civicrm_upgrade($op, $queue);
+function biasync_civicrm_custom($op, $groupID, $entityID, &$params)
+{
+  // Check if custom contact fields have been modified
+  $modified = ['edit','create','delete','update','merge'];
+  $customContactGroups = \Civi\Api4\CustomGroup::get(TRUE)
+    ->addSelect('id')
+    ->addWhere('extends', '=', 'Contact')
+    ->addWhere('name', '!=', 'Is_Synced_Contacts')
+    ->execute();
+  
+  foreach ($customContactGroups as $group) {
+    if (isset($group['id']) && $group['id'] == $groupID) {
+        $groupFound = true;
+        break; // Break out of the loop as soon as the number is found
+    }
+  }
+  if($groupFound && in_array($op,$modified))
+  {
+    $results = \Civi\Api4\Contact::update(TRUE)
+    ->addValue('Is_Synced_Contacts.is_synced', 0)
+    ->addWhere('id', '=', $entityID)
+    ->execute();
+  }
 }
 
-/**
- * Implements hook_civicrm_entityTypes().
- *
- * Declare entity types provided by this module.
- *
- * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_entityTypes
- */
-function biasync_civicrm_entityTypes(&$entityTypes) {
-  _biasync_civix_civicrm_entityTypes($entityTypes);
+function biasync_civicrm_apiWrappers(&$wrappers, $apiRequest) {
+  $modified = ['edit','create','delete','update'];
+  if ($apiRequest['entity'] == 'Property' && in_array($apiRequest['action'],$modified)) {
+    if ($apiRequest['version'] == '3') {
+      $wrappers[] = new CRM_Biasync_API3Wrappers_Property();
+    }
+    elseif ($apiRequest['version'] == '4') {
+      $wrappers[] = new CRM_Biasync_API4Wrappers_Property();
+    }
+  }
 }
 
 // --- Functions below this ship commented out. Uncomment as required. ---
