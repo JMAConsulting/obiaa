@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="iso-8859-1" ?>
+
+<table>
+  <base>CRM/Biasync</base>
+  <class>PropertyLog</class>
+  <name>civicrm_property_log</name>
+  <comment>FIXME</comment>
+  <log>true</log>
+
+  <field>
+    <name>id</name>
+    <type>int unsigned</type>
+    <required>true</required>
+    <comment>Unique PropertyLog ID</comment>
+    <html>
+      <type>Number</type>
+    </html>
+  </field>
+  <primaryKey>
+    <name>id</name>
+    <autoincrement>true</autoincrement>
+  </primaryKey>
+
+  <field>
+    <name>property_id</name>
+    <type>int unsigned</type>
+    <comment>Unique Property ID</comment>
+  </field>
+
+  <field>
+    <name>is_synced</name>
+    <type>boolean</type>
+    <comment>Has property been synced?</comment>
+    <default>0</default>
+  </field>
+</table>
