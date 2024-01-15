@@ -42,15 +42,30 @@ class CRM_Biasync_Upgrader extends CRM_Extension_Upgrader_Base {
     // Create temporary tables for contacts and activities
     CRM_Core_DAO::executeQuery("CREATE TEMPORARY TABLE contacts_to_insert_update SELECT id from civicrm_contact");
     CRM_Core_DAO::executeQuery("CREATE TEMPORARY TABLE activities_to_insert_update SELECT id from civicrm_activity");
-    
+
     // Set is_synced to false for contacts
     CRM_Core_DAO::executeQuery("INSERT IGNORE INTO $contactSyncTable (entity_id, is_synced) SELECT id, 0 FROM contacts_to_insert_update");
     CRM_Core_DAO::executeQuery("UPDATE $contactSyncTable ct INNER JOIN contacts_to_insert_update cu ON cu.id = ct.entity_id SET ct.is_synced = 0");
-    
+
     // Set is_synced to false for activities
     CRM_Core_DAO::executeQuery("INSERT IGNORE INTO $activitySyncTable (entity_id, is_synced) SELECT id, 0 FROM activities_to_insert_update");
     CRM_Core_DAO::executeQuery("UPDATE $activitySyncTable ct INNER JOIN activities_to_insert_update cu ON cu.id = ct.entity_id SET ct.is_synced = 0");
-    
+
+  }
+
+  public function upgrade_1001(): bool {
+    $tableCheck = CRM_Core_DAO::singleValueQuery("SHOW TABLES LIKE 'civicrm_property_log'");
+    if (!$tableCheck) {
+      CRM_Core_DAO::executeQuery("CREATE TABLE `civicrm_property_log` (
+        `id` int unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique PropertyLog ID',
+        `property_id` int unsigned NOT NULL COMMENT 'Unique Property ID',
+        `is_synced` tinyint NOT NULL DEFAULT 0 COMMENT 'Has property been synced?',
+        PRIMARY KEY (`id`)
+        CONSTRAINT FK_civicrm_property_log_property_id FOREIGN KEY (`property_id`) REFERENCES `civicrm_property`(`id`) ON DELETE CASCADE
+      )
+      ENGINE=InnoDB");
+    }
+    return TRUE;
   }
 
   /**
