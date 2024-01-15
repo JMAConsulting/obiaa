@@ -156,6 +156,7 @@ class CRM_Biasync_Utils {
           wpcmrf_api('Biasync', 'create', ['entity' => 'Unit', 'params' => $unitArray], $options, WPCMRF_ID)->getReply();
         }
       }
+      \Civi::$statics['biasync']['post_sync_property_update'] = TRUE;
       PropertyLog::update(TRUE)
         ->addWhere('property_id','=', $property['id'])
         ->addValue('is_synced',TRUE)
@@ -198,6 +199,7 @@ class CRM_Biasync_Utils {
       unset($activity['source_contact_name']);
       // Update/create an Activity on the central site
       wpcmrf_api('Biasync', 'create', ['entity' => 'Activity', 'params' => $activity], $options, WPCMRF_ID)->getReply();
+      \Civi::$statics['biasync']['post_sync_activity_update'] = TRUE;
       Activity::update(TRUE)
         ->addWhere('id', '=', $activity['id'])
         ->addValue('Is_Synced_Activities.is_synced', 1)
@@ -267,6 +269,7 @@ class CRM_Biasync_Utils {
           wpcmrf_api('biasync', 'create', ['entity' => 'PropertyOwner', 'params' => $biaProperty], $options, WPCMRF_ID);
         }
       }
+      \Civi::$statics['biasync']['post_sync_contact_update'] = TRUE;
       Contact::update(TRUE)
         ->addValue('Is_Synced_Contacts.is_synced', 1)
         ->addWhere('id', '=', $contact['id'])
