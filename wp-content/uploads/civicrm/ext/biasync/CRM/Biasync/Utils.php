@@ -142,25 +142,22 @@ class CRM_Biasync_Utils {
       // Update/create a property on the central site
       $propertyCheck = wpcmrf_api('Biasync', 'create', ['api_entity' => 'Property', 'params'=> $propertyArray], $options, WPCMRF_ID)->getReply();
 
-      // If a property was created by Biasync
-      if ($propertyCheck['values'][0]['new_entity_created'] == 1) {
-        $units = Unit::get()->addWhere('property_id', '=', $property['id'])->execute();
-        foreach ($units as $unit) {
-          $unitArray = (array) $unit;
-          unset($unit['id']);
-          $unitAddress = civicrm_api3('Address', 'get', ['id' => $unit['address_id']])['values'][$unit['address_id']];
-          $unitArray['source_record_id'] = $unit['id'];
-          $unitArray['unitAddress'] = $unitAddress;
-          $unitArray['source_record'] = get_bloginfo( 'name' );
-          $unitArray['property_id'] = $propertyCheck['values'][0]['entity_id'];
-          $unitArray['unitArray'] = $unitArray;
-          wpcmrf_api('Biasync', 'create', ['api_entity' => 'Unit', 'params' => $unitArray], $options, WPCMRF_ID)->getReply();
-        }
+      $units = Unit::get()->addWhere('property_id', '=', $property['id'])->execute();
+      foreach ($units as $unit) {
+        $unitArray = (array) $unit;
+        unset($unit['id']);
+        $unitAddress = civicrm_api3('Address', 'get', ['id' => $unit['address_id']])['values'][$unit['address_id']];
+        $unitArray['source_record_id'] = $unit['id'];
+        $unitArray['unitAddress'] = $unitAddress;
+        $unitArray['source_record'] = get_bloginfo( 'name' );
+        $unitArray['property_id'] = $propertyCheck['values'][0]['entity_id'];
+        $unitArray['unitArray'] = $unitArray;
+        wpcmrf_api('Biasync', 'create', ['api_entity' => 'Unit', 'params' => $unitArray], $options, WPCMRF_ID)->getReply();
       }
       \Civi::$statics['biasync']['post_sync_property_update'] = TRUE;
-      PropertyLog::update(TRUE)
-        ->addWhere('property_id','=', $property['id'])
-        ->addValue('is_synced',TRUE)
+      PropertyLog::save(FALSE)
+        ->addRecord(['property_id' => $property['id'], 'is_synced' => TRUE])
+        ->setMatch(['property_id'])
         ->execute();
     }
   }
@@ -207,7 +204,7 @@ class CRM_Biasync_Utils {
       ->addWhere('Is_Synced_Contacts.is_synced', '=', 0)
       ->execute();
 
-    if (!empty($needsSync)) {
+    if (count($needsSync) > 0) {
       [$biaContactID, $biaSource, $biaRef, $contactCustomFields, $localSocialMediaAPIFields, $biaContactCustomFields, $domainDefaultInformation, $biaRegionField, $activityBiaSource, $activityBiaId, $membershipCustomFields, $remoteSocialMediaAPIFields] = $syncParams;
       $additionalContactCustomInfo = civicrm_api3('Contact', 'get', [
         'id' => $contact['id'],

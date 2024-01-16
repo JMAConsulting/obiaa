@@ -43,7 +43,7 @@ function civicrm_api3_biasync_Create($request): array {
       $response = syncUnitBusinesses($params);
     }
     elseif($entity == 'PropertyOwner') {
-      $response = syncUnitBusinesses($params);
+      $response = syncPropertyOwners($params);
     }
     elseif($entity == 'Address') {
       $response = syncAddresses($params);
@@ -61,12 +61,13 @@ function civicrm_api3_biasync_Create($request): array {
         $currEntity = civicrm_api3($entity, 'create', $params);
       }
       catch (CRM_Core_Exception $e) {
-        \Civi::log()->debug('Error updating entity in bia sync {entity} {params}', [
+        \Civi::log()->debug('Error updating entity in bia sync {entity} {params} {message}', [
           'entity' => $entity,
           'params' => $params,
+          'message' => $e->getMessage(),
         ]);
       }
-      $response['entity_id'] = $currEntity['values'][0]['id'] ?? NULL;
+      $response['entity_id'] = $currEntity['id'] ?? NULL;
       return civicrm_api3_create_success([$response], $request, 'Biasync', 'Create');
     }
 
