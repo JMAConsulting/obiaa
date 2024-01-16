@@ -8,6 +8,7 @@ use Civi\Api4\PropertyOwner;
 use Civi\Api4\Unit;
 use Civi\Api4\UnitBusiness;
 
+// Which CiviMcrestFace profile should be used when performing the sync
 define('WPCMRF_ID', 1);
 
 class CRM_Biasync_Utils {
@@ -161,18 +162,6 @@ class CRM_Biasync_Utils {
         ->addWhere('property_id','=', $property['id'])
         ->addValue('is_synced',TRUE)
         ->execute();
-    }
-
-    $missingProperties = wpcmrf_api('Property', 'get', ['source_record_id' => ['NOT IN' => $propertyIds], 'source_record' => get_bloginfo('name')], $options, WPCMRF_ID)->getReply();
-    foreach ($missingProperties['values'] as $missingProperties) {
-      $owners = wpcmrf_api('PropertyOwner', 'get', ['property_id' => $missingProperties['id']], $options, WPCMRF_ID)->getReply();
-      $units = wpcmrf_api('Unit', 'get', ['property_id' => $missingProperties['id']], $options, WPCMRF_ID)->getReply();
-      foreach ($owners['values'] as $owner) {
-        wpcmrf_api('PropertyOwner', 'delete', ['id' => $owner['id']], $options, WPCMRF_ID);
-      }
-      foreach ($units['values'] as $unit) {
-        wpcmrf_api('Unit', 'delete', ['id' => $unit['id']], $options, WPCMRF_ID);
-      }
     }
   }
 

@@ -2,11 +2,11 @@
 <extension key="biasynchandler" type="module">
   <file>biasynchandler</file>
   <name>biasynchandler</name>
-  <description>FIXME</description>
+  <description>BIA central handler for creating / updating synced entities from remote BIA sites.</description>
   <license>AGPL-3.0</license>
   <maintainer>
-    <author>pipeline</author>
-    <email>pipeline@jmaconsulting.biz</email>
+    <author>JMA Consulting</author>
+    <email>support@jmaconsulting.biz</email>
   </maintainer>
   <urls>
     <url desc="Main Extension Page">http://FIXME</url>
