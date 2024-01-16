@@ -57,8 +57,16 @@ function civicrm_api3_biasync_Create($request): array {
 
     // Update or create entity
     if (isset($response['new_entity_created'])) {
-      $currEntity = civicrm_api3($entity, 'create', $params);
-      $response['entity_id'] = $currEntity['values'][0]['id'];
+      try {
+        $currEntity = civicrm_api3($entity, 'create', $params);
+      }
+      catch (CRM_Core_Exception $e) {
+        \Civi::log()->debug('Error updating entity in bia sync {entity} {params}', [
+          'entity' => $entity,
+          'params' => $params,
+        ]);
+      }
+      $response['entity_id'] = $currEntity['values'][0]['id'] ?? NULL;
       return civicrm_api3_create_success([$response], $request, 'Biasync', 'Create');
     }
 
@@ -88,7 +96,7 @@ function syncGeneralEntity(&$params, $entity): array {
       $response['new_entity_created'] = 1;
     }
 
-    if ($entity == 'Units') {
+    if ($entity === 'Unit') {
       syncUnits($params, $entityCheck);
     }
     return $response;
@@ -127,24 +135,25 @@ function syncUnits(&$params, $entityCheck): void {
       ])
       ->execute()->first();
     $unitArray['address_id'] = $remoteAddress['id'];
+    $params = $unitArray;
   }
 }
 
 function syncActivities(&$params): array {
-    // Pull in the custom fields from the BIA
-    $biaCustomFields = civicrm_api3('CustomField', 'get', [
-      'sequential' => 1,
-      'name' => ['IN' => ["BIA_Activity_Source", "BIA_Activity_Source_ID"]],
-    ])['values'];
+  // Pull in the custom fields from the BIA
+  $biaCustomFields = civicrm_api3('CustomField', 'get', [
+    'sequential' => 1,
+    'name' => ['IN' => ["BIA_Activity_Source", "BIA_Activity_Source_ID"]],
+  ])['values'];
 
-    foreach ($biaCustomFields as $field) {
-      if ($field['name'] == 'BIA_Activity_Source') {
-        $activityBiaSource = $field['id'];
-      }
-      if ($field['name'] == 'BIA_Activity_Source_ID') {
-        $activityBiaId = $field['id'];
-      }
+  foreach ($biaCustomFields as $field) {
+    if ($field['name'] == 'BIA_Activity_Source') {
+      $activityBiaSource = $field['id'];
     }
+    if ($field['name'] == 'BIA_Activity_Source_ID') {
+      $activityBiaId = $field['id'];
+    }
+  }
   $response = [];
   $activity = civicrm_api3('Activity', 'get', ['custom_' . $activityBiaSource => $params['custom_' . $activityBiaSource], 'custom_' . $activityBiaId => $params['custom_' . $activityBiaId], 'options' => ['limit' => 0],'sequential' => 1]);
 

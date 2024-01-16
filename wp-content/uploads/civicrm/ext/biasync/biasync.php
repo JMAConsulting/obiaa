@@ -16,6 +16,7 @@ use Civi\APi4\PropertyLog;
  */
 function biasync_civicrm_config(&$config) {
   _biasync_civix_civicrm_config($config);
+  \Civi::$statics['biasync']['post_sync_contact_update'] = \Civi::$statics['biasync']['post_sync_property_update'] = \Civi::$statics['biasync']['post_sync_activity_update'] = FALSE;
 }
 
 /**
@@ -52,7 +53,7 @@ function biasync_civicrm_post(string $op, string $objectName, int $objectId, &$o
   $modified = ['edit','create','delete','update','merge'];
 
   // Check if contact has been modified
-  if ($objectName === 'Contact' && in_array($op,$modified)) {
+  if ($objectName === 'Contact' && in_array($op,$modified) && !\Civi::$statics['biasync']['post_sync_contact_update']) {
     $results = Contact::update(TRUE)
       ->addValue('Is_Synced_Contacts.is_synced', 0)
       ->addWhere('id', '=', $objectId)
@@ -107,7 +108,7 @@ function biasync_civicrm_post(string $op, string $objectName, int $objectId, &$o
       ->setMatch(['property_id'])
       ->execute();
   }
-  if ($objectName === 'Property' && in_array($op, $modified)) {
+  if ($objectName === 'Property' && in_array($op, $modified) && !\Civi::$statics['biasync']['post_sync_property_update']) {
     PropertyLog::save(FALSE)
       ->setRecords(['property_id' => $objectId, 'is_synced' => 0])
       ->setMatch(['property_id'])
@@ -138,7 +139,7 @@ function biasync_civicrm_custom($op, $groupID, $entityID, &$params) {
       break; // Break out of the loop as soon as the number is found
     }
   }
-  if ($groupFound && in_array($op,$modified)) {
+  if ($groupFound && in_array($op,$modified) && !\Civi::$statics['biasync']['post_sync_contact_update']) {
     Contact::update(TRUE)
       ->addValue('Is_Synced_Contacts.is_synced', 0)
       ->addWhere('id', '=', $entityID)
