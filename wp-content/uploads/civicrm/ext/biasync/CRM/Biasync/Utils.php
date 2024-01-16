@@ -140,7 +140,7 @@ class CRM_Biasync_Utils {
       $propertyArray['source_record_id'] = $property['id'];
       unset($propertyArray['id']);
       // Update/create a property on the central site
-      $propertyCheck = wpcmrf_api('Biasync', 'create', ['entity' => 'Property', 'params'=> $propertyArray], $options, WPCMRF_ID)->getReply();
+      $propertyCheck = wpcmrf_api('Biasync', 'create', ['api_entity' => 'Property', 'params'=> $propertyArray], $options, WPCMRF_ID)->getReply();
 
       // If a property was created by Biasync
       if ($propertyCheck['values'][0]['new_entity_created'] == 1) {
@@ -154,7 +154,7 @@ class CRM_Biasync_Utils {
           $unitArray['source_record'] = get_bloginfo( 'name' );
           $unitArray['property_id'] = $propertyCheck['values'][0]['entity_id'];
           $unitArray['unitArray'] = $unitArray;
-          wpcmrf_api('Biasync', 'create', ['entity' => 'Unit', 'params' => $unitArray], $options, WPCMRF_ID)->getReply();
+          wpcmrf_api('Biasync', 'create', ['api_entity' => 'Unit', 'params' => $unitArray], $options, WPCMRF_ID)->getReply();
         }
       }
       \Civi::$statics['biasync']['post_sync_property_update'] = TRUE;
@@ -187,7 +187,7 @@ class CRM_Biasync_Utils {
       unset($activity['id']);
       unset($activity['source_contact_name']);
       // Update/create an Activity on the central site
-      wpcmrf_api('Biasync', 'create', ['entity' => 'Activity', 'params' => $activity], $options, WPCMRF_ID)->getReply();
+      wpcmrf_api('Biasync', 'create', ['api_entity' => 'Activity', 'params' => $activity], $options, WPCMRF_ID)->getReply();
       \Civi::$statics['biasync']['post_sync_activity_update'] = TRUE;
       Activity::update(TRUE)
         ->addWhere('id', '=', $activity['id'])
@@ -228,13 +228,13 @@ class CRM_Biasync_Utils {
         $unitBusinesses = UnitBusiness::get(FALSE)->addWhere('business_id', '=', $contact['id'])->execute();
       }
       $contactParams = self::prepareContactParams($contact, $contactCustomFields, $membershipCustomFields, $localSocialMediaAPIFields, $additionalContactCustomInfo, $biaContactCustomFields, $domainDefaultInformation, $biaContactID, $biaSource, $biaRef, $biaRegionField, $remoteSocialMediaAPIFields);
-      $ff = wpcmrf_api('Biasync', 'create', ['entity' => 'Contact', 'params' => ['contactParams' => $contactParams, 'biaContactCustomFields' => $biaContactCustomFields]], $options, WPCMRF_ID)->getReply();
+      $ff = wpcmrf_api('Biasync', 'create', ['api_entity' => 'Contact', 'params' => ['contactParams' => $contactParams, 'biaContactCustomFields' => $biaContactCustomFields]], $options, WPCMRF_ID)->getReply();
       $remoteContactId = $ff['values'][0]['entity_id'];
       self::syncActivities($contact['id'], $remoteContactId, $activityBiaSource, $activityBiaId, $options);
       if (!empty($contactAddress)) {
         unset($contactAddress['id']);
         $contactAddress['contact_id'] = $remoteContactId;
-        wpcmrf_api('biasync', 'create', ['entity' => 'Address', 'params' => $contactAddress], $options, WPCMRF_ID)->getReply();
+        wpcmrf_api('biasync', 'create', ['api_entity' => 'Address', 'params' => $contactAddress], $options, WPCMRF_ID)->getReply();
       }
       if (!empty($unitBusinesses)) {
         foreach ($unitBusinesses as $business) {
@@ -245,7 +245,7 @@ class CRM_Biasync_Utils {
           $biaUnitBusiness['unit_source_record_id'] = $biaUnitBusiness['unit_id'];
           unset($biaUnitBusiness['unit_id']);
           $biaUnitBusiness['unit_source_record'] = $biaUnitBusiness['business_source_record'] = get_bloginfo( 'name' );
-          wpcmrf_api('biasync', 'create', ['entity' => 'UnitBusines', 'params' => $biaUnitBusiness], $options, WPCMRF_ID);
+          wpcmrf_api('biasync', 'create', ['api_entity' => 'UnitBusines', 'params' => $biaUnitBusiness], $options, WPCMRF_ID);
         }
       }
       if (!empty($properties)) {
@@ -255,7 +255,7 @@ class CRM_Biasync_Utils {
           $biaProperty['property_source_record_id'] = $property['property_id'];
           $biaProperty['property_source_record'] = get_bloginfo( 'name' );
           $biaProperty['owner_id'] = $remoteContactId;
-          wpcmrf_api('biasync', 'create', ['entity' => 'PropertyOwner', 'params' => $biaProperty], $options, WPCMRF_ID);
+          wpcmrf_api('biasync', 'create', ['api_entity' => 'PropertyOwner', 'params' => $biaProperty], $options, WPCMRF_ID);
         }
       }
       \Civi::$statics['biasync']['post_sync_contact_update'] = TRUE;

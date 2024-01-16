@@ -24,10 +24,10 @@ use CRM_Biasynchandler_ExtensionUtil as E;
  * @throws API_Exception
  */
 function civicrm_api3_biasync_Create($request): array {
-  if (!empty($request) && isset($request['entity']) && isset($request['params'])) {
+  if (!empty($request) && isset($request['api_entity']) && isset($request['params'])) {
 
     //get entity name from the request
-    $entity = $request['entity'];
+    $entity = $request['api_entity'];
     $params = $request['params'];
 
     $params['options'] = ['limit' => 0];
@@ -75,7 +75,7 @@ function civicrm_api3_biasync_Create($request): array {
       return civicrm_api3_create_success([], $request, 'Biasync', 'Create');
     }
   }
-  return civicrm_api3_create_error("Request cannot be blank - ensure enitity and params for syncing are set");
+  return civicrm_api3_create_error("Request cannot be blank - ensure api_entity and params for syncing are set");
 }
 
 function syncGeneralEntity(&$params, $entity): array {
