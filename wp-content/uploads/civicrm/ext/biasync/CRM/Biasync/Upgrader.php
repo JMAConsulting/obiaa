@@ -60,7 +60,7 @@ class CRM_Biasync_Upgrader extends CRM_Extension_Upgrader_Base {
         `id` int unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique PropertyLog ID',
         `property_id` int unsigned NOT NULL COMMENT 'Unique Property ID',
         `is_synced` tinyint NOT NULL DEFAULT 0 COMMENT 'Has property been synced?',
-        PRIMARY KEY (`id`)
+        PRIMARY KEY (`id`),
         CONSTRAINT FK_civicrm_property_log_property_id FOREIGN KEY (`property_id`) REFERENCES `civicrm_property`(`id`) ON DELETE CASCADE
       )
       ENGINE=InnoDB");
