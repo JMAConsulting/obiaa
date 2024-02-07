@@ -5,8 +5,7 @@
 $allowed_ips = array(
 	'127.0.0.1',
 	'192.99.28.88',
-	'2607:5300:60:260c:100::',
-	'2607:5300:203:7205:100::',
+	'2607:5300:203:ba5f:100::',
 );
 
 // If your Wordpress installation is behind a Proxy like Nginx use 'HTTP_X_FORWARDED_FOR'
