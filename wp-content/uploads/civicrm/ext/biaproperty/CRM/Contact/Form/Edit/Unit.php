@@ -29,8 +29,8 @@ class CRM_Contact_Form_Edit_Unit {
       $form->add('select', 'unit_id', 'Unit', NULL, TRUE, $params);
       $form->assign('elements', ['property_id', 'unit_id']);
       $form->assign('url', CRM_Utils_System::url('civicrm/unit/form', 'reset=1&action=add&context=create&pid='));
-      $addPropertyURL = CRM_Utils_System::url('civicrm/property/form', ['reset' => 1, 'action' => 'add', 'context' => 'create'], FALSE, NULL, TRUE, FALSE, FALSE);
-      $addUnitURL = str_replace('&amp;', '&', CRM_Utils_System::url('civicrm/unit/form', ['reset' => 1, 'action' => 'add', 'context' => 'create', 'pid' => ''], FALSE, NULL, TRUE, FALSE, FALSE));
+      $addPropertyURL = CRM_Utils_System::url('civicrm/property/form', ['reset' => 1, 'action' => 'add', 'context' => 'create'], FALSE, NULL, FALSE, FALSE, FALSE);
+      $addUnitURL = str_replace('&amp;', '&', CRM_Utils_System::url('civicrm/unit/form', ['reset' => 1, 'action' => 'add', 'context' => 'create', 'pid' => ''], FALSE, NULL, FALSE, FALSE, FALSE));
       CRM_Core_Resources::singleton()->addScript(
        "CRM.$(function($) {
          $('.add-unit-link').on('crmPopupFormSuccess.crmLivePage', function(e){
