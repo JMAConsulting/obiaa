@@ -44,7 +44,7 @@ class CRM_Contact_Form_Edit_Property {
       'is_voter' => 'Vote?',
     ];
 
-    $url = CRM_Utils_System::url('civicrm/property/form', ['reset' => 1, 'action' => 'add', 'context' => 'create'], FALSE, NULL, TRUE, FALSE, FALSE);
+    $url = CRM_Utils_System::url('civicrm/property/form', ['reset' => 1, 'action' => 'add', 'context' => 'create'], FALSE, NULL, FALSE, FALSE, TRUE);
      CRM_Core_Resources::singleton()->addScript(
       "CRM.$(function($) {
         CRM.config.entityRef.links.Property = [

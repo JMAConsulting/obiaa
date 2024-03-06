@@ -140,7 +140,8 @@ function biaproperty_civicrm_buildForm($formName, &$form) {
     );
   }
   if ($formName == 'CRM_Biaproperty_Form_ExistingProperty') {
-     $url = CRM_Utils_System::url('civicrm/property/form', ['reset' => 1, 'action' => 'add', 'context' => 'create'], FALSE, NULL, TRUE, FALSE, TRUE);
+     $url = CRM_Utils_System::url('civicrm/property/form', ['reset' => 1, 'action' => 'add', 'context' => 'create'], FALSE, NULL, FALSE, FALSE, TRUE);
+     CRM_Core_Error::debug_var('url', $url);
      CRM_Core_Resources::singleton()->addScript(
       "CRM.$(function($) {
         CRM.config.entityRef.links.Property = [
@@ -150,7 +151,7 @@ function biaproperty_civicrm_buildForm($formName, &$form) {
     ");
   }
   if ($formName == 'CRM_Biaproperty_Form_SellProperty') {
-    $url = CRM_Utils_System::url('civicrm/profile/create', ['reset' => 1, 'action' => 'add', 'context' => 'dialog', 'gid' => 18], FALSE, NULL, TRUE, FALSE, TRUE);
+    $url = CRM_Utils_System::url('civicrm/profile/create', ['reset' => 1, 'action' => 'add', 'context' => 'dialog', 'gid' => 18], FALSE, NULL, FALSE, FALSE, TRUE);
     CRM_Core_Resources::singleton()->addScript(
      "CRM.$(function($) {
          CRM.config.entityRef.links.Contact = [];
@@ -162,7 +163,7 @@ function biaproperty_civicrm_buildForm($formName, &$form) {
   }
 
   if ($formName == 'CRM_Biaproperty_Form_AddBuisness' || $formName == 'CRM_Biaproperty_Form_Unit') {
-    $url = CRM_Utils_System::url('civicrm/profile/create', ['reset' => 1, 'action' => 'add', 'context' => 'dialog', 'gid' => 17], FALSE, NULL, TRUE, FALSE, TRUE);
+    $url = CRM_Utils_System::url('civicrm/profile/create', ['reset' => 1, 'action' => 'add', 'context' => 'dialog', 'gid' => 17], FALSE, NULL, FALSE, FALSE, TRUE);
     CRM_Core_Resources::singleton()->addScript(
       "CRM.$(function($) {
         if ($('#unit_status').length) {
@@ -184,7 +185,7 @@ function biaproperty_civicrm_buildForm($formName, &$form) {
   }
   // Add in Address Entity Reference link
   if ($formName === 'CRM_Biaproperty_Form_Unit') {
-    $url = CRM_Utils_System::url('civicrm/unit-address', ['reset' => 1, 'action' => 'add', 'context' => 'create', 'pid' => $form->getVar('_pid'), 'uid' => $form->getVar('_id')], FALSE, NULL, TRUE, FALSE, FALSE);
+    $url = CRM_Utils_System::url('civicrm/unit-address', ['reset' => 1, 'action' => 'add', 'context' => 'create', 'pid' => $form->getVar('_pid'), 'uid' => $form->getVar('_id')], FALSE, NULL, FALSE, FALSE, FALSE);
     CRM_Core_Resources::singleton()->addScript("
       CRM.$(function($) {
         CRM.config.entityRef.links.Address = [
