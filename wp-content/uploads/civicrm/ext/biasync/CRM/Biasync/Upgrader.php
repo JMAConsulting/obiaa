@@ -68,6 +68,34 @@ class CRM_Biasync_Upgrader extends CRM_Extension_Upgrader_Base {
     return TRUE;
   }
 
+  public function upgrade_1002(): bool {
+    $contactSync = \Civi\Api4\CustomGroup::get(TRUE)
+      ->addWhere('name', '=', 'Is_Synced_Contacts')
+      ->addSelect('table_name')
+      ->execute();
+    $contactSyncTable = $contactSync[0]['table_name'];
+
+    $activitySync = \Civi\Api4\CustomGroup::get(TRUE)
+      ->addWhere('name', '=', 'Is_Synced_Activities')
+      ->addSelect('table_name')
+      ->execute();
+    $activitySyncTable = $activitySync[0]['table_name'];
+
+    // Create temporary tables for contacts and activities
+    CRM_Core_DAO::executeQuery("CREATE TEMPORARY TABLE contacts_to_insert_update SELECT id from civicrm_contact");
+    CRM_Core_DAO::executeQuery("CREATE TEMPORARY TABLE activities_to_insert_update SELECT id from civicrm_activity");
+
+    // Set is_synced to false for contacts
+    CRM_Core_DAO::executeQuery("INSERT IGNORE INTO $contactSyncTable (entity_id, is_synced) SELECT id, 0 FROM contacts_to_insert_update");
+    CRM_Core_DAO::executeQuery("UPDATE $contactSyncTable ct INNER JOIN contacts_to_insert_update cu ON cu.id = ct.entity_id SET ct.is_synced = 0");
+
+    // Set is_synced to false for activities
+    CRM_Core_DAO::executeQuery("INSERT IGNORE INTO $activitySyncTable (entity_id, is_synced) SELECT id, 0 FROM activities_to_insert_update");
+    CRM_Core_DAO::executeQuery("UPDATE $activitySyncTable ct INNER JOIN activities_to_insert_update cu ON cu.id = ct.entity_id SET ct.is_synced = 0");
+
+    return TRUE;
+  }
+
   /**
    * Example: Work with entities usually not available during the install step.
    *
