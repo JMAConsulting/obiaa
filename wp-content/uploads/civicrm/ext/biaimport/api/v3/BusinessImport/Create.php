@@ -182,6 +182,7 @@ function civicrm_api3_business_import_Create($params) {
     if (count($unitAddress) == 0) {
       $unitAddress = Address::create(FALSE)
         ->addValue('street_address', $params['property_address'])
+        ->addValue('unit', $params['property_unit'])
         ->addValue('city', $property['city'])
         ->addValue('postal_code', $property['postal_code'])
         ->addValue('is_primary', 1)
@@ -265,6 +266,9 @@ function civicrm_api3_business_import_Create($params) {
     if (count($unitCheck) > 0) {
       // ok we found a matching unit let us use it.
       $contact = Contact::get(FALSE)->addWhere('id', '=', $unitCheck[0]['unit_business.business_id'])->execute()->first();
+    }
+    elseif (count($duplicates) == 1) {
+      $contact =  Contact::get(FALSE)->addWhere('id', '=', $duplicates[0])->execute()->first();
     }
   }
   // Ok now let us see if we already have a unit record in the system if we have gotten here then the unit won't have a business so it will be vacant at this point.
@@ -398,7 +402,7 @@ function civicrm_api3_business_import_Create($params) {
       elseif (empty($optionValue)) {
         $optionValue = OptionValue::create(FALSE)->addValue('label', $params[$field])->addValue('option_group_id:name', $optionGroups[$field])->addValue('value', $params[$field])->execute()->first();
       }
-      $orgValues[$customField] = $params[$field];
+      $orgValues[$customField . ':label'] = [$params[$field]];
     }
     elseif (isset($params[$field])) {
       $orgValues[$customField] = $params[$field];
