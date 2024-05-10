@@ -37,6 +37,7 @@ class CRM_CiviMobileAPI_ApiWrapper_Event implements API_Wrapper {
    * @return array
    */
   public function toApiOutput($apiRequest, $result) {
+    $isDisallowedEventParticipantRegistrationOverlap = Civi::settings()->get('civimobile_is_disallowed_event_participant_registration_overlap');
     $isQrUsedFieldName = "custom_" . CRM_CiviMobileAPI_Utils_CustomField::getId(CRM_CiviMobileAPI_Install_Entity_CustomGroup::QR_USES, CRM_CiviMobileAPI_Install_Entity_CustomField::IS_QR_USED);
     $isAllowMobileRegistration = "custom_" . CRM_CiviMobileAPI_Utils_CustomField::getId(CRM_CiviMobileAPI_Install_Entity_CustomGroup::ALLOW_MOBILE_REGISTRATION, CRM_CiviMobileAPI_Install_Entity_CustomField::IS_MOBILE_EVENT_REGISTRATION);
     $isQrUsedAlias = 'is_event_use_qr_code';
@@ -45,6 +46,12 @@ class CRM_CiviMobileAPI_ApiWrapper_Event implements API_Wrapper {
       $result['url'] = CRM_Utils_System::url('civicrm/event/info', 'id=' . $result['id'], true);
       $result['registered_participants_count'] = CRM_Event_BAO_Event::getParticipantCount($result['id'], FALSE, FALSE, FALSE, FALSE);
       $result['is_allow_mobile_registration'] = isset($result[$isAllowMobileRegistration]) ? $result[$isAllowMobileRegistration] : 0;
+      $currentContactId = CRM_Core_Session::getLoggedInContactID();
+
+      if ($isDisallowedEventParticipantRegistrationOverlap && !empty($currentContactId)) {
+        $result['is_disallow_mobile_registration_for_current_contact'] = CRM_CiviMobileAPI_Utils_Event::isParticipantAlreadyRegistered($currentContactId, $result['start_date'], $result['end_date']) ? 1 : 0;
+      }
+
     }
 
     if ($apiRequest['action'] == 'get' && !empty($result['values'])) {
@@ -68,9 +75,9 @@ class CRM_CiviMobileAPI_ApiWrapper_Event implements API_Wrapper {
           $result['values'][$key]['currency_symbol'] = '';
         }
         if (!empty($event['creator_id'])) {
-          $result['values'][$key]['is_user_' . CRM_CiviMobileAPI_Utils_Permission::CAN_CHECK_IN_ON_EVENT] = (int) CRM_Core_Permission::check(CRM_CiviMobileAPI_Utils_Permission::CAN_CHECK_IN_ON_EVENT);
+          $result['values'][$key]['is_user_' . CRM_CiviMobileAPI_Utils_Permission::CAN_CHECK_IN_ON_EVENT] = (int)CRM_Core_Permission::check(CRM_CiviMobileAPI_Utils_Permission::CAN_CHECK_IN_ON_EVENT);
           $result['values'][$key][$isQrUsedAlias] = (isset($event[$isQrUsedFieldName])) ? $event[$isQrUsedFieldName] : NULL;
-          $result['values'][$key]['is_user_can_manage_participant'] = (int) CRM_CiviMobileAPI_Utils_Permission::isUserCanManageParticipant($event['creator_id']);
+          $result['values'][$key]['is_user_can_manage_participant'] = (int)CRM_CiviMobileAPI_Utils_Permission::isUserCanManageParticipant($event['creator_id']);
         }
       }
     }

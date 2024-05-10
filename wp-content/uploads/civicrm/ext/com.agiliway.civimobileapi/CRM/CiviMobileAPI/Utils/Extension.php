@@ -8,6 +8,7 @@ use CRM_CiviMobileAPI_ExtensionUtil as E;
 class CRM_CiviMobileAPI_Utils_Extension {
 
   const LATEST_SUPPORTED_CIVICRM_VERSION = 4.7;
+  const MINIMAL_REQUIRED_CIVIMOBILE_APP_VERSION = '6.0.0';
 
   /**
    * Update extension to latest
@@ -125,6 +126,10 @@ class CRM_CiviMobileAPI_Utils_Extension {
    */
   public static function isAllowPublicInfoApi() {
     return Civi::settings()->get('civimobile_is_allow_public_info_api') == 1 ? 1 : 0;
+  }
+  
+  public static function isAllowResetPassword() {
+    return Civi::settings()->get('civimobile_is_allow_reset_password') == 1 ? 1 : 0;
   }
 
   /**
@@ -249,7 +254,7 @@ class CRM_CiviMobileAPI_Utils_Extension {
   public static function isCurlExtensionEnabled() {
     return in_array('curl', get_loaded_extensions());
   }
-  
+
   /**
    * Is Time Tracker extension enabled
    */

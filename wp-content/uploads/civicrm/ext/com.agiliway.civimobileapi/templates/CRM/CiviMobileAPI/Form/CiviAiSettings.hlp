@@ -1,0 +1,7 @@
+{htxt id="secret-key-help-title"}
+{ts}Secret Key{/ts}
+{/htxt}
+{htxt id="secret-key-help"}
+    <p>{ts}The key is used to give access to the ChatGPT functionality{/ts}</p>
+{/htxt}
+

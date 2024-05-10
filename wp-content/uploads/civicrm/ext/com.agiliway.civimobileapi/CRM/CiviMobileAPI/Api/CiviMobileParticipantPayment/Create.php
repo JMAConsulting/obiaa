@@ -63,7 +63,7 @@ class CRM_CiviMobileAPI_Api_CiviMobileParticipantPayment_Create {
         'contact_id' => $this->contact->id,
         'event_id' => $this->event->id,
         'contribution_id' => (!empty($contribution['id'])) ? $contribution['id'] : NULL,
-        'participant_payment_id' =>  (!empty($participantPayment['id'])) ? $participantPayment['id'] : NULL,
+        'participant_payment_id' => (!empty($participantPayment['id'])) ? $participantPayment['id'] : NULL,
         'participant_payment_fee_amount' => $validParams['participant_params']['fee_amount'],
         'participant_payment_fee_level' => $validParams['participant_params']['fee_level'],
         'is_send_event_confirmation_receipt' => $validParams['send_confirmation']
@@ -72,7 +72,7 @@ class CRM_CiviMobileAPI_Api_CiviMobileParticipantPayment_Create {
 
     if ($validParams['send_confirmation'] == 1) {
       if ($this->contact->id == CRM_CiviMobileAPI_Utils_Contact::getCurrentContactId()) {
-        CRM_CiviMobileAPI_Utils_Emails_EventConfirmationReceipt::send($participant['id'],'event_online_receipt');
+        CRM_CiviMobileAPI_Utils_Emails_EventConfirmationReceipt::send($participant['id'], 'event_online_receipt');
       } else {
         CRM_CiviMobileAPI_Utils_Emails_EventConfirmationReceipt::send($participant['id'], 'event_offline_receipt');
       }
@@ -87,6 +87,8 @@ class CRM_CiviMobileAPI_Api_CiviMobileParticipantPayment_Create {
    * @throws \API_Exception
    */
   private function getValidParams() {
+    $isDisallowedEventParticipantRegistrationOverlap = Civi::settings()->get('civimobile_is_disallowed_event_participant_registration_overlap');
+
     $this->setContact($this->params['contact_id']);
     if (empty($this->contact)) {
       throw new api_Exception('Contact(id=' . $this->params['contact_id'] . ') does not exist.', 'contact_does_not_exist');
@@ -104,6 +106,19 @@ class CRM_CiviMobileAPI_Api_CiviMobileParticipantPayment_Create {
     if ($this->isContactAlreadyRegistered($this->params['contact_id'], $this->params['event_id'])) {
       throw new api_Exception(E::ts('This contact has already been assigned to this event.'), 'contact_already_registered');
     }
+
+
+    if ($isDisallowedEventParticipantRegistrationOverlap) {
+
+      $endDate = isset($this->event->end_date) ? $this->event->end_date : date('Y-m-d H:i:s', strtotime($this->event->start_date . ' + 1 day'));
+      
+      $isParticipantAlreadyRegistered = CRM_CiviMobileAPI_Utils_Event::isParticipantAlreadyRegistered($this->params['contact_id'], $this->event->start_date, $endDate);
+
+      if ($isParticipantAlreadyRegistered) {
+        throw new api_Exception(E::ts('This contact has already been assigned to event with same date.'), 'possible_event_registration_overlap');
+      }
+    }
+
 
     $validParams = $this->getExpectedParams();
 
@@ -180,10 +195,10 @@ class CRM_CiviMobileAPI_Api_CiviMobileParticipantPayment_Create {
         }
 
         $validPriceSetFieldValues = [];
-        foreach ($selectedValue['filed_value_id'] as  $valueId) {
+        foreach ($selectedValue['filed_value_id'] as $valueId) {
           $priceSetFieldValue = $this->findPriceSetFiledValue($priceSetFieldValues['values'], $valueId);
           if (empty($priceSetFieldValue)) {
-            throw new api_Exception('Not valid value('. $valueId .') for price set field (id = ' . $priceSetField['id'] . ').', 'not_valid_value_for_price_set_field');
+            throw new api_Exception('Not valid value(' . $valueId . ') for price set field (id = ' . $priceSetField['id'] . ').', 'not_valid_value_for_price_set_field');
           }
 
           $validPriceSetFieldValues[] = $priceSetFieldValue;
@@ -203,8 +218,8 @@ class CRM_CiviMobileAPI_Api_CiviMobileParticipantPayment_Create {
     }
 
     foreach ($priceSetFields as $priceSetField) {
-      if ($priceSetField['is_required'] == 1  && !in_array($priceSetField['id'], $validFieldIds)) {
-        throw new api_Exception('Price field(id = '. $priceSetField['id'] .') is required field for price set.' , 'required_filed_for_price_set');
+      if ($priceSetField['is_required'] == 1 && !in_array($priceSetField['id'], $validFieldIds)) {
+        throw new api_Exception('Price field(id = ' . $priceSetField['id'] . ') is required field for price set.', 'required_filed_for_price_set');
       }
     }
 
@@ -364,7 +379,7 @@ class CRM_CiviMobileAPI_Api_CiviMobileParticipantPayment_Create {
     }
 
     $expectedParams['event_financial_type_id'] = $this->event->financial_type_id;
-    $expectedParams['send_confirmation'] = (int) $this->params['send_confirmation'];
+    $expectedParams['send_confirmation'] = (int)$this->params['send_confirmation'];
     $expectedParams['participant_params'] = $participantParam;
     $expectedParams['price_set_selected_values'] = $this->params['price_set_selected_values'];
 

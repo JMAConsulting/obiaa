@@ -15,16 +15,19 @@ class CRM_CiviMobileAPI_Api_CiviMobileCustomFields_Get extends CRM_CiviMobileAPI
    */
   private static $entityMap = [
     'Individual' => [
-      'find_for' => ['Contact','Individual'],
+      'find_for' => ['Contact', 'Individual'],
     ],
     'Organization' => [
-      'find_for' => ['Contact','Organization'],
+      'find_for' => ['Contact', 'Organization'],
     ],
     'Household' => [
-      'find_for' => ['Contact','Household'],
+      'find_for' => ['Contact', 'Household'],
     ],
     'Activity' => [
       'find_for' => ['Activity'],
+    ],
+    'Event' => [
+      'find_for' => ['Event'],
     ],
   ];
 
@@ -41,11 +44,7 @@ class CRM_CiviMobileAPI_Api_CiviMobileCustomFields_Get extends CRM_CiviMobileAPI
       throw new api_Exception('Invalid entity. Available values: (' . implode(', ', self::getAvailableEntities()) . ')', 'used_for_invalid_value');
     }
 
-    return [
-      'find_for' => self::$entityMap[$params['entity']]['find_for'],
-      'entity_id' => $params['entity_id'],
-      'extends_entity_column_value' => !empty($params['extends_entity_column_value']) ? $params['extends_entity_column_value'] : NULL
-    ];
+    return ['find_for' => self::$entityMap[$params['entity']]['find_for'], 'entity_id' => $params['entity_id'], 'is_searchable' => $params['is_searchable'], 'extends_entity_column_value' => !empty($params['extends_entity_column_value']) ? $params['extends_entity_column_value'] : NULL];
   }
 
   /**
@@ -58,26 +57,22 @@ class CRM_CiviMobileAPI_Api_CiviMobileCustomFields_Get extends CRM_CiviMobileAPI
     $anyActivitiesCustomGroups = [];
 
     try {
-      $customGroups = civicrm_api3('CustomGroup', 'get', [
-        'sequential' => 1,
-        'extends' => ['IN' => $this->validParams['find_for']],
-        'is_active' => 1,
-        'extends_entity_column_value' => $this->validParams['extends_entity_column_value'],
-        'options' => ['limit' => 0],
-      ])['values'];
+      $customGroups = civicrm_api3('CustomGroup', 'get', ['sequential' => 1, 'extends' => ['IN' => $this->validParams['find_for']], 'is_active' => 1, 'extends_entity_column_value' => $this->validParams['extends_entity_column_value'], 'options' => ['limit' => 0],])['values'];
     } catch (CiviCRM_API3_Exception $e) {
       return [];
     }
 
     if ($this->validParams['find_for'][0] == "Activity" && !empty($this->validParams['extends_entity_column_value'])) {
       try {
-        $anyActivitiesCustomGroups = civicrm_api3('CustomGroup', 'get', [
-          'sequential' => 1,
-          'extends' => "Activity",
-          'is_active' => 1,
-          'extends_entity_column_value' => ['IS NULL' => 1],
-          'options' => ['limit' => 0],
-        ])['values'];
+        $anyActivitiesCustomGroups = civicrm_api3('CustomGroup', 'get', ['sequential' => 1, 'extends' => "Activity", 'is_active' => 1, 'extends_entity_column_value' => ['IS NULL' => 1], 'options' => ['limit' => 0],])['values'];
+      } catch (CiviCRM_API3_Exception $e) {
+        return [];
+      }
+    }
+
+    if ($this->validParams['find_for'][0] == "Event" && !empty($this->validParams['extends_entity_column_value'])) {
+      try {
+        $anyActivitiesCustomGroups = civicrm_api3('CustomGroup', 'get', ['sequential' => 1, 'extends' => "Event", 'extends_entity_column_value' => ['IS NULL' => 1], 'options' => ['limit' => 0],])['values'];
       } catch (CiviCRM_API3_Exception $e) {
         return [];
       }
@@ -114,17 +109,9 @@ class CRM_CiviMobileAPI_Api_CiviMobileCustomFields_Get extends CRM_CiviMobileAPI
    * @return array
    */
   private function prepareCustomGroup($customGroup) {
-    $gotvCustomFieldId =  CRM_CiviMobileAPI_Utils_CustomField::getId(CRM_CiviMobileAPI_Install_Entity_CustomGroup::SURVEY,CRM_CiviMobileAPI_Install_Entity_CustomField::SURVEY_GOTV_STATUS);
+    $gotvCustomFieldId = CRM_CiviMobileAPI_Utils_CustomField::getId(CRM_CiviMobileAPI_Install_Entity_CustomGroup::SURVEY, CRM_CiviMobileAPI_Install_Entity_CustomField::SURVEY_GOTV_STATUS);
 
-    $customGroupData = [
-      'id' => $customGroup['id'],
-      'name' => $customGroup['name'],
-      'title' => $customGroup['title'],
-      'style' => $customGroup['style'],
-      'weight' => (int) $customGroup['weight'],
-      'is_multiple' => $customGroup['is_multiple'],
-      'custom_fields' => [],
-    ];
+    $customGroupData = ['id' => $customGroup['id'], 'name' => $customGroup['name'], 'title' => $customGroup['title'], 'style' => $customGroup['style'], 'weight' => (int)$customGroup['weight'], 'is_multiple' => $customGroup['is_multiple'], 'custom_fields' => [],];
 
     try {
       $customFields = civicrm_api3('CustomField', 'get', [
@@ -133,6 +120,7 @@ class CRM_CiviMobileAPI_Api_CiviMobileCustomFields_Get extends CRM_CiviMobileAPI
         'custom_group_id' => $customGroup['id'],
         'options' => ['limit' => 0],
         'is_active' => 1,
+        'is_searchable' => $this->validParams['is_searchable'] ?? null,
       ]);
     } catch (CiviCRM_API3_Exception $e) {
       return $customGroupData;
@@ -158,7 +146,7 @@ class CRM_CiviMobileAPI_Api_CiviMobileCustomFields_Get extends CRM_CiviMobileAPI
    * @return array
    */
   private function prepareCustomField($customField, $customGroup) {
-    $customFieldId = CRM_CiviMobileAPI_Utils_CustomField::getId($customGroup['name'],  $customField['name']);
+    $customFieldId = CRM_CiviMobileAPI_Utils_CustomField::getId($customGroup['name'], $customField['name']);
     $availableValues = [];
 
     if (!empty($customField['option_group_id'])) {
@@ -166,27 +154,28 @@ class CRM_CiviMobileAPI_Api_CiviMobileCustomFields_Get extends CRM_CiviMobileAPI
     }
 
     foreach ($availableValues as $key => $value) {
-      $availableValues[$key]['weight'] = (int) $availableValues[$key]['weight'];
+      $availableValues[$key]['weight'] = (int)$availableValues[$key]['weight'];
     }
 
     if ($customField['html_type'] == 'Radio' && $customField['data_type'] == "Boolean") {
-      $availableValues = ['1','0'];
+      $availableValues = ['1', '0'];
     }
 
     $prepareCustomField = [
       "id" => $customField['id'],
       "name" => $customField['name'],
       "default_value" => $customField['default_value'],
-      "text_length" => (!empty($customField['text_length'])) ? (int) $customField['text_length'] : "NULL",
+      "text_length" => (!empty($customField['text_length'])) ? (int)$customField['text_length'] : "NULL",
       "is_view" => $customField['is_view'],
       "label" => $customField['label'],
-      "weight" => (int) $customField['weight'],
+      "weight" => (int)$customField['weight'],
       "data_type" => $customField['data_type'],
       "html_type" => $customField['html_type'],
       "is_required" => $customField['is_required'],
-      "current_value" => $this->getCurrentValue($customFieldId),
-      "note_columns" => (!empty($customField['note_columns'])) ? (int) $customField['note_columns'] : "",
-      "note_rows" => (!empty($customField['note_rows'])) ? (int) $customField['note_rows'] : "",
+      "is_searchable" => $customField['is_searchable'],
+      "current_value" => (!empty($this->validParams['entity_id'])) ? $this->getCurrentValue($customFieldId) : Null,
+      "note_columns" => (!empty($customField['note_columns'])) ? (int)$customField['note_columns'] : "",
+      "note_rows" => (!empty($customField['note_rows'])) ? (int)$customField['note_rows'] : "",
       "date_format" => (!empty($customField['date_format'])) ? $customField['date_format'] : "",
       "time_format" => (!empty($customField['time_format'])) ? $customField['time_format'] : "",
       "start_date_years" => (!empty($customField['start_date_years'])) ? $customField['start_date_years'] : "",
@@ -196,8 +185,7 @@ class CRM_CiviMobileAPI_Api_CiviMobileCustomFields_Get extends CRM_CiviMobileAPI
       "available_values" => $availableValues
     ];
 
-    if ($prepareCustomField['data_type'] == 'Money'
-      && ($prepareCustomField['html_type'] == 'Radio' || $prepareCustomField['html_type'] == 'Select') ) {
+    if ($prepareCustomField['data_type'] == 'Money' && ($prepareCustomField['html_type'] == 'Radio' || $prepareCustomField['html_type'] == 'Select')) {
       $prepareCustomField['current_value'] = preg_replace("/.00$/", "", $prepareCustomField['current_value']);
     }
 

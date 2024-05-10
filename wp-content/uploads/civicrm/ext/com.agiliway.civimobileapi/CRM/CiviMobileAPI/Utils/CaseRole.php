@@ -175,7 +175,7 @@ class CRM_CiviMobileAPI_Utils_CaseRole {
         foreach ($value as $clientRole) {
           $relClient = [];
           $relClient['relation'] = 'Client';
-          $relClient['name'] = $clientRole['sort_name'];
+          $relClient['sort_name'] = $clientRole['sort_name'];
           $relClient['phone'] = $clientRole['phone'];
           $relClient['email'] = $clientRole['email'];
           $relClient['cid'] = $clientRole['contact_id'];
@@ -219,7 +219,7 @@ class CRM_CiviMobileAPI_Utils_CaseRole {
     return [
       'contact_id' => $this->validateEntityExistence($listOfRoles['cid']) ? $listOfRoles['cid'] : '',
       'relation' => $this->validateEntityExistence($listOfRoles['relation']) ? $listOfRoles['relation'] : '',
-      'name' => $this->validateEntityExistence($listOfRoles['name']) ? $listOfRoles['name'] : '',
+      'name' => $this->validateEntityExistence($listOfRoles['sort_name']) ? $listOfRoles['sort_name'] : '',
       'relation_type' => $this->getRelationTypeWithDirections($listOfRoles['relation']),
       'relation_id' => $this->validateEntityExistence($listOfRoles['rel_id']) ? $listOfRoles['rel_id'] : '',
       'can_edit' => $this->canEdit(),

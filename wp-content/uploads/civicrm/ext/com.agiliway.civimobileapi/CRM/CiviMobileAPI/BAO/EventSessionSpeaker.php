@@ -164,10 +164,8 @@ class CRM_CiviMobileAPI_BAO_EventSessionSpeaker extends CRM_CiviMobileAPI_DAO_Ev
 
     if ($limit != 0) {
       $query->limit($limit, $offset);
-    } else {
-      return CRM_Core_DAO::executeQuery($query->toSQL())->fetchAll();
     }
-    
+
     return CRM_Core_DAO::executeQuery($query->toSQL())->fetchAll();
   }
 

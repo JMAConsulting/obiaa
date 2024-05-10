@@ -57,10 +57,49 @@ class CRM_CiviMobileAPI_Utils_Event {
     }
     if (array_key_exists('loc_block_id', $apiOutput)) {
       return TRUE;
-    }
-    else {
+    } else {
       return FALSE;
     }
   }
+
+  public static function isParticipantAlreadyRegistered($contactId, $startDate, $endDate) {
+
+    $registrationCount = self::getParticipantRegistrationCount($contactId, $startDate, $endDate);
+
+    return $registrationCount > 0;
+  }
+
+  private static function getParticipantRegistrationCount($contactId, $startDate, $endDate) {
+
+    if (empty($endDate)) {
+      $endDate = date('Y-m-d H:i:s', strtotime($startDate . ' + 1 day'));
+    }
+
+    $participantFilters = [
+      ['contact_id', '=', $contactId],
+      ['event_id.is_template', '=', FALSE],
+      ['event_id.is_active', '=', TRUE],
+      [
+        'OR', [
+        [
+          'AND', [
+          ['event_id.start_date', '<=', $endDate],
+          ['event_id.end_date', '>', $startDate],
+        ]
+        ],
+        [
+          'AND', [
+          ['event_id.start_date', '<', $endDate],
+          ['event_id.end_date', '>=', $startDate],
+        ]
+        ],
+      ]
+      ],
+    ];
+
+
+    return civicrm_api4('Participant', 'get', ['where' => $participantFilters])->count();
+  }
+
 
 }

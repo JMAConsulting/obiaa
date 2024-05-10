@@ -34,7 +34,7 @@ class CRM_CiviMobileAPI_Form_Settings extends CRM_Core_Form {
     if (Civi::settings()->get('civimobile_is_server_key_valid') == 1) {
       $serverKeyValidMessage = E::ts('Your Server Key is valid and you can use Push Notifications.');
     } else {
-      $serverKeyInValidMessage =  E::ts('Your Server Key is invalid. Please enter valid Server Key.');
+      $serverKeyInValidMessage = E::ts('Your Server Key is invalid. Please enter valid Server Key.');
     }
 
     $enabledComponents = CRM_CiviMobileAPI_Utils_CiviCRM::getEnabledComponents();
@@ -140,7 +140,7 @@ class CRM_CiviMobileAPI_Form_Settings extends CRM_Core_Form {
       $errors[$tokenFieldName] = E::ts('Error. Something went wrong. Please contact us.');
     }
 
-    if (!empty($result['values']['response']) ) {
+    if (!empty($result['values']['response'])) {
       if ($result['values']['response']['error'] == 1) {
         $errors[$tokenFieldName] = E::ts($result['values']['response']['message']);
       } else {
@@ -170,12 +170,14 @@ class CRM_CiviMobileAPI_Form_Settings extends CRM_Core_Form {
     $this->addElement('radio', 'civimobile_site_name_to_use', NULL, E::ts('Use custom site name'), 'custom_site_name');
     $this->addElement('text', 'civimobile_custom_site_name', E::ts('Site name'));
     $this->addElement('checkbox', 'civimobile_is_allow_public_info_api', E::ts('Show Public area'));
+    $this->addElement('checkbox', 'civimobile_is_allow_reset_password', E::ts('Show Reset password'));
     $this->addElement('checkbox', 'civimobile_is_showed_news', E::ts('Show News'));
     $this->addElement('text', 'civimobile_news_rss_feed_url', E::ts('News RSS feed URL'));
     $this->addElement('text', 'civimobile_firebase_key', E::ts('Firebase key'));
     $this->addElement('checkbox', 'civimobile_is_custom_app', E::ts('Do you have custom application?'));
+    $this->addElement('checkbox', 'civimobile_is_disallowed_event_participant_registration_overlap', E::ts('Do you want disallow registration on events at same date?'));
     $this->addElement('text', 'civimobile_push_notification_lifetime', E::ts('Life time for push notification messages'));
-    
+
     if (CRM_Core_Config::singleton()->userSystem->isUserRegistrationPermitted()) {
       $this->addElement('checkbox', 'civimobile_is_allow_registration', E::ts('Allow registration'));
     }
@@ -215,8 +217,7 @@ class CRM_CiviMobileAPI_Form_Settings extends CRM_Core_Form {
         Civi::settings()->set('civimobile_server_key', $params['civimobile_server_key']);
         CRM_Core_Session::singleton()->setStatus(E::ts('Server key updated'), E::ts('CiviMobile Settings'), 'success');
       }
-    }
-    elseif (!empty($params['_qf_Settings_next'])) {
+    } elseif (!empty($params['_qf_Settings_next'])) {
       try {
         if (CRM_CiviMobileAPI_Utils_VersionController::getInstance()->isCurrentVersionLowerThanRepositoryVersion()) {
           $this->controller->setDestination(CRM_Utils_System::url('civicrm/civimobile/settings', http_build_query([])));
@@ -224,17 +225,14 @@ class CRM_CiviMobileAPI_Form_Settings extends CRM_Core_Form {
 
           CRM_Core_Session::singleton()->setStatus(E::ts('CiviMobile updated'), E::ts('CiviMobile Settings'), 'success');
         }
-      }
-      catch (Exception $e) {
+      } catch (Exception $e) {
         CRM_Core_Session::setStatus($e->getMessage());
       }
-    }
-    elseif (!empty($params['_qf_Settings_upload'])) {
+    } elseif (!empty($params['_qf_Settings_upload'])) {
       $this->controller->setDestination(CRM_Utils_System::url('civicrm/civimobile/settings', http_build_query([])));
       if (!empty($params['civimobile_auto_update'])) {
         Civi::settings()->set('civimobile_auto_update', 1);
-      }
-      else {
+      } else {
         Civi::settings()->set('civimobile_auto_update', 0);
       }
       if (!isset($params['civimobile_is_allow_public_website_url_qrcode'])) {
@@ -243,7 +241,7 @@ class CRM_CiviMobileAPI_Form_Settings extends CRM_Core_Form {
       if (!isset($params['civimobile_custom_site_name'])) {
         $params['civimobile_custom_site_name'] = '';
       }
-      if(!isset($params['civimobile_is_showed_news'])) {
+      if (!isset($params['civimobile_is_showed_news'])) {
         $params['civimobile_is_showed_news'] = 0;
       }
       if (!isset($params['civimobile_is_custom_app'])) {
@@ -252,24 +250,32 @@ class CRM_CiviMobileAPI_Form_Settings extends CRM_Core_Form {
       if (!isset($params['civimobile_is_allow_public_info_api'])) {
         $params['civimobile_is_allow_public_info_api'] = 0;
       }
+      if (!isset($params['civimobile_is_allow_reset_password'])) {
+        $params['civimobile_is_allow_reset_password'] = 0;
+      }
       if (!isset($params['civimobile_push_notification_lifetime'])) {
         $params['civimobile_push_notification_lifetime'] = CRM_CiviMobileAPI_BAO_PushNotificationMessages::LIFE_TIME_IN_DAYS;
       }
       if (!isset($params['civimobile_is_allow_registration'])) {
         $params['civimobile_is_allow_registration'] = 0;
       }
+      if (!isset($params['civimobile_is_disallowed_event_participant_registration_overlap'])) {
+        $params['civimobile_is_disallowed_event_participant_registration_overlap'] = 0;
+      }
 
       Civi::settings()->set('civimobile_is_custom_app', $params['civimobile_is_custom_app']);
+      Civi::settings()->set('civimobile_is_disallowed_event_participant_registration_overlap', $params['civimobile_is_disallowed_event_participant_registration_overlap']);
       Civi::settings()->set('civimobile_firebase_key', $params['civimobile_firebase_key']);
       Civi::settings()->set('civimobile_is_allow_public_website_url_qrcode', $params['civimobile_is_allow_public_website_url_qrcode']);
       Civi::settings()->set('civimobile_site_name_to_use', $params['civimobile_site_name_to_use']);
       Civi::settings()->set('civimobile_custom_site_name', $params['civimobile_custom_site_name']);
       Civi::settings()->set('civimobile_is_allow_public_info_api', $params['civimobile_is_allow_public_info_api']);
+      Civi::settings()->set('civimobile_is_allow_reset_password', $params['civimobile_is_allow_reset_password']);
       Civi::settings()->set('civimobile_is_showed_news', $params['civimobile_is_showed_news']);
       Civi::settings()->set('civimobile_news_rss_feed_url', $params['civimobile_news_rss_feed_url']);
       Civi::settings()->set("civimobile_push_notification_lifetime", $params['civimobile_push_notification_lifetime']);
       Civi::settings()->set("civimobile_is_allow_registration", $params['civimobile_is_allow_registration']);
-      
+
       CRM_Core_Session::singleton()->setStatus(E::ts('CiviMobile settings updated'), E::ts('CiviMobile Settings'), 'success');
     }
   }
@@ -284,15 +290,17 @@ class CRM_CiviMobileAPI_Form_Settings extends CRM_Core_Form {
     $defaults['civimobile_auto_update'] = Civi::settings()->get('civimobile_auto_update');
     $defaults['civimobile_server_key'] = Civi::settings()->get('civimobile_server_key');
     $defaults['civimobile_is_allow_public_website_url_qrcode'] = CRM_CiviMobileAPI_Utils_Extension::isAllowPublicWebisteURLQRCode();
-    $defaults['civimobile_site_name_to_use'] = (!empty(Civi::settings()->get('civimobile_site_name_to_use'))) ? Civi::settings()->get('civimobile_site_name_to_use') : 'cms_site_name' ;
+    $defaults['civimobile_site_name_to_use'] = (!empty(Civi::settings()->get('civimobile_site_name_to_use'))) ? Civi::settings()->get('civimobile_site_name_to_use') : 'cms_site_name';
     $defaults['civimobile_custom_site_name'] = Civi::settings()->get('civimobile_custom_site_name');
     $defaults['civimobile_is_allow_public_info_api'] = Civi::settings()->get('civimobile_is_allow_public_info_api');
+    $defaults['civimobile_is_allow_reset_password'] = Civi::settings()->get('civimobile_is_allow_reset_password');
     $defaults['civimobile_is_showed_news'] = Civi::settings()->get('civimobile_is_showed_news');
     $defaults['civimobile_news_rss_feed_url'] = CRM_CiviMobileAPI_Utils_Extension::newsRssFeedUrl();
     $defaults['civimobile_firebase_key'] = Civi::settings()->get('civimobile_firebase_key');
+    $defaults['civimobile_is_disallowed_event_participant_registration_overlap'] = Civi::settings()->get('civimobile_is_disallowed_event_participant_registration_overlap');
     $defaults['civimobile_is_custom_app'] = CRM_CiviMobileAPI_Utils_Extension::isCustomApp();
     $defaults['civimobile_push_notification_lifetime'] = isset($pushNotificationLifetime)
-      ? (int) $pushNotificationLifetime : CRM_CiviMobileAPI_BAO_PushNotificationMessages::LIFE_TIME_IN_DAYS;
+      ? (int)$pushNotificationLifetime : CRM_CiviMobileAPI_BAO_PushNotificationMessages::LIFE_TIME_IN_DAYS;
     $defaults['civimobile_is_allow_registration'] = Civi::settings()->get('civimobile_is_allow_registration');
 
     return $defaults;

@@ -57,7 +57,9 @@ class CRM_CiviMobileAPI_Utils_Cms {
     } elseif ($currentCMS == CRM_CiviMobileAPI_Utils_CmsUser::CMS_WORDPRESS && function_exists('get_bloginfo')) {
       return get_bloginfo('version');
     } elseif ($currentCMS == CRM_CiviMobileAPI_Utils_CmsUser::CMS_JOOMLA) {
-      return defined('Joomla\CMS\Version::RELEASE') ? Joomla\CMS\Version::RELEASE : '';
+      $version = new Joomla\CMS\Version();
+      
+      return $version->getShortVersion();
     }
 
     return '';

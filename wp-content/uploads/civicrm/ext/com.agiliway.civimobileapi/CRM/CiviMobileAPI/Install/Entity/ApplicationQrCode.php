@@ -1,6 +1,6 @@
 <?php
 
-class CRM_CiviMobileAPI_Install_Entity_ApplicationQrCode implements CRM_CiviMobileAPI_Install_Entity_InstallInterface {
+class CRM_CiviMobileAPI_Install_Entity_ApplicationQrCode {
 
   /**
    * File name for Application QrCode

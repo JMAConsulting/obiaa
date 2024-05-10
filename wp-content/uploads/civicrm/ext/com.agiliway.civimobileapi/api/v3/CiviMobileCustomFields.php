@@ -37,6 +37,12 @@ function _civicrm_api3_civi_mobile_custom_fields_get_spec(&$params) {
     'title' => 'Entity id',
     'description' => E::ts('Entity id'),
     'type' => CRM_Utils_Type::T_INT,
-    'api.required' => 1,
+    'api.required' => 0,
+  ];
+  $params['is_searchable'] = [
+    'title' => 'Is searchable',
+    'description' => E::ts('Is searchable'),
+    'type' => CRM_Utils_Type::T_BOOLEAN,
+    'api.required' => 0,
   ];
 }

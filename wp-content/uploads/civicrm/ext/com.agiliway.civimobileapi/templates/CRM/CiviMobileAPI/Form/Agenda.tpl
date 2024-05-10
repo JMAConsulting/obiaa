@@ -23,8 +23,8 @@
 {/literal}
 <div class="agenda-block crm-container">
   <div class="help">
-    {ts domain=com.agiliway.civimobileapi}Agenda details the event schedule. It displays the schedule of a single- or multi-day upcoming event with detailed session information, like session start/end time, topic, speaker profiles and venue.{/ts}
-    <a href="https://civimobile.org/docs/#agenda" target="_blank">{ts domain=com.agiliway.civimobileapi}Read more{/ts}</a>
+    {ts domain="com.agiliway.civimobileapi"}Agenda details the event schedule. It displays the schedule of a single- or multi-day upcoming event with detailed session information, like session start/end time, topic, speaker profiles and venue.{/ts}
+    <a href="https://civimobile.org/docs/#agenda" target="_blank">{ts domain="com.agiliway.civimobileapi"}Read more{/ts}</a>
   </div>
   {if $notice}
     <div class="status">
@@ -36,11 +36,11 @@
         <table class="form-layout">
           <tbody>
           <tr>
-            <td class="label"><label for="is_use_agenda">{ts domain=com.agiliway.civimobileapi}Show Event Agenda:{/ts}</label></td>
+            <td class="label"><label for="is_use_agenda">{ts domain="com.agiliway.civimobileapi"}Show Event Agenda:{/ts}</label></td>
             <td>
               <input id="is_use_agenda" type="checkbox" {if $is_use_agenda}checked="checked"{/if}>
-              <span class="description">{ts domain=com.agiliway.civimobileapi}Event Agenda enabled?{/ts}</span>
-              <br/><span class="description">{ts domain=com.agiliway.civimobileapi}You can fill the Agenda and when you finish it, just turn it on.{/ts}</span>
+              <span class="description">{ts domain="com.agiliway.civimobileapi"}Event Agenda enabled?{/ts}</span>
+              <br/><span class="description">{ts domain="com.agiliway.civimobileapi"}You can fill the Agenda and when you finish it, just turn it on.{/ts}</span>
             </td>
           </tr>
           </tbody>
@@ -53,20 +53,20 @@
           <ul class="ui-tabs-nav ui-corner-all ui-helper-reset ui-helper-clearfix ui-widget-header">
             <li id="tab_event_sessions"
                 class="crm-tab-button ui-corner-all ui-tabs-tab ui-corner-top ui-state-default ui-tab ui-tabs-active ui-state-active">
-              <a href="#event-sessions-subtab" title="{ts domain=com.agiliway.civimobileapi}Sessions{/ts}">
-                {ts domain=com.agiliway.civimobileapi}Sessions{/ts}
+              <a href="#event-sessions-subtab" title="{ts domain="com.agiliway.civimobileapi"}Sessions{/ts}">
+                {ts domain="com.agiliway.civimobileapi"}Sessions{/ts}
               </a>
             </li>
             <li id="tab_venues" class="crm-tab-button ui-corner-all ui-tabs-tab ui-corner-top ui-state-default ui-tab">
               <a href="{crmURL p='civicrm/civimobile/event-speakers' q="reset=1&event_id="}{$event_id}"
-                 title="{ts domain=com.agiliway.civimobileapi}Speakers{/ts}">
-                {ts domain=com.agiliway.civimobileapi}Speakers{/ts}
+                 title="{ts domain="com.agiliway.civimobileapi"}Speakers{/ts}">
+                {ts domain="com.agiliway.civimobileapi"}Speakers{/ts}
               </a>
             </li>
             <li id="tab_venues" class="crm-tab-button ui-corner-all ui-tabs-tab ui-corner-top ui-state-default ui-tab">
               <a href="{crmURL p='civicrm/civimobile/manage-venues' q="reset=1&use_back_button=0&location_id="}{$location_id}"
-                 title="{ts domain=com.agiliway.civimobileapi}Venues{/ts}">
-                {ts domain=com.agiliway.civimobileapi}Venues{/ts}
+                 title="{ts domain="com.agiliway.civimobileapi"}Venues{/ts}">
+                {ts domain="com.agiliway.civimobileapi"}Venues{/ts}
               </a>
             </li>
           </ul>
@@ -74,19 +74,19 @@
           <div id="event-sessions-subtab" class="ui-tabs-panel ui-widget-content ui-corner-bottom">
             <div id="event-sessions-block">
               <div class="help">
-                {ts domain=com.agiliway.civimobileapi}The agenda consists of the sessions, which are the basic building blocks for structuring your events schedule. A typical session is usually something like a keynote or a workshop. Every session includes a location and speakers.{/ts}
+                {ts domain="com.agiliway.civimobileapi"}The agenda consists of the sessions, which are the basic building blocks for structuring your events schedule. A typical session is usually something like a keynote or a workshop. Every session includes a location and speakers.{/ts}
               </div>
               <div class="crm-form-block">
                 {if $can_create_event_session}
                   <div style="width:100%;margin-bottom:10px;overflow:auto;">
                     <a href="{crmURL p='civicrm/civimobile/event/session' q="action=add&event_id=`$event_id`"}"
-                       class="button crm-popup event-session-popup"><span><i class="crm-i fa-plus-circle"></i> {ts domain=com.agiliway.civimobileapi}Add session{/ts}</span></a>
+                       class="button crm-popup event-session-popup"><span><i class="crm-i fa-plus-circle"></i> {ts domain="com.agiliway.civimobileapi"}Add session{/ts}</span></a>
                   </div>
                 {/if}
                 <div style="overflow:auto; width:100%;">
                   <div class="crm-accordion-wrapper crm-event-sessions-accordion collapsed">
                     <div class="crm-accordion-header">
-                      {ts domain=com.agiliway.civimobileapi}Filter by Session{/ts}
+                      {ts domain="com.agiliway.civimobileapi"}Filter by Session{/ts}
                     </div>
                     <div class="crm-accordion-body" id="eventSessionFilter">
                       <table class="no-border form-layout-compressed">
@@ -114,12 +114,12 @@
                 <table id="event-sessions-table" class="crm-ajax-table" data-order='[[1,"desc"]]'>
                   <thead>
                   <tr>
-                    <th data-data="title">{ts domain=com.agiliway.civimobileapi}Session{/ts}</th>
-                    <th data-data="date">{ts domain=com.agiliway.civimobileapi}Date{/ts}</th>
-                    <th data-data="time" data-orderable="false">{ts domain=com.agiliway.civimobileapi}Time{/ts}</th>
-                    <th data-data="venue_name">{ts domain=com.agiliway.civimobileapi}Venue{/ts}</th>
-                    <th data-data="speakers" data-orderable="false">{ts domain=com.agiliway.civimobileapi}Speakers{/ts}</th>
-                    <th data-data="status" data-orderable="false">{ts domain=com.agiliway.civimobileapi}Status{/ts}</th>
+                    <th data-data="title">{ts domain="com.agiliway.civimobileapi"}Session{/ts}</th>
+                    <th data-data="date">{ts domain="com.agiliway.civimobileapi"}Date{/ts}</th>
+                    <th data-data="time" data-orderable="false">{ts domain="com.agiliway.civimobileapi"}Time{/ts}</th>
+                    <th data-data="venue_name">{ts domain="com.agiliway.civimobileapi"}Venue{/ts}</th>
+                    <th data-data="speakers" data-orderable="false">{ts domain="com.agiliway.civimobileapi"}Speakers{/ts}</th>
+                    <th data-data="status" data-orderable="false">{ts domain="com.agiliway.civimobileapi"}Status{/ts}</th>
                     <th data-data="links" data-orderable="false"></th>
                   </tr>
                   </thead>

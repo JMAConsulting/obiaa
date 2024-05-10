@@ -241,6 +241,7 @@ function civicrm_api3_civi_mobile_permission_get() {
       'view' => [
         'all' => $accessToCiviCrm && $viewMyContact && ($viewAllContacts || $editAllContacts) && $accessAllCustomData ? 1 : 0,
         'my' => $accessToCiviCrm && $viewMyContact && $accessAllCustomData ? 1 : 0,
+        'list' => $accessToCiviCrm && $accessAllCustomData ? 1 : 0,
       ],
       'edit' => [
         'all' => $accessToCiviCrm && $viewMyContact && $editAllContacts && $accessAllCustomData ? 1 : 0,

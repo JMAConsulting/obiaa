@@ -283,6 +283,10 @@ class CRM_CiviMobileAPI_Utils_Checklist {
       'title' => 'Latest available CiviMobileAPI extension version',
       'message' => $version->getLatestFullVersion(),
     ];
+    $this->systemInfo[] = [
+      'title' => 'Minimal required CiviMobile app version',
+      'message' => CRM_CiviMobileAPI_Utils_Extension::MINIMAL_REQUIRED_CIVIMOBILE_APP_VERSION,
+    ];
   }
 
   /**
