@@ -1,4 +1,5 @@
 <?php
+
 use CRM_CiviMobileAPI_ExtensionUtil as E;
 use CRM_CiviMobileAPI_Utils_JsonResponse as JsonResponse;
 
@@ -64,7 +65,7 @@ abstract class CRM_CiviMobileAPI_Page_PublicApi_ApiBase extends CRM_Core_Page {
         array_merge($this->requestJsonData, ["sequential" => 1])
       );
     } catch (CiviCRM_API3_Exception $e) {
-      JsonResponse::sendErrorResponse(E::ts('Api error.') . ' Error message: ' . $e->getMessage() ,'entityData', $e->getErrorCode());
+      JsonResponse::sendErrorResponse(E::ts('Api error.') . ' Error message: ' . $e->getMessage(), 'entityData', $e->getErrorCode());
     }
 
     if (!empty($result['values'])) {
@@ -88,7 +89,7 @@ abstract class CRM_CiviMobileAPI_Page_PublicApi_ApiBase extends CRM_Core_Page {
       JsonResponse::sendErrorResponse(E::ts("The 'entityName' field is required field."), 'entityName');
     }
 
-    return (string) $_POST['entityName'];
+    return (string)$_POST['entityName'];
   }
 
   /**
@@ -119,7 +120,7 @@ abstract class CRM_CiviMobileAPI_Page_PublicApi_ApiBase extends CRM_Core_Page {
       JsonResponse::sendErrorResponse(E::ts("The 'actionName' field is required field."), 'actionName');
     }
 
-    return (string) $_POST['actionName'];
+    return (string)$_POST['actionName'];
   }
 
   /**

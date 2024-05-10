@@ -43,6 +43,7 @@ class CRM_CiviMobileAPI_Utils_OptionValue {
     $params =  [
       'sequential' => 1,
       'option_group_id' => $optionGroupId,
+      'options' => ['sort' => "label asc", 'limit' => 0],
     ];
 
     try {

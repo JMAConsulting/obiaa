@@ -32,7 +32,8 @@ class CRM_CiviMobileAPI_BAO_PushNotificationMessages extends CRM_CiviMobileAPI_D
 
     if (!empty($params['id'])) {
       CRM_Utils_Hook::pre('edit', self::getEntityName(), $params['id'], $params);
-    } else {
+    }
+    else {
       CRM_Utils_Hook::pre('create', self::getEntityName(), NULL, $params);
     }
 
@@ -51,7 +52,8 @@ class CRM_CiviMobileAPI_BAO_PushNotificationMessages extends CRM_CiviMobileAPI_D
 
     if (!empty($params['id'])) {
       CRM_Utils_Hook::post('edit', self::getEntityName(), $entityData->id, $entityData);
-    } else {
+    }
+    else {
       CRM_Utils_Hook::post('create', self::getEntityName(), $entityData->id, $entityData);
     }
 
@@ -94,7 +96,8 @@ class CRM_CiviMobileAPI_BAO_PushNotificationMessages extends CRM_CiviMobileAPI_D
         send_date,
         is_read
       ');
-    } else {
+    }
+    else {
       if ($returnValue == 'count') {
         $query->select('COUNT(id)');
       }

@@ -4,7 +4,7 @@
       {if $action eq 4}
         {if $can_edit_speaker}
           <a href="{crmURL p='civicrm/civimobile/event/speaker' q='reset=1&action=update&pid='|cat:$speaker.participant_id|cat:'&eid='|cat:$speaker.event_id}"
-             class="edit button" title="{ts domain=com.agiliway.civimobileapi}Edit{/ts}"><span><i class="crm-i fa-pencil"></i> {ts domain=com.agiliway.civimobileapi}Edit{/ts}</span></a>
+             class="edit button" title="{ts domain="com.agiliway.civimobileapi"}Edit{/ts}"><span><i class="crm-i fa-pencil"></i> {ts domain="com.agiliway.civimobileapi"}Edit{/ts}</span></a>
         {/if}
       {/if}
       {include file="CRM/common/formButtons.tpl" location="bottom"  multiple="multiple"}
@@ -96,7 +96,7 @@
       {if $action eq 4}
         {if $can_edit_speaker}
           <a href="{crmURL p='civicrm/civimobile/event/speaker' q='reset=1&action=update&pid='|cat:$speaker.participant_id|cat:'&eid='|cat:$speaker.event_id}"
-             class="edit button" title="{ts domain=com.agiliway.civimobileapi}Edit{/ts}"><span><i class="crm-i fa-pencil"></i> {ts domain=com.agiliway.civimobileapi}Edit{/ts}</span></a>
+             class="edit button" title="{ts domain="com.agiliway.civimobileapi"}Edit{/ts}"><span><i class="crm-i fa-pencil"></i> {ts domain="com.agiliway.civimobileapi"}Edit{/ts}</span></a>
         {/if}
       {/if}
       {include file="CRM/common/formButtons.tpl" location="bottom"  multiple="multiple"}

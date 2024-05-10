@@ -2,7 +2,7 @@
 <div id="manage-venues-block">
 {if $location_id}
   <div class="help">
-    {ts domain=com.agiliway.civimobileapi}Venues are used to group sessions by a topic or a theme and can be located in a different address than the event.{/ts}
+    {ts domain="com.agiliway.civimobileapi"}Venues are used to group sessions by a topic or a theme and can be located in a different address than the event.{/ts}
   </div>
   <div class="crm-block crm-form-block">
     <div class="crm-submit-buttons">
@@ -18,12 +18,12 @@
       <thead>
       <tr>
         <th class="sorting_disabled">
-          {ts domain=com.agiliway.civimobileapi}Name{/ts}
+          {ts domain="com.agiliway.civimobileapi"}Name{/ts}
         </th>
         <th class="sorting_disabled">
-          {ts domain=com.agiliway.civimobileapi}Is active ?{/ts}
+          {ts domain="com.agiliway.civimobileapi"}Is active ?{/ts}
         </th>
-        <th class="sorting_disabled">{ts domain=com.agiliway.civimobileapi}Order{/ts}</th>
+        <th class="sorting_disabled">{ts domain="com.agiliway.civimobileapi"}Order{/ts}</th>
         <th></th>
       </tr>
       </thead>
@@ -56,7 +56,7 @@
   </div>
 {else}
   <div class="status">
-    {ts domain=com.agiliway.civimobileapi}If you want to create venues, you need to add the location for the event.{/ts}
+    {ts domain="com.agiliway.civimobileapi"}If you want to create venues, you need to add the location for the event.{/ts}
   </div>
 {/if}
 </div>

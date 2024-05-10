@@ -63,10 +63,10 @@
     <div class="crm-submit-buttons">
       {if $action eq 4}
         {if $can_edit_venue}
-          <a href="{crmURL p='civicrm/civimobile/venue' q='reset=1&action=update&id='}{$venue.id}{"&location_id="}{$location_id}" class="edit button" title="{ts domain=com.agiliway.civimobileapi}Edit{/ts}"><span><i class="crm-i fa-pencil"></i> {ts domain=com.agiliway.civimobileapi}Edit{/ts}</span></a>
+          <a href="{crmURL p='civicrm/civimobile/venue' q='reset=1&action=update&id='}{$venue.id}{"&location_id="}{$location_id}" class="edit button" title="{ts domain="com.agiliway.civimobileapi"}Edit{/ts}"><span><i class="crm-i fa-pencil"></i> {ts domain="com.agiliway.civimobileapi"}Edit{/ts}</span></a>
         {/if}
         {if $can_delete_venue}
-          <a href="{crmURL p='civicrm/civimobile/venue' q='reset=1&action=delete&id='}{$venue.id}{"&location_id="}{$location_id}" class="delete button" title="{ts domain=com.agiliway.civimobileapi}Delete{/ts}"><span><i class="crm-i fa-trash"></i> {ts domain=com.agiliway.civimobileapi}Delete{/ts}</span></a>
+          <a href="{crmURL p='civicrm/civimobile/venue' q='reset=1&action=delete&id='}{$venue.id}{"&location_id="}{$location_id}" class="delete button" title="{ts domain="com.agiliway.civimobileapi"}Delete{/ts}"><span><i class="crm-i fa-trash"></i> {ts domain="com.agiliway.civimobileapi"}Delete{/ts}</span></a>
         {/if}
       {/if}
       {include file="CRM/common/formButtons.tpl" location="top"  multiple="multiple"}
@@ -92,7 +92,7 @@
           </td>
         </tr>
         <tr role="row">
-          <td class="label"><label>{ts domain=com.agiliway.civimobileapi}Color{/ts}</label></td>
+          <td class="label"><label>{ts domain="com.agiliway.civimobileapi"}Color{/ts}</label></td>
           <td class="view-value">{$form.color.html}
             <div class="venue-color-picker clickable" onclick="CRM.$('.venue-color-list').css('display', 'flex')">
               <ul class="venue-color-list">
@@ -107,7 +107,7 @@
         </tr>
       </table>
       <fieldset id="location_g" class="crm-collapsible">
-        <legend class="collapsible-title">{ts domain=com.agiliway.civimobileapi}Location{/ts}</legend>
+        <legend class="collapsible-title">{ts domain="com.agiliway.civimobileapi"}Location{/ts}</legend>
         <div id="location_screen">
           <table class="form-layout-compressed">
             <tr role="row">
@@ -147,7 +147,7 @@
         </tr>
       </table>
       <fieldset id="location" class="crm-collapsible">
-        <legend class="collapsible-title">{ts domain=com.agiliway.civimobileapi}Location{/ts}</legend>
+        <legend class="collapsible-title">{ts domain="com.agiliway.civimobileapi"}Location{/ts}</legend>
         <div id="location_screen">
           <table class="crm-info-panel">
             <tr class="odd" role="row">
@@ -172,10 +172,10 @@
     <div class="crm-submit-buttons">
       {if $action eq 4}
         {if $can_edit_venue}
-          <a href="{crmURL p='civicrm/civimobile/venue' q='reset=1&action=update&id='}{$venue.id}{"&location_id="}{$location_id}" class="edit button" title="{ts domain=com.agiliway.civimobileapi}Edit{/ts}"><span><i class="crm-i fa-pencil"></i> {ts domain=com.agiliway.civimobileapi}Edit{/ts}</span></a>
+          <a href="{crmURL p='civicrm/civimobile/venue' q='reset=1&action=update&id='}{$venue.id}{"&location_id="}{$location_id}" class="edit button" title="{ts domain="com.agiliway.civimobileapi"}Edit{/ts}"><span><i class="crm-i fa-pencil"></i> {ts domain="com.agiliway.civimobileapi"}Edit{/ts}</span></a>
         {/if}
         {if $can_delete_venue}
-          <a href="{crmURL p='civicrm/civimobile/venue' q='reset=1&action=delete&id='}{$venue.id}{"&location_id="}{$location_id}" class="delete button" title="{ts domain=com.agiliway.civimobileapi}Delete{/ts}"><span><i class="crm-i fa-trash"></i> {ts domain=com.agiliway.civimobileapi}Delete{/ts}</span></a>
+          <a href="{crmURL p='civicrm/civimobile/venue' q='reset=1&action=delete&id='}{$venue.id}{"&location_id="}{$location_id}" class="delete button" title="{ts domain="com.agiliway.civimobileapi"}Delete{/ts}"><span><i class="crm-i fa-trash"></i> {ts domain="com.agiliway.civimobileapi"}Delete{/ts}</span></a>
         {/if}
       {/if}
       {include file="CRM/common/formButtons.tpl" location="bottom"  multiple="multiple"}

@@ -14,21 +14,6 @@ class CRM_CiviMobileAPI_Page_PublicApi_Api extends CRM_CiviMobileAPI_Page_Public
         [
           'actionName' => 'get',
           'actionPermissions' => ['view event info'],
-          'availableParams' => [
-            'id',
-            'event_start_date',
-            'event_type_id',
-            'start_date',
-            'event_end_date',
-            'end_date',
-            'is_monetary',
-            'summary',
-            'description',
-            'event_description',
-            'title',
-            'return',
-            'options'
-          ],
           'availableReturnFields' => [
             'id',
             'title',
@@ -574,6 +559,37 @@ class CRM_CiviMobileAPI_Page_PublicApi_Api extends CRM_CiviMobileAPI_Page_Public
         ]
       ],
     ],
+    [
+      'entityName' => 'CiviMobileCustomFields',
+      'availableActions' => [
+        [
+          'actionName' => 'get',
+          'actionPermissions' => ['access all custom data'],
+          'availableParams' => [
+            'entity',
+            'entity_id',
+            'is_searchable',
+          ],
+          'availableReturnFields' => [
+            'id',
+            'name',
+            'title',
+            'style',
+            'weight',
+            'is_multiple',
+            'custom_fields'
+          ],
+          'middleware' => [
+            [
+              'class' => 'CRM_CiviMobileAPI_Page_PublicApi_Middleware',
+              'method' => 'isAllowPublicInfoApi',
+            ],
+          ],
+          'transforms' => []
+        ]
+      ]
+    ],
+
   ];
 
 }

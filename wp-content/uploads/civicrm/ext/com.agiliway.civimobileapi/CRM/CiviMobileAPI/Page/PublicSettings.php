@@ -23,6 +23,8 @@ class CRM_CiviMobileAPI_Page_PublicSettings extends CRM_Core_Page {
       }
 
       $settings = [
+        'minimal_required_civimobile_app_version' => CRM_CiviMobileAPI_Utils_Extension::MINIMAL_REQUIRED_CIVIMOBILE_APP_VERSION,
+        'is_allow_reset_password' => CRM_CiviMobileAPI_Utils_Extension::isAllowResetPassword(),
         'is_allow_public_info_api' => CRM_CiviMobileAPI_Utils_Extension::isAllowPublicInfoApi(),
         'is_allow_public_website_url_qrcode' => CRM_CiviMobileAPI_Utils_Extension::isAllowPublicWebisteURLQRCode(),
         'site_name' => CRM_CiviMobileAPI_Utils_Extension::getSiteName(),

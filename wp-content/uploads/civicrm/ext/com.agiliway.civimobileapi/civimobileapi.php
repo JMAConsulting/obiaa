@@ -8,6 +8,8 @@ use Civi\CiviMobileAPI\PushNotification\Entity\ActivityPushNotification;
 use Civi\CiviMobileAPI\PushNotification\Entity\CasePushNotification;
 use Civi\CiviMobileAPI\PushNotification\Entity\ParticipantPushNotification;
 use Civi\CiviMobileAPI\PushNotification\Entity\RelationshipPushNotification;
+use Civi\CiviMobileAPI\AIBasedGenerator\Utils\AIBasedGeneratorHelper;
+
 use CRM_CiviMobileAPI_ExtensionUtil as E;
 
 /**
@@ -20,39 +22,12 @@ function civimobileapi_civicrm_config(&$config) {
 }
 
 /**
- * Implements hook_civicrm_xmlMenu().
- *
- * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_xmlMenu
- */
-function civimobileapi_civicrm_xmlMenu(&$files) {
-  _civimobileapi_civix_civicrm_xmlMenu($files);
-}
-
-/**
  * Implements hook_civicrm_install().
  *
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_install
  */
 function civimobileapi_civicrm_install() {
   _civimobileapi_civix_civicrm_install();
-}
-
-/**
- * Implements hook_civicrm_postInstall().
- *
- * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_postInstall
- */
-function civimobileapi_civicrm_postInstall() {
-  _civimobileapi_civix_civicrm_postInstall();
-}
-
-/**
- * Implements hook_civicrm_uninstall().
- *
- * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_uninstall
- */
-function civimobileapi_civicrm_uninstall() {
-  _civimobileapi_civix_civicrm_uninstall();
 }
 
 /**
@@ -65,83 +40,14 @@ function civimobileapi_civicrm_enable() {
 }
 
 /**
- * Implements hook_civicrm_disable().
- *
- * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_disable
- */
-function civimobileapi_civicrm_disable() {
-  _civimobileapi_civix_civicrm_disable();
-}
-
-/**
- * Implements hook_civicrm_upgrade().
- *
- * @link http://wiki.civicrm.org/confluence/display/CR
- *   MDOC/hook_civicrm_upgrade
- */
-function civimobileapi_civicrm_upgrade($op, CRM_Queue_Queue $queue = NULL) {
-  return _civimobileapi_civix_civicrm_upgrade($op, $queue);
-}
-
-/**
- * Implements hook_civicrm_managed().
- *
- * Generate a list of entities to create/deactivate/delete when this module
- * is installed, disabled, uninstalled.
- *
- * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_managed
- */
-function civimobileapi_civicrm_managed(&$entities) {
-  _civimobileapi_civix_civicrm_managed($entities);
-}
-
-/**
- * Implements hook_civicrm_caseTypes().
- *
- * Generate a list of case-types.
- *
- * Note: This hook only runs in CiviCRM 4.4+.
- *
- * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_caseTypes
- */
-function civimobileapi_civicrm_caseTypes(&$caseTypes) {
-  _civimobileapi_civix_civicrm_caseTypes($caseTypes);
-}
-
-/**
- * Implements hook_civicrm_angularModules().
- *
- * Generate a list of Angular modules.
- *
- * Note: This hook only runs in CiviCRM 4.5+. It may
- * use features only available in v4.6+.
- *
- * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_angularModules
- */
-function civimobileapi_civicrm_angularModules(&$angularModules) {
-  _civimobileapi_civix_civicrm_angularModules($angularModules);
-}
-
-/**
- * Implements hook_civicrm_alterSettingsFolders().
- *
- * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_alterSettingsFolders
- */
-function civimobileapi_civicrm_alterSettingsFolders(&$metaDataFolders = NULL) {
-  _civimobileapi_civix_civicrm_alterSettingsFolders($metaDataFolders);
-}
-
-/**
  * Implements hook_civicrm_apiWrappers().
  */
 function civimobileapi_civicrm_apiWrappers(&$wrappers, $apiRequest) {
   if ($apiRequest['entity'] == 'Contact' && ($apiRequest['action'] == 'getsingle' || $apiRequest['action'] == 'get')) {
     $wrappers[] = new CRM_CiviMobileAPI_ApiWrapper_Contact();
-  }
-  elseif ($apiRequest['entity'] == 'Address' && $apiRequest['action'] == 'get') {
+  } elseif ($apiRequest['entity'] == 'Address' && $apiRequest['action'] == 'get') {
     $wrappers[] = new CRM_CiviMobileAPI_ApiWrapper_Address();
-  }
-  elseif ($apiRequest['entity'] == 'Activity') {
+  } elseif ($apiRequest['entity'] == 'Activity') {
     if ($apiRequest['action'] == 'getsingle') {
       $wrappers[] = new CRM_CiviMobileAPI_ApiWrapper_Activity_GetSingle();
     }
@@ -149,23 +55,17 @@ function civimobileapi_civicrm_apiWrappers(&$wrappers, $apiRequest) {
     if ($apiRequest['action'] == 'get') {
       $wrappers[] = new CRM_CiviMobileAPI_ApiWrapper_Activity_Get();
     }
-  }
-  elseif ($apiRequest['entity'] == 'Case' && ($apiRequest['action'] == 'getsingle' || $apiRequest['action'] == 'get')) {
+  } elseif ($apiRequest['entity'] == 'Case' && ($apiRequest['action'] == 'getsingle' || $apiRequest['action'] == 'get')) {
     $wrappers[] = new CRM_CiviMobileAPI_ApiWrapper_Case();
-  }
-  elseif ($apiRequest['entity'] == 'Event' && ($apiRequest['action'] == 'getsingle' || $apiRequest['action'] == 'get')) {
+  } elseif ($apiRequest['entity'] == 'Event' && ($apiRequest['action'] == 'getsingle' || $apiRequest['action'] == 'get')) {
     $wrappers[] = new CRM_CiviMobileAPI_ApiWrapper_Event();
-  }
-  elseif ($apiRequest['entity'] == 'Job' && $apiRequest['action'] == 'version_check') {
+  } elseif ($apiRequest['entity'] == 'Job' && $apiRequest['action'] == 'version_check') {
     $wrappers[] = new CRM_CiviMobileAPI_ApiWrapper_Job_VersionCheck();
-  }
-  elseif ($apiRequest['entity'] == 'Note' && $apiRequest['action'] == 'get') {
+  } elseif ($apiRequest['entity'] == 'Note' && $apiRequest['action'] == 'get') {
     $wrappers[] = new CRM_CiviMobileAPI_ApiWrapper_Note();
-  }
-  elseif ($apiRequest['entity'] == 'Contribution' && $apiRequest['action'] == 'get') {
+  } elseif ($apiRequest['entity'] == 'Contribution' && $apiRequest['action'] == 'get') {
     $wrappers[] = new CRM_CiviMobileAPI_ApiWrapper_Contribution();
-  }
-  elseif ($apiRequest['entity'] == 'Membership') {
+  } elseif ($apiRequest['entity'] == 'Membership') {
     if ($apiRequest['action'] == 'create') {
       $wrappers[] = new CRM_CiviMobileAPI_ApiWrapper_Membership_Create();
     }
@@ -175,27 +75,21 @@ function civimobileapi_civicrm_apiWrappers(&$wrappers, $apiRequest) {
         $wrappers[] = new CRM_CiviMobileAPI_ApiWrapper_Membership_Get();
       }
     }
-  }
-  elseif ($apiRequest['entity'] == 'Relationship' && $apiRequest['action'] == 'get') {
+  } elseif ($apiRequest['entity'] == 'Relationship' && $apiRequest['action'] == 'get') {
     $wrappers[] = new CRM_CiviMobileAPI_ApiWrapper_Relationship_Get();
-  }
-  elseif ($apiRequest['entity'] == 'Participant') {
+  } elseif ($apiRequest['entity'] == 'Participant') {
     if ($apiRequest['action'] == 'create') {
       $wrappers[] = new CRM_CiviMobileAPI_ApiWrapper_Participant_Create();
-    }
-    elseif ($apiRequest['action'] == 'get') {
+    } elseif ($apiRequest['action'] == 'get') {
       $wrappers[] = new CRM_CiviMobileAPI_ApiWrapper_Participant_Get();
     }
-  }
-  elseif ($apiRequest['entity'] == 'GroupContact') {
+  } elseif ($apiRequest['entity'] == 'GroupContact') {
     if ($apiRequest['action'] == 'get') {
       $wrappers[] = new CRM_CiviMobileAPI_ApiWrapper_GroupContact_Get();
-    }
-    elseif ($apiRequest['action'] == 'create') {
+    } elseif ($apiRequest['action'] == 'create') {
       $wrappers[] = new CRM_CiviMobileAPI_ApiWrapper_GroupContact_Create();
     }
-  }
-  elseif ($apiRequest['entity'] == 'EntityTag') {
+  } elseif ($apiRequest['entity'] == 'EntityTag') {
     if ($apiRequest['action'] == 'get') {
       $wrappers[] = new CRM_CiviMobileAPI_ApiWrapper_EntityTag_Get();
     }
@@ -203,8 +97,7 @@ function civimobileapi_civicrm_apiWrappers(&$wrappers, $apiRequest) {
     if ($apiRequest['action'] == 'getsingle') {
       $wrappers[] = new CRM_CiviMobileAPI_ApiWrapper_Survey_Getsingle();
     }
-  }
-  elseif ($apiRequest['entity'] == 'ContributionPage') {
+  } elseif ($apiRequest['entity'] == 'ContributionPage') {
     if ($apiRequest['action'] == 'get') {
       $wrappers[] = new CRM_CiviMobileAPI_ApiWrapper_ContributionPage();
     }
@@ -286,6 +179,7 @@ function civimobileapi_civicrm_alterAPIPermissions($entity, $action, &$params, &
  */
 function civimobileapi_civicrm_pageRun(&$page) {
   civimobile_add_qr_popup();
+
   $pageName = $page->getVar('_name');
   if ($pageName == 'CRM_Event_Page_EventInfo') {
     if (CRM_CiviMobileAPI_Utils_Agenda_AgendaConfig::isAgendaActiveForEvent(CRM_Utils_Request::retrieve('id', 'Positive'))) {
@@ -300,7 +194,7 @@ function civimobileapi_civicrm_pageRun(&$page) {
     }
   }
 
-  if($pageName == 'CRM_Event_Page_ManageEvent'){
+  if ($pageName == 'CRM_Event_Page_ManageEvent') {
     $smarty = CRM_Core_Smarty::singleton();
     foreach ($smarty->_tpl_vars["rows"] as $key => &$row) {
       if ($key == 'tab') {
@@ -368,7 +262,7 @@ function civimobileapi_secret_validation() {
  */
 function is_mobile_request() {
   $null = NULL;
-  
+
   return CRM_Utils_Request::retrieve('civimobile', 'Int', $null, FALSE, FALSE, 'GET');
 }
 
@@ -413,7 +307,7 @@ function civimobileapi_civicrm_post($op, $objectName, $objectId, &$objectRef) {
   (new ActivityPushNotification($op, $objectName, $objectId, $objectRef))->handlePostHook();
   (new RelationshipPushNotification($op, $objectName, $objectId, $objectRef))->handlePostHook();
   (new ParticipantPushNotification($op, $objectName, $objectId, $objectRef))->handlePostHook();
-  
+
   /**
    * Rebuild venue after changing event location data.
    */
@@ -447,10 +341,11 @@ function civimobileapi_civicrm_postProcess($formName, &$form) {
   if ($formName == 'CRM_Event_Form_ManageEvent_Location') {
     try {
       $event = CRM_Event_BAO_Event::findById($form->_id);
-      if(!empty($event->loc_block_id) && $event->loc_block_id != $form->getVar('_oldLocBlockId')){
+      if (!empty($event->loc_block_id) && $event->loc_block_id != $form->getVar('_oldLocBlockId')) {
         CRM_CiviMobileAPI_BAO_EventSession::deleteAllVenues($event->id);
       }
-    } catch (Exception $e) {}
+    } catch (Exception $e) {
+    }
   }
 
   /**
@@ -465,7 +360,7 @@ function civimobileapi_civicrm_postProcess($formName, &$form) {
   if ($formName == 'CRM_Case_Form_Activity' && $action == 'delete') {
     $objectId = (isset($form->_caseId[0])) ? $form->_caseId[0] : null;
   }
-  
+
   if ($formName == 'CRM_Event_Form_Participant' && $action == 'create') {
     setcookie("civimobile_speaker_id", $form->_id, 0, '/');
   }
@@ -493,7 +388,7 @@ function civimobileapi_civicrm_pre($op, $objectName, $id, &$params) {
 function civimobileapi_civicrm_tabset($tabsetName, &$tabs, $context) {
   if ($tabsetName == 'civicrm/contact/view' && !empty($context['contact_id'])) {
     if (CRM_Contact_BAO_Contact::getContactType($context['contact_id']) == 'Individual' &&
-       (CRM_Core_Permission::check('administer CiviCRM') || CRM_Core_Session::singleton()->getLoggedInContactID() == $context['contact_id'])
+      (CRM_Core_Permission::check('administer CiviCRM') || CRM_Core_Session::singleton()->getLoggedInContactID() == $context['contact_id'])
     ) {
       $tabs[] = [
         'id' => 'civimobile',
@@ -548,28 +443,33 @@ function civimobileapi_civicrm_permission(&$permissionList) {
   $permissionsPrefix = 'CiviCRM : ';
 
   $permissionList[CRM_CiviMobileAPI_Utils_Permission::CAN_CHECK_IN_ON_EVENT] = [
-    $permissionsPrefix . CRM_CiviMobileAPI_Utils_Permission::CAN_CHECK_IN_ON_EVENT,
-    E::ts("It means User can only update Participant status to 'Registered' or 'Attended'. Uses by QR Code."),
+    'label' => $permissionsPrefix . CRM_CiviMobileAPI_Utils_Permission::CAN_CHECK_IN_ON_EVENT,
+    'description' => E::ts("It means User can only update Participant status to 'Registered' or 'Attended'. Uses by QR Code."),
   ];
 
   $permissionList['view Agenda'] = [
-    $permissionsPrefix . 'view Agenda',
-    E::ts("View Agenda."),
+    'label' => $permissionsPrefix . 'view Agenda',
+    'description' => E::ts("View Agenda."),
   ];
 
   $permissionList['see tags'] = [
-    $permissionsPrefix . 'see tags',
-    E::ts("It means the User can see the tags he belongs to."),
+    'label' => $permissionsPrefix . 'see tags',
+    'description' => E::ts("It means the User can see the tags he belongs to."),
   ];
 
   $permissionList['see groups'] = [
-    $permissionsPrefix . 'see groups',
-    E::ts("It means the User can see the groups he belongs to"),
+    'label' => $permissionsPrefix . 'see groups',
+    'description' => E::ts("It means the User can see the groups he belongs to"),
   ];
 
   $permissionList['CiviMobile backend access'] = [
-    $permissionsPrefix . 'CiviMobile backend access',
-    E::ts("test"),
+    'label' => $permissionsPrefix . 'CiviMobile backend access',
+    'description' => E::ts("Gives possibility to access CiviMobile without accessing web. Works in a pair with CiviCRM: access CiviCRM backend and API"),
+  ];
+  
+  $permissionList['CiviMobile ChatGPT access'] = [
+    'label' => $permissionsPrefix . 'CiviMobile ChatGPT access',
+    'description' => E::ts("Allows to send requests to ChatGPT"),
   ];
 
 }
@@ -595,10 +495,9 @@ if (!function_exists('is_writable_r')) {
 
         foreach ($objects as $object) {
           if ($object != "." && $object != "..") {
-            if (!is_writable_r($dir."/".$object)) {
+            if (!is_writable_r($dir . "/" . $object)) {
               return FALSE;
-            }
-            else {
+            } else {
               continue;
             }
           }
@@ -674,6 +573,16 @@ function civimobileapi_civicrm_navigationMenu(&$menu) {
     'separator' => NULL,
   ];
   _civimobileapi_civix_insert_navigation_menu($menu, 'Administer/CiviMobile/', $civiMobileTabs);
+
+  $civiAiSettings = [
+    'name' => E::ts('CiviAI Settings'),
+    'url' => 'civicrm/civimobile/civiai-settings',
+    'permission' => 'administer CiviCRM',
+    'operator' => NULL,
+    'separator' => NULL,
+  ];
+  _civimobileapi_civix_insert_navigation_menu($menu, 'Administer/CiviMobile/', $civiAiSettings);
+
 }
 
 /**
@@ -684,8 +593,8 @@ function civimobileapi_civicrm_navigationMenu(&$menu) {
 function civimobileapi_civicrm_buildForm($formName, &$form) {
   if ($formName == 'CRM_Event_Form_ManageEvent_Registration' && $form->getAction() == CRM_Core_Action::UPDATE) {
     $form->addElement('checkbox',
-        'civi_mobile_is_event_mobile_registration',
-        ts('Is allow mobile registration?')
+      'civi_mobile_is_event_mobile_registration',
+      ts('Is allow mobile registration?')
     );
 
     if ($form->getAction() == CRM_Core_Action::UPDATE) {
@@ -697,15 +606,20 @@ function civimobileapi_civicrm_buildForm($formName, &$form) {
     }
 
     CRM_Core_Region::instance('page-header')->add([
-        'template' => CRM_CiviMobileAPI_ExtensionUtil::path() . '/templates/CRM/CiviMobileAPI/Block/IsAllowMobileRegistration.tpl'
+      'template' => CRM_CiviMobileAPI_ExtensionUtil::path() . '/templates/CRM/CiviMobileAPI/Block/IsAllowMobileRegistration.tpl'
     ]);
   }
 
   if ($formName == 'CRM_Event_Form_ManageEvent_EventInfo') {
-    if ($form->getAction() == CRM_Core_Action::ADD){
-      $templatePath = realpath(dirname(__FILE__)."/templates");
+    if ($form->getAction() == CRM_Core_Action::ADD) {
+      $templatePath = realpath(dirname(__FILE__) . "/templates");
 
       $form->add('checkbox', 'default_qrcode_checkin_event', E::ts('When generating QR Code tokens, use this Event'));
+
+      CRM_Core_Region::instance('page-body')->add([
+        'template' => "{$templatePath}/CRM/CiviMobileAPI/generate-description-popup.tpl"
+      ]);
+
       CRM_Core_Region::instance('page-body')->add([
         'template' => "{$templatePath}/qrcode-checkin-event-options.tpl"
       ]);
@@ -724,7 +638,7 @@ function civimobileapi_civicrm_buildForm($formName, &$form) {
     $elementName = 'send_receipt';
     if ($form->elementExists($elementName)) {
       $element = $form->getElement($elementName);
-      $element->setValue(1);
+      $element->setValue(0);
     }
   }
 
@@ -738,17 +652,17 @@ function civimobileapi_civicrm_buildForm($formName, &$form) {
  *
  * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_alterBadge/
  */
-function civimobileapi_civicrm_alterBadge( &$labelName, &$label, &$format, &$participant ) {
+function civimobileapi_civicrm_alterBadge(&$labelName, &$label, &$format, &$participant) {
   $qrCodeCustomFieldName = "custom_" . CRM_CiviMobileAPI_Utils_CustomField::getId(CRM_CiviMobileAPI_Install_Entity_CustomGroup::QR_CODES, CRM_CiviMobileAPI_Install_Entity_CustomField::QR_IMAGE);
   if (isset($format['values'][$qrCodeCustomFieldName])) {
     $link = $format['values'][$qrCodeCustomFieldName];
-    $label->printImage($link, '100', '0' , 30, 30);
+    $label->printImage($link, '100', '0', 30, 30);
 
     //hide label
     if (!empty($format['token'])) {
       foreach ($format['token'] as $key => $token) {
         if ($token['token'] == '{participant.' . $qrCodeCustomFieldName . '}') {
-          $format['token'][$key]['value'] =  '';
+          $format['token'][$key]['value'] = '';
         }
       }
     }
@@ -756,14 +670,23 @@ function civimobileapi_civicrm_alterBadge( &$labelName, &$label, &$format, &$par
 }
 
 function civimobileapi_civicrm_alterContent(&$content, $context, $tplName, &$object) {
-  if($context == "form") {
-    if($tplName == "CRM/Event/Form/ManageEvent/Location.tpl") {
-      if(CRM_CiviMobileAPI_Utils_Agenda_AgendaConfig::isAgendaActiveForEvent($object->_id)) {
+  if ($context == "form") {
+    if ($tplName == "CRM/Event/Form/ManageEvent/Location.tpl") {
+      if (CRM_CiviMobileAPI_Utils_Agenda_AgendaConfig::isAgendaActiveForEvent($object->_id)) {
         $content = "<div class='status'>If you change the location for an event, all venues will be deleted from sessions.</div>" . $content;
       }
     }
-    if($tplName == "CRM/Event/Form/ManageEvent/EventInfo.tpl") {
-      if(CRM_CiviMobileAPI_Utils_Agenda_AgendaConfig::isAgendaActiveForEvent($object->_id)) {
+    if ($tplName == "CRM/Event/Form/ManageEvent/EventInfo.tpl") {
+      if (CRM_Core_Permission::check('CiviMobile ChatGPT access')) {
+        $isEmptyChatGptSecretKey = empty(Civi::settings()->get('civimobile_openai_secret_key'));
+        
+        $additionalInfo = '<a class="helpicon" href="#" onclick="CRM.help(ts(\'Autogenerate option\'), ts(\'Autogenerate option will give you opportunity to create Event description using extended AI functionality. Fill out required fields and press Autogenerate button. If you need, you can edit generated text in pop-up. If you are satisfied with result, save text and it will appear in your Event description\'))"></a>';
+        $buttonHtml = '<button id="generate-description" type="button" ' . ($isEmptyChatGptSecretKey ? 'disabled' : '') . '><i class="crm-i fa-spinner"></i> Autogenerate</button><span> </span>';
+        
+        $content = str_replace('<label for="description">Complete Description</label>', $buttonHtml . $additionalInfo . '<label for="summary">Event Description</label>', $content);
+      }
+
+      if (CRM_CiviMobileAPI_Utils_Agenda_AgendaConfig::isAgendaActiveForEvent($object->_id)) {
         $content = "<div class='status'>If you change the date, some event sessions may stop displaying.</div>" . $content;
       }
     }
@@ -773,7 +696,7 @@ function civimobileapi_civicrm_alterContent(&$content, $context, $tplName, &$obj
 function civimobileapi_civicrm_postSave_civicrm_activity($dao) {
   if (isset($_POST['hasVoted']) && !is_null($dao->status_id)) {
     $hasVoted = CRM_Utils_String::strtoboolstr(CRM_Utils_Type::escape($_POST['hasVoted'], 'String'));
-    $gotvCustomFieldName = 'custom_' . CRM_CiviMobileAPI_Utils_CustomField::getId(CRM_CiviMobileAPI_Install_Entity_CustomGroup::SURVEY,CRM_CiviMobileAPI_Install_Entity_CustomField::SURVEY_GOTV_STATUS);
+    $gotvCustomFieldName = 'custom_' . CRM_CiviMobileAPI_Utils_CustomField::getId(CRM_CiviMobileAPI_Install_Entity_CustomGroup::SURVEY, CRM_CiviMobileAPI_Install_Entity_CustomField::SURVEY_GOTV_STATUS);
 
     civicrm_api3('Activity', 'create', [
       $gotvCustomFieldName => $hasVoted,

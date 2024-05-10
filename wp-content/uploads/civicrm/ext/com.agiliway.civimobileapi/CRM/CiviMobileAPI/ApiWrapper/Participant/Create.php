@@ -26,9 +26,30 @@ class CRM_CiviMobileAPI_ApiWrapper_Participant_Create implements API_Wrapper {
     $participant->event_id = $apiRequest['params']['event_id'];
     $participantExist = $participant->find(TRUE);
 
+    $eventDetails = civicrm_api3('Event', 'getsingle', ['id' => $apiRequest['params']['event_id']]);
+
+    $startDate = $eventDetails['start_date'];
+
+    if (isset($eventDetails['end_date'])) {
+      $endDate = $eventDetails['end_date'];
+    } else {
+      $endDate = date('Y-m-d H:i:s', strtotime($startDate . ' + 1 day'));
+    }
+    
+    $isDisallowedEventParticipantRegistrationOverlap = Civi::settings()->get('civimobile_is_disallowed_event_participant_registration_overlap');
+
     if (!empty($participantExist) && empty($apiRequest['params']['id'])) {
       throw new api_Exception(E::ts('This contact has already been assigned to this event.'), 'contact_already_registered');
     }
+
+    if ($isDisallowedEventParticipantRegistrationOverlap) {
+      $isParticipantAlreadyRegistered = CRM_CiviMobileAPI_Utils_Event::isParticipantAlreadyRegistered($apiRequest['params']['contact_id'], $startDate, $endDate);
+
+      if ($isParticipantAlreadyRegistered) {
+        throw new api_Exception(E::ts('This contact has already been assigned to event with same date.'), 'possible_event_registration_overlap');
+      }
+    }
+
 
     if (empty($apiRequest['params']['fee_currency'])) {
       try {
@@ -63,7 +84,7 @@ class CRM_CiviMobileAPI_ApiWrapper_Participant_Create implements API_Wrapper {
         $currentContactId = CRM_CiviMobileAPI_Utils_Contact::getCurrentContactId();
         foreach ($result['values'] as $participant) {
           if ($participant['contact_id'] == $currentContactId) {
-            CRM_CiviMobileAPI_Utils_Emails_EventConfirmationReceipt::send($participant['id'],'event_online_receipt');
+            CRM_CiviMobileAPI_Utils_Emails_EventConfirmationReceipt::send($participant['id'], 'event_online_receipt');
           } else {
             CRM_CiviMobileAPI_Utils_Emails_EventConfirmationReceipt::send($participant['id'], 'event_offline_receipt');
           }
