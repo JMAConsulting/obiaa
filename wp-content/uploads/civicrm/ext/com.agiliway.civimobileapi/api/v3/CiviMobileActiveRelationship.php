@@ -82,18 +82,18 @@ function _civicrm_api3_civi_mobile_active_relationship_prepare_params($params) {
   $newParams = [];
 
   if (isset($params['options'])) {
-    $limit = (int) CRM_Utils_Array::value('limit', $params['options'], 0);
+    $limit = (int) ($params['options']['limit'] ?? 0);
     if($limit != 0) {
       $newParams['limit'] = $limit;
-      $newParams['offset'] = (int) CRM_Utils_Array::value('offset', $params['options'], 0);
+      $newParams['offset'] = (int) ($params['options']['offset'] ?? 0);
     }
-    $order = (string) CRM_Utils_Array::value('sort', $params['options']);
+    $order = (string) ($params['options']['sort']);
   }
 
   $newParams['contact_id'] = !empty($params['contact_id']) ? (int) $params['contact_id'] : '';
   $newParams['order'] = !empty($order) ? $order : 'id';
-  $newParams['end_date'] = CRM_Utils_Array::value('end_date', $params);
-  $newParams['case'] = !empty($params['case']) ? CRM_Utils_Array::value('case', $params) : '';
+  $newParams['end_date'] = $params['end_date'];
+  $newParams['case'] = !empty($params['case']) ? $params['case'] : '';
 
   if (isset($params['contact_id_a.is_deleted'])) {
     $newParams['contact_id_a.is_deleted'] = (int) $params['contact_id_a.is_deleted'];

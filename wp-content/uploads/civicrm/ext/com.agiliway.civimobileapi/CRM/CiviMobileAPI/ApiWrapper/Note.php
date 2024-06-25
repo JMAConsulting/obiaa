@@ -29,27 +29,6 @@ class CRM_CiviMobileAPI_ApiWrapper_Note implements API_Wrapper {
    * @return array
    */
   public function toApiOutput($apiRequest, $result) {
-    if ($apiRequest['action'] == 'get') {
-      if ($apiRequest['version'] == 3) {
-        $newValues = [];
-        
-        foreach ($result['values'] as $key => $note) {
-          if (!CRM_Core_BAO_Note::getNotePrivacyHidden($note['id'])) {
-            $newValues[] = $result['values'][$key];
-          }
-        }
-        
-        $result['values'] = $newValues;
-        $result['count'] = count($result['values']);
-      } elseif ($apiRequest['version'] == 4) {
-        foreach ($result as $key => $note) {
-          if (CRM_Core_BAO_Note::getNotePrivacyHidden($note['id'])) {
-            unset($result[$key]);
-          }
-        }
-      }
-    }
-
     return $result;
   }
 }

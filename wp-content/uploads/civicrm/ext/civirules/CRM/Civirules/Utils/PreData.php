@@ -1,5 +1,7 @@
 <?php
 
+use Civi\Api4\Service\Schema\Joinable\CustomGroupJoinable;
+
 class CRM_Civirules_Utils_PreData {
 
   /**
@@ -101,9 +103,14 @@ class CRM_Civirules_Utils_PreData {
     }
     $config = \Civi\CiviRules\Config\ConfigContainer::getInstance();
     $custom_group = $config->getCustomGroupById($groupID);
-    $entity = $custom_group['extends'];
+    if (version_compare(CRM_Utils_System::version(), '5.67', '<')) {
+      $entity = CustomGroupJoinable::getEntityFromExtends($custom_group['extends']);
+    }
+    else {
+      $entity = CRM_Core_BAO_CustomGroup::getEntityFromExtends($custom_group['extends']);
+    }
+    $data = [];
     if (!isset(self::$preData[$entity][$entityID][$eventID])) {
-      $data = [];
       try {
         $data = civicrm_api3($entity, 'getsingle', ['id' => $entityID]);
       } catch (Exception $e) {
@@ -143,16 +150,28 @@ class CRM_Civirules_Utils_PreData {
    * @static
    */
   public static function getPreData($entity, $entityId, $eventID) {
+    $return = [];
     $entityNames = [$entity];
-    if ($entity === 'Contact') {
-      $entityNames = ['Contact', 'Individual', 'Organization', 'Household'];
+    switch ($entity) {
+      case 'Contact':
+        $entityNames = ['Contact', 'Individual', 'Organization', 'Household'];
+        break;
+      case 'Individual':
+        $entityNames = ['Contact', 'Individual'];
+        break;
+      case 'Organization':
+        $entityNames = ['Contact', 'Organization'];
+        break;
+      case 'Household':
+        $entityNames = ['Contact', 'Household'];
+        break;
     }
     foreach ($entityNames as $entity) {
       if (isset(self::$preData[$entity][$entityId][$eventID])) {
-        return self::$preData[$entity][$entityId][$eventID];
+        $return = array_merge($return, self::$preData[$entity][$entityId][$eventID]);
       }
     }
-    return [];
+    return $return;
   }
 
 }

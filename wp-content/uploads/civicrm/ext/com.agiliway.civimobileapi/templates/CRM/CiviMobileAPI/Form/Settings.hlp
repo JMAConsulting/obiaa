@@ -26,13 +26,6 @@
   <p>{ts}If the application is custom you can use your own Firebase Key for security purposes for Push Notifications{/ts}</p>
 {/htxt}
 
-{htxt id="software-update-help-title"}
-{ts}Software update{/ts}
-{/htxt}
-{htxt id="software-update-help"}
-  <p>{ts}We recommend enabling automatically extension update to be sure that you are using the most secure and powerful extension version and avoid desynchronization between mobile application and extension.{/ts}</p>
-{/htxt}
-
 {htxt id="site-name-help-title"}
 {ts}Site name for CiviMobile{/ts}
 {/htxt}

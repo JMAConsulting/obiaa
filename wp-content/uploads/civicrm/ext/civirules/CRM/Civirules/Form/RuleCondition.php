@@ -7,6 +7,9 @@
  * @author Erik Hommel (CiviCooP) <erik.hommel@civicoop.org>
  * @license http://www.gnu.org/licenses/agpl-3.0.html
  */
+
+use Civi\Api4\CiviRulesCondition;
+
 require_once 'CRM/Core/Form.php';
 
 class CRM_Civirules_Form_RuleCondition extends CRM_Core_Form {
@@ -71,10 +74,10 @@ class CRM_Civirules_Form_RuleCondition extends CRM_Core_Form {
     if (isset($this->_submitValues['rule_condition_link_select'])) {
       $saveParams['condition_link'] = $this->_submitValues['rule_condition_link_select'];
     }
-    $ruleCondition = CRM_Civirules_BAO_RuleCondition::add($saveParams);
+    $ruleCondition = CRM_Civirules_BAO_RuleCondition::writeRecord($saveParams);
 
-    $condition = CRM_Civirules_BAO_Condition::getConditionObjectById($ruleCondition['condition_id'], true);
-    $redirectUrl = $condition->getExtraDataInputUrl($ruleCondition['id']);
+    $condition = CRM_Civirules_BAO_Condition::getConditionObjectById($ruleCondition->condition_id, true);
+    $redirectUrl = $condition->getExtraDataInputUrl($ruleCondition->id);
     if (empty($redirectUrl)) {
       $redirectUrl = CRM_Utils_System::url('civicrm/civirule/form/rule', 'action=update&id=' . $this->_submitValues['rule_id'], TRUE);
     } else {
@@ -87,35 +90,39 @@ class CRM_Civirules_Form_RuleCondition extends CRM_Core_Form {
   }
 
   protected function buildConditionList() {
-    $conditions = CRM_Civirules_BAO_Condition::getValues(array());
-    $conditionOptions = array();
-    foreach($conditions as $condition) {
-      if ($this->doesConditionWorkWithTrigger($condition)) {
-        $conditionOptions[$condition['id']] = $condition['label'];
+    $conditions = CiviRulesCondition::get(FALSE)
+      ->addOrderBy('label', 'ASC')
+      ->execute()
+      ->indexBy('id')
+      ->column('label');
+    foreach($conditions as $conditionID => $conditionLabel) {
+      if ($this->doesConditionWorkWithTrigger($conditionID)) {
+        $conditionOptions[$conditionID] = $conditionLabel;
       }
     }
-    return $conditionOptions;
+    return $conditionOptions ?? [];
   }
 
   /**
    * Returns whether the condition works with the trigger
    *
-   * @param $condition_id
+   * @param int $conditionID
+   *
    * @return bool
    */
-  protected function doesConditionWorkWithTrigger($condition) {
+  protected function doesConditionWorkWithTrigger(int $conditionID): bool {
     try {
-      $conditionClass = CRM_Civirules_BAO_Condition::getConditionObjectById($condition['id'], FALSE);
+      $conditionClass = CRM_Civirules_BAO_Condition::getConditionObjectById($conditionID, FALSE);
       if (!$conditionClass) {
         return FALSE;
       }
     } catch (Exception $e) {
-      return false;
+      return FALSE;
     }
     if (!$conditionClass->doesWorkWithTrigger($this->triggerObject, $this->rule)) {
-      return false;
+      return FALSE;
     }
-    return true;
+    return TRUE;
   }
 
   /**
@@ -134,7 +141,7 @@ class CRM_Civirules_Form_RuleCondition extends CRM_Core_Form {
     $this->add('select', 'rule_condition_link_select', ts('Select Link Operator'), $linkList);
     $foundConditions = $this->buildConditionList();
     if (!empty($foundConditions)) {
-      $conditionList = array(' - select - ') + $foundConditions;
+      $conditionList = [' - select - '] + $foundConditions;
       asort($conditionList);
     }
     else {

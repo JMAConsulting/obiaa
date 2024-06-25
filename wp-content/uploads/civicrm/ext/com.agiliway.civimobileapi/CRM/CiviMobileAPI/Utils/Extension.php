@@ -7,76 +7,9 @@ use CRM_CiviMobileAPI_ExtensionUtil as E;
  */
 class CRM_CiviMobileAPI_Utils_Extension {
 
-  const LATEST_SUPPORTED_CIVICRM_VERSION = 4.7;
+  const LATEST_SUPPORTED_CIVICRM_VERSION = 5.38;
   const MINIMAL_REQUIRED_CIVIMOBILE_APP_VERSION = '6.0.0';
-
-  /**
-   * Update extension to latest
-   *
-   * @throws \Exception
-   */
-  public static function update() {
-    CRM_Extension_System::singleton()->getDownloader()->download(
-      CRM_CiviMobileAPI_ExtensionUtil::LONG_NAME,
-      self::getLatestVersionDownloadLink()
-    );
-
-    self::updateSchemaVersion();
-  }
-
-  /**
-   * Get latest version of extension download link
-   */
-  public static function getLatestVersionDownloadLink() {
-    $version = CRM_CiviMobileAPI_Utils_VersionController::getInstance();
-    $downloadUrl = 'https://lab.civicrm.org/extensions/civimobileapi/-/archive/';
-    $downloadUrl .= $version->getLatestFullVersion() . '/civimobileapi-' . $version->getLatestFullVersion() . '.zip';
-
-    return $downloadUrl;
-  }
-
-  /**
-   * Updates schema version
-   *
-   * @throws \Exception
-   */
-  public static function updateSchemaVersion() {
-    $queue = CRM_Extension_Upgrades::createQueue();
-
-    $taskCtx = new CRM_Queue_TaskContext();
-    $taskCtx->queue = $queue;
-    $taskCtx->log = CRM_Core_Error::createDebugLogger();
-
-    $extensionPath = CRM_Core_Config::singleton()->extensionsDir . CRM_CiviMobileAPI_ExtensionUtil::LONG_NAME;
-    $upgrader = new CRM_CiviMobileAPI_Upgrader(CRM_CiviMobileAPI_ExtensionUtil::LONG_NAME, $extensionPath);
-
-    $currentRevision = $upgrader->getCurrentRevision();
-    $newestRevision = 0;
-    $revisions = $upgrader->getRevisions();
-
-    foreach ($revisions as $revision) {
-      if ($revision > $currentRevision) {
-        $title = E::ts('Upgrade %1 to revision %2', [
-          1 => CRM_CiviMobileAPI_ExtensionUtil::LONG_NAME,
-          2 => $revision,
-        ]);
-
-        $task = new CRM_Queue_Task(
-          [get_class($upgrader), '_queueAdapter'],
-          ['upgrade_' . $revision],
-          $title
-        );
-        $task->run($taskCtx);
-
-        $newestRevision = $revision;
-      }
-    }
-
-    if ($newestRevision) {
-      CRM_Core_BAO_Extension::setSchemaVersion(CRM_CiviMobileAPI_ExtensionUtil::LONG_NAME, $newestRevision);
-    }
-  }
-
+  
   /**
    * Is extension folder is writable
    *
@@ -263,6 +196,13 @@ class CRM_CiviMobileAPI_Utils_Extension {
   }
 
   /**
+   * Is CiviAppointment extension enabled
+   */
+  public static function isCiviAppointmentExtensionEnabled() {
+    return CRM_CiviMobileAPI_Utils_CiviAppointment::isCiviAppointmentInstalled() ? 1 : 0;
+  }
+  
+  /**
    *  Sets cookie to hide QR popup
    */
   public static function hideCiviMobileQrPopup() {
@@ -290,6 +230,17 @@ class CRM_CiviMobileAPI_Utils_Extension {
     $preparedTabs = [];
 
     foreach ($tabs as $tab) {
+      if ($tab['name'] === 'civi_mobile_tab_appointment' && !($tab['is_active']
+        && (CRM_Core_Permission::check('access CiviAppointment') ? 1 : 0))) {
+        unset($tab);
+        continue;
+      }
+      else if ($tab['name'] === 'civi_mobile_tab_time_tracker' && !($tab['is_active']
+          && (CRM_Core_Permission::check('access TimeTracker') ? 1 : 0))) {
+        unset($tab);
+        continue;
+      }
+
       $preparedTabs[] = [
         'label' => $tab['label'],
         'name' => $tab['name'],

@@ -42,7 +42,7 @@ CREATE TABLE `civicrm_paymentprocessor_webhook` (
   `processed_date` timestamp NULL DEFAULT NULL COMMENT 'Has this webhook been processed yet?',
   `status` varchar(32) NOT NULL DEFAULT "new" COMMENT 'Processing status',
   `identifier` varchar(255) COMMENT 'Optional key to group webhooks, as needed by some processors.',
-  `message` varchar(1024) NOT NULL DEFAULT "" COMMENT 'Stores data sent that is needed for processing. JSON suggested.',
+  `message` varchar(1024) DEFAULT "" COMMENT 'Stores data sent that is needed for processing. JSON suggested.',
   `data` text COMMENT 'Stores data sent that is needed for processing. JSON suggested.',
   PRIMARY KEY (`id`),
   INDEX `index_event_id`(event_id),

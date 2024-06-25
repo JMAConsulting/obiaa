@@ -54,7 +54,8 @@
     };
 
     this.abbreviate = function (text) {
-     return text.replace(/^(.{80}).+$/s, '$1 ...');
+      if (text === null) return '';
+      return text.replace(/^(.{80}).+$/s, '$1 ...');
     }
 
     this.load = function() {

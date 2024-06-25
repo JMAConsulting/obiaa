@@ -357,11 +357,14 @@ class CRM_CiviMobileAPI_Utils_Statistic_ChartBar {
 
     if (!empty($params['membership_type_id'])) {
       foreach ($params['membership_type_id']['IN'] as $membershipId) {
-        $membershipDetails = CRM_Member_BAO_MembershipType::getMembershipTypeDetails($membershipId);
+        $membershipDetails = CRM_Member_BAO_MembershipType::getMembershipType($membershipId);
         $membershipTypes[$membershipId] = $membershipDetails['name'];
       }
     } else {
-      $membershipTypes = CRM_Member_BAO_MembershipType::getMembershipTypes(FALSE);
+      $membershipDetails = CRM_Member_BAO_MembershipType::getAllMembershipTypes(FALSE);
+      foreach ($membershipDetails as $membershipDetail) {
+        $membershipTypes[$membershipDetail['id']] = $membershipDetail['name'];
+      }
     }
 
     return $membershipTypes;

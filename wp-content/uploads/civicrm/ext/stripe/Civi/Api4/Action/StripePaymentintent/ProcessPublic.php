@@ -107,7 +107,7 @@ class ProcessPublic extends \Civi\Api4\Generic\AbstractAction {
     }
 
     if (empty($this->amount) && !$this->setup) {
-      \Civi::log('stripe')->error(__CLASS__ . 'missing amount and not capture or setup');
+      \Civi::log('stripe')->error(__CLASS__ . 'missing amount and not setup');
       throw new \CRM_Core_Exception('Bad request');
     }
 
@@ -127,8 +127,9 @@ class ProcessPublic extends \Civi\Api4\Generic\AbstractAction {
       \Civi::log('stripe')->error(__CLASS__ . ' missing paymentProcessorID');
       throw new \CRM_Core_Exception('Bad request');
     }
-
-    $intentProcessor = new \CRM_Stripe_PaymentIntent();
+    /** @var \CRM_Core_Payment_Stripe $paymentProcessor */
+    $paymentProcessor = \Civi\Payment\System::singleton()->getById($this->paymentProcessorID);
+    $intentProcessor = new \CRM_Stripe_PaymentIntent($paymentProcessor);
     $intentProcessor->setDescription($this->description);
     $intentProcessor->setReferrer($_SERVER['HTTP_REFERER'] ?? '');
     $intentProcessor->setExtraData($this->extraData ?? '');
@@ -149,7 +150,7 @@ class ProcessPublic extends \Civi\Api4\Generic\AbstractAction {
       $result->exchangeArray($processIntentResult->data);
     }
     else {
-      throw new \CRM_Core_Exception($processIntentResult->message);
+      throw new \CRM_Core_Exception($processIntentResult->message, 0, ['show_detailed_error' => TRUE]);
     }
   }
 

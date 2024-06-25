@@ -22,7 +22,7 @@ class CRM_Mjwshared_Utils {
    * @param bool $fullString If TRUE return "custom_25", If FALSE return "25"
    *
    * @return int|string
-   * @throws \CiviCRM_API3_Exception
+   * @throws \CRM_Core_Exception
    */
   public static function getCustomByName($fieldName, $fieldGroup, $fullString = TRUE) {
     if (!isset(Civi::$statics[__CLASS__][$fieldGroup][$fieldName])) {

@@ -19,40 +19,35 @@ use CRM_Civirules_ExtensionUtil as E;
  */
 function civirules_civicrm_container(\Symfony\Component\DependencyInjection\ContainerBuilder $container) {
   $container->addCompilerPass(new \Civi\ConfigItems\CiviRulesCompilerPass());
-  if (version_compare(CRM_Utils_System::version(), '5.34', '>=')) {
-    // Add the symfony listeners.
-    // We can do this after CiviCRM 5.34 because we need the eventID parameter on the
-    // event object and that parameter is available since 5.34.
-    // See this PR: https://github.com/civicrm/civicrm-core/pull/19209
-    // We need to eventID parameter to prevent overwriting of original data in case we
-    // have a rule based on edit activity and action to edit a second activity.
-    // See this PR: https://lab.civicrm.org/extensions/civirules/-/merge_requests/96
-    $container->findDefinition('dispatcher')
-      ->addMethodCall('addListener', [
-        'civi.dao.preInsert',
-        'civirules_trigger_preinsert'
-      ])
-      ->addMethodCall('addListener', [
-        'civi.dao.postInsert',
-        'civirules_trigger_postinsert'
-      ])
-      ->addMethodCall('addListener', [
-        'civi.dao.preUpdate',
-        'civirules_trigger_preupdate'
-      ])
-      ->addMethodCall('addListener', [
-        'civi.dao.postUpdate',
-        'civirules_trigger_postupdate'
-      ])
-      ->addMethodCall('addListener', [
-        'civi.dao.preDelete',
-        'civirules_trigger_predelete'
-      ])
-      ->addMethodCall('addListener', [
-        'civi.dao.postDelete',
-        'civirules_trigger_postdelete'
-      ]);
-  }
+  // Add the symfony listeners.
+  // We need to eventID parameter to prevent overwriting of original data in case we
+  // have a rule based on edit activity and action to edit a second activity.
+  // See this PR: https://lab.civicrm.org/extensions/civirules/-/merge_requests/96
+  $container->findDefinition('dispatcher')
+    ->addMethodCall('addListener', [
+      'civi.dao.preInsert',
+      'civirules_trigger_preinsert'
+    ])
+    ->addMethodCall('addListener', [
+      'civi.dao.postInsert',
+      'civirules_trigger_postinsert'
+    ])
+    ->addMethodCall('addListener', [
+      'civi.dao.preUpdate',
+      'civirules_trigger_preupdate'
+    ])
+    ->addMethodCall('addListener', [
+      'civi.dao.postUpdate',
+      'civirules_trigger_postupdate'
+    ])
+    ->addMethodCall('addListener', [
+      'civi.dao.preDelete',
+      'civirules_trigger_predelete'
+    ])
+    ->addMethodCall('addListener', [
+      'civi.dao.postDelete',
+      'civirules_trigger_postdelete'
+    ]);
 }
 
 /**
@@ -74,54 +69,12 @@ function civirules_civicrm_install() {
 }
 
 /**
- * Implements hook_civicrm_postInstall().
- *
- * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_postInstall
- */
-function civirules_civicrm_postInstall() {
-  _civirules_civix_civicrm_postInstall();
-}
-
-/**
- * Implementation of hook_civicrm_uninstall
- *
- * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_uninstall
- */
-function civirules_civicrm_uninstall() {
-  _civirules_civix_civicrm_uninstall();
-}
-
-/**
  * Implementation of hook_civicrm_enable
  *
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_enable
  */
 function civirules_civicrm_enable() {
   _civirules_civix_civicrm_enable();
-}
-
-/**
- * Implementation of hook_civicrm_disable
- *
- * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_disable
- */
-function civirules_civicrm_disable() {
-  _civirules_civix_civicrm_disable();
-}
-
-/**
- * Implementation of hook_civicrm_upgrade
- *
- * @param $op string, the type of operation being performed; 'check' or 'enqueue'
- * @param $queue CRM_Queue_Queue, (for 'enqueue') the modifiable list of pending up upgrade tasks
- *
- * @return mixed  based on op. for 'check', returns array(boolean) (TRUE if upgrades are pending)
- *                for 'enqueue', returns void
- *
- * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_upgrade
- */
-function civirules_civicrm_upgrade($op, CRM_Queue_Queue $queue = NULL) {
-  return _civirules_civix_civicrm_upgrade($op, $queue);
 }
 
 /**
@@ -172,55 +125,6 @@ function _civirules_upgrade_to_2x_backup() {
       INNER JOIN `civirule_condition` ON `civirule_rule_condition`.`condition_id` = `civirule_condition`.`id`
     ");
   }
-}
-
-/**
- * Implementation of hook civicrm_navigationMenu
- * to create a CiviRules menu item in the Administer menu
- *
- * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_navigationMenu
- */
-function civirules_civicrm_navigationMenu(&$menu) {
-  _civirules_civix_insert_navigation_menu($menu, 'Administer', [
-    'label' => E::ts('CiviRules'),
-    'name' => 'CiviRules',
-    'url' => NULL,
-    'permission' => 'administer CiviCRM',
-    'operator' => NULL,
-    'separator' => NULL,
-  ]);
-
-  _civirules_civix_insert_navigation_menu($menu, 'Administer/CiviRules', [
-    'label' => E::ts('Manage Rules'),
-    'name' => 'Manage Rules',
-    'url' => CRM_Utils_System::url('civicrm/civirules/form/rulesview', 'reset=1', TRUE),
-    'permission' => 'administer CiviCRM',
-    'operator' => NULL,
-    'separator' => 0,
-  ]);
-
-  _civirules_civix_insert_navigation_menu($menu, 'Administer/CiviRules', [
-    'label' => E::ts('New Rule'),
-    'name' => 'New Rule',
-    'url' => CRM_Utils_System::url('civicrm/civirule/form/rule', 'reset=1&action=add', TRUE),
-    'permission' => 'administer CiviCRM',
-    'operator' => NULL,
-    'separator' => 0,
-  ]);
-
-  $optionGroup = CRM_Civirules_Utils_OptionGroup::getSingleWithName('civirule_rule_tag');
-  if (isset($optionGroup['id']) && !empty($optionGroup['id'])) {
-    $ruleTagUrl = CRM_Utils_System::url('civicrm/admin/options', 'reset=1&gid=' . $optionGroup['id'], TRUE);
-    _civirules_civix_insert_navigation_menu($menu, 'Administer/CiviRules', [
-      'label' => E::ts('CiviRule Tags'),
-      'name' => E::ts('CiviRules Tags'),
-      'url' => $ruleTagUrl,
-      'permission' => 'administer CiviCRM',
-      'operator' => NULL,
-      'separator' => 0,
-    ]);
-  }
-  _civirules_civix_navigationMenu($menu);
 }
 
 /**
@@ -280,10 +184,7 @@ function civirules_civicrm_post($op, $objectName, $objectId, &$objectRef) {
  * @return bool
  */
 function civirules_use_prehook($op, $objectName, $objectId, &$params) {
-  if (version_compare(CRM_Utils_System::version(), '5.34', '<')) {
-    // CiviCRM version before 5.34 so use the hook_civicrm_post to invoke the triggers.
-    return TRUE;
-  } elseif ($objectName == 'GroupContact') {
+  if ($objectName == 'GroupContact') {
     return TRUE;
   }
   return FALSE;
@@ -302,10 +203,7 @@ function civirules_use_prehook($op, $objectName, $objectId, &$params) {
  * @return bool
  */
 function civirules_use_posthook($op, $objectName, $objectId, &$objectRef) {
-  if (version_compare(CRM_Utils_System::version(), '5.34', '<')) {
-    // CiviCRM version before 5.34 so use the hook_civicrm_post to invoke the triggers.
-    return TRUE;
-  } elseif ($objectName == 'GroupContact' && is_array($objectRef)) {
+  if ($objectName == 'GroupContact' && is_array($objectRef)) {
     // GroupContact with the objectRef as an array of contact ids does
     // call hook_civicrm_post directly and does not invoke a civicrm event.
     return TRUE;
@@ -519,17 +417,6 @@ function civirules_civirules_alter_trigger_data(CRM_Civirules_TriggerData_Trigge
 }
 
 /**
- * Register extensions entities.
- *
- * Required for api calls.
- *
- * @param array $entityTypes
- */
-function civirules_civicrm_entityTypes(&$entityTypes) {
-  _civirules_civix_civicrm_entityTypes($entityTypes);
-}
-
-/**
  * Implements hook_civicrm_apiWrappers()
  *
  * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_apiWrappers/
@@ -541,13 +428,11 @@ function civirules_civicrm_apiWrappers(&$wrappers, $apiRequest) {
 }
 
 /**
- * Implements hook_civicrm_xmlMenu().
- *
- * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_xmlMenu
- * (fix for mixin issue with older versions of CiviCRM)
+ * Implements hook_civicrm_permission().
  */
-function civirules_civicrm_xmlMenu(&$files) {
-  foreach (glob(__DIR__ . '/xml/Menu/*.xml') as $file) {
-    $files[] = $file;
-  }
+function civirules_civicrm_permission(&$permissions) {
+  $permissions['administer CiviRules'] = [
+    'label' => E::ts('CiviRules: administer CiviRules extension'),
+    'description' => E::ts('Perform all CiviRules administration tasks in CiviCRM'),
+  ];
 }

@@ -133,19 +133,10 @@ class CRM_CivirulesConditions_Case_CaseType extends CRM_Civirules_Condition {
   }
 
   public static function getCaseTypes() {
-    $return = array();
-    $version = CRM_Core_BAO_Domain::version();
-    if (version_compare($version, '4.5', '<')) {
-      $option_group_id = civicrm_api3('OptionGroup', 'getvalue', array('return' => 'id', 'name' => 'case_type'));
-      $caseTypes = civicrm_api3('OptionValue', 'Get', array('option_group_id' => $option_group_id));
-      foreach ($caseTypes['values'] as $caseType) {
-        $return[$caseType['value']] = $caseType['label'];
-      }
-    } else {
-      $caseTypes = civicrm_api3('CaseType', 'Get', array('is_active' => 1));
-      foreach ($caseTypes['values'] as $caseType) {
-        $return[$caseType['id']] = $caseType['title'];
-      }
+    $return = [];
+    $caseTypes = civicrm_api3('CaseType', 'Get', ['is_active' => 1]);
+    foreach ($caseTypes['values'] as $caseType) {
+      $return[$caseType['id']] = $caseType['title'];
     }
     return $return;
   }

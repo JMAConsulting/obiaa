@@ -94,7 +94,25 @@ class CRM_CiviMobileAPI_Utils_ActivityType {
         return false;
       }
       $mobileTypeID = CRM_Core_PseudoConstant::getKey('CRM_Core_BAO_Phone', 'phone_type_id', 'Mobile');
-      list($name, $phone, $doNotSMS) = CRM_Contact_BAO_Contact_Location::getPhoneDetails($contactId, $mobileTypeID);
+
+      $phoneDetails = civicrm_api4('Phone', 'get', [
+        'select' => [
+          'contact_id.display_name',
+          'phone',
+          'contact_id.do_not_sms',
+        ],
+        'where' => [
+          ['contact_id', '=', $contactId],
+          ['is_primary', '=', true],
+          ['phone_type_id', '=', $mobileTypeID],
+        ],
+        'checkPermissions' => false,
+      ])->first();
+
+      $name = $phoneDetails['contact_id.display_name'];
+      $phone = $phoneDetails['phone'];
+      $doNotSMS = $phoneDetails['contact_id.do_not_sms'];
+
       if (!$doNotSMS && $phone) {
         $url = 'civicrm/activity/sms/add';
       }

@@ -45,33 +45,6 @@
         </td>
       </tr>
 
-      <tr class="crm-group-form-block-isReserved">
-        <td class="label">
-          <label>{ts domain="com.agiliway.civimobileapi"}Software update{/ts} {help id="software-update-help"}</label>
-        </td>
-        <td>
-          <div>
-              {if $isWritable}
-                <div>
-                    {$form.civimobile_auto_update.html}
-                    {$form.civimobile_auto_update.label}
-                    {if $form.civimobile_auto_update.description}
-                      <br/>
-                      <span class="description">{$form.civimobile_auto_update.description}</span>
-                    {/if}
-                </div>
-              {else}
-                  {if $folderPermissionMessage}
-                    <div class="status">
-                        {$folderPermissionMessage}
-                    </div>
-                  {/if}
-              {/if}
-
-          </div>
-        </td>
-      </tr>
-
       {if !$isCorrectExtensionName}
         <tr class="crm-group-form-block-isReserved">
           <td class="label">

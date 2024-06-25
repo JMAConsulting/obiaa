@@ -1,6 +1,8 @@
-# mjwshared
+# Payment Shared library
 
-This extension does nothing by itself but is required by a number of other extensions developed by MJW Consulting.
+This library is used by all payment processors by MJW Consulting and other extensions.
+
+It provides multiple functions such as APIs, refund UI, shared code and a compatibility layer to support multiple versions of CiviCRM without requiring explicit support in the payment processor.
 
 The extension is licensed under [AGPL-3.0](LICENSE.txt).
 

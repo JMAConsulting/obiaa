@@ -1,41 +1,42 @@
 <?php
 /**
- * Class for CiviRules Group Contact Action Form
  *
  * @author Jaap Jansma (CiviCooP) <jaap.jansma@civicoop.org>
  * @license AGPL-3.0
  */
 
+use CRM_Civirules_ExtensionUtil as E;
+
+/**
+ * Form Class for Action: "Add Membership"
+ */
 class CRM_CivirulesActions_Membership_Form_Add extends CRM_CivirulesActions_Form_Form {
 
   /**
    * Overridden parent method to build the form
    *
-   * @access public
    */
   public function buildQuickForm() {
     $this->add('hidden', 'rule_action_id');
 
-    $membershipTypeOptions = array('' => ts('-- please select --'));
-    $membershipTypeApi = civicrm_api3('MembershipType', 'get', array('option' => array('limit' => 0)));
-    foreach($membershipTypeApi['values'] as $membershipType) {
-      $membershipTypeOptions[$membershipType['id']] = $membershipType['name'];
-    }
+    $membershipTypeOptions =
+      ['' => E::ts('-- please select --')] +
+      CRM_Civirules_Utils::getMembershipTypes(TRUE);
 
-    $this->add('select', 'membership_type_id', ts('Membership type'), $membershipTypeOptions, true, array(
+    $this->add('select', 'membership_type_id', E::ts('Membership type'), $membershipTypeOptions, TRUE, [
       'class' => 'select2 huge',
-    ));
+    ]);
 
-    $this->addButtons(array(
-      array('type' => 'next', 'name' => ts('Save'), 'isDefault' => TRUE,),
-      array('type' => 'cancel', 'name' => ts('Cancel'))));
+    $this->addButtons([
+      ['type' => 'next', 'name' => E::ts('Save'), 'isDefault' => TRUE,],
+      ['type' => 'cancel', 'name' => E::ts('Cancel')]
+    ]);
   }
 
   /**
    * Overridden parent method to set default values
    *
    * @return array $defaultValues
-   * @access public
    */
   public function setDefaultValues() {
     $defaultValues = parent::setDefaultValues();
@@ -49,7 +50,6 @@ class CRM_CivirulesActions_Membership_Form_Add extends CRM_CivirulesActions_Form
   /**
    * Overridden parent method to process form data after submitting
    *
-   * @access public
    */
   public function postProcess() {
     $data['membership_type_id'] = $this->_submitValues['membership_type_id'];

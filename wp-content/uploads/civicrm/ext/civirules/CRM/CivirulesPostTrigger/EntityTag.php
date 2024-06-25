@@ -61,8 +61,8 @@ class CRM_CivirulesPostTrigger_EntityTag extends CRM_Civirules_Trigger_Post {
       if ($entityTag['entity_table'] != 'civicrm_contact') {
         continue;
       }
-      $triggerData = new CRM_Civirules_TriggerData_Post($entity, $objectId, $entityTag);
-      CRM_Civirules_Engine::triggerRule($this, $triggerData);
+      $this->setTriggerData(new CRM_Civirules_TriggerData_Post($entity, $objectId, $entityTag));
+      parent::triggerTrigger($op, $objectName, $objectId, $objectRef, $eventID);
     }
 
   }

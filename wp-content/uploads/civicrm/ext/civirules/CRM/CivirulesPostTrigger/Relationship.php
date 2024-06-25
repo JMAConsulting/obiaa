@@ -61,10 +61,11 @@ class CRM_CivirulesPostTrigger_Relationship extends CRM_Civirules_Trigger_Post {
   /**
    * Trigger a rule for this trigger
    *
-   * @param $op
-   * @param $objectName
-   * @param $objectId
-   * @param $objectRef
+   * @param string $op
+   * @param string $objectName
+   * @param int $objectId
+   * @param object $objectRef
+   * @param string $eventID
    */
   public function triggerTrigger($op, $objectName, $objectId, $objectRef, $eventID) {
     $t = $this->getTriggerDataFromPost($op, $objectName, $objectId, $objectRef, $eventID);
@@ -72,12 +73,14 @@ class CRM_CivirulesPostTrigger_Relationship extends CRM_Civirules_Trigger_Post {
     if (!empty($relationship['contact_id_a'])) {
       $triggerData = clone $t;
       $triggerData->setContactId($relationship['contact_id_a']);
-      CRM_Civirules_Engine::triggerRule($this, $triggerData);
+      $this->setTriggerData($triggerData);
+      parent::triggerTrigger($op, $objectName, $objectId, $objectRef, $eventID);
     }
     if (!empty($relationship['contact_id_b'])) {
       $triggerData = clone $t;
       $triggerData->setContactId($relationship['contact_id_b']);
-      CRM_Civirules_Engine::triggerRule($this, $triggerData);
+      $this->setTriggerData($triggerData);
+      parent::triggerTrigger($op, $objectName, $objectId, $objectRef, $eventID);
     }
   }
 

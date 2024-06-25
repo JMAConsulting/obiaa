@@ -4,7 +4,7 @@
 return [
   [
     'name' => 'CiviRulesRuleAction',
-    'class' => 'CRM_Civirules_DAO_RuleAction',
+    'class' => 'CRM_Civirules_DAO_CiviRulesRuleAction',
     'table' => 'civirule_rule_action',
   ],
 ];

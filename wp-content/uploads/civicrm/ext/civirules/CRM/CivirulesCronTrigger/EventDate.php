@@ -124,16 +124,12 @@ class CRM_CivirulesCronTrigger_EventDate extends CRM_Civirules_Trigger_Cron {
     return CRM_Utils_System::url('civicrm/civirule/form/trigger/eventdate/', 'rule_id=' . $ruleId);
   }
 
-  public function setTriggerParams($triggerParams) {
-    $this->triggerParams = unserialize($triggerParams);
-  }
-
   /**
    * Returns a description of this trigger
    *
    * @return string
    */
-  public function getTriggerDescription() {
+  public function getTriggerDescription(): string {
     $fields = [
       'start_date' => E::ts('Start Date'),
       'end_date' => E::ts('End Date'),

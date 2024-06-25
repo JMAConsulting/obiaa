@@ -98,15 +98,16 @@ class ProcessMOTO extends \Civi\Api4\Generic\AbstractAction {
     }
 
     if (empty($this->amount) && !$this->setup) {
-      \Civi::log('stripe')->error(__CLASS__ . 'missing amount and not capture or setup');
+      \Civi::log('stripe')->error(__CLASS__ . 'missing amount and not setup');
       throw new \API_Exception('Bad request');
     }
     if (empty($this->paymentProcessorID)) {
       \Civi::log('stripe')->error(__CLASS__ . ' missing paymentProcessorID');
       throw new \API_Exception('Bad request');
     }
-
-    $intentProcessor = new \CRM_Stripe_PaymentIntent();
+    /** @var \CRM_Core_Payment_Stripe $paymentProcessor */
+    $paymentProcessor = \Civi\Payment\System::singleton()->getById($this->paymentProcessorID);
+    $intentProcessor = new \CRM_Stripe_PaymentIntent($paymentProcessor);
     $intentProcessor->setDescription($this->description);
     $intentProcessor->setReferrer($_SERVER['HTTP_REFERER'] ?? '');
     $intentProcessor->setExtraData($this->extraData ?? '');

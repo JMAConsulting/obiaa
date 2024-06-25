@@ -20,7 +20,7 @@ class CRM_CiviMobileAPI_Page_ManageVenues extends CRM_Core_Page {
       return parent::run();
     }
     elseif (!in_array($location_id, array_keys(CRM_Event_BAO_Event::getLocationEvents()))) {
-      CRM_Core_Error::fatal(E::ts('Wrong location id'));
+      throw new CRM_Core_Exception(E::ts('Wrong location id'));
     }
     $venues = civicrm_api3('CiviMobileVenue', 'get', [
       'location_id' => $location_id,

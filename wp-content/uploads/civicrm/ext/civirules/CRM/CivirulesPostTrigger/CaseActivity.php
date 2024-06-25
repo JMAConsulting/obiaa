@@ -42,12 +42,13 @@ class CRM_CivirulesPostTrigger_CaseActivity extends CRM_CivirulesPostTrigger_Act
   /**
    * Trigger a rule for this trigger
    *
-   * @param $op
-   * @param $objectName
-   * @param $objectId
-   * @param $objectRef
+   * @param string $op
+   * @param string $objectName
+   * @param int $objectId
+   * @param object $objectRef
+   * @param string $eventID
    */
-  public function triggerTrigger($op, $objectName, $objectId, $objectRef, $eventID = NULL) {
+  public function triggerTrigger($op, $objectName, $objectId, $objectRef, $eventID) {
     if ($this->isCaseActivity($op, $objectName, $objectId, $objectRef)) {
       // It is a Case-related activity -- let our parent trigger
       // actually trigger the rule.

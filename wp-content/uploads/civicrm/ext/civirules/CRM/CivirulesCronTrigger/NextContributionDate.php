@@ -115,18 +115,11 @@ class CRM_CivirulesCronTrigger_NextContributionDate extends CRM_Civirules_Trigge
   }
 
   /**
-   * @param string $triggerParams
-   */
-  public function setTriggerParams($triggerParams) {
-    $this->triggerParams = unserialize($triggerParams);
-  }
-
-  /**
    * Returns a description of this trigger
    *
    * @return string
    */
-  public function getTriggerDescription() {
+  public function getTriggerDescription(): string {
     $intervalUnits = self::intervals();
     $intervalUnitLabel = $intervalUnits[$this->triggerParams['interval_unit']];
     return E::ts('Next Scheduled Contribution Date %1 - %2', [

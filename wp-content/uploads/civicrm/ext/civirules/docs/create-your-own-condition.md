@@ -84,7 +84,7 @@ class CRM_CivirulesConditions_Contribution_FirstDonation extends CRM_Civirules_C
 ```
 
 !!! Note
-	Generic classes
+    Generic classes
 
     If you have a look in your extension you will see a folder CivirulesConditions. You will find simple conditions as their own class, like the one I am about to create here. You will also see a folder called Generic with generic classes you can use to create more complex examples.
 

@@ -25,59 +25,12 @@ function biamailingreplyto_civicrm_install(): void {
 }
 
 /**
- * Implements hook_civicrm_postInstall().
- *
- * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_postInstall
- */
-function biamailingreplyto_civicrm_postInstall(): void {
-  _biamailingreplyto_civix_civicrm_postInstall();
-}
-
-/**
- * Implements hook_civicrm_uninstall().
- *
- * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_uninstall
- */
-function biamailingreplyto_civicrm_uninstall(): void {
-  _biamailingreplyto_civix_civicrm_uninstall();
-}
-
-/**
  * Implements hook_civicrm_enable().
  *
  * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_enable
  */
 function biamailingreplyto_civicrm_enable(): void {
   _biamailingreplyto_civix_civicrm_enable();
-}
-
-/**
- * Implements hook_civicrm_disable().
- *
- * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_disable
- */
-function biamailingreplyto_civicrm_disable(): void {
-  _biamailingreplyto_civix_civicrm_disable();
-}
-
-/**
- * Implements hook_civicrm_upgrade().
- *
- * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_upgrade
- */
-function biamailingreplyto_civicrm_upgrade($op, CRM_Queue_Queue $queue = NULL) {
-  return _biamailingreplyto_civix_civicrm_upgrade($op, $queue);
-}
-
-/**
- * Implements hook_civicrm_entityTypes().
- *
- * Declare entity types provided by this module.
- *
- * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_entityTypes
- */
-function biamailingreplyto_civicrm_entityTypes(&$entityTypes): void {
-  _biamailingreplyto_civix_civicrm_entityTypes($entityTypes);
 }
 
 function biamailingreplyto_civicrm_pre($op, $objectName, $id, &$params) {

@@ -97,7 +97,7 @@ class CRM_CiviMobileAPI_Api_CiviMobileSurvey_GetStructure extends CRM_CiviMobile
 
     foreach ($joinedProfiles as $profile) {
       $fields = CRM_Core_BAO_UFGroup::getFields($profile['uf_group_id']);
-      $this->prepareFields($fields);
+      CRM_CiviMobileAPI_Utils_Profile::prepareFields($fields);
       $profile_name = 'activity_profile';
 
       if (($profile['weight'] == 2 && $isPetition) || ($profile['weight'] == 1 && !$isPetition)) {
@@ -127,66 +127,4 @@ class CRM_CiviMobileAPI_Api_CiviMobileSurvey_GetStructure extends CRM_CiviMobile
       'activity_type_id' => $params['activity_type_id']
     ];
   }
-
-  /**
-   * Prepare fields
-   *
-   * @param $fields
-   */
-  private function prepareFields(&$fields) {
-    $customFieldsIds = [];
-
-    foreach ($fields as $key => $field) {
-      if (preg_match('/^custom_\d+$/', $field['name'])) {
-        array_push($customFieldsIds, (int) trim($field['name'], 'custom_'));
-      }
-    }
-
-    $customFields = [];
-
-    if (!empty($customFieldsIds)) {
-      $customFields = civicrm_api3('CustomField', 'get', [
-        'id' => ['IN' => $customFieldsIds],
-      ])['values'];
-    }
-
-    foreach ($fields as &$field) {
-      $customField = [];
-
-      if (preg_match('/^custom_\d+$/', $field['name'])) {
-        $customField = $customFields[(int) trim($field['name'], 'custom_')];
-      }
-
-      $fieldParams = [
-        'name' => $field['name'],
-        'title' => $field['title'],
-        'html_type' => empty($customField) ? $field['html_type'] : $customField['html_type'],
-        'data_type' => empty($customField) ? $field['data_type'] : $customField['data_type'],
-        'attributes' => $field['attributes'],
-        'group_id' => $field['group_id'],
-        'field_id' => $field['field_id'],
-        "is_required" => (!empty($field['is_required'])) ? $field['is_required'] : 0,
-        "is_view" => (!empty($field['is_view'])) ? $field['is_view'] : 0,
-        "date_format" => (!empty($field['date_format'])) ? $field['date_format'] : "",
-        "time_format" => (!empty($field['time_format'])) ? $field['time_format'] : "",
-        "start_date_years" => (!empty($field['start_date_years'])) ? $field['start_date_years'] : "",
-        "end_date_years" => (!empty($field['end_date_years'])) ? $field['end_date_years'] : "",
-        "default_currency" => CRM_Core_Config::singleton()->defaultCurrency,
-        "default_currency_symbol" => CRM_Core_Config::singleton()->defaultCurrencySymbol,
-        'default_value' => (!empty($customField['default_value'])) ? $customField['default_value'] : ""
-      ];
-
-      if (!empty($customField["option_group_id"])) {
-        $fieldParams['options'] = CRM_CiviMobileAPI_Utils_OptionValue::getGroupValues($customField["option_group_id"], ['is_active' => 1]);
-      } else if (!empty($field['pseudoconstant']['optionGroupName'])) {
-        $fieldParams['options'] = CRM_CiviMobileAPI_Utils_OptionValue::getGroupValues($field['pseudoconstant']['optionGroupName'], ['is_active' => 1]);
-      }
-      if ($customField['html_type'] == 'Radio' && $customField['data_type'] == "Boolean") {
-        $fieldParams['options'] = ['1','0'];
-      }
-
-      $field = $fieldParams;
-    }
-  }
-
 }

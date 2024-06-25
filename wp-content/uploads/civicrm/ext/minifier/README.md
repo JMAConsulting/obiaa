@@ -6,11 +6,6 @@ For example if it is installed on a CiviCRM system it will minify crm-menubar.cs
 
 The extension is licensed under [AGPL-3.0](LICENSE.txt).
 
-## Requirements
-
-* PHP v7.2+
-* CiviCRM 5.28+
-
 ## Installation
 
 See: https://docs.civicrm.org/sysadmin/en/latest/customize/extensions/#installing-a-new-extension
@@ -24,6 +19,10 @@ The extension works in two ways:
 1. If the `$content` variable is empty and `$params['path']` specifies a full path to a file it will be loaded and minified.
 
 ## Release Notes
+
+### 1.3
+
+* PHP8.2 / Smarty3 compatibility (re-run civix).
 
 ### 1.2
 
