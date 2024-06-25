@@ -34,11 +34,11 @@ class CRM_CiviMobileAPI_Form_Venue extends CRM_Core_Form {
     $this->assign('location_id', $this->location_id);
     $this->assign('colors', CRM_CiviMobileAPI_Utils_Agenda_Venue::getColorList());
     if (empty($this->location_id)) {
-      CRM_Core_Error::fatal(E::ts('Empty location id.'));
+      throw new CRM_Core_Exception(E::ts('Empty location id.'));
     }
 
     if (!in_array($this->location_id, array_keys(CRM_Event_BAO_Event::getLocationEvents()))) {
-      CRM_Core_Error::fatal(E::ts('Wrong location id'));
+      throw new CRM_Core_Exception(E::ts('Wrong location id'));
     }
 
     if ($this->getAction() == CRM_Core_Action::UPDATE
@@ -51,11 +51,11 @@ class CRM_CiviMobileAPI_Form_Venue extends CRM_Core_Form {
       }
 
       if (empty($this->id)) {
-        CRM_Core_Error::fatal(E::ts('Empty venue id.'));
+        throw new CRM_Core_Exception(E::ts('Empty venue id.'));
       }
 
       if (empty(CRM_CiviMobileAPI_BAO_LocationVenue::getAll(['id' => $this->id]))) {
-        CRM_Core_Error::fatal(E::ts('Venue id does not exist.'));
+        throw new CRM_Core_Exception(E::ts('Venue id does not exist.'));
       }
     }
     if ($this->getAction() == CRM_Core_Action::VIEW) {

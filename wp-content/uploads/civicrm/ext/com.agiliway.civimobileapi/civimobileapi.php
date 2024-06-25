@@ -59,8 +59,6 @@ function civimobileapi_civicrm_apiWrappers(&$wrappers, $apiRequest) {
     $wrappers[] = new CRM_CiviMobileAPI_ApiWrapper_Case();
   } elseif ($apiRequest['entity'] == 'Event' && ($apiRequest['action'] == 'getsingle' || $apiRequest['action'] == 'get')) {
     $wrappers[] = new CRM_CiviMobileAPI_ApiWrapper_Event();
-  } elseif ($apiRequest['entity'] == 'Job' && $apiRequest['action'] == 'version_check') {
-    $wrappers[] = new CRM_CiviMobileAPI_ApiWrapper_Job_VersionCheck();
   } elseif ($apiRequest['entity'] == 'Note' && $apiRequest['action'] == 'get') {
     $wrappers[] = new CRM_CiviMobileAPI_ApiWrapper_Note();
   } elseif ($apiRequest['entity'] == 'Contribution' && $apiRequest['action'] == 'get') {
@@ -247,7 +245,7 @@ function civimobile_add_qr_popup() {
  * validation
  */
 function civimobileapi_secret_validation() {
-  $nullObject = CRM_Utils_Hook::$_nullObject;
+  $nullObject = NULL;
   $validated = TRUE;
   CRM_Utils_Hook::singleton()
     ->commonInvoke(1, $validated, $nullObject, $nullObject, $nullObject, $nullObject, $nullObject, 'civimobile_secret_validation', '');
@@ -718,7 +716,7 @@ function civimobileapi_civicrm_preProcess($formName, &$form) {
       $form->setVar('_groupTree', $groupTree);
     }
   }
-  if ($formName == 'CRM_Contribute_Form_Contribution_Main') {
+  if ($formName == 'CRM_Contribute_Form_Contribution_Main' && is_mobile_request()) {
     (new CRM_CiviMobileAPI_Hook_Pre_ContributionPayment)->run();
   }
 }

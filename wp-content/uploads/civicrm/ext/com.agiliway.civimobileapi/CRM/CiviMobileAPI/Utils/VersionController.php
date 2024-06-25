@@ -134,7 +134,7 @@ class CRM_CiviMobileAPI_Utils_VersionController {
     return $this->currentVersion;
   }
 
-  public function __clone() {}
+  private function __clone() {}
 
   public function __wakeup() {}
 

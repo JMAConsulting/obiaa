@@ -164,7 +164,6 @@ class CRM_CiviMobileAPI_Form_Settings extends CRM_Core_Form {
     parent::buildQuickForm();
 
     $this->addElement('text', 'civimobile_server_key', E::ts('Server key'));
-    $this->addElement('checkbox', 'civimobile_auto_update', E::ts('Automatically keep the extension up to date'));
     $this->addElement('checkbox', 'civimobile_is_allow_public_website_url_qrcode', E::ts('Show a Website URL QR-code for Anonymous users'));
     $this->addElement('radio', 'civimobile_site_name_to_use', NULL, E::ts('Use CMS site name'), 'cms_site_name');
     $this->addElement('radio', 'civimobile_site_name_to_use', NULL, E::ts('Use custom site name'), 'custom_site_name');
@@ -198,14 +197,6 @@ class CRM_CiviMobileAPI_Form_Settings extends CRM_Core_Form {
       ]
     ];
 
-    if (CRM_CiviMobileAPI_Utils_VersionController::getInstance()->isCurrentVersionLowerThanRepositoryVersion()
-      && !empty(CRM_CiviMobileAPI_Utils_Extension::directoryIsWritable())) {
-      $buttons[] = [
-        'type' => 'next',
-        'name' => E::ts('Update CiviMobile Extension'),
-      ];
-    }
-
     $this->addButtons($buttons);
   }
 
@@ -217,24 +208,8 @@ class CRM_CiviMobileAPI_Form_Settings extends CRM_Core_Form {
         Civi::settings()->set('civimobile_server_key', $params['civimobile_server_key']);
         CRM_Core_Session::singleton()->setStatus(E::ts('Server key updated'), E::ts('CiviMobile Settings'), 'success');
       }
-    } elseif (!empty($params['_qf_Settings_next'])) {
-      try {
-        if (CRM_CiviMobileAPI_Utils_VersionController::getInstance()->isCurrentVersionLowerThanRepositoryVersion()) {
-          $this->controller->setDestination(CRM_Utils_System::url('civicrm/civimobile/settings', http_build_query([])));
-          CRM_CiviMobileAPI_Utils_Extension::update();
-
-          CRM_Core_Session::singleton()->setStatus(E::ts('CiviMobile updated'), E::ts('CiviMobile Settings'), 'success');
-        }
-      } catch (Exception $e) {
-        CRM_Core_Session::setStatus($e->getMessage());
-      }
-    } elseif (!empty($params['_qf_Settings_upload'])) {
+    }  elseif (!empty($params['_qf_Settings_upload'])) {
       $this->controller->setDestination(CRM_Utils_System::url('civicrm/civimobile/settings', http_build_query([])));
-      if (!empty($params['civimobile_auto_update'])) {
-        Civi::settings()->set('civimobile_auto_update', 1);
-      } else {
-        Civi::settings()->set('civimobile_auto_update', 0);
-      }
       if (!isset($params['civimobile_is_allow_public_website_url_qrcode'])) {
         $params['civimobile_is_allow_public_website_url_qrcode'] = 0;
       }
@@ -286,8 +261,7 @@ class CRM_CiviMobileAPI_Form_Settings extends CRM_Core_Form {
   public function setDefaultValues() {
     $defaults = [];
     $pushNotificationLifetime = Civi::settings()->get('civimobile_push_notification_lifetime');
-
-    $defaults['civimobile_auto_update'] = Civi::settings()->get('civimobile_auto_update');
+    
     $defaults['civimobile_server_key'] = Civi::settings()->get('civimobile_server_key');
     $defaults['civimobile_is_allow_public_website_url_qrcode'] = CRM_CiviMobileAPI_Utils_Extension::isAllowPublicWebisteURLQRCode();
     $defaults['civimobile_site_name_to_use'] = (!empty(Civi::settings()->get('civimobile_site_name_to_use'))) ? Civi::settings()->get('civimobile_site_name_to_use') : 'cms_site_name';
