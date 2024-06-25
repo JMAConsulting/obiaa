@@ -8,9 +8,9 @@
 
 abstract class CRM_Civirules_Action {
 
-  protected $ruleAction = array();
+  protected array $ruleAction = [];
 
-  protected $action = array();
+  protected array $action = [];
 
   /**
    * Process the action
@@ -34,20 +34,20 @@ abstract class CRM_Civirules_Action {
    *
    * @param DateTime $date the current scheduled date/time
    * @param CRM_Civirules_TriggerData_TriggerData $triggerData
+   *
    * @return bool|DateTime
    */
   public function delayTo(DateTime $date, CRM_Civirules_TriggerData_TriggerData $triggerData) {
-    return false;
+    return FALSE;
   }
 
   /**
    * Method to set RuleActionData
    *
    * @param $ruleAction
-   * @access public
    */
   public function setRuleActionData($ruleAction) {
-    $this->ruleAction = array();
+    $this->ruleAction = [];
     if (is_array($ruleAction)) {
       $this->ruleAction = $ruleAction;
     }
@@ -57,7 +57,6 @@ abstract class CRM_Civirules_Action {
    * Method to set actionData
    *
    * @param $action
-   * @access public
    */
   public function setActionData($action) {
     $this->action = $action;
@@ -91,24 +90,13 @@ abstract class CRM_Civirules_Action {
    * Convert parameters to an array of parameters
    *
    * @return array
-   * @access protected
    */
   protected function getActionParameters() {
-    $params = array();
+    $params = [];
     if (!empty($this->ruleAction['action_params'])) {
       $params = unserialize($this->ruleAction['action_params']);
     }
     return $params;
-  }
-
-  /**
-   * Returns wether we should ignore rechecking of the conditions when an action
-   * is executed with a delay
-   *
-   * @return bool
-   */
-  public function ignoreConditionsOnDelayedProcessing() {
-    return $this->ruleAction['ignore_condition_with_delay'] ? true : false;
   }
 
   /**
@@ -118,7 +106,6 @@ abstract class CRM_Civirules_Action {
    *
    * @param int $ruleActionId
    * @return bool|string
-   * $access public
    */
   abstract public function getExtraDataInputUrl($ruleActionId);
 
@@ -127,7 +114,6 @@ abstract class CRM_Civirules_Action {
    * e.g. 'Older than 65'
    *
    * @return string
-   * @access public
    */
   public function userFriendlyConditionParams() {
     return '';
@@ -141,10 +127,11 @@ abstract class CRM_Civirules_Action {
    *
    * @param CRM_Civirules_Trigger $trigger
    * @param CRM_Civirules_BAO_Rule $rule
+   *
    * @return bool
    */
   public function doesWorkWithTrigger(CRM_Civirules_Trigger $trigger, CRM_Civirules_BAO_Rule $rule) {
-    return true;
+    return TRUE;
   }
 
   /**
@@ -155,13 +142,13 @@ abstract class CRM_Civirules_Action {
    * @param string $level Should be one of \Psr\Log\LogLevel
    */
   protected function logAction($message, CRM_Civirules_TriggerData_TriggerData $triggerData=null, $level=\Psr\Log\LogLevel::INFO) {
-    $context = array();
+    $context = [];
     $context['message'] = $message;
     $context['rule_id'] = $this->ruleAction['rule_id'];
     $rule = new CRM_Civirules_BAO_Rule();
     $rule->id = $this->ruleAction['rule_id'];
     $context['rule_title'] = '';
-    if ($rule->find(true)) {
+    if ($rule->find(TRUE)) {
       $context['rule_title'] = $rule->label;
     }
     $context['rule_action_id'] = $this->ruleAction['id'];
@@ -174,6 +161,10 @@ abstract class CRM_Civirules_Action {
     }
     CRM_Civirules_Utils_LoggerFactory::log($msg, $context, $level);
   }
+
+  /**
+   * @return int
+   */
   public function getRuleId() {
     return $this->ruleAction['rule_id'];
   }

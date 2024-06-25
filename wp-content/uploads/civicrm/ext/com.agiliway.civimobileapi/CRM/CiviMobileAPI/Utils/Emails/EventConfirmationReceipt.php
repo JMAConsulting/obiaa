@@ -48,7 +48,18 @@ class CRM_CiviMobileAPI_Utils_Emails_EventConfirmationReceipt {
     $isPrimary = (!empty($event['is_monetary']) && $event['is_monetary'] == 1) ? 1 : false;
     $isAmountZero = ($totalAmount <= 0) ? TRUE : FALSE;
     $defaultRole = (!empty($event['default_role_id'])) ? $event['default_role_id'] : false;
-    $participantStatus = (!empty($participant->status_id)) ? CRM_Event_PseudoConstant::participantStatus($participant->status_id, NULL, 'label') : false;
+    $participantStatus = false;
+    if (!empty($participant->status_id)) {
+      $participantStatus = civicrm_api4('ParticipantStatusType', 'get', [
+        'select' => [
+          'label',
+        ],
+        'where' => [
+          ['id', '=', $participant->status_id],
+        ],
+        'checkPermissions' => FALSE,
+      ])->first()['label'];
+    }
     if (empty($totalAmount) && !empty($participant->fee_amount)) {
       $totalAmount = $participant->fee_amount;
     }
@@ -125,7 +136,7 @@ class CRM_CiviMobileAPI_Utils_Emails_EventConfirmationReceipt {
     //sets currency from event to default currency from CiviCRM config
     $config = CRM_Core_Config::singleton();
     $defaultCurrency = $config->defaultCurrency;
-    $config->defaultCurrency = CRM_Utils_Array::value('currency', $event, $config->defaultCurrency);
+    $config->defaultCurrency = $event['currency'] ?? $config->defaultCurrency;
 
     CRM_Core_BAO_MessageTemplate::sendTemplate($params);
 
@@ -152,7 +163,16 @@ class CRM_CiviMobileAPI_Utils_Emails_EventConfirmationReceipt {
       $rolesIds = explode(CRM_Core_DAO::VALUE_SEPARATOR, $participantRoleIds);
       $rolesNames = [];
       foreach ($rolesIds as $rolesId) {
-        $rolesName = CRM_Event_PseudoConstant::participantRole($rolesId, FALSE);
+        $rolesName = civicrm_api4('OptionValue', 'get', [
+          'select' => [
+            'label',
+          ],
+          'where' => [
+            ['option_group_id:name', '=', 'participant_role'],
+            ['value', '=', $rolesId],
+          ],
+          'checkPermissions' => FALSE,
+        ])->first()['label'];
         if (!empty($rolesName)) {
           $rolesNames[$rolesId] = $rolesName;
         }

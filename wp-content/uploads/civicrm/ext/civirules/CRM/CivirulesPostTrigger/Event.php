@@ -27,10 +27,6 @@ use CRM_Civirules_ExtensionUtil as E;
  */
 class CRM_CivirulesPostTrigger_Event extends CRM_Civirules_Trigger_Post {
 
-  public function setTriggerParams($triggerParams) {
-    $this->triggerParams = unserialize($triggerParams);
-  }
-
   protected function getTriggerDataFromPost($op, $objectName, $objectId, $objectRef, $eventID = NULL) {
     $triggerData = parent::getTriggerDataFromPost($op, $objectName, $objectId, $objectRef, $eventID);
     if (isset($this->triggerParams['contact_id']) && $this->triggerParams['contact_id'] == 1) {
@@ -58,10 +54,8 @@ class CRM_CivirulesPostTrigger_Event extends CRM_Civirules_Trigger_Post {
    * Returns a description of this trigger
    *
    * @return string
-   * @access public
-   * @abstract
    */
-  public function getTriggerDescription() {
+  public function getTriggerDescription(): string {
     if (isset($this->triggerParams['contact_id']) && $this->triggerParams['contact_id'] == 1) {
       return E::ts('Trigger uses the logged in user as the contact.');
     } else {

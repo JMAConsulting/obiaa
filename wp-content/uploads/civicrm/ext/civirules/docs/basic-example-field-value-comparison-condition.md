@@ -54,8 +54,8 @@ Bob Watson now has the Activity on his summary and I could create a dashlet for 
 
 ![Edit actions](./img/CiviRules_46_print10.png)
 
-!!!Note	
-	Select List with Values
+!!!Note
+    Select List with Values
     As you can see the possible values are shows as select lists if that makes sense, in this example for the Do Not Email field and for the Participant Status field. In some exceptional cases you might not get a select list, but simply a field where you can enter a value. That might be because there is no reason for a select list (last_name = "Jones") OR when a select list would make sense but the internal engine can not find the link to the option values linked to the field. In that case you will have to find out the value you want from Administer/System Settings/Option Groups and find the one you want.
 
 ## Example: Add to Group When Pledge Becomes Active

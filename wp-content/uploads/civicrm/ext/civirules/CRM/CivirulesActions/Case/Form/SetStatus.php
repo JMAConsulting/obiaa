@@ -1,8 +1,10 @@
 <?php
-/**
- * Class for CiviRules Case Set Status Action Form
- */
 
+use CRM_Civirules_ExtensionUtil as E;
+
+/**
+ * Form Class for Action "Set the Status of a Case"
+ */
 class CRM_CivirulesActions_Case_Form_SetStatus extends CRM_CivirulesActions_Form_Form {
 
   /**
@@ -12,18 +14,19 @@ class CRM_CivirulesActions_Case_Form_SetStatus extends CRM_CivirulesActions_Form
     $this->add('hidden', 'rule_action_id');
 
     $this->add('select', 'status_id', ts('Set status to'),
-               CRM_Case_BAO_Case::buildOptions('status_id'));
+      CRM_Case_BAO_Case::buildOptions('status_id'));
 
-    $this->addButtons(array(
-                        array(
-                          'type' => 'next',
-                          'name' => ts('Save'),
-                          'isDefault' => TRUE,
-                        ),
-                        array(
-                          'type' => 'cancel',
-                          'name' => ts('Cancel'),
-                        )));
+    $this->addButtons([
+      [
+        'type' => 'next',
+        'name' => ts('Save'),
+        'isDefault' => TRUE,
+      ],
+      [
+        'type' => 'cancel',
+        'name' => ts('Cancel'),
+      ]
+    ]);
   }
 
 
@@ -47,4 +50,5 @@ class CRM_CivirulesActions_Case_Form_SetStatus extends CRM_CivirulesActions_Form
     $this->ruleAction->save();
     parent::postProcess();
   }
+
 }

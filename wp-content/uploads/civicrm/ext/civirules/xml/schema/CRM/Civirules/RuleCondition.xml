@@ -2,9 +2,9 @@
 
 <table>
   <base>CRM/Civirules</base>
-  <class>RuleCondition</class>
+  <class>CiviRulesRuleCondition</class>
   <name>civirule_rule_condition</name>
-  <comment>FIXME</comment>
+  <comment>CiviRules Rule Conditions</comment>
   <table_type>Innodb</table_type>
   <log>true</log>
 
@@ -30,12 +30,14 @@
     <key>id</key>
     <onDelete>CASCADE</onDelete>
   </foreignKey>
+
   <field>
     <name>condition_link</name>
     <type>varchar</type>
     <length>3</length>
     <default>NULL</default>
   </field>
+
   <field>
     <name>condition_id</name>
     <type>int unsigned</type>
@@ -47,14 +49,21 @@
     <key>id</key>
     <onDelete>CASCADE</onDelete>
   </foreignKey>
+
   <field>
     <name>condition_params</name>
     <type>text</type>
     <default>NULL</default>
   </field>
+
   <field>
     <name>is_active</name>
-    <type>int</type>
+    <type>boolean</type>
+    <required>true</required>
     <default>1</default>
+    <html>
+      <type>CheckBox</type>
+      <label>Enabled</label>
+    </html>
   </field>
 </table>

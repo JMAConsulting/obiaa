@@ -49,7 +49,6 @@ function civicrm_api3_civi_mobile_permission_get() {
     $administerTimeTracker = CRM_Core_Permission::check('administer TimeTracker');
     $accessTimeTracker = CRM_Core_Permission::check('access TimeTracker');
 
-
     $permissions['access'] = [
       'accessCiviCRM' => $accessToCiviCrm && $viewMyContact ? 1 : 0,
     ];
@@ -312,7 +311,13 @@ function civicrm_api3_civi_mobile_permission_get() {
       'access_time_tracker' => (($accessTimeTracker || $administerTimeTracker) && $accessToCiviCrm) ? 1 : 0,
     ];
 
-    $nullObject = CRM_Utils_Hook::$_nullObject;
+    $permissions['civiappointment'] = [
+      'access_civi_appointment' => CRM_Core_Permission::check('access CiviAppointment') ? 1 : 0,
+      'book_a_slot' => CRM_Core_Permission::check('book a slot') ? 1 : 0,
+      'cancel_appointment' => CRM_Core_Permission::check('cancel appointment') ? 1 : 0,
+    ];
+
+    $nullObject = NULL;
     CRM_Utils_Hook::singleton()
       ->commonInvoke(1, $permissions, $nullObject, $nullObject, $nullObject, $nullObject, $nullObject, 'civimobile_permission', '');
 

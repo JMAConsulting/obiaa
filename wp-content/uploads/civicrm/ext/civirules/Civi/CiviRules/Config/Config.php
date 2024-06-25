@@ -28,6 +28,15 @@ class Config extends Container {
     if (isset($customGroups[$customGroupId]) && is_array($customGroups[$customGroupId])) {
       return $customGroups[$customGroupId];
     }
+
+    $customGroup = civicrm_api3('CustomGroup', 'get', [
+      'id' => $customGroupId,
+      'sequential' => 1,
+    ]);
+    if ($customGroup['count'] > 0) {
+      return $customGroup['values'][0];
+    }
+
     return null;
   }
 

@@ -2,24 +2,40 @@
 
 class CRM_Civirules_TriggerData_Cron extends CRM_Civirules_TriggerData_TriggerData {
 
-  protected $entity;
+  /**
+   * The Entity Name (CamelCase eg. Membership, Contact)
+   *
+   * @var string
+   */
+  protected string $entityName;
 
-  public function __construct($contactId, $entity, $data, $entity_id=null) {
+  /**
+   * @param int $contactId
+   * @param string $entity
+   * @param array $data
+   * @param int|NULL $entity_id
+   */
+  public function __construct($contactId, $entity, $data, $entity_id = NULL) {
     parent::__construct();
 
-    $this->entity = $entity;
-    if ($entity_id) {
-      $this->entity_id = $entity_id;
+    $this->entityName = $entity;
+    if (isset($entity_id)) {
+      $this->setEntityId($entity_id);
     } elseif (isset($data['id'])) {
-      $this->entity_id = $data['id'];
+      $this->setEntityId($data['id']);
     }
-    $this->contact_id = $contactId;
-
+    else {
+      \Civi::log('civirules')->warning('CRM_Civirules_TriggerData_Cron missing entityID for entity: ' . $entity);
+    }
+    $this->setContactId($contactId);
     $this->setEntityData($entity, $data);
   }
 
-  public function getEntity() {
-    return $this->entity;
+  /**
+   * @return string
+   */
+  public function getEntity(): string {
+    return $this->entityName;
   }
 
 }

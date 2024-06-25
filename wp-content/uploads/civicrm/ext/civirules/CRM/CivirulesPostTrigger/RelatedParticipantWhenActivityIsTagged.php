@@ -4,17 +4,14 @@ use CRM_Civirules_ExtensionUtil as E;
 
 class CRM_CivirulesPostTrigger_RelatedParticipantWhenActivityIsTagged extends CRM_CivirulesPostTrigger_EntityTag {
 
-  public function setTriggerParams($triggerParams) {
-    $this->triggerParams = unserialize($triggerParams);
-  }
-
   /**
    * Trigger a rule for this trigger
    *
-   * @param $op
-   * @param $objectName
-   * @param $objectId
-   * @param $objectRef
+   * @param string $op
+   * @param string $objectName
+   * @param int $objectId
+   * @param object $objectRef
+   * @param string $eventID
    */
   public function triggerTrigger($op, $objectName, $objectId, $objectRef, $eventID = NULL) {
     $entity = CRM_Civirules_Utils_ObjectName::convertToEntity($objectName);
@@ -77,13 +74,14 @@ class CRM_CivirulesPostTrigger_RelatedParticipantWhenActivityIsTagged extends CR
       $params[2] = array($this->ruleId, 'Integer');
       $dao = CRM_Core_DAO::executeQuery($sql, $params, true, 'CRM_Event_DAO_Participant');
 
-      while($dao->fetch()) {
-        $participant = array();
+      while ($dao->fetch()) {
+        $participant = [];
         $t = clone $triggerData;
         CRM_Core_DAO::storeValues($dao, $participant);
         $t->setEntityData('Participant', $participant);
         $t->setContactId($participant['contact_id']);
-        CRM_Civirules_Engine::triggerRule($this, $t);
+        $this->setTriggerData($t);
+        parent::triggerTrigger($op, $objectName, $objectId, $objectRef, $eventID);
       }
     }
 

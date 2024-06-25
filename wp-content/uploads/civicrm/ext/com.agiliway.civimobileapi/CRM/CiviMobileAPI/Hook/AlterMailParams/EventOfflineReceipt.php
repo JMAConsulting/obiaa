@@ -10,11 +10,10 @@ class CRM_CiviMobileAPI_Hook_AlterMailParams_EventOfflineReceipt {
    * @throws CRM_Core_Exception
    */
   public static function run($params, $context) {
-    if ($context == 'messageTemplate' && $params['valueName'] == 'event_offline_receipt' &&  $params["groupName"] == 'msg_tpl_workflow_event') {
-
+    if ($context == 'messageTemplate' && $params['workflow'] == 'event_offline_receipt') {
       $template = CRM_Core_Smarty::singleton();
-      $eventId = (int)$template->get_template_vars('eventID');
-      $contactId = (int)$template->get_template_vars('contactID');
+      $eventId = (int)$template->getTemplateVars('eventID');
+      $contactId = (int)$template->getTemplateVars('contactID');
 
       try {
         $participantId = civicrm_api3('Participant', 'getvalue', [

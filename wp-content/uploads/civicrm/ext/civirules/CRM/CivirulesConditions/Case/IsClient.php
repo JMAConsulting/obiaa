@@ -5,7 +5,9 @@ class CRM_CivirulesConditions_Case_IsClient extends CRM_Civirules_Condition {
   public function isConditionValid(CRM_Civirules_TriggerData_TriggerData $triggerData) {
     $relationship = $triggerData->getEntityData('Relationship');
     if (empty($relationship)) {
-      return true;
+      $caseData = $triggerData->getEntityData('Case');
+      $contactId = $triggerData->getContactId();
+      return in_array($contactId,$caseData['client_id']);
     }
     return false;
   }

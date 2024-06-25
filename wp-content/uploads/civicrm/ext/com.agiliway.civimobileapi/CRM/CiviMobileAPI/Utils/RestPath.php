@@ -20,6 +20,10 @@ class CRM_CiviMobileAPI_Utils_RestPath {
       $restPath = $this->getJoomlaRestPath();
     }
 
+    if ($currentCMS == CRM_CiviMobileAPI_Utils_CmsUser::CMS_DRUPAL8) {
+      $restPath = $this->getDrupal8RestPath();
+    }
+
     return $restPath;
   }
 
@@ -49,6 +53,15 @@ class CRM_CiviMobileAPI_Utils_RestPath {
   }
 
   /**
+   * Gets Drupal8+ 'rest path' for CiviCRM API
+   *
+   * @return string
+   */
+  private function getDrupal8RestPath() {
+    return Civi::paths()->getUrl("civicrm/ajax/rest");
+  }
+
+  /**
    * Is 'civicrm-wp-rest' plugin active
    *
    * @return bool
@@ -73,9 +86,16 @@ class CRM_CiviMobileAPI_Utils_RestPath {
   /**
    * Gets Joomla 'rest path' for CiviCRM API
    *
+   * Information about civicrm/ajax/rest
+   * https://docs.civicrm.org/dev/en/latest/api/v3/rest/
+   *
    * @return string
    */
   private function getJoomlaRestPath() {
+    if (version_compare('5.47', CRM_Utils_System::version(), '<=')) {
+      return "/index.php?option=com_civicrm&task=civicrm/ajax/rest";
+    }
+
     return '/administrator' . str_replace('/administrator', '', Civi::paths()->getUrl("[civicrm.root]/extern/rest.php"));
   }
 
@@ -94,6 +114,10 @@ class CRM_CiviMobileAPI_Utils_RestPath {
 
     if ($currentCMS == CRM_CiviMobileAPI_Utils_CmsUser::CMS_JOOMLA) {
       $restPath = $this->getJoomlaAbsoluteUrl();
+    }
+
+    if ($currentCMS == CRM_CiviMobileAPI_Utils_CmsUser::CMS_DRUPAL8) {
+      $restPath = $this->getDrupal8AbsoluteUrl();
     }
 
     return $restPath;
@@ -125,6 +149,15 @@ class CRM_CiviMobileAPI_Utils_RestPath {
     }
 
     return $restUrl;
+  }
+
+  /**
+   * Gets Drupal8+ absolute rest URL
+   *
+   * @return string
+   */
+  private function getDrupal8AbsoluteUrl() {
+    return Civi::paths()->getUrl("civicrm/ajax/rest", 'absolute');
   }
 
   /**
@@ -173,5 +206,5 @@ class CRM_CiviMobileAPI_Utils_RestPath {
 
     return rtrim($url, '/');
   }
-  
+
 }

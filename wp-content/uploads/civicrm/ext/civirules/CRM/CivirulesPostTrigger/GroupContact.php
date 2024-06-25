@@ -34,10 +34,11 @@ class CRM_CivirulesPostTrigger_GroupContact extends CRM_Civirules_Trigger_Post {
   /**
    * Trigger a rule for this trigger
    *
-   * @param $op
-   * @param $objectName
-   * @param $objectId
-   * @param $objectRef
+   * @param string $op
+   * @param string $objectName
+   * @param int $objectId
+   * @param object $objectRef
+   * @param string $eventID
    */
   public function triggerTrigger($op, $objectName, $objectId, $objectRef, $eventID) {
     // $objectRef could be either an array of contact ids or it is an object of type CRM_Contact_BAO_GroupContact.
@@ -49,10 +50,11 @@ class CRM_CivirulesPostTrigger_GroupContact extends CRM_Civirules_Trigger_Post {
       CRM_Core_DAO::storeValues($objectRef, $data);
       $triggerData = $this->getTriggerDataFromPost($op, $objectName, $objectId, $data, $eventID);
       $triggerData->setEntityData('Group', $group);
-      CRM_Civirules_Engine::triggerRule($this, clone $triggerData);
+      $this->setTriggerData($triggerData);
+      parent::triggerTrigger($op, $objectName, $objectId, $objectRef, $eventID);
     } else {
       // We are dealing with an array of contact ids.
-      $sql = "SELECT MAX(`id`), `group_id`, `contact_id`, `status`, `location_id`, `email_id`
+      $sql = "SELECT MAX(`id`) AS id, `group_id`, `contact_id`, `status`, `location_id`, `email_id`
             FROM `civicrm_group_contact`
             WHERE `group_id` = %1 AND `contact_id` IN (" . implode(", ", $objectRef) . ")
             GROUP BY `contact_id`";
@@ -64,7 +66,7 @@ class CRM_CivirulesPostTrigger_GroupContact extends CRM_Civirules_Trigger_Post {
         CRM_Core_DAO::storeValues($dao, $data);
         $triggerData = $this->getTriggerDataFromPost($op, $objectName, $objectId, $data, $eventID);
         $triggerData->setEntityData('Group', $group);
-        CRM_Civirules_Engine::triggerRule($this, clone $triggerData);
+        CRM_Civirules_Engine::triggerRule($this, $triggerData);
       }
     }
   }

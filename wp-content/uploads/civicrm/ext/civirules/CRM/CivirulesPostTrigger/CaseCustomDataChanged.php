@@ -55,7 +55,12 @@ class CRM_CivirulesPostTrigger_CaseCustomDataChanged extends CRM_Civirules_Trigg
     $case = civicrm_api3('Case', 'getsingle', array('id' => $entityID));
     foreach($params as $field) {
       if (!empty($field['custom_field_id'])) {
-        $case['custom_' . $field['custom_field_id']] = $field['value'];
+        $value = $field['value'];
+        if ($field['type'] == 'Timestamp') {
+          $date = \DateTime::createFromFormat('YmdHis', $value);
+          $value = $date ? $date->format('Y-m-d H:i:s') : NULL;
+        }
+        $case['custom_' . $field['custom_field_id']] = $value;
       }
     }
 

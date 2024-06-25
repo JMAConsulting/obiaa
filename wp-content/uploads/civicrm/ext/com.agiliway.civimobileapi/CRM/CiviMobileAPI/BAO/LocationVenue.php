@@ -43,7 +43,7 @@ class CRM_CiviMobileAPI_BAO_LocationVenue extends CRM_CiviMobileAPI_DAO_Location
     } else {
       CRM_Utils_Hook::pre('create', self::getEntityName(), NULL, $params);
 
-      $fieldValues = ['location_id' => CRM_Utils_Array::value('location_id', $params)];
+      $fieldValues = ['location_id' => $params['location_id']];
       $weight = !empty($params['weight']) ? CRM_Utils_Weight::updateOtherWeights('CRM_CiviMobileAPI_DAO_LocationVenue', NULL, $params['weight'], $fieldValues) : CRM_Utils_Weight::getMax('CRM_CiviMobileAPI_DAO_LocationVenue', $fieldValues, 'weight') + 1;
       $params['weight'] = CRM_Utils_Weight::updateOtherWeights('CRM_CiviMobileAPI_DAO_LocationVenue', NULL, $weight, $fieldValues);
     }

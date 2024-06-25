@@ -18,7 +18,7 @@ use Civi\Api4\PaymentprocessorWebhook;
  *
  * @return array
  *   API result array.
- * @throws CiviCRM_API3_Exception
+ * @throws CRM_Core_Exception
  */
 function civicrm_api3_job_process_paymentprocessor_webhooks($params) {
   // @fixme: remove when minversion = 5.38

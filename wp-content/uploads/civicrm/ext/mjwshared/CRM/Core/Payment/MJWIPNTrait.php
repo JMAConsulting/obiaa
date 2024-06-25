@@ -27,7 +27,7 @@ trait CRM_Core_Payment_MJWIPNTrait {
   /**
    * Do we send an email receipt for each contribution?
    *
-   * @var int
+   * @var int|null
    */
   protected $is_email_receipt = NULL;
 
@@ -78,65 +78,39 @@ trait CRM_Core_Payment_MJWIPNTrait {
   protected $data;
 
   /**
-   * Set the value of is_email_receipt to use when a new contribution is received for a recurring contribution
-   * If not set, we respect the value set on the ContributionRecur entity.
    *
-   * @param int $sendReceipt The value of is_email_receipt
+   * Set the value of is_email_receipt to use when a new contribution is
+   * received for a recurring contribution. If set to NULL, we use CiviCRM core
+   * logic to determine if a receipt should be sent (typically the recurring
+   * contribution setting).
+   *
+   * @param int|null|bool $sendReceipt The value of is_email_receipt
    */
   public function setSendEmailReceipt($sendReceipt) {
-    switch ($sendReceipt) {
-      case 0:
-        $this->is_email_receipt = 0;
-        break;
-
-      case 1:
-        $this->is_email_receipt = 1;
-        break;
-
-      default:
-        $this->is_email_receipt = 0;
+    if (is_null($sendReceipt)) {
+      // Let CiviCRM core decide whether to send a receipt.
+      $this->is_email_receipt = NULL;
+    }
+    elseif ($sendReceipt) {
+      // Explicitly turn on receipts.
+      $this->is_email_receipt = 1;
+    }
+    else {
+      // Explicitly turn off receipts.
+      $this->is_email_receipt = 0;
     }
   }
 
   /**
    * Get the value of is_email_receipt to use when a new contribution is received.
-   * If not set, we respect the value set on the ContributionRecur entity (for recurring contributions)
-   * or the value set on the ContributionPage entity (for non-recurring contributions).
+   * If NULL we let CiviCRM core decide whether to send a receipt.
    *
-   * @param int $contributionID
+   * See setSendEmalReceipt() for more details.
    *
-   * @return int
-   * @throws \CiviCRM_API3_Exception
+   * @return int|null
    */
-  public function getSendEmailReceipt(int $contributionID) {
-    if (isset($this->is_email_receipt)) {
-      return (int) $this->is_email_receipt;
-    }
-    if (!empty($this->contribution_recur_id)) {
-      try {
-        $this->is_email_receipt = civicrm_api3('ContributionRecur', 'getvalue', [
-          'return' => "is_email_receipt",
-          'id' => $this->contribution_recur_id,
-        ]);
-      }
-      catch (Exception $e) {
-        $this->is_email_receipt = 0;
-      }
-    }
-    // Non-recurring contribution.
-    else {
-      try {
-        $this->is_email_receipt = Contribution::get(FALSE)
-          ->addSelect('contribution_page_id.is_email_receipt')
-          ->addWhere('id', '=', $contributionID)
-          ->execute()
-          ->first()['contribution_page_id.is_email_receipt'] ?? 0;
-      }
-      catch (Exception $e) {
-        $this->is_email_receipt = 0;
-      }
-    }
-    return (int) $this->is_email_receipt;
+  public function getSendEmailReceipt() {
+    return $this->is_email_receipt;
   }
 
   /**
@@ -261,7 +235,7 @@ trait CRM_Core_Payment_MJWIPNTrait {
    * Cancel a subscription (recurring contribution)
    * @param array $params
    *
-   * @throws \CiviCRM_API3_Exception
+   * @throws \CRM_Core_Exception
    * @throws \Civi\Payment\Exception\PaymentProcessorException
    */
   protected function updateRecurCancelled($params) {
@@ -273,7 +247,7 @@ trait CRM_Core_Payment_MJWIPNTrait {
    * Update the subscription (recurring contribution) to a successful status
    * @param array $params
    *
-   * @throws \CiviCRM_API3_Exception
+   * @throws \CRM_Core_Exception
    * @throws \Civi\Payment\Exception\PaymentProcessorException
    */
   private function updateRecurSuccess($params) {
@@ -289,7 +263,7 @@ trait CRM_Core_Payment_MJWIPNTrait {
    * Update the subscription (recurring contribution) to a completed status
    * @param array $params
    *
-   * @throws \CiviCRM_API3_Exception
+   * @throws \CRM_Core_Exception
    * @throws \Civi\Payment\Exception\PaymentProcessorException
    */
   private function updateRecurCompleted($params) {
@@ -305,7 +279,7 @@ trait CRM_Core_Payment_MJWIPNTrait {
    * Update the subscription (recurring contribution) to a failing status
    * @param array $params
    *
-   * @throws \CiviCRM_API3_Exception
+   * @throws \CRM_Core_Exception
    * @throws \Civi\Payment\Exception\PaymentProcessorException
    */
   private function updateRecurFailed($params) {
@@ -330,7 +304,7 @@ trait CRM_Core_Payment_MJWIPNTrait {
    * @param array $repeatContributionParams
    *
    * @return int
-   * @throws \CiviCRM_API3_Exception
+   * @throws \CRM_Core_Exception
    * @throws \Civi\Payment\Exception\PaymentProcessorException
    */
   private function repeatContribution(array $repeatContributionParams): int {
@@ -401,7 +375,7 @@ trait CRM_Core_Payment_MJWIPNTrait {
       }
       $paymentParams['contribution_id'] = $contribution['id'];
       $paymentParams['payment_processor_id'] = $this->getPaymentProcessor()->getID();
-      $paymentParams['is_send_contribution_notification'] = $this->getSendEmailReceipt($paymentParams['contribution_id']);
+      $paymentParams['is_send_contribution_notification'] = $this->getSendEmailReceipt();
       $paymentParams['skipCleanMoney'] = TRUE;
       civicrm_api3('Mjwpayment', 'create_payment', $paymentParams);
     }
@@ -411,7 +385,7 @@ trait CRM_Core_Payment_MJWIPNTrait {
   /**
    * @param array $params
    *
-   * @throws \CiviCRM_API3_Exception
+   * @throws \CRM_Core_Exception
    * @throws \Civi\Payment\Exception\PaymentProcessorException
    */
   private function updateContribution($params) {
@@ -430,7 +404,7 @@ trait CRM_Core_Payment_MJWIPNTrait {
    *
    * @param array $contributionParams
    *
-   * @throws \CiviCRM_API3_Exception
+   * @throws \CRM_Core_Exception
    * @throws \Civi\Payment\Exception\PaymentProcessorException
    */
   private function updateContributionCompleted(array $contributionParams) {
@@ -469,7 +443,7 @@ trait CRM_Core_Payment_MJWIPNTrait {
       ];
       CRM_Core_DAO::executeQuery($sql, $queryParams);
     }
-    $paymentParams['is_send_contribution_notification'] = $this->getSendEmailReceipt($paymentParams['contribution_id']);
+    $paymentParams['is_send_contribution_notification'] = $this->getSendEmailReceipt();
     $paymentParams['skipCleanMoney'] = TRUE;
     $paymentParams['payment_processor_id'] = $this->getPaymentProcessor()->getID();
     civicrm_api3('Mjwpayment', 'create_payment', $paymentParams);
@@ -480,7 +454,7 @@ trait CRM_Core_Payment_MJWIPNTrait {
    *
    * @param array $params ['contribution_id', 'order_reference'{, cancel_date, cancel_reason}]
    *
-   * @throws \CiviCRM_API3_Exception
+   * @throws \CRM_Core_Exception
    * @throws \Civi\Payment\Exception\PaymentProcessorException
    */
   private function updateContributionFailed($params) {
@@ -536,7 +510,6 @@ trait CRM_Core_Payment_MJWIPNTrait {
    * @param array $params
    *
    * @throws \CRM_Core_Exception
-   * @throws \CiviCRM_API3_Exception
    */
   protected function updateContributionRefund($params) {
     $this->checkRequiredParams('updateContributionRefund', ['contribution_id', 'total_amount'], $params);

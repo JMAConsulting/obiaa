@@ -4,10 +4,6 @@ use CRM_Civirules_ExtensionUtil as E;
 
 class CRM_CivirulesPostTrigger_Activity extends CRM_Civirules_Trigger_Post {
 
-  public function setTriggerParams($triggerParams) {
-    $this->triggerParams = unserialize($triggerParams);
-  }
-
   /**
    * Returns an array of entities on which the trigger reacts
    *
@@ -29,12 +25,13 @@ class CRM_CivirulesPostTrigger_Activity extends CRM_Civirules_Trigger_Post {
   /**
    * Trigger a rule for this trigger
    *
-   * @param $op
-   * @param $objectName
-   * @param $objectId
-   * @param $objectRef
+   * @param string $op
+   * @param string $objectName
+   * @param int $objectId
+   * @param object $objectRef
+   * @param string $eventID
    */
-  public function triggerTrigger($op, $objectName, $objectId, $objectRef, $eventID = NULL) {
+  public function triggerTrigger($op, $objectName, $objectId, $objectRef, $eventID) {
     $triggerData = $this->getTriggerDataFromPost($op, $objectName, $objectId, $objectRef, $eventID);
     if (empty($triggerData->getEntityId())) {
       $triggerData->setEntityId($objectId);
@@ -65,7 +62,8 @@ class CRM_CivirulesPostTrigger_Activity extends CRM_Civirules_Trigger_Post {
       if (isset($activityContact['contact_id']) && $activityContact['contact_id']) {
         $triggerData->setContactId($activityContact['contact_id']);
       }
-      CRM_Civirules_Engine::triggerRule($this, clone $triggerData);
+      $this->setTriggerData($triggerData);
+      parent::triggerTrigger($op, $objectName, $objectId, $objectRef, $eventID);
     }
   }
 
@@ -128,10 +126,8 @@ class CRM_CivirulesPostTrigger_Activity extends CRM_Civirules_Trigger_Post {
    * Returns a description of this trigger
    *
    * @return string
-   * @access public
-   * @abstract
    */
-  public function getTriggerDescription() {
+  public function getTriggerDescription(): string {
     $result = civicrm_api3('ActivityContact', 'getoptions', [
       'field' => "record_type_id",
     ]);

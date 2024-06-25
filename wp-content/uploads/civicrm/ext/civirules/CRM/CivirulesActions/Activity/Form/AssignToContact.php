@@ -18,28 +18,12 @@ class CRM_CivirulesActions_Activity_Form_AssignToContact extends CRM_CivirulesAc
     {
         $this->add('hidden', 'rule_action_id');
         $this->addYesNo('use_contact_trigger', 'Assign to contact from trigger', false, true);
-
-        $this->assign('use_old_contact_ref_fields', $this->use_old_contact_ref_fields);
-        if ($this->use_old_contact_ref_fields) {
-            $data = unserialize($this->ruleAction->action_params);
-            $assignees = array();
-            if (!empty($data['assignee_contact_id'])) {
-                if (is_array($data['assignee_contact_id'])) {
-                    $assignees = $data['assignee_contact_id'];
-                } else {
-                    $assignees[] = $data['assignee_contact_id'];
-                }
-            }
-            $this->assign('selectedContacts', implode(",", $assignees));
-            CRM_Contact_Form_NewContact::buildQuickForm($this);
-        } else {
-            $attributes = array(
-                'multiple' => true,
-                'create' => true,
-                'api' => array('params' => array('is_deceased' => 0)),
-            );
-            $this->addEntityRef('assignee_contact_id', ts('Assign to'), $attributes, false);
-        }
+        $attributes = array(
+          'multiple' => true,
+          'create' => true,
+          'api' => array('params' => array('is_deceased' => 0)),
+        );
+        $this->addEntityRef('assignee_contact_id', ts('Assign to'), $attributes, false);
 
         $this->addYesNo('send_email', 'Send Email to Assigned Contacts', false, true);
 
@@ -123,14 +107,7 @@ class CRM_CivirulesActions_Activity_Form_AssignToContact extends CRM_CivirulesAc
         $data['use_contact_trigger'] = $this->_submitValues['use_contact_trigger'];
 
         if ($data['use_contact_trigger'] === '0') {
-            if ($this->use_old_contact_ref_fields) {
-                $values = $this->controller->exportValues();
-                if (!empty($values['contact_select_id']) && count($values['contact_select_id']) > 0) {
-                    $data['assignee_contact_id'] = $values['contact_select_id'];
-                }
-            } else {
-                $data["assignee_contact_id"] = explode(',', $this->_submitValues["assignee_contact_id"]);
-            }
+          $data["assignee_contact_id"] = explode(',', $this->_submitValues["assignee_contact_id"]);
         }
 
         $this->ruleAction->action_params = serialize($data);

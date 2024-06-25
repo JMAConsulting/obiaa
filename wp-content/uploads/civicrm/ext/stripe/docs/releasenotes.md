@@ -9,6 +9,52 @@ Releases use the following numbering system:
 
 * **[BC]**: Items marked with [BC] indicate a breaking change that will require updates to your code if you are using that code in your extension.
 
+## Release 6.10.2 (2023-11-29)
+
+**This is the same as 6.10.1 but with a fix for upgrader issues (https://lab.civicrm.org/extensions/stripe/-/issues/460).**
+
+## Release 6.10.1 (2023-11-29)
+
+* [!238](https://lab.civicrm.org/extensions/stripe/-/merge_requests/238) Add support for enabling payments on frontend forms (via setting)
+* [!236](https://lab.civicrm.org/extensions/stripe/-/merge_requests/236) Add option to disable link on card element (via setting).
+* [!237](https://lab.civicrm.org/extensions/stripe/-/merge_requests/237) Fix Unauthorized API exception causing Failed to retrieve Stripe Customer.
+* [!234](https://lab.civicrm.org/extensions/stripe/-/merge_requests/234) Fix improper use of array in StripeIPN.
+* Cleanup managed custom fields.
+* Fix money types.
+* Fix retrieval of subscription params with newer Stripe API versions.
+* Update importSubscription tests.
+
+## Release 6.10 (2023-10-10)
+**Supports Stripe API version 2023-08-16 (and will force it to be used).**
+
+### Breaking changes
+
+* Removes API3 StripePaymentintent.process and API3 StripePaymentintent.createorupdate.
+* Remove support for paymentrequest(google/apple pay) via Stripe elements (it causes too many problems when enabled) and can now be used via Stripe Checkout instead.
+* Drop support for passing 'capture=true' into intent processor (API4 StripePaymentintent.ProcessPublic/ProcessMOTO no longer has this parameter available).
+
+### Fixes
+
+* Fix [#453](https://lab.civicrm.org/extensions/stripe/-/issues/453) Multiple webhook call is made for same event when STRIPE & stripe CHECKOUT both are enabled.
+* Fix [#427](https://lab.civicrm.org/extensions/stripe/-/issues/427) 'unknown error' message on failed transactions in WP.
+* Fix [#449](https://lab.civicrm.org/extensions/stripe/-/issues/449) Always show detailed error from ProcessPublic API.
+Update tests to use StripePaymentintent.ProcessPublic instead of (deleted) API3 StripePaymentintent.process.
+* Handle customer subscriptions in different currencies (create a new customer for each currency) as Stripe doesn't allow customers to use multiple currencies for subscriptions.
+
+### Changes
+
+* Support (and require) API version 2023-08-16.
+* Update stripe-php library from 9 to 12.
+
+
+## Release 6.9.4 (2023-09-22)
+**Stripe API version 2023-08-16 is NOT supported.
+The last supported API version for 6.9.x is 2022-11-15 See [#446](https://lab.civicrm.org/extensions/stripe/-/issues/446)**
+
+* Remove exception that causes loading of contribution pages to fail with 'Check Stripe credentials' if live does not have credentials but test does.
+* [!230](https://lab.civicrm.org/extensions/stripe/-/merge_requests/230) Fix issue in stripe_civicrm_post where a not-yet loaded contact_id, causes crash.
+* [!231](https://lab.civicrm.org/extensions/stripe/-/merge_requests/231) parseStripeException: log unrelated errors.
+
 ## Release 6.9.3 (2023-08-26)
 
 * Partially fix [#367](https://lab.civicrm.org/extensions/stripe/-/issues/367) - "Installments" ignored in recurring contributions -- it just keeps going indefinitely.

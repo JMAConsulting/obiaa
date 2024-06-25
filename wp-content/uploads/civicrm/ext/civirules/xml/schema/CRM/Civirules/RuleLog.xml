@@ -2,9 +2,9 @@
 
 <table>
   <base>CRM/Civirules</base>
-  <class>RuleLog</class>
+  <class>CiviRulesRuleLog</class>
   <name>civirule_rule_log</name>
-  <comment>FIXME</comment>
+  <comment>CiviRules Rule Logs</comment>
   <table_type>Innodb</table_type>
   <log>true</log>
 
@@ -18,6 +18,7 @@
     <name>id</name>
     <autoincrement>true</autoincrement>
   </primaryKey>
+
   <field>
     <name>rule_id</name>
     <type>int unsigned</type>
@@ -27,10 +28,22 @@
     <name>rule_id</name>
     <fieldName>rule_id</fieldName>
   </index>
+  <foreignKey>
+    <name>rule_id</name>
+    <table>civirule_rule</table>
+    <key>id</key>
+    <onDelete>SET NULL</onDelete>
+  </foreignKey>
+
   <field>
     <name>contact_id</name>
     <type>int unsigned</type>
     <default>NULL</default>
+    <comment>FK to Contact ID</comment>
+    <html>
+      <label>Modified By</label>
+    </html>
+    <readonly>true</readonly>
   </field>
   <index>
     <name>contact_id</name>
@@ -41,21 +54,31 @@
     <fieldName>rule_id</fieldName>
     <fieldName>contact_id</fieldName>
   </index>
+  <foreignKey>
+    <name>contact_id</name>
+    <table>civicrm_contact</table>
+    <key>id</key>
+    <onDelete>SET NULL</onDelete>
+  </foreignKey>
+
   <field>
     <name>entity_table</name>
     <type>varchar</type>
     <length>255</length>
     <default>NULL</default>
   </field>
+
   <field>
     <name>entity_id</name>
     <type>int unsigned</type>
     <default>NULL</default>
   </field>
+
   <field>
     <name>log_date</name>
     <type>datetime</type>
     <default>NULL</default>
+    <readonly>true</readonly>
   </field>
 
 </table>

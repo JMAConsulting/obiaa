@@ -24,7 +24,7 @@
   <div class="crm-section">
     <div class="label">{$form.rule_is_active.label}</div>
     <div class="content">{$form.rule_is_active.html}
-    {if $clones}
+    {if !empty($clones)}
         <br><span class="description font-red">{ts}This rule has the following duplicate(s) : {$clones}{/ts}</span>
         <br><span class="description font-red">{ts}Enabling can result in unintended double actions{/ts}</span>
     {/if}
@@ -44,7 +44,7 @@
   {$postRuleBlock}
 </div>
 
-{if $clones}
+{if !empty($clones)}
 {literal}
 <script>
   CRM.$('#rule_is_active').on('change',function(){

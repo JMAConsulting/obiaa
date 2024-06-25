@@ -273,6 +273,25 @@ class CRM_CiviMobileAPI_Upgrader extends CRM_Extension_Upgrader_Base {
     return TRUE;
   }
 
+  public function upgrade_0029() {
+    try {
+      (new CRM_CiviMobileAPI_Install_Entity_OptionValue())->install();
+    } catch (Exception $e) {
+      return FALSE;
+    }
+
+    return TRUE;
+  }
+
+  public function upgrade_0030() {
+    try {
+      (new CRM_CiviMobileAPI_Install_Entity_OptionValue())->install();
+    } catch (Exception $e) {
+      return FALSE;
+    }
+
+    return TRUE;
+  }
   /**
    * Installs scheduled job
    *
@@ -293,8 +312,7 @@ class CRM_CiviMobileAPI_Upgrader extends CRM_Extension_Upgrader_Base {
     );
 
     self::setDefaultMobileEventRegistration();
-
-    Civi::settings()->set('civimobile_auto_update', 1);
+    
     Civi::settings()->set('civimobile_is_allow_registration', 1);
   }
 

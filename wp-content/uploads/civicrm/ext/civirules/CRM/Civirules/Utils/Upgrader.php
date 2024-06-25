@@ -501,7 +501,7 @@ class CRM_Civirules_Utils_Upgrader {
       if (!isset($trigger['class_name'])) {
         $trigger['class_name'] = null;
       }
-      self::insertTrigger($trigger['name'], $trigger['label'], $trigger['cron'], $trigger['class_name'], $trigger['object_name'], $trigger['op']);
+      self::insertTrigger($trigger['name'], $trigger['label'], $trigger['cron'] ?? 0, $trigger['class_name'], $trigger['object_name'], $trigger['op']);
     }
   }
 

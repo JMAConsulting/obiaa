@@ -41,18 +41,7 @@ class CRM_Stripe_PaymentIntent {
   /**
    * @param \CRM_Core_Payment_Stripe $paymentProcessor
    */
-  public function __construct($paymentProcessor = NULL) {
-    if ($paymentProcessor) {
-      $this->setPaymentProcessor($paymentProcessor);
-    }
-  }
-
-  /**
-   * @param \CRM_Core_Payment_Stripe $paymentProcessor
-   *
-   * @return void
-   */
-  public function setPaymentProcessor(\CRM_Core_Payment_Stripe $paymentProcessor) {
+  public function __construct(\CRM_Core_Payment_Stripe $paymentProcessor) {
     $this->paymentProcessor = $paymentProcessor;
   }
 
@@ -346,17 +335,12 @@ class CRM_Stripe_PaymentIntent {
    */
   public function processIntent(array $params) {
     // Params that may or may not be set by calling code:
-    // 'capture' was used by civicrmStripeConfirm.js and was removed when we added setupIntents.
-    $params['capture'] = $params['capture'] ?? FALSE;
     // 'currency' should really be set but we'll default if not set.
     $currency = \CRM_Utils_Type::validate($params['currency'], 'String', \CRM_Core_Config::singleton()->defaultCurrency);
     // If a payment using MOTO (mail order telephone order) was requested.
     // This parameter has security implications and great care should be taken when setting it to TRUE.
     $params['moto'] = $params['moto'] ?? FALSE;
 
-    /** @var \CRM_Core_Payment_Stripe $paymentProcessor */
-    $paymentProcessor = \Civi\Payment\System::singleton()->getById($params['paymentProcessorID']);
-    $this->setPaymentProcessor($paymentProcessor);
     if ($this->paymentProcessor->getPaymentProcessor()['class_name'] !== 'Payment_Stripe') {
       \Civi::log('stripe')->error(__CLASS__ . " payment processor {$params['paymentProcessorID']} is not Stripe");
       return (object) ['ok' => FALSE, 'message' => 'Payment processor is not Stripe', 'data' => []];
@@ -373,7 +357,7 @@ class CRM_Stripe_PaymentIntent {
       $processPaymentIntentParams = [
         'paymentIntentID' => $params['intentID'],
         'paymentMethodID' => $params['paymentMethodID'],
-        'capture' => $params['capture'],
+        'capture' => FALSE,
         'amount' => $params['amount'],
         'currency' => $currency,
         'payment_method_options' => $params['payment_method_options'] ?? [],
@@ -430,10 +414,7 @@ class CRM_Stripe_PaymentIntent {
     $intentParams = [];
     $intentParams['confirm'] = TRUE;
     $intentParams['confirmation_method'] = 'manual';
-    if (empty($params['paymentIntentID']) && empty($params['paymentMethodID'])) {
-      $intentParams['confirm'] = FALSE;
-      $intentParams['confirmation_method'] = 'automatic';
-    }
+    $intentParams['payment_method_types'] = ['card'];
 
     if (!empty($params['paymentIntentID'])) {
       try {
@@ -442,12 +423,9 @@ class CRM_Stripe_PaymentIntent {
         if ($intent->status === 'requires_confirmation') {
           $intent->confirm();
         }
-        if ($params['capture'] && $intent->status === 'requires_capture') {
-          $intent->capture();
-        }
       }
       catch (Exception $e) {
-        \Civi::log()->debug(get_class($e) . $e->getMessage());
+        \Civi::log('stripe')->debug($this->paymentProcessor->getLogPrefix() . get_class($e) . $e->getMessage());
       }
     }
     else {
@@ -469,6 +447,7 @@ class CRM_Stripe_PaymentIntent {
         if (isset($params['customer'])) {
           $intentParams['customer'] = $params['customer'];
         }
+
         $intent = $this->paymentProcessor->stripeClient->paymentIntents->create($intentParams);
       }
       catch (Exception $e) {

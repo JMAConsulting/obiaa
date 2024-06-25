@@ -100,6 +100,26 @@ class CRM_CiviMobileAPI_Utils_Event {
 
     return civicrm_api4('Participant', 'get', ['where' => $participantFilters])->count();
   }
+  
+  public static function getParticipantsCountByEvent($events) {
+    $eventIds = array_column($events, 'id');
+    
+    $participantsCountByEvent = civicrm_api4('Participant', 'get', [
+      'select' => ['event_id', 'COUNT(*) AS participant_count'],
+      'join' => [['Event AS event', 'LEFT', ['event.id', '=', 'event_id']]],
+      'where' => [['event_id', 'IN', $eventIds]],
+      'groupBy' => ['event_id'],
+      'checkPermissions' => FALSE,
+    ]);
+    
+    $formattedParticipantsCountByEvent = [];
+    
+    foreach ($participantsCountByEvent as $event) {
+      $formattedParticipantsCountByEvent[$event['event_id']] = $event['participant_count'];
+    }
+    
+    return $formattedParticipantsCountByEvent;
+  }
 
 
 }

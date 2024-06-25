@@ -1,0 +1,41 @@
+<?php return array(
+    'root' => array(
+        'name' => '__root__',
+        'pretty_version' => 'dev-master',
+        'version' => 'dev-master',
+        'reference' => '67abf4bbd6e7f79e37aa9cb04b5520ea56418efc',
+        'type' => 'library',
+        'install_path' => __DIR__ . '/../../',
+        'aliases' => array(),
+        'dev' => true,
+    ),
+    'versions' => array(
+        '__root__' => array(
+            'pretty_version' => 'dev-master',
+            'version' => 'dev-master',
+            'reference' => '67abf4bbd6e7f79e37aa9cb04b5520ea56418efc',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../../',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+        'patchwork/jsqueeze' => array(
+            'pretty_version' => 'v2.0.5',
+            'version' => '2.0.5.0',
+            'reference' => '693d64850eab2ce6a7c8f7cf547e1ab46e69d542',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../patchwork/jsqueeze',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+        'tubalmartin/cssmin' => array(
+            'pretty_version' => 'v4.1.1',
+            'version' => '4.1.1.0',
+            'reference' => '3cbf557f4079d83a06f9c3ff9b957c022d7805cf',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../tubalmartin/cssmin',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+    ),
+);

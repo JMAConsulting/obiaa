@@ -23,34 +23,35 @@ class CRM_CivirulesPostTrigger_Case extends CRM_Civirules_Trigger_Post {
   /**
    * Trigger a rule for this trigger
    *
-   * @param $op
-   * @param $objectName
-   * @param $objectId
-   * @param $objectRef
+   * @param string $op
+   * @param string $objectName
+   * @param int $objectId
+   * @param object $objectRef
+   * @param string $eventID
    */
   public function triggerTrigger($op, $objectName, $objectId, $objectRef, $eventID) {
     $t = $this->getTriggerDataFromPost($op, $objectName, $objectId, $objectRef, $eventID);
 
     if ($op == 'create') {
-      $triggerData = clone $t;
-      CRM_Civirules_Engine::triggerRule($this, $triggerData);
+      $this->setTriggerData(clone $t);
+      parent::triggerTrigger($op, $objectName, $objectId, $objectRef, $eventID);
     }
 
     //trigger for each client
     $clients = CRM_Case_BAO_Case::getCaseClients($objectId);
     foreach($clients as $client) {
       $triggerData = clone $t;
-      $triggerData->setEntityData('Relationship', null);
+      $triggerData->setEntityData('Relationship', NULL);
       $triggerData->setContactId($client);
-
-      CRM_Civirules_Engine::triggerRule($this, $triggerData);
+      $this->setTriggerData($triggerData);
+      parent::triggerTrigger($op, $objectName, $objectId, $objectRef, $eventID);
     }
 
     //trigger for each case role
     $relatedContacts = CRM_Case_BAO_Case::getRelatedContacts($objectId);
     foreach($relatedContacts as $contact) {
       $triggerData = clone $t;
-      $relationshipData = null;
+      $relationshipData = NULL;
       $relationship = new CRM_Contact_BAO_Relationship();
       $relationship->contact_id_b = $contact['contact_id'];
       $relationship->case_id = $objectId;
@@ -59,8 +60,8 @@ class CRM_CivirulesPostTrigger_Case extends CRM_Civirules_Trigger_Post {
       }
       $triggerData->setEntityData('Relationship', $relationshipData);
       $triggerData->setContactId($contact['contact_id']);
-
-      CRM_Civirules_Engine::triggerRule($this, $triggerData);
+      $this->setTriggerData($triggerData);
+      parent::triggerTrigger($op, $objectName, $objectId, $objectRef, $eventID);
     }
   }
 

@@ -38,6 +38,7 @@ class CRM_CivirulesActions_Activity_Edit extends CRM_CivirulesActions_Activity_A
           'status_id',
           'subject',
           'details',
+          'duration',
           'assignee_contact_id',
           'activity_date_time',
         ],
@@ -60,6 +61,10 @@ class CRM_CivirulesActions_Activity_Edit extends CRM_CivirulesActions_Activity_A
     if (!empty($params['status_id']) && $params['status_id']!=$activity['status_id'])
       $updateParams['status_id'] = $params['status_id'];
 
+    if (!empty($params['duration']) && $params['duration']!=$activity['duration']) {
+      $updateParams['duration'] = $params['duration'];
+    }
+
     if (!empty($params['subject']) && $params['subject']!=$activity['subject'])
       $updateParams['subject'] = $params['subject'];
 
@@ -69,7 +74,17 @@ class CRM_CivirulesActions_Activity_Edit extends CRM_CivirulesActions_Activity_A
     if (!empty($params['assignee_contact_id'])) {
 
       $existingAssignees = (array)$activity['assignee_contact_id'];
-      $newAssignees = (array)$params['assignee_contact_id'];
+
+      $newAssignees = [];
+      // Note: We need to loop and check for valid contact ids
+      // When assignee_contact_id is not set in the UI,
+      // $params['assignee_contact_id'] = [0 => ];
+      // else $params['assignee_contact_id'] = [0 => 'valide contact id'];
+      foreach($params['assignee_contact_id'] as $contactId) {
+        if (!empty($contactId)) {
+          $newAssignees[] = $contactId;
+        }
+      }
 
       // Is there anyone new is the params list
       $newlyAssignedContacts = array_diff($newAssignees,$existingAssignees);

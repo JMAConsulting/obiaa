@@ -24,7 +24,7 @@ class CRM_Mjwshared_Upgrader extends CRM_Extension_Upgrader_Base {
   /**
    * @return TRUE on success
    * @throws Exception
-   */
+  */
   public function upgrade_1001() {
     $this->ctx->log->info('Applying update 1001 - alter civicrm_paymentprocessor_webhook table');
     $this->executeSqlFile('sql/upgrade_1001.sql');
@@ -39,6 +39,12 @@ class CRM_Mjwshared_Upgrader extends CRM_Extension_Upgrader_Base {
     if (!CRM_Core_BAO_SchemaHandler::checkIfIndexExists('civicrm_paymentprocessor_webhook', 'index_identifier')) {
       CRM_Core_DAO::executeQuery('ALTER TABLE `civicrm_paymentprocessor_webhook` ADD INDEX `index_identifier` (`identifier`)');
     }
+    return TRUE;
+  }
+
+  public function upgrade_1003() {
+    $this->ctx->log->info('Make "message" field not required');
+    CRM_Core_DAO::executeQuery("ALTER TABLE civicrm_paymentprocessor_webhook MODIFY COLUMN `message` varchar(1024) DEFAULT '' COMMENT 'Stores data sent that is needed for processing. JSON suggested.'");
     return TRUE;
   }
 }

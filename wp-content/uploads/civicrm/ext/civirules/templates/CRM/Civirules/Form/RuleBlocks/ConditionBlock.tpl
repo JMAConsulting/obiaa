@@ -17,7 +17,7 @@
           {assign var="row_class" value="odd-row"}
           {foreach from=$ruleConditions key=ruleConditionIid item=ruleCondition}
             <tr class={$row_class}>
-              <td>{$ruleCondition.condition_link}</td>
+              <td>{if isset($ruleCondition.condition_link)}{$ruleCondition.condition_link}{/if}</td>
               <td>{$ruleCondition.name}</td>
               <td>
                 {if !empty($ruleCondition.formattedConditionParams)}

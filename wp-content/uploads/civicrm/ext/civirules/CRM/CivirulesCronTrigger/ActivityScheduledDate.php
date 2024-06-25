@@ -139,7 +139,7 @@ class CRM_CivirulesCronTrigger_ActivityScheduledDate extends CRM_CivirulesCronTr
    *
    * @return string
    */
-  public function getTriggerDescription() {
+  public function getTriggerDescription(): string {
     $activityTypes = CRM_Civirules_Utils::getActivityTypeList();
     $activityStatuses = CRM_Civirules_Utils::getActivityStatusList();
 

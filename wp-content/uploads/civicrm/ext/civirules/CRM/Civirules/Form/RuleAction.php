@@ -77,7 +77,7 @@ class CRM_Civirules_Form_RuleAction extends CRM_Core_Form {
    * @access public
    */
   function postProcess() {
-    $saveParams = array();
+    $saveParams = [];
     $saveParams['rule_id'] = $this->_submitValues['rule_id'];
     $saveParams['delay'] = 'null';
     $saveParams['ignore_condition_with_delay'] = '0';
@@ -101,14 +101,14 @@ class CRM_Civirules_Form_RuleAction extends CRM_Core_Form {
       }
     }
 
-    $ruleAction = CRM_Civirules_BAO_RuleAction::add($saveParams);
+    $ruleAction = CRM_Civirules_BAO_RuleAction::writeRecord($saveParams);
 
     $session = CRM_Core_Session::singleton();
     $session->setStatus('Action added to CiviRule '.CRM_Civirules_BAO_Rule::getRuleLabelWithId($this->_submitValues['rule_id']),
       'Action added', 'success');
 
     $action = CRM_Civirules_BAO_Action::getActionObjectById($this->ruleAction->action_id, true);
-    $redirectUrl = $action->getExtraDataInputUrl($ruleAction['id']);
+    $redirectUrl = $action->getExtraDataInputUrl($ruleAction->id);
     if (empty($redirectUrl) || $this->ruleActionId) {
       $redirectUrl = CRM_Utils_System::url('civicrm/civirule/form/rule', 'action=update&id=' . $this->_submitValues['rule_id'], TRUE);
     } elseif (!$this->ruleActionId) {
@@ -128,15 +128,17 @@ class CRM_Civirules_Form_RuleAction extends CRM_Core_Form {
     if ($this->ruleActionId) {
       $this->add('hidden', 'id');
     }
-    $actionList = array(' - select - ') + CRM_Civirules_Utils::buildActionList();
-    asort($actionList);
-    $attributes = array('class' => 'crm-select2 huge');
+    $actionList = [' - select - '] + \Civi\Api4\CiviRulesAction::get(FALSE)
+      ->addOrderBy('label', 'ASC')
+      ->execute()
+      ->indexBy('id')
+      ->column('label');
+    $attributes = ['class' => 'crm-select2 huge'];
     if (empty($this->ruleActionId)) {
       $this->add('select', 'rule_action_select', ts('Select Action'), $actionList, true, $attributes);
     }
 
-
-    $delayList = array(' - No Delay - ') + CRM_Civirules_Delay_Factory::getOptionList();
+    $delayList = [' - No Delay - '] + CRM_Civirules_Delay_Factory::getOptionList();
     $this->add('select', 'delay_select', ts('Delay action to'), $delayList);
     foreach(CRM_Civirules_Delay_Factory::getAllDelayClasses() as $delay_class) {
       $delay_class->addElements($this, '', $this->rule);
@@ -145,9 +147,10 @@ class CRM_Civirules_Form_RuleAction extends CRM_Core_Form {
     $this->assign('delayPrefix', '');
     $this->add('checkbox', 'ignore_condition_with_delay', ts('Don\'t recheck condition upon processing of delayed action'));
 
-    $this->addButtons(array(
-      array('type' => 'next', 'name' => ts('Save'), 'isDefault' => TRUE,),
-      array('type' => 'cancel', 'name' => ts('Cancel'))));
+    $this->addButtons([
+      ['type' => 'next', 'name' => ts('Save'), 'isDefault' => TRUE,],
+      ['type' => 'cancel', 'name' => ts('Cancel')]
+    ]);
   }
 
   public function setDefaultValues() {
@@ -195,15 +198,15 @@ class CRM_Civirules_Form_RuleAction extends CRM_Core_Form {
    */
   public function addRules() {
     if (empty($this->ruleActionId)) {
-      $this->addFormRule(array(
+      $this->addFormRule([
         'CRM_Civirules_Form_RuleAction',
         'validateRuleAction'
-      ));
+      ]);
     }
-    $this->addFormRule(array(
+    $this->addFormRule([
       'CRM_Civirules_Form_RuleAction',
       'validateDelay'
-    ));
+    ]);
   }
 
   /**
@@ -215,7 +218,7 @@ class CRM_Civirules_Form_RuleAction extends CRM_Core_Form {
    * @static
    */
   static function validateRuleAction($fields) {
-    $errors = array();
+    $errors = [];
     if (isset($fields['rule_action_select']) && empty($fields['rule_action_select'])) {
       $errors['rule_action_select'] = ts('Action has to be selected, press CANCEL if you do not want to add an action');
     } else {
@@ -233,7 +236,7 @@ class CRM_Civirules_Form_RuleAction extends CRM_Core_Form {
         $triggerObject = CRM_Civirules_BAO_Trigger::getPostTriggerObjectByClassName($trigger->class_name, TRUE);
         $triggerObject->setTriggerId($trigger->id);
         if (!$actionClass->doesWorkWithTrigger($triggerObject, $rule)) {
-          $errors['rule_action_select'] = ts('This action is not available with trigger %1', array(1 => $trigger->label));
+          $errors['rule_action_select'] = ts('This action is not available with trigger %1', [1 => $trigger->label]);
         }
       }
     }
@@ -254,7 +257,7 @@ class CRM_Civirules_Form_RuleAction extends CRM_Core_Form {
    * @static
    */
   static function validateDelay($fields) {
-    $errors = array();
+    $errors = [];
     if (!empty($fields['delay_select'])) {
       $ruleActionId = CRM_Utils_Request::retrieve('rule_action_id', 'Integer');
       $ruleAction = new CRM_Civirules_BAO_RuleAction();

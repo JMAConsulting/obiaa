@@ -1,4 +1,5 @@
 {
     "name": "civicrm/civirules",
-    "description": "Native CiviCRM extension CiviRules"
+    "description": "Native CiviCRM extension CiviRules",
+    "type": "civicrm-ext"
 }

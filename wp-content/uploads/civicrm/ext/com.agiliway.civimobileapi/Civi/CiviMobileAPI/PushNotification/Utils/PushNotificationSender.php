@@ -65,7 +65,7 @@ class PushNotificationSender {
       'Authorization:' . $key,
     ];
 
-    $nullObject = CRM_Utils_Hook::$_nullObject;
+    $nullObject = NULL;
     CRM_Utils_Hook::singleton()->commonInvoke(2, $notificationBody, $requestHeader,
       $nullObject, $nullObject, $nullObject, $nullObject, 'civimobile_send_push', '');
 

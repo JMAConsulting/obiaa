@@ -11,16 +11,14 @@
     cj("head").append('<link rel="stylesheet" type="text/css" href="{/literal}{$absURL}{literal}/bower_components/jquery-ui/themes/smoothness/jquery-ui.min.css"/>');
     cj("head").append('<link rel="stylesheet" type="text/css" href="{/literal}{$absURL}{literal}/bower_components/select2/select2.min.css"/>');
     cj("head").append('<link rel="stylesheet" type="text/css" href="{/literal}{$absURL}{literal}/css/civicrm.css"/>');
+      
+    $('#content').siblings().hide();
+    $('#content').parents().siblings().hide();
+    $('.crm-public-footer').hide();
+    $('.crm-section.crm-socialnetwork.help').hide();
+    $('#printer-friendly').hide();
+    $('#civicrm-menu-nav').hide();
 
-    setTimeout(function(){
-      $('#content').siblings().hide();
-      $('#content').parents().siblings().hide();
-      $('.crm-public-footer').hide();
-      $('.crm-section.crm-socialnetwork.help').hide();
-      $('#printer-friendly').hide();
-
-      $('#civicrm-menu-nav').hide();
-    }, 500);
     //wordpress header
     $('#site-header').hide();
     $('.menu-modal').hide();

@@ -10,20 +10,20 @@ class CRM_CiviMobileAPI_Hook_AlterMailParams_EventOnlineReceipt {
    * @throws CRM_Core_Exception
    */
   public static function run($params, $context) {
-    if ($context == 'messageTemplate' && $params['valueName'] == 'event_online_receipt' && $params['groupName'] == 'msg_tpl_workflow_event') {
+    if ($context == 'messageTemplate' && $params['workflow'] == 'event_online_receipt') {
       $template = CRM_Core_Smarty::singleton();
-      $eventId = (int)$template->get_template_vars('event')['id'];
-      $contactId = (int)$template->get_template_vars('contactID');
+      $eventId = (int)$template->getTemplateVars('event')['id'];
+      $contactId = (int)$template->getTemplateVars('contactID');
 
       if (!empty($params['tplParams']['contactIdApi'])) {
         $contactId = (int)$params['tplParams']['contactIdApi'];
       }
-      if (!empty($params['tplParams']['eventIdApi'])) {
-        $eventId = (int)$params['tplParams']['eventIdApi'];
+      elseif (empty($contactId) && isset($params['contactId'])) {
+        $contactId = $params['contactId'];
       }
 
-      if (empty($contactId) && isset($params['contactId'])) {
-        $contactId = $params['contactId'];
+      if (!empty($params['tplParams']['eventIdApi'])) {
+        $eventId = (int)$params['tplParams']['eventIdApi'];
       }
 
       try {

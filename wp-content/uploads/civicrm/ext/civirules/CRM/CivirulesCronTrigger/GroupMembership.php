@@ -6,30 +6,37 @@
  * Time: 10:26 AM
  */
 
+use CRM_Civirules_ExtensionUtil as E;
+
 class CRM_CivirulesCronTrigger_GroupMembership extends CRM_Civirules_Trigger_Cron {
 
-  private $dao = false;
+  /**
+   * @var bool|CRM_Core_DAO
+   */
+  private $dao = FALSE;
 
   /**
    * This function returns a CRM_Civirules_TriggerData_TriggerData this entity is used for triggering the rule
    *
    * Return false when no next entity is available
    *
-   * @return CRM_Civirules_TriggerData_TriggerData|false
+   * @return CRM_Civirules_TriggerData_Cron|false
+   * @throws \CRM_Core_Exception
+   * @throws \Civi\Core\Exception\DBQueryException
    */
   protected function getNextEntityTriggerData() {
     if (!$this->dao) {
       if (!$this->queryForTriggerEntities()) {
-        return false;
+        return FALSE;
       }
     }
     if ($this->dao->fetch()) {
-      $data = array();
+      $data = [];
       CRM_Core_DAO::storeValues($this->dao, $data);
-      $triggerData = new CRM_Civirules_TriggerData_Cron($this->dao->contact_id, 'GroupContact', $data);
+      $triggerData = new CRM_Civirules_TriggerData_Cron($this->dao->contact_id, 'GroupContact', $data, $this->dao->contact_id);
       return $triggerData;
     }
-    return false;
+    return FALSE;
   }
 
   /**
@@ -44,14 +51,15 @@ class CRM_CivirulesCronTrigger_GroupMembership extends CRM_Civirules_Trigger_Cro
   /**
    * Method to query trigger entities
    *
-   * @access private
+   * @return bool
+   * @throws \CRM_Core_Exception
+   * @throws \Civi\Core\Exception\DBQueryException
    */
   private function queryForTriggerEntities() {
 
     if (empty($this->triggerParams['group_id'])) {
-      return false;
+      return FALSE;
     }
-
 
     if (is_array($this->triggerParams['group_id'])) {
       $this->triggerParams['group_id'] = CRM_Utils_Type::escapeAll($this->triggerParams['group_id'], 'Integer');
@@ -81,7 +89,7 @@ class CRM_CivirulesCronTrigger_GroupMembership extends CRM_Civirules_Trigger_Cro
               )
     ";
 
-    $params[1] = array($this->ruleId, 'Integer');
+    $params[1] = [$this->ruleId, 'Integer'];
     $this->dao = CRM_Core_DAO::executeQuery($sql, $params, true, 'CRM_Contact_DAO_GroupContact');
 
     return true;
@@ -93,30 +101,23 @@ class CRM_CivirulesCronTrigger_GroupMembership extends CRM_Civirules_Trigger_Cro
    * Return false if you do not need extra data input
    *
    * @param int $ruleId
+   *
    * @return bool|string
-   * @access public
-   * @abstract
    */
   public function getExtraDataInputUrl($ruleId) {
-    return CRM_Utils_System::url('civicrm/civirule/form/trigger/groupmembership/', 'rule_id='.$ruleId);
-  }
-
-  public function setTriggerParams($triggerParams) {
-    $this->triggerParams = unserialize($triggerParams);
+    return CRM_Utils_System::url('civicrm/civirule/form/trigger/groupmembership/', 'rule_id=' . $ruleId);
   }
 
   /**
    * Returns a description of this trigger
    *
    * @return string
-   * @access public
-   * @abstract
    */
-  public function getTriggerDescription() {
-    $groupName = ts('Unknown');
+  public function getTriggerDescription(): string {
+    $groupName = E::ts('Unknown');
     if (is_array($this->triggerParams['group_id'])) {
-      $groupApi = civicrm_api3('Group', 'get', array('id' => array('IN' => $this->triggerParams['group_id']), 'options' => array('limit' => 0)));
-      $groupNames = array();
+      $groupApi = civicrm_api3('Group', 'get', ['id' => ['IN' => $this->triggerParams['group_id']], 'options' => ['limit' => 0]]);
+      $groupNames = [];
       foreach($groupApi['values'] as $group) {
         $groupNames[] = $group['title'];
       }
@@ -133,8 +134,9 @@ class CRM_CivirulesCronTrigger_GroupMembership extends CRM_Civirules_Trigger_Cro
         //do nothing
       }
     }
-    return ts('Daily trigger for all members of group %1', array(
+    return E::ts('Daily trigger for all members of group %1', [
       1 => $groupName
-    ));
+    ]);
   }
+
 }

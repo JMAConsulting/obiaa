@@ -126,7 +126,7 @@ class CRM_Mjwshared_Form_PaymentRefund extends CRM_Core_Form {
       ts('Refund Amount'),
       TRUE,
       [],
-      TRUE, 'currency', NULL, TRUE
+      TRUE, 'currency', $financialTrxn['currency'], TRUE
     );
 
     $this->addButtons([

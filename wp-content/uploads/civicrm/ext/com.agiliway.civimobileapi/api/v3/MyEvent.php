@@ -34,20 +34,20 @@ function civicrm_api3_my_event_get($params) {
 function _civicrm_api3_my_event_prepare_params($params) {
   $newParams = [];
   if (isset($params['options'])) {
-    $limit = (int)CRM_Utils_Array::value('limit', $params['options'], 0);
+    $limit = (int) ($params['options']['limit'] ?? 0);
     if ($limit != 0) {
       $newParams['limit'] = $limit;
-      $newParams['offset'] = (int)CRM_Utils_Array::value('offset', $params['options'], 0);
+      $newParams['offset'] = (int) ($params['options']['offset'] ?? 0);
     }
-    $order = (string)CRM_Utils_Array::value('sort', $params['options']);
+    $order = (string) ($params['options']['sort']);
   }
 
   $newParams['contact_id'] = !empty($params['contact_id']) ? (int)$params['contact_id'] : null;
   $newParams['is_active'] = isset($params['is_active']) ? (int)$params['is_active'] : 1;
   $newParams['order'] = !empty($order) ? $order : 'sort_date DESC';
-  $newParams['sort_date'] = CRM_Utils_Array::value('sort_date', $params);
-  $newParams['start_date'] = CRM_Utils_Array::value('start_date', $params);
-  $newParams['end_date'] = CRM_Utils_Array::value('end_date', $params);
+  $newParams['sort_date'] = $params['sort_date'];
+  $newParams['start_date'] = $params['start_date'];
+  $newParams['end_date'] = $params['end_date'];
 
   return $newParams;
 }

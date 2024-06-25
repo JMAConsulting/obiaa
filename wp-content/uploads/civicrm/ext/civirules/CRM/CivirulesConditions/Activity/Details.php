@@ -44,12 +44,12 @@ class CRM_CivirulesConditions_Activity_Details extends CRM_Civirules_Condition {
     ));
     switch ($this->conditionParams['operator']) {
       case 'exact_match':
-        if (trim(strtolower($activity['details'])) == trim(strtolower($this->conditionParams['text']))) {
+        if (trim(strtolower($activity['details'])) == trim(strtolower($this->conditionParams['text'] ?? ''))) {
           $isConditionValid = TRUE;
         }
         break;
       case 'contains':
-        if (strpos(strtolower($activity['details']), strtolower($this->conditionParams['text'])) !== false){
+        if (strpos(strtolower($activity['details']), strtolower($this->conditionParams['text'] ?? '')) !== false){
           $isConditionValid = TRUE;
         }
         break;
