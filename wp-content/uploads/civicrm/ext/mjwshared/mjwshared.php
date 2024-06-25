@@ -71,7 +71,7 @@ function mjwshared_symfony_civicrm_coreResourceList($event, $hook) {
 /**
  * Implements hook_civicrm_check().
  *
- * @throws \CiviCRM_API3_Exception
+ * @throws \CRM_Core_Exception
  */
 function mjwshared_civicrm_check(&$messages) {
   $checks = new CRM_Mjwshared_Check($messages);
@@ -82,7 +82,7 @@ function mjwshared_civicrm_check(&$messages) {
  * @param \Civi\Core\Event\GenericHookEvent $event
  * @param $hook
  *
- * @throws \CiviCRM_API3_Exception
+ * @throws \CRM_Core_Exception
  */
 function mjwshared_symfony_civicrm_buildAsset($event, $hook) {
   $extensions = civicrm_api3('Extension', 'get', [
@@ -110,52 +110,75 @@ function mjwshared_symfony_civicrm_buildAsset($event, $hook) {
  * @param $values
  */
 function mjwshared_civicrm_links($op, $objectName, $objectId, &$links, &$mask, &$values) {
-  if ($objectName === 'Payment' && $op === 'Payment.edit.action') {
-    if ((boolean)\Civi::settings()->get('mjwshared_refundpaymentui') === FALSE) {
-      return;
-    }
-    if (!CRM_Core_Permission::check('edit contributions')) {
-      return;
-    }
+  if (!CRM_Core_Permission::check('edit contributions')) {
+    return;
+  }
 
-    try {
-      $contribution = reset(civicrm_api3('Mjwpayment', 'get_contribution', [
-        'payment_id' => $values['id'],
-        'contribution_test' => ['IS NOT NULL' => 1],
-      ])['values']);
-      // Don't allow refunds if contribution status is "Refunded"
-      if ((int)$contribution['contribution_status_id'] === CRM_Core_PseudoConstant::getKey('CRM_Contribute_BAO_Contribution', 'contribution_status_id', 'Refunded')) {
+  switch ($objectName) {
+    case 'Contribution':
+      if ($op !== 'contribution.edit.action') {
         return;
       }
-      $payment = $contribution['payments'][$values['id']];
-      // Don't allow refunds if payment status is not "Completed"
-      if ((int)$payment['status_id'] !== CRM_Core_PseudoConstant::getKey('CRM_Contribute_BAO_Contribution', 'contribution_status_id', 'Completed')) {
+      if ((boolean)\Civi::settings()->get('mjwshared_disablerecordrefund') === FALSE) {
         return;
       }
-      // Don't allow refunds if we have no trxn_id to match it against.
-      if (empty($payment['trxn_id'])) {
+
+      foreach ($links as $linkID => $link) {
+        if (!empty($link['qs']['is_refund'])) {
+          unset($links[$linkID]);
+        }
+      }
+
+      break;
+
+    case 'Payment':
+      if ($op !== 'Payment.edit.action') {
         return;
       }
-      if ($payment['total_amount'] < 0) {
+      if ((boolean)\Civi::settings()->get('mjwshared_refundpaymentui') === FALSE) {
         return;
       }
-      $paymentProcessor = \Civi\Payment\System::singleton()
-        ->getById($payment['payment_processor_id']);
-      if (isset($paymentProcessor) && $paymentProcessor->supportsRefund()) {
-        // Add the refund link to the payment
-        $links[] = [
-          'name' => 'Refund Payment',
-          'icon' => 'fa-undo',
-          'url' => 'civicrm/mjwpayment/refund',
-          'class' => 'medium-popup',
-          'qs' => 'reset=1&payment_id=%%id%%&contribution_id=%%contribution_id%%',
-          'title' => 'Refund Payment',
-        ];
+
+      try {
+        $contribution = reset(civicrm_api3('Mjwpayment', 'get_contribution', [
+          'payment_id' => $values['id'],
+          'contribution_test' => ['IS NOT NULL' => 1],
+        ])['values']);
+        // Don't allow refunds if contribution status is "Refunded"
+        if ((int)$contribution['contribution_status_id'] === CRM_Core_PseudoConstant::getKey('CRM_Contribute_BAO_Contribution', 'contribution_status_id', 'Refunded')) {
+          return;
+        }
+        $payment = $contribution['payments'][$values['id']];
+        // Don't allow refunds if payment status is not "Completed"
+        if ((int)$payment['status_id'] !== CRM_Core_PseudoConstant::getKey('CRM_Contribute_BAO_Contribution', 'contribution_status_id', 'Completed')) {
+          return;
+        }
+        // Don't allow refunds if we have no trxn_id to match it against.
+        if (empty($payment['trxn_id'])) {
+          return;
+        }
+        if ($payment['total_amount'] < 0) {
+          return;
+        }
+        $paymentProcessor = \Civi\Payment\System::singleton()
+          ->getById($payment['payment_processor_id']);
+        if (isset($paymentProcessor) && $paymentProcessor->supportsRefund()) {
+          // Add the refund link to the payment
+          $links[] = [
+            'name' => 'Refund Payment',
+            'icon' => 'fa-undo',
+            'url' => 'civicrm/mjwpayment/refund',
+            'class' => 'medium-popup',
+            'qs' => 'reset=1&payment_id=%%id%%&contribution_id=%%contribution_id%%',
+            'title' => 'Refund Payment',
+          ];
+        }
       }
-    }
-    catch (Exception $e) {
-      // Do nothing. We just don't add the "refund" link.
-    }
+      catch (Exception $e) {
+        // Do nothing. We just don't add the "refund" link.
+      }
+
+      break;
   }
 }
 
@@ -230,21 +253,4 @@ function mjwshared_symfony_preUpdateInsert(\Civi\Core\DAO\Event\PreUpdate $event
       CRM_Core_Error::deprecatedWarning("Recur ID: {$event->object->id}; civicrm_contribution_recur processor_id is different to trxn_id. trxn_id is deprecated and should be empty or match processor_id");
     }
   }
-}
-
-/**
- * Implements hook_civicrm_navigationMenu().
- *
- * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_navigationMenu
- */
-function mjwshared_civicrm_navigationMenu(&$menu) {
-  _mjwshared_civix_insert_navigation_menu($menu, 'Administer/CiviContribute', array(
-    'label' => E::ts('Payment processor webhooks'),
-    'name' => 'mjwshared_paymentprocessor_webhooks',
-    'url' => 'civicrm/a#/paymentprocessorWebhook',
-    'permission' => 'administer payment processors',
-    'operator' => 'OR',
-    'separator' => 0,
-  ));
-  _mjwshared_civix_navigationMenu($menu);
 }

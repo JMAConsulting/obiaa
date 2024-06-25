@@ -9,6 +9,54 @@ Releases use the following numbering system:
 
 * **[BC]**: Items marked with [BC] indicate a breaking change that will require updates to your code if you are using that code in your extension.
 
+## Release 1.2.22 (2024-03-09)
+
+* Fix message display on PaymentProcessorWebhook UI when message is NULL.
+* Add generic Logger class `\Civi\MJW\Logger` - use this to standardise/simplify log messages.
+* Update getDefaultCurrencyForForm() to use standard form functions where available.
+* Update some functions to use API4 internally.
+* Replace deprecated `CiviCRM_API3_Exception`.
+* More robust `error_url` handling.
+* Fix currency shown on refund form.
+
+## Release 1.2.21 (2024-02-09)
+
+* Switch Payment processor webhooks menu entry to managed entity.
+* Add a settings page (Administer->CiviContribute->Payment Shared Settings).
+* [!44](https://lab.civicrm.org/extensions/mjwshared/-/merge_requests/44) Ensure email confirm is sent for events when using stripe checkout (Fixes extensions/stripe#456).
+* Add feature to disable (hide) core 'Record Refund' link on edit contribution.
+* Add handling for billingCountry on update subscription.
+
+## Release 1.2.20 (2023-12-16)
+
+* Fix CustomField params for Mjwpayment.create_payment.
+* Fix setting of recur ID for changeSubscriptionAmount.
+
+## Release 1.2.19 (2023-12-15)
+
+* Add CustomFields to API3 MJWPayment.create spec - makes the custom fields "discoverable" via the API3 explorer.
+* Update beginChangeSubscriptionAmount() function - for Payment Processors that allow you to update the subscription amount it should now be slightly more reliable.
+
+## Release 1.2.18 (2023-11-21)
+
+* [!42](https://lab.civicrm.org/extensions/mjwshared/-/merge_requests/42) avoid extra redirect; correctly show auth.net errors on failed transaction.
+
+## Release 1.2.17 (2023-10-16)
+
+**You MUST update to this version if running CiviCRM 5.66 otherwise webhooks will stop working**
+
+* Fix message field should not be required (CiviCRM core enforces required fields for API4 from 5.66).
+* Cleanup custom fields.
+
+## Release 1.2.16 (2023-10-16)
+**Do not use this release**
+
+It was released with a broken upgrader.
+
+## Release 1.2.15 (2023-09-10)
+
+* Fix [civicrm-core/#4553](https://lab.civicrm.org/dev/core/-/issues/4553) getBillingEmail() function causes fatal error when email is not passed in correctly.
+
 ## Release 1.2.14 (2023-08-14)
 
 * [!41](https://lab.civicrm.org/extensions/mjwshared/-/merge_requests/41) The extension fails to install or upgrade if the option value for cg extends already present in the database (fix compatibility with extensions that use custom fields on financial transactions).

@@ -6,7 +6,7 @@
  *
  * @return array
  *   API result array.
- * @throws CiviCRM_API3_Exception
+ * @throws CRM_Core_Exception
  */
 function civicrm_api3_contribution_getbalance($params) {
   $result['id'] = $params['id'];

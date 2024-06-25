@@ -144,7 +144,7 @@ function _civicrm_api3_mjwpayment_get_payment_spec(&$params) {
  *
  * @return array
  *   Array of financial transactions which are payments, if error an array with an error id and error message
- * @throws \CiviCRM_API3_Exception
+ * @throws \CRM_Core_Exception
  */
 function civicrm_api3_mjwpayment_get_payment($params) {
   return civicrm_api3_payment_get($params);
@@ -160,6 +160,15 @@ function civicrm_api3_mjwpayment_get_payment($params) {
  */
 function _civicrm_api3_mjwpayment_create_payment_spec(&$params) {
   _civicrm_api3_payment_create_spec($params);
+  $customFields = \Civi\Api4\CustomField::get(FALSE)
+    ->addSelect('name', 'label', 'data_type')
+    ->addWhere('custom_group_id:name', '=', 'Payment_details')
+    ->execute();
+  foreach ($customFields as $customField) {
+    unset($customField['id']);
+    $customField['description'] = $customField['label'];
+    $params[$customField['name']] = $customField;
+  }
 }
 
 /**
@@ -173,7 +182,7 @@ function _civicrm_api3_mjwpayment_create_payment_spec(&$params) {
  *   Api result array
  *
  * @throws \CRM_Core_Exception
- * @throws \CiviCRM_API3_Exception
+ * @throws \CRM_Core_Exception
  */
 function civicrm_api3_mjwpayment_create_payment($params) {
   if (empty($params['skipCleanMoney'])) {

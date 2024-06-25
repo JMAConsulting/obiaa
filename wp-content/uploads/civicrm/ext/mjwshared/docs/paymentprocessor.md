@@ -85,3 +85,40 @@ This library provides two helper "traits":
     return ['message' => E::ts('Successfully cancelled the subscription at XYZ.net.')];
   }
 ```
+
+## doRefund() (Refund full or partial contribution)
+
+```php
+  /**
+   * Submit a refund payment
+   *
+   * @param array $params
+   *   Assoc array of input parameters for this transaction.
+   *
+   * @return array
+   * @throws \Civi\Payment\Exception\PaymentProcessorException
+   */
+  public function doRefund(&$params): array {
+    $propertyBag = $this->beginDoRefund($params);
+    if (!$propertyBag->has('transactionID') || !$propertyBag->has('amount')) {
+      $errorMessage = $this->getLogPrefix() . 'doRefund: Missing mandatory parameters: transactionID, amount';
+      $this->logger->logError($errorMessage);
+      throw new PaymentProcessorException($errorMessage);
+    }
+
+    // Implement code to prepare request and communicate with Payment Processor
+    // ...
+    // Set $refundTransactionID based on response from Payment Processor
+    if ($refundFailed) {
+      throw new PaymentProcessorException('Refund failed: ' . $failureMessage);
+    }
+    
+    // If we didn't throw an exception then refund succeeded.
+    $refundParams = [
+      'refund_trxn_id' => $refundTransactionID,
+      'refund_status' => 'Completed',
+      'fee_amount' => 0,
+    ];
+    return $refundParams;
+  }
+```

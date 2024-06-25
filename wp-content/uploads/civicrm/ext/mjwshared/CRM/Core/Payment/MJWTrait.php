@@ -9,7 +9,9 @@
  +--------------------------------------------------------------------+
  */
 
+use Civi\Api4\Contribution;
 use Civi\Api4\ContributionRecur;
+use Civi\Api4\Phone;
 use Civi\Payment\Exception\PaymentProcessorException;
 use Civi\Payment\PropertyBag;
 use CRM_Mjwshared_ExtensionUtil as E;
@@ -47,24 +49,21 @@ trait CRM_Core_Payment_MJWTrait {
   /**
    * Get the billing email address
    *
-   * @param \Civi\Payment\PropertyBag|array $params
+   * @param \Civi\Payment\PropertyBag|array $propertyBag
    * @param int $contactID
    *
-   * @return string|NULL
+   * @return string
    */
-  public function getBillingEmail($propertyBag, $contactID = NULL) {
+  public function getBillingEmail($propertyBag, $contactID = NULL): string {
     // We want this function to take a single argument - propertyBag but for legacy compatibility
     //   we still accept an array and the second parameter contactID.
-    // Start: Hackery to convert this function to take propertyBag
     $propertyBag = PropertyBag::cast($propertyBag);
     if (empty($contactID) && $propertyBag->has('contactID')) {
       $contactID = $propertyBag->getContactID();
     }
-    $params = $this->getPropertyBagAsArray($propertyBag);
-    // End: Hackery to convert this function to take propertyBag
-
-    $billingLocationId = CRM_Core_BAO_LocationType::getBilling();
-    $emailAddress = $params["email-{$billingLocationId}"] ?? $params['email-Primary'] ?? $params['email'] ?? NULL;
+    if ($propertyBag->has('email')) {
+      $emailAddress = $propertyBag->getEmail();
+    }
 
     if (empty($emailAddress) && !empty($contactID)) {
       // Try and retrieve an email address from Contact ID
@@ -73,6 +72,7 @@ trait CRM_Core_Payment_MJWTrait {
         ->execute();
 
       $other_options = [];
+      $billingLocationId = CRM_Core_BAO_LocationType::getBilling();
       foreach ($emailAddresses as $row) {
         if ($row['location_type_id'] == $billingLocationId) {
           return $row['email'];
@@ -85,38 +85,36 @@ trait CRM_Core_Payment_MJWTrait {
         }
       }
       if ($other_options) {
-        return $other_options[0];
+        $emailAddress = $other_options[0];
       }
-      return NULL;
     }
-    return $emailAddress;
+    return $emailAddress ?? '';
   }
 
   /**
    * Get the billing email address
    *
+   * @deprecated This is not used anywhere and will be removed in a future version
+   *
    * @param array $params
-   * @param int $contactId
+   * @param int $contactID
    *
    * @return string|NULL
    */
-  protected function getBillingPhone($params, $contactId) {
-    $billingLocationId = CRM_Core_BAO_LocationType::getBilling();
-    $phoneNumber = $params["phone-{$billingLocationId}"] ?? $params['phone-Primary'] ?? $params['phone'] ?? NULL;
+  protected function getBillingPhone($params, $contactID) {
+    $billingLocationTypeID = CRM_Core_PseudoConstant::getKey('CRM_Core_DAO_Address', 'location_type_id', 'Billing');
+    $phoneNumber = $params["phone-{$billingLocationTypeID}"] ?? $params['phone-Primary'] ?? $params['phone'] ?? NULL;
 
-    if (empty($phoneNumber) && !empty($contactId)) {
+    if (empty($phoneNumber) && !empty($contactID)) {
       // Try and retrieve a phone number from Contact ID
-      try {
-        $phoneNumber = civicrm_api3('Phone', 'getvalue', [
-          'contact_id' => $contactId,
-          'return' => ['phone'],
-        ]);
-      }
-      catch (CiviCRM_API3_Exception $e) {
-        return NULL;
-      }
+      $phone = Phone::get(FALSE)
+        ->addSelect('phone')
+        ->addWhere('contact_id', '=', $contactID)
+        ->addOrderBy('is_primary', 'DESC')
+        ->execute()
+        ->first();
     }
-    return $phoneNumber;
+    return $phone['phone'] ?? '';
   }
 
   /**
@@ -162,15 +160,22 @@ trait CRM_Core_Payment_MJWTrait {
     }
 
     if ($propertyBag->has('contributionID')) {
-      return (int) civicrm_api3('Contribution', 'getvalue', ['id' => $propertyBag->getContributionID(), 'return' => 'contribution_recur_id']);
+      return Contribution::get(FALSE)
+        ->addSelect('contribution_recur_id')
+        ->addWhere('id', '=', $propertyBag->getContributionID())
+        ->addWhere('is_test', 'IN', [TRUE, FALSE])
+        ->execute()
+        ->first()['contribution_recur_id'] ?? NULL;
     }
 
     if ($propertyBag->has('processorID')) {
       $propertyBag->getRecurProcessorID();
-      return (int) civicrm_api3('ContributionRecur', 'getvalue', [
-        'processor_id' => $propertyBag->getRecurProcessorID(),
-        'return' => 'id'
-      ]);
+      return ContributionRecur::get(FALSE)
+        ->addSelect('id')
+        ->addWhere('processor_id', '=', $propertyBag->getRecurProcessorID())
+        ->addWhere('is_test', 'IN', [TRUE, FALSE])
+        ->execute()
+        ->first()['id'] ?? NULL;
     }
     return NULL;
   }
@@ -191,25 +196,14 @@ trait CRM_Core_Payment_MJWTrait {
    *
    * @return string
    */
-  public function getDefaultCurrencyForForm($form) {
-    // For contribution pages it is in $form->_values
-    $currency = $form->_values['currency'] ?? NULL;
-    // If we AJAX load and have more than one processor (eg. stripe, pay later) we can end up with the wrong
-    // currency set in $form->_values. So we use $form->getVar('currency') to get the right one!
-    if (!$currency && is_a($form, 'CRM_Financial_Form_Payment')) {
-      $currency = $form->getVar('currency');
+  public function getDefaultCurrencyForForm($form): string {
+    if (method_exists($form, 'getCurrency')) {
+      $currency = $form->getCurrency();
     }
 
-    // Due to https://github.com/civicrm/civicrm-core/pull/21966 currency might be set to the string "undefined"
-    if (!$currency || $currency === 'undefined') {
-      // For event pages it is in $form->_values['event']
-      if (isset($form->_values['event'])) {
-        $currency = $form->_values['event']['currency'] ?? NULL;
-      }
-    }
-    if (!$currency || $currency === 'undefined') {
+    if (empty($currency) || $currency === 'undefined') {
       // If we can't find it we'll use the default from the configuration
-      $currency = CRM_Core_Config::singleton()->defaultCurrency;
+      $currency = Civi::settings()->get('defaultCurrency');
     }
     return $currency;
   }
@@ -219,7 +213,7 @@ trait CRM_Core_Payment_MJWTrait {
    * @param array $params ['name' => payment instrument name]
    *
    * @return int|null
-   * @throws \CiviCRM_API3_Exception
+   * @throws \CRM_Core_Exception
    */
   public static function createPaymentInstrument($params) {
     $mandatoryParams = ['name'];
@@ -269,21 +263,22 @@ trait CRM_Core_Payment_MJWTrait {
 
   /**
    * Get the error URL to "bounce" the user back to.
-   * @param \Civi\Payment\PropertyBag $params
+   *
+   * @param \Civi\Payment\PropertyBag $propertyBag
    *
    * @return string|null
    */
-  public function getErrorUrl($params) {
+  public function generateErrorUrl($propertyBag) {
     // Get proper entry URL for returning on error.
-    if (!$params->has('qfKey') || !$params->has('entryURL')) {
+    if (!$propertyBag->has('qfKey') || !$propertyBag->has('entryURL')) {
       // Probably not called from a civicrm form (e.g. webform) -
       // will return error object to original api caller.
       $errorUrl = NULL;
     }
     else {
-      $qfKey = $params->getCustomProperty('qfKey');
-      $parsedUrl = parse_url($params->getCustomProperty('entryURL'));
-      $urlPath = substr($parsedUrl['path'], 1);
+      $qfKey = $propertyBag->getCustomProperty('qfKey');
+      $parsedUrl = parse_url($propertyBag->getCustomProperty('entryURL'));
+      $urlPath = trim($parsedUrl['path'], '/');
       $query = $parsedUrl['query'];
       if (strpos($query, '_qf_Main_display=1') === FALSE) {
         $query .= '&_qf_Main_display=1';
@@ -297,6 +292,19 @@ trait CRM_Core_Payment_MJWTrait {
   }
 
   /**
+   * @param \Civi\Payment\PropertyBag $propertyBag
+   *
+   * @return mixed|void|null
+   */
+  public function getErrorUrl(\Civi\Payment\PropertyBag $propertyBag): string {
+    if ($propertyBag->has('error_url')) {
+      return $propertyBag->getCustomProperty('error_url');
+    }
+    return '';
+  }
+
+
+  /**
    * Are we using a test processor?
    *
    * @return bool
@@ -306,56 +314,17 @@ trait CRM_Core_Payment_MJWTrait {
   }
 
   /**
-   * Format the fields for the payment processor.
-   * @fixme Copied from CiviCRM Core 5.13. We should remove this when all forms submit using this function (eg updateSubscriptionBillingInfo)
-   *
-   * In order to pass fields to the payment processor in a consistent way we add some renamed
-   * parameters.
-   *
-   * @param array $fields
-   *
-   * @return array
-   */
-  private function formatParamsForPaymentProcessor($fields) {
-    $billingLocationId = CRM_Core_BAO_LocationType::getBilling();
-    // also add location name to the array
-    $this->_params["address_name-{$billingLocationId}"] = ($this->_params['billing_first_name'] ?? '') . ' ' . ($this->_params['billing_middle_name'] ?? '') . ' ' . ($this->_params['billing_last_name'] ?? '');
-    $this->_params["address_name-{$billingLocationId}"] = trim($this->_params["address_name-{$billingLocationId}"]);
-    // Add additional parameters that the payment processors are used to receiving.
-    if (!empty($this->_params["billing_state_province_id-{$billingLocationId}"])) {
-      $this->_params['state_province'] = $this->_params["state_province-{$billingLocationId}"] = $this->_params["billing_state_province-{$billingLocationId}"] = CRM_Core_PseudoConstant::stateProvinceAbbreviation($this->_params["billing_state_province_id-{$billingLocationId}"]);
-    }
-    if (!empty($this->_params["billing_country_id-{$billingLocationId}"])) {
-      $this->_params['country'] = $this->_params["country-{$billingLocationId}"] = $this->_params["billing_country-{$billingLocationId}"] = CRM_Core_PseudoConstant::countryIsoCode($this->_params["billing_country_id-{$billingLocationId}"]);
-    }
-
-    [$hasAddressField, $addressParams] = CRM_Contribute_BAO_Contribution::getPaymentProcessorReadyAddressParams($this->_params, $billingLocationId);
-    if ($hasAddressField) {
-      $this->_params = array_merge($this->_params, $addressParams);
-    }
-
-    $nameFields = ['first_name', 'middle_name', 'last_name'];
-    foreach ($nameFields as $name) {
-      $fields[$name] = 1;
-      if (array_key_exists("billing_$name", $this->_params)) {
-        $this->_params[$name] = $this->_params["billing_{$name}"];
-        $this->_params['preserveDBName'] = TRUE;
-      }
-    }
-    return $fields;
-  }
-
-  /**
    * Handle an error and notify the user
    *
    * @param string $errorCode
    * @param string $errorMessage
    * @param string $bounceURL
+   * @param bool $log
    *
    * @throws \Civi\Payment\Exception\PaymentProcessorException
-   *   (or statusbounce if URL is specified)
+   *   (or CRM_Core_Error::statusBounce if URL is specified)
    */
-  private function handleError($errorCode = '', $errorMessage = '', $bounceURL = NULL, $log = TRUE) {
+  private function handleError(string $errorCode = '', string $errorMessage = '', string $bounceURL = '', bool $log = TRUE) {
     $errorMessage = empty($errorMessage) ? 'Unknown System Error.' : $errorMessage;
     $message = $errorMessage . (!empty($errorCode) ? " - {$errorCode}" : '');
 
@@ -367,7 +336,7 @@ trait CRM_Core_Payment_MJWTrait {
       throw new \Exception('Exception thrown to avoid statusBounce because handleErrorThrowsException is set.' . $message);
     }
 
-    if ($bounceURL) {
+    if (!empty($bounceURL)) {
       CRM_Core_Error::statusBounce($message, $bounceURL, $this->getPaymentTypeLabel());
     }
     throw new PaymentProcessorException($errorMessage, $errorCode);
@@ -465,6 +434,9 @@ trait CRM_Core_Payment_MJWTrait {
   }
 
   /**
+   * Call this at the beginning of call to CRM_Core_Payment::doPayment()
+   * to ensure that all necessary parameters are set.
+   *
    * @param \Civi\Payment\PropertyBag $propertyBag
    *
    * @return \Civi\Payment\PropertyBag
@@ -475,6 +447,10 @@ trait CRM_Core_Payment_MJWTrait {
     // This currently doesn't have a default (5.27). Should be fixed in a future version of CiviCRM.
     if (!$propertyBag->has('isRecur')) {
       $propertyBag->setIsRecur(FALSE);
+    }
+
+    if (!$propertyBag->has('billingCountry') && $propertyBag->has('country')) {
+      $propertyBag->setBillingCountry($propertyBag->getCustomProperty('country'));
     }
 
     // Make sure we have a description for the contribution
@@ -490,6 +466,33 @@ trait CRM_Core_Payment_MJWTrait {
   }
 
   /**
+   *  Call this at the beginning of call to CRM_Core_Payment::doRefund()
+   *  to ensure that all necessary parameters are set.
+   *
+   * @param \Civi\Payment\PropertyBag|array $propertyBag
+   *
+   * @return \Civi\Payment\PropertyBag
+   */
+  protected function beginDoRefund($propertyBag) {
+    // Make sure it's a propertyBag
+    $propertyBag = PropertyBag::cast($propertyBag);
+
+    // Make sure we have a contactID set on propertyBag
+    $this->getContactId($propertyBag);
+
+    // In 5.72 propertyBag maps transaction_id to transactionID but trxn_id is not mapped
+    // Once we add trxn_id then ->has('transactionID') will be TRUE and the set won't be run.
+    if (!$propertyBag->has('transactionID') && $propertyBag->has('trxn_id')) {
+      $propertyBag->setTransactionID($propertyBag->getCustomProperty('trxn_id'));
+    }
+
+    return $propertyBag;
+  }
+
+  /**
+   * Call this at the beginning of call to CRM_Core_Payment::changeSubscriptionAmount()
+   * to ensure that all necessary parameters are set.
+   *
    * @param array $params
    *
    * @return \Civi\Payment\PropertyBag
@@ -506,25 +509,30 @@ trait CRM_Core_Payment_MJWTrait {
      * ];
      */
     $propertyBag = PropertyBag::cast($params);
-    $propertyBag->setContributionRecurID($params['id']);
+    if (!$propertyBag->has('contributionRecurID')) {
+      if (!empty($params['id'])) {
+        $propertyBag->setContributionRecurID($params['id']);
+      }
+      else {
+        throw new PaymentProcessorException('You MUST pass contributionRecurID (or id) to changeSubscriptionAmount$params');
+      }
+    }
+
     $propertyBag->setIsRecur(TRUE);
-    // @fixme We can't use $propertyBag->setRecurInstallments until https://github.com/civicrm/civicrm-core/pull/21517 is merged
-    //   Use $propertyBag->has('recurInstallments') ? $propertyBag->getRecurInstallments() : 0; in code as workaround
-    // if (empty($params['installments'])) {
-    //   $propertyBag->setRecurInstallments(0);
-    // }
+
     $existingRecur = ContributionRecur::get(FALSE)
       ->addWhere('is_test', 'IN', [TRUE, FALSE])
       ->addWhere('id', '=', $propertyBag->getContributionRecurID())
       ->execute()
       ->first();
 
-    // @fixme: https://github.com/civicrm/civicrm-core/pull/21517
-    if (!$propertyBag->has('recurInstallments') && !empty($existingRecur['installments'])) {
-      $propertyBag->setRecurInstallments($existingRecur['installments']);
+    if (!$propertyBag->has('recurProcessorID')) {
+      $propertyBag->setRecurProcessorID($existingRecur['processor_id']);
     }
+    $propertyBag->setRecurInstallments($existingRecur['installments'] ?? 0);
     $propertyBag->setRecurFrequencyInterval($existingRecur['frequency_interval']);
     $propertyBag->setRecurFrequencyUnit($existingRecur['frequency_unit']);
+    $propertyBag->setCurrency($params['currency'] ?? $existingRecur['currency']);
 
     $propertyBag->setCustomProperty('error_url', $this->getErrorUrl($propertyBag));
 
@@ -534,6 +542,9 @@ trait CRM_Core_Payment_MJWTrait {
   }
 
   /**
+   * Call this at the beginning of call to CRM_Core_Payment::updateSubscriptionBillingInfo()
+   * to ensure that all necessary parameters are set.
+   *
    * @param array $params
    *
    * @return \Civi\Payment\PropertyBag
@@ -570,9 +581,12 @@ trait CRM_Core_Payment_MJWTrait {
       $propertyBag->setContributionRecurID($existingRecur['id']);
     }
 
-    // @fixme Billing properties don't really work properly without https://github.com/civicrm/civicrm-core/pull/21527
     // $propertyBag->setBillingCity($params['city'] ?? '');
-    // $propertyBag->setBillingCountry($params['country'] ?? '');
+    // @fixme Country: https://github.com/civicrm/civicrm-core/pull/28926 (5.71)
+    if (!$propertyBag->has('billingCountry') && $propertyBag->has('country')) {
+      $propertyBag->setBillingCountry($propertyBag->getCustomProperty('country'));
+    }
+    // $propertyBag->setBillingCountry($params['billingCountry'] ?? $params['country'] ?? '');
     // $propertyBag->setBillingStateProvince()
 
     $propertyBag->setCustomProperty('error_url', $this->getErrorUrl($propertyBag));
@@ -583,12 +597,13 @@ trait CRM_Core_Payment_MJWTrait {
   }
 
   /**
-   * Call this at the end of a call to doPayment to ensure everything is updated/returned correctly.
+   * Call this at the end of a call to CRM_Core_Payment::doPayment() to build the
+   * standard return parameters array.
    *
    * @param \Civi\Payment\PropertyBag|array $params
    *
    * @return array
-   * @throws \CiviCRM_API3_Exception
+   * @throws \CRM_Core_Exception
    */
   protected function endDoPayment($params) {
     $propertyBag = PropertyBag::cast($params);

@@ -2,7 +2,7 @@
 If supported by the payment processor (eg. Stripe) you can issue a full or partial refund from within CiviCRM.
 
 It is enabled by default via the setting `mjwshared_refundpaymentui` which can be found at
-*Administer->CiviContribute->Stripe Settings: Enable refund payment via UI?*
+*Administer->CiviContribute->Payment Shared Settings: Enable refund payment via UI?*
 
 It allows you to issue refunds for `Completed` payments.
 

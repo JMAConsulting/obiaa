@@ -38,7 +38,7 @@ class CRM_Mjwshared_Check {
   /**
    * @return array
    * @throws \API_Exception
-   * @throws \CiviCRM_API3_Exception
+   * @throws \CRM_Core_Exception
    * @throws \Civi\API\Exception\UnauthorizedException
    */
   public function checkRequirements() {
@@ -95,7 +95,7 @@ class CRM_Mjwshared_Check {
   }
 
   /**
-   * @throws \CiviCRM_API3_Exception
+   * @throws \CRM_Core_Exception
    */
   private function checkExtensionWorldpay() {
     $extensions = civicrm_api3('Extension', 'get', [
@@ -116,7 +116,7 @@ class CRM_Mjwshared_Check {
   }
 
   /**
-   * @throws \CiviCRM_API3_Exception
+   * @throws \CRM_Core_Exception
    */
   private function checkExtensionMinifier() {
     $extensionName = 'minifier';
@@ -144,7 +144,7 @@ class CRM_Mjwshared_Check {
   }
 
   /**
-   * @throws \CiviCRM_API3_Exception
+   * @throws \CRM_Core_Exception
    */
   private function checkExtensionContributiontransactlegacy() {
     $extensionName = 'contributiontransactlegacy';
@@ -179,7 +179,7 @@ class CRM_Mjwshared_Check {
    * We don't support "Separate Membership Payment" configuration
    *
    * @throws \API_Exception
-   * @throws \CiviCRM_API3_Exception
+   * @throws \CRM_Core_Exception
    * @throws \Civi\API\Exception\UnauthorizedException
    */
   private function checkIfSeparateMembershipPaymentEnabled() {
@@ -235,7 +235,7 @@ class CRM_Mjwshared_Check {
   }
 
   /**
-   * @throws \CiviCRM_API3_Exception
+   * @throws \CRM_Core_Exception
    */
   private function checkExtensionSweetalert() {
     // sweetalert: recommended. If installed requires min version
@@ -271,7 +271,7 @@ class CRM_Mjwshared_Check {
 
   /**
    * @throws \API_Exception
-   * @throws \CiviCRM_API3_Exception
+   * @throws \CRM_Core_Exception
    * @throws \Civi\API\Exception\UnauthorizedException
    */
   private function checkMultidomainJobs() {
