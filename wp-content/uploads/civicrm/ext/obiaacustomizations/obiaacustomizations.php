@@ -148,12 +148,12 @@ function obiaacustomizations_civicrm_themes(&$themes) {
 function obiaacustomizations_civicrm_permission(&$permissions) {
   $prefix = ts('CiviContribute') . ": ";
   $permissions['manage payment pages'] = array(
-    $prefix . ts('manage Payment pages'),
-    ts('manage Payment page configuration'),
+    'label' => $prefix . ts('manage Payment pages'),
+    'description' => ts('manage Payment page configuration'),
   );
   $permissions['administer payments'] = array(
-    $prefix . ts('administer payments'),
-    ts('administer payment configuration'),
+    'label' => $prefix . ts('administer payments'),
+    'description' => ts('administer payment configuration'),
   );
 }
 
