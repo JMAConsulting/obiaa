@@ -75,7 +75,10 @@ class CRM_Obiaacustomizations_Upgrader extends CRM_Extension_Upgrader_Base {
     ];
     foreach ($templates as $fileName => $workflowName) {
       $content = file_get_contents(E::path('./' . $fileName . '.tpl'));
-      CRM_Core_DAO::executeQuery("UPDATE civicrm_msg_template SET msg_text = NULL, msg_html = '{$content}' WHERE workflow_name = %1 AND is_default = 1 AND is_reserved = 0");
+      CRM_Core_DAO::executeQuery("UPDATE civicrm_msg_template SET msg_text = NULL, msg_html = %2 WHERE workflow_name = %1 AND is_default = 1 AND is_reserved = 0", [
+        1 => [$workflowName, 'String'],
+        2 => [$content, 'String'],
+      ]);
     }
     return TRUE;
   }
