@@ -19,7 +19,7 @@ $loginpress_export_nonce = wp_create_nonce('loginpress-export-nonce');
 					<label for="loginpress_configure[import_setting]"><?php esc_html_e( 'Import Settings:', 'loginpress' ); ?></label>
 				</th>
 				<td>
-					<div class="upload-file"><span>Upload File</span><input type="file" name="loginPressImport" id="loginPressImport"></div>
+					<div class="upload-file"><span>Upload File</span><input type="file" name="loginPressImport" id="loginPressImport" accept=".json"></div>
 					<input type="button" class="button loginpress-import" value="<?php esc_html_e( 'Import', 'loginpress' ); ?>" multiple="multiple" disabled="disabled">
 					<input type="hidden" class="loginpress_import_nonce" name="loginpress_import_nonce" value="<?php echo $loginpress_import_nonce; ?>">
 					<span class="import-sniper">

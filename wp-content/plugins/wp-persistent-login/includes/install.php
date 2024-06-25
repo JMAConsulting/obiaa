@@ -20,10 +20,11 @@ function persistent_login_activate()
     
     if ( !get_option( 'persistent_login_options' ) ) {
         $defaultOptions = array(
-            'duplicateSessions' => '0',
-            'limitActiveLogins' => '0',
-            'limitActiveLogins' => '0',
-            'activeLoginLogic'  => 'automatic',
+            'duplicateSessions'  => '0',
+            'limitActiveLogins'  => '0',
+            'activeLoginLogic'   => 'automatic',
+            'enableLoginHistory' => '0',
+            'notifyNewLogins'    => '0',
         );
         update_option( 'persistent_login_options', $defaultOptions );
     }

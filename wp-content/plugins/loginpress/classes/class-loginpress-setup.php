@@ -351,7 +351,6 @@ if ( ! class_exists( 'LoginPress_Settings' ) ):
 					'type'  => 'checkbox'
 				),
 			);
-			
 
 			// Hide Advertisement in version 1.1.3
 			// if ( ! has_action( 'loginpress_pro_add_template' ) ) {
@@ -389,6 +388,7 @@ if ( ! class_exists( 'LoginPress_Settings' ) ):
 
 			return $tab;
 		}
+
 		/**
 		 * get all roles for force rest password after six months in settings section
 		 * @since 3.0.0
@@ -482,7 +482,13 @@ if ( ! class_exists( 'LoginPress_Settings' ) ):
 		function loginpress_addons_page() {
 
 			echo LoginPress_Settings::loginpress_admin_page_header();
-			include LOGINPRESS_DIR_PATH . 'classes/class-loginpress-addons.php';
+			$active_plugins = get_option('active_plugins');
+
+			if ( in_array( 'loginpress-pro/loginpress-pro.php', $active_plugins ) && version_compare( LOGINPRESS_PRO_VERSION, '3.0.0', '<' ) ) {
+				include LOGINPRESS_DIR_PATH . 'classes/class-loginpress-deprecated-addons.php';
+			} else {
+				include LOGINPRESS_DIR_PATH . 'classes/class-loginpress-addons.php';
+			}
 			$obj_loginpress_addons	= new LoginPress_Addons();
 			$obj_loginpress_addons->_addon_html();
 		}
@@ -544,7 +550,6 @@ if ( ! class_exists( 'LoginPress_Settings' ) ):
 			$lang_switch_element = array_merge( array( $switcher_option , $last_element ) ); // merge last 2 elements of array.
 			return array_merge( $array_elements, $lang_switch_element ); // merge an array and return.
 		}
-		
 
 		/**
 		 * loginpress_uninstallation_filed [merge a uninstall loginpress field with array of element.]

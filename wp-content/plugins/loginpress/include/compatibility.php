@@ -14,6 +14,25 @@
  */
 add_action( 'init', 'loginpress_upgrade_1_0_22', 1 );
 
+$loginpress_preset = get_option( 'customize_presets_settings' );
+
+if ( ( ! isset( $loginpress_preset ) || empty( $loginpress_preset ) ) ) {
+	add_action( 'init', 'loginpress_upgrade_3_0_3', 1 );
+}
+
+/**
+ * Select a default theme preset when user updates and no customization has been made.
+ *
+ * @since 3.0.3
+ */
+function loginpress_upgrade_3_0_3() {
+	$loginpress_customizer = get_option( 'loginpress_customization' );
+
+	if ( empty( $loginpress_customizer ) ) {
+		update_option( 'customize_presets_settings', 'minimalist', true );
+	}
+
+}
 
 /**
  * loginpress_upgrade_1_0_22

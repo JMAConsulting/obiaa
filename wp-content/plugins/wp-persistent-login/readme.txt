@@ -3,8 +3,8 @@ Contributors: lukeseager, freemius
 Donate link: 
 Tags: login, active logins, sessions, session management
 Requires at least: 5.0
-Tested up to: 6.2
-Stable tag: 2.0.15
+Tested up to: 6.4.1
+Stable tag: 2.1.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -30,9 +30,13 @@ For added security, users can visit their Profile page in the WP Admin area to s
 * Support for common plugins out of the box
 * Secure, fast and simple to use!
 
-## NEW: Active Logins
+## Active Logins
 * Option to limit the number of active logins to 1 per user
-* New logins can be blocked, or the users oldest login ended automatically.
+* New logins can be blocked, or the users oldest login ended automatically
+
+## NEW: Login History
+* Notify users of logins from new devices for improved security
+* Set your own email notification message that is sent to users
 
 ### Top Tip
 Once the plugin is installed, click the **End all Sessions** button on the plugin settings page to encourage users to login again and be kept logged in forever!
@@ -145,6 +149,8 @@ A premium version of the plugin is available if you want to:
 * All future features and updates (with a valid licence)
 * Priority Support direct from within WP admin
 
+Visit [persistentlogin.com](https://persistentlogin.com) to learn more.
+
 == Screenshots ==
 
 1. Dashboard stats of logged in users
@@ -154,6 +160,14 @@ A premium version of the plugin is available if you want to:
 5. Active Login settings (premium)
 
 == Changelog == 
+
+= 2.1.0 =
+* New Feature: Login History - Notify users of logins from new devices for improved security
+* PHP 8.2 compatibility (removing warnings)
+* Updating Freemius SDK to latest version
+
+= 2.0.16 =
+* Support for WP Web Woo Social Login plugin
 
 = 2.0.15 =
 * Updating Freemius SDK.

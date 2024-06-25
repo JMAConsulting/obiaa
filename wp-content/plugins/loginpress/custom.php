@@ -25,7 +25,7 @@ class LoginPress_Entities {
 	public function __construct() {
 
 		$this->loginpress_key = get_option( 'loginpress_customization' );
-		$this->loginpress_preset = get_option( 'customize_presets_settings', 'minimalist' );
+		$this->loginpress_preset = get_option( 'customize_presets_settings', true );
 		$this->_hooks();
 	}
 
@@ -354,7 +354,7 @@ class LoginPress_Entities {
 		 * Section for Presets.
 		 *
 		 * @since	1.0.9
-		 * @version 1.1.16
+		 * @version 3.0.3
 		 */
 		$wp_customize->add_section( 'customize_presets', array(
 			'title'			=> __( 'Themes', 'loginpress' ),
@@ -363,8 +363,10 @@ class LoginPress_Entities {
 			'panel'			=> 'loginpress_panel',
 		) );
 
+		$loginpress_default_theme = $this->loginpress_preset === true && ( empty( $this->loginpress_key ) && empty( $this->loginpress_setting ) ) ? 'minimalist' : 'default1';
+
 		$wp_customize->add_setting( 'customize_presets_settings', array(
-			'default'		=> 'minimalist',
+			'default'		=> $loginpress_default_theme,
 			'type'			=> 'option',
 			// 'transport'	=> 'postMessage',
 			'capability'	=> 'manage_options',
@@ -814,6 +816,7 @@ class LoginPress_Entities {
 				'frame_button' => __( 'Choose File', 'loginpress' ),
 			) 
 		) ) );
+
 		/**
 		 * Field settings for the error message
 		 *
@@ -850,7 +853,7 @@ class LoginPress_Entities {
 			'label'			=> __( 'ID of the YouTube video', 'loginpress' ),
 			'description'	=> sprintf( __('YouTube video ID is correct though the Live Preview is not supported. The video on the %slogin page%s can be checked, once it is published.', 'loginpress'), '<a href="' . wp_login_url() . '" target="_blank">', '</a>' ),
 			'section'		=> 'section_background',
-			'priority'		=> 47,
+			'priority'		=> 46,
 			'settings'		=> "loginpress_customization[yt_video_id]",
 			'input_attrs'	=> array(
 				'placeholder'	=> 'GMAwsHomJlE',

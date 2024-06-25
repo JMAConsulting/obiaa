@@ -184,7 +184,7 @@ class WP_Persistent_Login_Profile {
     private function get_user_device($user_agent) {
 
         $device = new WhichBrowser\Parser($user_agent);
-        $device_type = ucfirst($device->device->type);
+        $device_type = ucwords( str_replace( ':', ' ', $device->getType() ) );
         $device_name = $device->toString();
 
         return $device_type .' - '. $device_name;

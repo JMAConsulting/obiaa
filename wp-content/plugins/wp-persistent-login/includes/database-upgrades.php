@@ -145,4 +145,25 @@ function persistent_login_update_db( $persistent_login_db_version )
     }
     
     // 2.0.9 update
+    
+    if ( $persistent_login_db_version === '2.0.9' ) {
+        $options = get_option( 'persistent_login_options' );
+        // add enable login history to db
+        if ( !isset( $options['enableLoginHistory'] ) ) {
+            $options['enableLoginHistory'] = '0';
+        }
+        // add notify new logins checkbox
+        if ( !isset( $options['notifyNewLogins'] ) ) {
+            $options['notifyNewLogins'] = '0';
+        }
+        update_option( 'persistent_login_options', $options );
+        // add new login history template to table
+        update_option( 'persistent_login_notification_email_template', '' );
+        // update db version option
+        update_option( 'persistent_login_db_version', '2.0.10' );
+        $persistent_login_db_version = '2.0.10';
+        return true;
+    }
+    
+    // 2.0.10 update
 }

@@ -206,7 +206,7 @@ class WP_Persistent_Login_User_Count extends WP_Persistent_Login_Admin {
 	 * @since 2.0.0
 	 * @return int
 	 */
-	private function get_user_count() {
+	public function get_user_count() {
 			
 		$user_count = 0;
 		$roles = $this->get_user_count_breakdown();
@@ -519,7 +519,7 @@ class WP_Persistent_Login_User_Count extends WP_Persistent_Login_Admin {
                 // If $timestamp == false, schedule the count now since it hasn't been started yet
                 if( $timestamp == false ) {
                     // Schedule the event for right now, then to repeat daily using the hook 'persistent_login_update_count'
-                    wp_schedule_event( time(), 'minutely', 'persistent_login_update_count');
+                    wp_schedule_event( time()+MINUTE_IN_SECONDS, 'minutely', 'persistent_login_update_count');
                 }
 
             }

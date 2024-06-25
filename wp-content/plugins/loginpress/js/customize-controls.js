@@ -28,9 +28,10 @@
 	}
 	var formbg;
 	var get_theme;
+
 	jQuery(document).ready(function($) {
 
-    	// Update gallery default thumbnail on load. @since 1.1.3
+		// Update gallery default thumbnail on load. @since 3.0.4
 		get_theme = jQuery('.customize-control-checkbox-multiple input[type="radio"]:checked').val();
     	var defaultThumbnails = jQuery('.customize-control-checkbox-multiple input[type="radio"]:checked').next('label').find('img').attr('src');
     	$('.loginpress_gallery_thumbnails:first-child').find('img').attr({'src': defaultThumbnails,'title': defaultThumbnails});
@@ -100,6 +101,11 @@
 	function loginpress_background_img( setting, target ) {
 		wp.customize( setting, function( value ) {
 			value.bind( function( loginPressVal ) {
+				if (get_theme == 'minimalist' || change_theme == 'minimalist') {
+					if (target == '.login-action-lostpassword #login') {
+						target = "#lostpasswordform";
+					}
+				}
 				if ( loginPressVal == '' ) {
 					formbgimg = '';
 					loginpress_find( target ).css( 'background-image', 'none' );
@@ -116,9 +122,13 @@
 		// Update the login logo width in real time...
 		wp.customize( setting, function( value ) {
 			value.bind( function( loginPressVal ) {
-				if(get_theme == 'minimalist' || change_theme == 'minimalist'){
-					if(target == '#loginform, #login'){
+				if (get_theme == 'minimalist' || change_theme == 'minimalist') {
+					if (target == '#loginform, #login') {
 						target = "#loginform";
+					}
+					
+					if (target == '.login-action-lostpassword #login') {
+						target = "#lostpasswordform";
 					}
 				}
 				if ( loginPressVal == '' ) {
@@ -135,15 +145,15 @@
 		// Update the login logo width in real time...
 		wp.customize( setting, function( value ) {
 			value.bind( function( loginPressVal ) {
-				if((get_theme == 'minimalist' || change_theme == 'minimalist') && property != 'max-width'){
-					if(target == '#login'){
+				if ((get_theme == 'minimalist' || change_theme == 'minimalist') && property != 'max-width') {
+					if (target == '#login') {
 						target = "#loginform";
 					}
 				}
 				if ( loginPressVal == '' ) {
 					loginpress_find( target ).css( property, '' );
 				} else {
-					loginpress_find( target ).css( property, loginPressVal + suffix );
+					loginpress_find( target )[0].style.setProperty(property , loginPressVal + suffix , 'important' );
 				}
 			} );
 		} );
@@ -176,8 +186,8 @@
 		wp.customize( setting, function( value ) {
 			value.bind( function( loginPressVal ) {
 				
-				if(get_theme == 'minimalist' || change_theme == 'minimalist'){
-					if(target == '#login'){
+				if (get_theme == 'minimalist' || change_theme == 'minimalist') {
+					if (target == '#login') {
 						target = "#loginform";
 					}
 				}
@@ -197,8 +207,8 @@
 		// Update the login logo width in real time...
 		wp.customize( setting, function( value ) {
 			value.bind( function( loginPressVal ) {
-				if(get_theme == 'minimalist' || change_theme == 'minimalist'){
-					if(target == '#login'){
+				if (get_theme == 'minimalist' || change_theme == 'minimalist') {
+					if (target == '#login') {
 						target = "#loginform";
 					}
 				}
@@ -253,23 +263,23 @@
 							$('#customize-control-loginpress_customization-background_video_object, #customize-control-loginpress_customization-video_obj_position,#customize-control-loginpress_customization-background_video_muted').hide();
 							$('#customize-control-loginpress_customization-background_video_error').show();
 							return;
-						}else{
+						} else {
 							$('#customize-control-loginpress_customization-background_video_error').hide();
-							if( loginpress_find( '#loginpress_video-background' ).length > 0 ) {
-								var video = loginpress_find( '#loginpress_video-background' )[0];
-								loginpress_find( '#loginpress_video-background' )[0].pause();
-								loginpress_find( '#loginpress_video-background source' )[0].setAttribute( 'src', response );
+							if (loginpress_find('#loginpress_video-background').length > 0) {
+								var video = loginpress_find('#loginpress_video-background')[0];
+								loginpress_find('#loginpress_video-background')[0].pause();
+								loginpress_find('#loginpress_video-background source')[0].setAttribute('src', response);
 								video.style.display = "block";
 								video.load();
 								video.play();
 							} else {
-								if(change_theme == 'default8' || change_theme == 'default3' || change_theme == 'default5' ){
-								$('<div id="loginpress_video-background-wrapper"><video autoplay loop muted id="loginpress_video-background" playsinline><source src="'+response+'"></video></div>').appendTo(loginpress_find('body'));
-								}else{
-								$('<div id="loginpress_video-background-wrapper"><video autoplay loop id="loginpress_video-background" playsinline muted><source src="'+response+'"></video></div>').appendTo(loginpress_find('#login'));
-								var video = loginpress_find( '#loginpress_video-background' )[0];
-								video.load();
-								video.play();
+								if (change_theme == 'default8' || change_theme == 'default3' || change_theme == 'default5') {
+									$('<div id="loginpress_video-background-wrapper"><video autoplay loop muted id="loginpress_video-background" playsinline><source src="' + response + '"></video></div>').appendTo(loginpress_find('body'));
+								} else {
+									$('<div id="loginpress_video-background-wrapper"><video autoplay loop id="loginpress_video-background" playsinline muted><source src="' + response + '"></video></div>').appendTo(loginpress_find('#login'));
+									var video = loginpress_find('#loginpress_video-background')[0];
+									video.load();
+									video.play();
 								}
 							}
 						}
@@ -432,6 +442,7 @@
 	wp.customize( 'customize_presets_settings', function(value) {
 		value.bind( function(loginPressVal) {
 			change_theme = loginPressVal;
+			get_theme = change_theme;
 		} );
 	} );
 
@@ -454,11 +465,12 @@
 					$('#customize-control-loginpress_customization-login_footer_bg_color').fadeOut().css( 'display', 'none' );
 
 				} else if ('loginpress_customization[footer_display_text]' == setting && true == loginPressVal ) {
-					if(get_theme == 'minimalist' || change_theme == 'minimalist'){
-						$('#customize-preview iframe' ).contents().find( '.login #nav' ).css( 'display', 'flex' );
 
-					}else{
-						$('#customize-preview iframe' ).contents().find( '.login #nav' ).css( 'display', 'block' );
+					if (get_theme == 'minimalist' || change_theme == 'minimalist') {
+						$('#customize-preview iframe').contents().find('.login #nav').css('display', 'flex');
+
+					} else {
+						$('#customize-preview iframe').contents().find('.login #nav').css('display', 'block');
 					}
 					$('#customize-control-loginpress_customization-login_footer_text').fadeIn().css( 'display', 'list-item' );
 					$('#customize-control-loginpress_customization-login_footer_text_decoration').fadeIn().css( 'display', 'list-item' );
@@ -698,6 +710,9 @@
 							$( '#customize-preview iframe' ).contents().find( '.login #loginpress_video-background-wrapper' ).css( 'display', 'none' );
 							$('.yt_video_not_found').show();
 						}
+						$('#customize-control-loginpress_customization-background_video_object').fadeIn().css('display', 'none');
+						$('#customize-control-loginpress_customization-video_obj_position').fadeIn().css('display', 'none');
+						$('#customize-control-loginpress_customization-background_video_muted').fadeIn().css('display', 'none');
 					}, // !success.
 					error : function( xhr, textStatus, errorThrown ) {
 						// console.log('Ajax Not Working');
@@ -816,7 +831,7 @@
 			loginpress_bg = 'url(' + loginpress_script.filter_bg + ')';
 		} else if ( 'default1' == customizer_bg ) {
 			loginpress_bg = 'url(' + loginpress_script.plugin_url + '/loginpress/img/bg-default.jpg)';
-		} else if ( 'minimalist' == customizer_bg ) {
+		} else if ('minimalist' == customizer_bg) {
 			loginpress_bg = 'url(' + loginpress_script.plugin_url + '/loginpress/img/minimalist.jpg)';
 		} else if ( 'default2' == customizer_bg ) {
 			loginpress_bg = 'url(' + loginpress_script.plugin_url + '/loginpress/img/bg2.jpg)';
@@ -1305,8 +1320,8 @@
 	loginpress_shadow_property( 'loginpress_customization[textfield_shadow]', '#loginform input[type="text"], #loginform input[type="password"], #registerform input[type="text"], #registerform input[type="password"], #registerform input[type="number"], #registerform input[type="email"], #lostpasswordform input[type="text"]', 'box-shadow', 'px' );
 	loginpress_shadow_opacity_property( 'loginpress_customization[textfield_shadow_opacity]', '#loginform input[type="text"], #loginform input[type="password"], #registerform input[type="text"], #registerform input[type="password"], #registerform input[type="number"], #registerform input[type="email"], #lostpasswordform input[type="text"]', 'box-shadow', 'px' );
   
-	loginpress_background_img( 'loginpress_customization[forget_form_background]', '#lostpasswordform' );
-	loginpress_css_property( 'loginpress_customization[forget_form_background_color]', '#lostpasswordform', 'background-color' );
+	loginpress_background_img( 'loginpress_customization[forget_form_background]', '.login-action-lostpassword #login' );
+	loginpress_css_property( 'loginpress_customization[forget_form_background_color]', '.login-action-lostpassword #login', 'background-color' );
   
 	loginpress_new_css_property( 'loginpress_customization[customize_form_radius]', '#login', 'border-radius', 'px' );
 	loginpress_shadow_property( 'loginpress_customization[customize_form_shadow]', '#login', 'box-shadow', 'px' );
@@ -1487,21 +1502,20 @@
 	/**
 	 * WordPress Login Page Footer Message.
 	 */
-
 	// loginpress_css_property( 'loginpress_customization[footer_display_text]', '.login #nav', 'display' );
-	loginpress_css_property( 'loginpress_customization[login_footer_text_decoration]', '.login #nav a', 'text-decoration' );
-	
+	loginpress_css_property('loginpress_customization[login_footer_text_decoration]', '.login #nav a', 'text-decoration');
+
 	/**
 	 * Update the footer text of the lost password.
 	 *
 	 * @since 3.0.0
 	 */
-	wp.customize( 'loginpress_customization[login_footer_text]', function(value) {
-		value.bind( function(loginPressVal) {
-			if ( loginpress_find( '.wp-login-lost-password' ).length == 0 ) {
-				loginpress_change_form_label( 'loginpress_customization[login_footer_text]', '.login #nav a:last-child' );
+	wp.customize('loginpress_customization[login_footer_text]', function (value) {
+		value.bind(function (loginPressVal) {
+			if (loginpress_find('.wp-login-lost-password').length == 0) {
+				loginpress_change_form_label('loginpress_customization[login_footer_text]', '.login #nav a:last-child');
 			} else {
-				loginpress_change_form_label( 'loginpress_customization[login_footer_text]', '.wp-login-lost-password' );
+				loginpress_change_form_label('loginpress_customization[login_footer_text]', '.wp-login-lost-password');
 			}
 		});
 
@@ -1619,13 +1633,13 @@
 	/**
 	 * Change LoginPress 'Button' CSS. Since 1.1.3
 	 */
-	loginpress_new_css_property( 'loginpress_customization[login_button_size]', '.login form p input[type="submit"]', 'width', '%' );
-	loginpress_new_css_property('loginpress_customization[login_button_top]', '.wp-core-ui .button-group.button-large .button, .wp-core-ui .button.button-large', 'padding-top', 'px' );
-	loginpress_new_css_property('loginpress_customization[login_button_bottom]', '.wp-core-ui .button-group.button-large .button, .wp-core-ui .button.button-large', 'padding-bottom', 'px' );
-	loginpress_new_css_property('loginpress_customization[login_button_radius]', '.login form p input[type="submit"]', 'border-radius', 'px' );
-	loginpress_shadow_property('loginpress_customization[login_button_shadow]', '.login form p input[type="submit"]', 'box-shadow', 'px' );
-	loginpress_shadow_opacity_property('loginpress_customization[login_button_shadow_opacity]', '.login form p input[type="submit"]', 'box-shadow', 'px' );
-	loginpress_css_property_imp('loginpress_customization[login_button_text_size]', '.login form p input[type="submit"]', 'font-size', 'px' );
+	loginpress_new_css_property('loginpress_customization[login_button_size]', '.login form p input[type="submit"]', 'width', '%');
+	loginpress_new_css_property('loginpress_customization[login_button_top]', '.wp-core-ui .button-group.button-large .button, .wp-core-ui .button.button-large', 'padding-top', 'px');
+	loginpress_new_css_property('loginpress_customization[login_button_bottom]', '.wp-core-ui .button-group.button-large .button, .wp-core-ui .button.button-large', 'padding-bottom', 'px');
+	loginpress_new_css_property('loginpress_customization[login_button_radius]', '.login form p input[type="submit"]', 'border-radius', 'px');
+	loginpress_shadow_property('loginpress_customization[login_button_shadow]', '.login form p input[type="submit"]', 'box-shadow', 'px');
+	loginpress_shadow_opacity_property('loginpress_customization[login_button_shadow_opacity]', '.login form p input[type="submit"]', 'box-shadow', 'px');
+	loginpress_css_property_imp('loginpress_customization[login_button_text_size]', '.login form p input[type="submit"]', 'font-size', 'px');
 
 	/**
 	 * function for change LoginPress CSS in real time with !important...
@@ -1838,41 +1852,41 @@
 		});
 	});
 	
-  /**
-   * Change LoginPress Google reCaptcha size in real time...
-   * @version 3.0.0
-   */
-  wp.customize( 'loginpress_customization[recaptcha_size]', function( value ) {
-    value.bind( function( loginPressVal ) {
+	/**
+	 * Change LoginPress Google reCaptcha size in real time...
+	 * @version 3.0.0
+	 */
+	wp.customize('loginpress_customization[recaptcha_size]', function (value) {
+		value.bind(function (loginPressVal) {
 
-      if ( loginPressVal == '' ) {
-        loginpress_find('.loginpress_recaptcha_wrapper .g-recaptcha').css( 'transform', '' );
-      } else {
-        loginpress_find('.loginpress_recaptcha_wrapper .g-recaptcha').css( 'transform', 'scale(' + loginPressVal + ')' );
-		if (loginpress_find('.loginpress_recaptcha_wrapper')) {
-			var reCaptchaWidth = 304;
-			// Get the containing element's width
-			var containerWidth = loginpress_find('.loginpress_recaptcha_wrapper')[0].clientWidth;
-			// Only scale the reCAPTCHA if it won't fit inside the container
-			if (reCaptchaWidth > containerWidth && loginpress_find('.g-recaptcha')[0].getBoundingClientRect().width>loginpress_find('.g-recaptcha')[0].parentElement.clientWidth ) {
-				// Calculate the scale
-				var captchaScale = containerWidth / reCaptchaWidth;
-				// Apply the transformation with !important flag
-				loginpress_find('.g-recaptcha')[0].style.setProperty('transform', 'scale(' + captchaScale + ')', 'important');
+			if (loginPressVal == '') {
+				loginpress_find('.loginpress_recaptcha_wrapper .g-recaptcha').css('transform', '');
+			} else {
+				loginpress_find('.loginpress_recaptcha_wrapper .g-recaptcha').css('transform', 'scale(' + loginPressVal + ')');
+				if (loginpress_find('.loginpress_recaptcha_wrapper')) {
+					var reCaptchaWidth = 304;
+					// Get the containing element's width
+					var containerWidth = loginpress_find('.loginpress_recaptcha_wrapper')[0].clientWidth;
+					// Only scale the reCAPTCHA if it won't fit inside the container
+					if (reCaptchaWidth > containerWidth && loginpress_find('.g-recaptcha')[0].getBoundingClientRect().width > loginpress_find('.g-recaptcha')[0].parentElement.clientWidth) {
+						// Calculate the scale
+						var captchaScale = containerWidth / reCaptchaWidth;
+						// Apply the transformation with !important flag
+						loginpress_find('.g-recaptcha')[0].style.setProperty('transform', 'scale(' + captchaScale + ')', 'important');
+					}
+				}
 			}
-		}
-      }
-    });
-  });
+		});
+	});
 
 
-  /**
-   * @since 1.0.9
-   * @version 1.0.12
-   */
-  $(window).on('load', function() {
+	/**
+	 * @since 1.0.9
+	 * @version 1.0.12
+	 */
+	$(window).on('load', function () {
 
-    if ( $('#customize-control-loginpress_customization-setting_logo_display input[type="checkbox"]').is(":checked") ) {
+		if ($('#customize-control-loginpress_customization-setting_logo_display input[type="checkbox"]').is(":checked")) {
 			$('#customize-control-loginpress_customization-setting_logo_display').nextAll().hide();
 		} else {
 			$('#customize-control-loginpress_customization-setting_logo_display').nextAll().show();
@@ -2003,7 +2017,7 @@
 		}
 
 		// Toggle controls if video exist or not in customizer for background.
-	  	if ($('#customize-control-loginpress_customization-background_video video').length > 0 || ($('#customize-control-loginpress_customization-yt_video_id input[type="text"]').length > 0 && $('#customize-control-loginpress_customization-yt_video_id input[type="text"]').val().length > 0)) {
+		if ($('#customize-control-loginpress_customization-background_video video').length > 0 || ($('#customize-control-loginpress_customization-yt_video_id input[type="text"]').length > 0 && $('#customize-control-loginpress_customization-yt_video_id input[type="text"]').val().length > 0)) {
 
 			$('#customize-control-loginpress_customization-background_video_object').css( 'display', 'list-item' );
 			$('#customize-control-loginpress_customization-video_obj_position').css( 'display', 'list-item' );

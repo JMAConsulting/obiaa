@@ -63,7 +63,7 @@ class LoginPress_Log_Info {
 		// Plugin Configuration
 		$html .= "\n" . '-- LoginPress Configuration --' . "\n\n";
 		$html .= 'Plugin Version:           ' . LOGINPRESS_VERSION . "\n";
-		$html .= 'Expiration:               ' . $session_expiration . "\n";
+		$html .= 'Expiration:           	' . $session_expiration . "\n";
 		$html .= 'Login Order:              ' . ucfirst( $login_order ) . "\n";
 		$html .= 'PCI Compliance:           ' . ucfirst( $pci_compliance ) . "\n";
 		$html .= 'Force Password Reset:     ' . ucfirst( $enable_password_reset ) . "\n";
@@ -98,7 +98,7 @@ class LoginPress_Log_Info {
 
 			$enable_recaptcha  = ( isset( $loginpress_setting['enable_repatcha'] ) ) ? $loginpress_setting['enable_repatcha'] : 'Off';
 			$enable_force      = ( isset( $loginpress_setting['force_login'] ) ) ? $loginpress_setting['force_login'] : 'Off';
-			$loginpress_preset = get_option( 'customize_presets_settings', 'minimalist' );
+			$loginpress_preset = get_option( 'customize_presets_settings', true );
 			$license_key       = LoginPress_Pro::get_registered_license_status();
 
 			$html .= "\n" . '-- LoginPress Pro Configuration --' . "\n\n";
@@ -106,7 +106,7 @@ class LoginPress_Log_Info {
 			$html .= 'LoginPress Template:      ' . $loginpress_preset . "\n";
 			$html .= 'License Status:           ' . $license_key . "\n";
 			$html .= 'Force Login:              ' . $enable_force . "\n";
-			$html .= 'Google Recaptcha Status:  ' . $enable_recaptcha . "\n";
+			$html .= 'Google Recaptcha Status:   ' . $enable_recaptcha . "\n";
 
 			if ( 'on' == $enable_recaptcha ) {
 				$site_key          = ( isset( $loginpress_setting['site_key'] ) ) ? $loginpress_setting['site_key'] : 'Not Set';

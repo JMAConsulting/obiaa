@@ -9,6 +9,13 @@ function free_minimalist_presets() {
   	ob_start();
   	if ( version_compare( $GLOBALS['wp_version'], '5.3', '>=' ) ) : ?>
     	<style media="screen"  id="loginpress-style-wp-5-3">
+			html body.login div.wishlistmember-loginform{
+				padding: 0;
+				margin: auto;
+				transform: none;
+				top: 0;
+				width: 100%;
+			}
 			.login form .input, .login input[type=text],.login form input[type=checkbox]{
 				border-radius: 0;
 			}

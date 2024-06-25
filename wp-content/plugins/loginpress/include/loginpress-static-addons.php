@@ -19,10 +19,15 @@ if ( ! class_exists( 'LoginPress_Static_Addons' ) ) :
 		/**
 		 * The constructor function
 		 *
-		 * @version 1.5.8
+		 * @since 1.5.8
+		 * @version 3.0.5
 		 */
 		function __construct() {
-			include_once( LOGINPRESS_DIR_PATH . 'classes/class-loginpress-addons.php' );
+			if ( defined( 'LOGINPRESS_PRO_VERSION' ) && version_compare( '3.0.0', LOGINPRESS_PRO_VERSION, '<' ) ) {
+				include LOGINPRESS_DIR_PATH . 'classes/class-loginpress-deprecated-addons.php';
+			} else {
+				include LOGINPRESS_DIR_PATH . 'classes/class-loginpress-addons.php';
+			}
 		}
 
 		/**
