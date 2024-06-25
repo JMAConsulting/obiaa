@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## Version 3.9 (2024-06-25)
+
+* Add Action: Set Contact as Deceased.
+* !261 Allow to use Contribution conditions for Membership End Date (Cron) trigger.
+* #230 (!262) - Fix participant status comparison to use canonical field name
+
 ## Version 3.8 (2024-05-27)
 
 * Fix "Membership is Renewed" trigger that was not working because of an invalid field name.

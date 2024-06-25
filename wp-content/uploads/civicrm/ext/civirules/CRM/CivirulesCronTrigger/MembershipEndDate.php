@@ -8,6 +8,8 @@ use CRM_Civirules_ExtensionUtil as E;
 
 class CRM_CivirulesCronTrigger_MembershipEndDate extends CRM_Civirules_Trigger_Cron {
 
+  use CRM_CivirulesTrigger_MembershipTrait;
+
   /**
    * @var \CRM_Member_DAO_Membership $dao
    */
@@ -164,17 +166,6 @@ class CRM_CivirulesCronTrigger_MembershipEndDate extends CRM_Civirules_Trigger_C
       2 => $this->triggerParams['interval'],
       3 => $intervalUnitLabel,
     ]);
-  }
-
-  /**
-   * Returns additional entities provided in this trigger.
-   *
-   * @return array of CRM_Civirules_TriggerData_EntityDefinition
-   */
-  protected function getAdditionalEntities() {
-    $entities = parent::getAdditionalEntities();
-    $entities[] = new CRM_Civirules_TriggerData_EntityDefinition('ContributionRecur', 'ContributionRecur', 'CRM_Contribute_DAO_ContributionRecur' , 'ContributionRecur');
-    return $entities;
   }
 
 }
