@@ -37,6 +37,30 @@ class CiviCRM_For_WordPress_Basepage {
   public $civi;
 
   /**
+   * @var bool
+   * Base Page parsed flag.
+   * @since 4.6
+   * @access public
+   */
+  public $basepage_parsed = FALSE;
+
+  /**
+   * @var string
+   * Base Page title.
+   * @since 4.6
+   * @access public
+   */
+  public $basepage_title = '';
+
+  /**
+   * @var string
+   * Base Page markup.
+   * @since 4.6
+   * @access public
+   */
+  public $basepage_markup = '';
+
+  /**
    * Instance constructor.
    *
    * @since 4.6
@@ -326,9 +350,14 @@ class CiviCRM_For_WordPress_Basepage {
       return;
     }
 
-    // Do not proceed without the presence of the CiviCRM query var.
-    $civicrm_in_wordpress = $this->civi->civicrm_in_wordpress();
-    if (!$civicrm_in_wordpress) {
+    // Check for the Base Page query conditions.
+    $is_basepage_query = FALSE;
+    if ($this->civi->civicrm_in_wordpress() && $this->civi->is_page_request()) {
+      $is_basepage_query = TRUE;
+    }
+
+    // Do not proceed without them.
+    if (!$is_basepage_query) {
       return;
     }
 
@@ -337,9 +366,22 @@ class CiviCRM_For_WordPress_Basepage {
       return;
     }
 
-    // Get the current Base Page and set a "found" flag.
-    $basepage = $this->basepage_get();
+    /**
+     * Fires before the Base Page is processed.
+     *
+     * @since 5.66
+     */
+    do_action('civicrm/basepage/handler/pre');
+
+    // Set a "found" flag.
     $basepage_found = FALSE;
+
+    // Check permission.
+    $denied = TRUE;
+    $argdata = $this->civi->get_request_args();
+    if ($this->civi->users->check_permission($argdata['args'])) {
+      $denied = FALSE;
+    }
 
     // Get the Shortcode Mode setting.
     $shortcode_mode = $this->civi->admin->get_shortcode_mode();
@@ -368,8 +410,11 @@ class CiviCRM_For_WordPress_Basepage {
          */
         $basepage_mode = (bool) apply_filters('civicrm_force_basepage_mode', FALSE, $post);
 
+        // Determine if the current Post is the Base Page.
+        $is_basepage = $this->is_match($post->ID);
+
         // Skip when this is not the Base Page or when "Base Page mode" is not forced or not in "legacy mode".
-        if ($basepage->ID === $post->ID || $basepage_mode || $shortcode_mode === 'legacy') {
+        if ($is_basepage || $basepage_mode || $shortcode_mode === 'legacy') {
 
           // Set context.
           $this->civi->civicrm_context_set('basepage');
@@ -417,6 +462,15 @@ class CiviCRM_For_WordPress_Basepage {
     // Reset loop.
     rewind_posts();
 
+    /**
+     * Fires after the Base Page may have been processed.
+     *
+     * @since 5.66
+     *
+     * @param bool $basepage_found TRUE if the CiviCRM Base Page was found, FALSE otherwise.
+     */
+    do_action('civicrm/basepage/handler/post', $basepage_found);
+
     // Bail if the Base Page has not been processed.
     if (!$basepage_found) {
       return;
@@ -444,21 +498,11 @@ class CiviCRM_For_WordPress_Basepage {
     add_filter('wp_title', [$this, 'wp_page_title'], 100, 3);
     add_filter('document_title_parts', [$this, 'wp_page_title_parts'], 100, 1);
 
-    // Add compatibility with Yoast SEO plugin's Open Graph title.
-    add_filter('wpseo_opengraph_title', [$this, 'wpseo_page_title'], 100, 1);
-
-    // Don't let the Yoast SEO plugin parse the Base Page title.
-    if (class_exists('WPSEO_Frontend')) {
-      $frontend = WPSEO_Frontend::get_instance();
-      remove_filter('pre_get_document_title', [$frontend, 'title'], 15);
-    }
-
     // Regardless of URL, load page template.
     add_filter('template_include', [$this, 'basepage_template'], 999);
 
-    // Check permission.
-    $argdata = $this->civi->get_request_args();
-    if (!$this->civi->users->check_permission($argdata['args'])) {
+    // Show content based on permission.
+    if ($denied) {
 
       // Do not show content.
       add_filter('the_content', [$this->civi->users, 'get_permission_denied']);
@@ -519,7 +563,7 @@ class CiviCRM_For_WordPress_Basepage {
     }
 
     // Construct title depending on separator location.
-    if ($separator_location == 'right') {
+    if ($separator_location === 'right') {
       $title = $this->basepage_title . " $separator " . get_bloginfo('name', 'display');
     }
     else {
@@ -552,24 +596,6 @@ class CiviCRM_For_WordPress_Basepage {
 
     // Return modified title parts.
     return $parts;
-
-  }
-
-  /**
-   * Get CiviCRM Base Page title for Open Graph elements.
-   *
-   * Callback method for 'wpseo_opengraph_title' hook, to provide compatibility
-   * with the WordPress SEO plugin.
-   *
-   * @since 4.6.4
-   *
-   * @param string $post_title The title of the WordPress page or post.
-   * @return string $basepage_title The title of the CiviCRM entity.
-   */
-  public function wpseo_page_title($post_title) {
-
-    // Hand back our Base Page title.
-    return $this->basepage_title;
 
   }
 
@@ -616,21 +642,26 @@ class CiviCRM_For_WordPress_Basepage {
     // Access CiviCRM config object.
     $config = CRM_Core_Config::singleton();
 
+    // None of the following needs a nonce check.
+    // phpcs:disable WordPress.Security.NonceVerification.Recommended
+
     // Retain old logic when not using clean URLs.
     if (!$config->cleanURL) {
+
+      $civiwp = empty($_GET['civiwp']) ? '' : sanitize_text_field(wp_unslash($_GET['civiwp']));
+      $q = empty($_GET['q']) ? '' : sanitize_text_field(wp_unslash($_GET['q']));
 
       /*
        * It would be better to specify which params are okay to accept as the
        * canonical URLs, but this will work for the time being.
        */
-      if (empty($_GET['civiwp'])
-        || empty($_GET['q'])
-        || 'CiviCRM' !== $_GET['civiwp']) {
+      if (empty($civiwp)
+        || 'CiviCRM' !== $civiwp
+        || empty($q)) {
         return $canonical;
       }
-      $path = $_GET['q'];
-      unset($_GET['q']);
-      unset($_GET['civiwp']);
+      $path = $q;
+      unset($q, $_GET['q'], $civiwp, $_GET['civiwp']);
       $query = http_build_query($_GET);
 
     }
@@ -641,6 +672,8 @@ class CiviCRM_For_WordPress_Basepage {
       $query = http_build_query($_GET);
 
     }
+
+    // phpcs:enable WordPress.Security.NonceVerification.Recommended
 
     /*
      * We should, however, build the URL the way that CiviCRM expects it to be
@@ -667,12 +700,12 @@ class CiviCRM_For_WordPress_Basepage {
     $template_name = str_replace(trailingslashit(get_stylesheet_directory()), '', $template);
 
     // If the above fails, try parent theme.
-    if ($template_name == $template) {
+    if ($template_name === $template) {
       $template_name = str_replace(trailingslashit(get_template_directory()), '', $template);
     }
 
     // Bail in the unlikely event that the template name has not been found.
-    if ($template_name == $template) {
+    if ($template_name === $template) {
       return $template;
     }
 
@@ -693,7 +726,7 @@ class CiviCRM_For_WordPress_Basepage {
     $page_template = locate_template([$basepage_template]);
 
     // If not homepage and template is found.
-    if ('' != $page_template && !is_front_page()) {
+    if (!is_front_page() && !empty($page_template)) {
       return $page_template;
     }
 
@@ -720,7 +753,7 @@ class CiviCRM_For_WordPress_Basepage {
     $home_template = locate_template([$home_template_name]);
 
     // Use it if found.
-    if ('' != $home_template) {
+    if (!empty($home_template)) {
       return $home_template;
     }
 
@@ -818,40 +851,241 @@ class CiviCRM_For_WordPress_Basepage {
    */
   public function basepage_get() {
 
-    // Kick out if not CiviCRM.
+    // Bail if CiviCRM not bootstrapped.
+    if (!$this->civi->initialize()) {
+      return FALSE;
+    }
+
+    // Get config.
+    $config = CRM_Core_Config::singleton();
+
+    // Get Base Page object.
+    $basepage = get_page_by_path($config->wpBasePage);
+    if (is_null($basepage) || !($basepage instanceof WP_Post)) {
+      return FALSE;
+    }
+
+    /**
+     * Filters the CiviCRM Base Page object.
+     *
+     * @since 5.66
+     *
+     * @param WP_Post $basepage The CiviCRM Base Page object.
+     */
+    return apply_filters('civicrm/basepage', $basepage);
+
+  }
+
+  /**
+   * Gets a URL that points to the CiviCRM Base Page.
+   *
+   * There can be situations where `CRM_Utils_System::url` does not return
+   * a link to the Base Page, e.g. in a page template where the content
+   * contains a Shortcode. This utility method will always return a URL
+   * that points to the CiviCRM Base Page.
+   *
+   * @see https://lab.civicrm.org/dev/wordpress/-/issues/144
+   *
+   * @since 5.69
+   *
+   * @param string $path The path being linked to, such as "civicrm/add".
+   * @param array|string $query A query string to append to the link, or an array of key-value pairs.
+   * @param bool $absolute Whether to force the output to be an absolute link.
+   * @param string $fragment A fragment identifier (named anchor) to append to the link.
+   * @param bool $htmlize Whether to encode special html characters such as &.
+   * @return string $link An HTML string containing a link to the given path.
+   */
+  public function url(
+    $path = '',
+    $query = '',
+    $absolute = TRUE,
+    $fragment = NULL,
+    $htmlize = TRUE
+  ) {
+
+    // Return early if no CiviCRM.
+    $link = '';
+    if (!$this->civi->initialize()) {
+      return $link;
+    }
+
+    // Add modifying callbacks prior to multi-lingual compat.
+    add_filter('civicrm/basepage/match', [$this, 'ensure_match'], 9);
+    add_filter('civicrm/core/url/base', [$this, 'ensure_url'], 9, 2);
+
+    // Pass to CiviCRM to construct front-end URL.
+    $link = CRM_Utils_System::url(
+      $path,
+      $query,
+      TRUE,
+      $fragment,
+      $htmlize,
+      TRUE,
+      FALSE
+    );
+
+    // Remove callbacks.
+    remove_filter('civicrm/basepage/match', [$this, 'ensure_match'], 9);
+    remove_filter('civicrm/core/url/base', [$this, 'ensure_url'], 9);
+
+    return $link;
+
+  }
+
+  /**
+   * Callback to ensure CiviCRM returns a Base Page URL.
+   *
+   * @since 5.69
+   *
+   * @return bool
+   */
+  public function ensure_match() {
+    return TRUE;
+  }
+
+  /**
+   * Callback to ensure CiviCRM builds a Base Page URL.
+   *
+   * @since 5.69
+   *
+   * @param str $url The "base" URL as built by CiviCRM.
+   * @param bool $admin_request True if building an admin URL, false otherwise.
+   * @return str $url The Base Page URL.
+   */
+  public function ensure_url($url, $admin_request) {
+
+    // Skip when not defined.
+    if (empty($url) || $admin_request) {
+      return $url;
+    }
+
+    // Return the Base Page URL.
+    return $this->url_get();
+
+  }
+
+  /**
+   * Gets the current Base Page ID.
+   *
+   * @since 5.66
+   *
+   * @return int|bool The Base Page ID or FALSE on failure.
+   */
+  public function id_get() {
+
+    // Get the Base Page object.
+    $basepage = $this->basepage_get();
+    if (!($basepage instanceof WP_Post)) {
+      return FALSE;
+    }
+
+    return $basepage->ID;
+
+  }
+
+  /**
+   * Gets the current Base Page URL.
+   *
+   * @since 5.66
+   *
+   * @return str The Base Page URL or empty on failure.
+   */
+  public function url_get() {
+
+    // Get the Base Page object.
+    $basepage = $this->basepage_get();
+    if (!($basepage instanceof WP_Post)) {
+      return '';
+    }
+
+    return get_permalink($basepage->ID);
+
+  }
+
+  /**
+   * Gets the Base Page title.
+   *
+   * @since 5.66
+   *
+   * @return string $basepage_title The title of the CiviCRM entity.
+   */
+  public function title_get() {
+    return $this->basepage_title;
+  }
+
+  /**
+   * Checks a Post ID against the Base Page ID.
+   *
+   * @since 5.66
+   *
+   * @param int $post_id The Post ID to check.
+   * @return bool TRUE if the Post ID matches the Base Page ID, or FALSE otherwise.
+   */
+  public function is_match($post_id) {
+
+    // Get the Base Page ID.
+    $basepage_id = $this->id_get();
+    if ($basepage_id === FALSE) {
+      return FALSE;
+    }
+
+    // Determine if the given Post is the Base Page.
+    $is_basepage = $basepage_id === $post_id ? TRUE : FALSE;
+
+    /**
+     * Filters the CiviCRM Base Page match.
+     *
+     * @since 5.66
+     *
+     * @param bool $is_basepage TRUE if the Post ID matches the Base Page ID, FALSE otherwise.
+     * @param int $post_id The WordPress Post ID to check.
+     */
+    return apply_filters('civicrm/basepage/match', $is_basepage, $post_id);
+
+  }
+
+  /**
+   * Gets the current Base Page setting.
+   *
+   * @since 5.66
+   *
+   * @return string|bool $setting The Base Page setting, or FALSE on failure.
+   */
+  public function setting_get() {
+
+    // Bail if CiviCRM not bootstrapped.
     if (!$this->civi->initialize()) {
       return FALSE;
     }
 
     // Get the setting.
-    $basepage_slug = civicrm_api3('Setting', 'getvalue', [
+    $setting = civicrm_api3('Setting', 'getvalue', [
       'name' => 'wpBasePage',
       'group' => 'CiviCRM Preferences',
     ]);
 
-    // Did we get a value?
-    if (!empty($basepage_slug)) {
+    return $setting;
 
-      // Define the query for our Base Page.
-      $args = [
-        'post_type' => 'page',
-        'name' => strtolower($basepage_slug),
-        'post_status' => 'publish',
-        'posts_per_page' => 1,
-      ];
+  }
 
-      // Do the query.
-      $pages = get_posts($args);
+  /**
+   * Sets the current Base Page setting.
+   *
+   * @since 5.66
+   *
+   * @param string $slug The Base Page setting.
+   */
+  public function setting_set($slug) {
 
+    // Bail if CiviCRM not bootstrapped.
+    if (!$this->civi->initialize()) {
+      return;
     }
 
-    // Find the Base Page object.
-    $basepage = FALSE;
-    if (!empty($pages) && is_array($pages)) {
-      $basepage = array_pop($pages);
-    }
-
-    return $basepage;
+    // Set the setting.
+    civicrm_api3('Setting', 'create', [
+      'wpBasePage' => $slug,
+    ]);
 
   }
 
