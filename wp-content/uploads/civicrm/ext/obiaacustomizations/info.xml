@@ -18,7 +18,7 @@
   <version>1.0</version>
   <develStage>alpha</develStage>
   <compatibility>
-    <ver>5.0</ver>
+    <ver>5.38</ver>
   </compatibility>
   <comments>This is a new, undeveloped module</comments>
   <classloader>
@@ -28,4 +28,5 @@
     <namespace>CRM/Obiaacustomizations</namespace>
     <format>23.02.1</format>
   </civix>
+  <upgrader>CRM_Obiaacustomizations_Upgrader</upgrader>
 </extension>
