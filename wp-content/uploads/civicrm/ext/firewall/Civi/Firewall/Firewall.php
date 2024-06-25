@@ -277,6 +277,18 @@ GROUP BY event_type
     if (!empty($context)) {
       \CRM_Core_Session::singleton()->set('csrf.' . $publicToken, $context, 'civi.firewall');
     }
+
+    //Drupal 9.2+ does not by default create a session for anonymous users.
+    //While processing an Ajax request to /drupal/civicrm/payment/form initiated
+    //from a Drupal Webform, we therefore save the session to ensure that anonymous
+    //users receive a session cookie.
+    if (($_REQUEST['is_drupal_webform'] ?? '') == '1' &&
+      method_exists('\Drupal', 'request') &&
+      method_exists(\Drupal::request(), 'getSession') &&
+      method_exists(\Drupal::request()->getSession(), 'save')) {
+        \Drupal::request()->getSession()->save();
+    }
+
     return $publicToken;
   }
 
