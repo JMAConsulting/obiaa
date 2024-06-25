@@ -24,9 +24,10 @@ class CRM_CivirulesPostTrigger_Contact extends CRM_Civirules_Trigger_Post {
    * Checks whether the trigger provides a certain entity.
    *
    * @param string $entity
+   *
    * @return bool
    */
-  public function doesProvideEntity($entity) {
+  public function doesProvideEntity(string $entity): bool {
     if ($entity == 'Contact') {
       return TRUE;
     }
@@ -43,9 +44,10 @@ class CRM_CivirulesPostTrigger_Contact extends CRM_Civirules_Trigger_Post {
    * Checks whether the trigger provides a certain set of entities
    *
    * @param array<string> $entities
+   *
    * @return bool
    */
-  public function doesProvideEntities($entities) {
+  public function doesProvideEntities($entities): bool {
     $availableEntities = $this->getProvidedEntities();
     foreach($entities as $entity) {
       $entityPresent = false;

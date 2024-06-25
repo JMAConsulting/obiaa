@@ -1,18 +1,23 @@
 <?php
 
+use Civi\Api4\Activity;
+use CRM_Civirules_ExtensionUtil as E;
+
+/**
+ * Class for "Days since Last Case Activity" condition
+ */
 class CRM_CivirulesConditions_Case_CaseActivity extends CRM_Civirules_Condition {
 
-  private $conditionParams = array();
+  private $conditionParams = [];
 
   /**
    * Method to set the Rule Condition data
    *
    * @param array $ruleCondition
-   * @access public
    */
   public function setRuleConditionData($ruleCondition) {
     parent::setRuleConditionData($ruleCondition);
-    $this->conditionParams = array();
+    $this->conditionParams = [];
     if (!empty($this->ruleCondition['condition_params'])) {
       $this->conditionParams = unserialize($this->ruleCondition['condition_params']);
     }
@@ -30,15 +35,19 @@ class CRM_CivirulesConditions_Case_CaseActivity extends CRM_Civirules_Condition 
     $daysInactive = $this->conditionParams['days_inactive'];
 
     try {
-      $lastActivity = civicrm_api3('Activity', 'get', array(
-        'sequential' => 1,
-        'return' => array("modified_date"),
-        'case_id' => $case['id'],
-        'options' => array('sort' => "modified_date desc", 'limit' => 1),
-      ))['values'][0];
+      $lastActivity = Activity::get(FALSE)
+        ->addSelect('modified_date')
+        ->addWhere('case_id', '=', $case['id'])
+        ->addOrderBy('modified_date', 'DESC')
+        ->execute()
+        ->first();
+      if (empty($lastActivity)) {
+        return FALSE;
+      }
     }
     catch (Exception $e) {
-      return $isConditionValid;
+      \Civi::log('civirules')->error('Exception checking condition "Days since Last Case Activity": ' . $e->getMessage());
+      return FALSE;
     }
 
     $lastActivityDate = DateTime::createFromFormat("Y-m-d H:i:s", $lastActivity['modified_date']);
@@ -58,13 +67,11 @@ class CRM_CivirulesConditions_Case_CaseActivity extends CRM_Civirules_Condition 
    * Return false if you do not need extra data input
    *
    * @param int $ruleConditionId
+   *
    * @return bool|string
-   * @access public
-   * @abstract
    */
   public function getExtraDataInputUrl($ruleConditionId) {
-    return CRM_Utils_System::url('civicrm/civirule/form/condition/case/caseactivity', 'rule_condition_id='
-      .$ruleConditionId);
+    return CRM_Utils_System::url('civicrm/civirule/form/condition/case/caseactivity', 'rule_condition_id=' . $ruleConditionId);
   }
 
   /**
@@ -77,10 +84,21 @@ class CRM_CivirulesConditions_Case_CaseActivity extends CRM_Civirules_Condition 
    *
    * @param CRM_Civirules_Trigger $trigger
    * @param CRM_Civirules_BAO_Rule $rule
+   *
    * @return bool
    */
   public function doesWorkWithTrigger(CRM_Civirules_Trigger $trigger, CRM_Civirules_BAO_Rule $rule) {
     return $trigger->doesProvideEntity('Case');
+  }
+
+  /**
+   * Returns a user friendly text explaining the condition params
+   * e.g. 'Older than 65'
+   *
+   * @return string
+   */
+  public function userFriendlyConditionParams() {
+    return E::ts('%1 Days since Last Case Activity', [1 => $this->conditionParams['days_inactive']]);
   }
 
 }

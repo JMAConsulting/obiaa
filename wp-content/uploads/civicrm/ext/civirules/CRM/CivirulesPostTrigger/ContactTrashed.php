@@ -19,15 +19,17 @@ class CRM_CivirulesPostTrigger_ContactTrashed  extends CRM_Civirules_Trigger_Pos
   /**
    * Trigger a rule for this trigger
    *
-   * @param $op
-   * @param $objectName
-   * @param $objectId
-   * @param $objectRef
+   * @param string $op
+   * @param string $objectName
+   * @param int $objectId
+   * @param object $objectRef
+   * @param string $eventID
    */
   public function triggerTrigger($op, $objectName, $objectId, $objectRef, $eventID) {
     $triggerData = $this->getTriggerDataFromPost($op, $objectName, $objectId, $objectRef, $eventID);
-    if($objectRef->is_deleted) {
-      CRM_Civirules_Engine::triggerRule($this, clone $triggerData);
+    if ($objectRef->is_deleted) {
+      $this->setTriggerData($triggerData);
+      parent::triggerTrigger($op, $objectName, $objectId, $objectRef, $eventID);
     }
   }
 

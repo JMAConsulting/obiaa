@@ -30,7 +30,7 @@ class CRM_CivirulesActions_Contact_Subtype extends CRM_Civirules_Action {
       $params['contact_id'] = $contactId;
       $params['contact_type'] = $contactType;
       $params['contact_sub_type'] = $subTypes;
-      CRM_Contact_BAO_Contact::add($params);
+      CRM_Contact_BAO_Contact::writeRecord($params);
     }
   }
 

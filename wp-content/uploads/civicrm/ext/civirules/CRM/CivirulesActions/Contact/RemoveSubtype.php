@@ -27,7 +27,7 @@ class CRM_CivirulesActions_Contact_RemoveSubtype extends CRM_Civirules_Action {
       $params['contact_id'] = $contactId;
       $params['contact_type'] = $contactType;
       $params['contact_sub_type'] = array_diff($subTypes, $typesToRemove);
-      CRM_Contact_BAO_Contact::add($params);
+      CRM_Contact_BAO_Contact::writeRecord($params);
     }
   }
 

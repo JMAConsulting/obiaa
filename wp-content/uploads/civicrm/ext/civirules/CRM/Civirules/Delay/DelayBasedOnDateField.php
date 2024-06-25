@@ -119,7 +119,7 @@ class CRM_Civirules_Delay_DelayBasedOnDateField extends CRM_Civirules_Delay_Dela
 
     $triggerClass = CRM_Civirules_BAO_Trigger::getTriggerObjectByTriggerId($rule->trigger_id, true);
     $triggerClass->setTriggerId($rule->trigger_id);
-    $triggerClass->setTriggerParams($rule->trigger_params);
+    $triggerClass->setTriggerParams($rule->trigger_params ?? '');
 
 
     $form->add('select', $prefix.'entity', ts('Entity'), $this->getEntityOptions($triggerClass), true);

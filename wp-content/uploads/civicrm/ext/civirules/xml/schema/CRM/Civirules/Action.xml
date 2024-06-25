@@ -2,11 +2,12 @@
 
 <table>
   <base>CRM/Civirules</base>
-  <class>Action</class>
+  <class>CiviRulesAction</class>
   <name>civirule_action</name>
-  <comment>FIXME</comment>
+  <comment>CiviRules Actions</comment>
   <table_type>Innodb</table_type>
   <log>true</log>
+  <labelField>label</labelField>
 
   <field>
     <name>id</name>
@@ -19,7 +20,6 @@
     <autoincrement>true</autoincrement>
   </primaryKey>
 
-
   <field>
     <name>name</name>
     <type>varchar</type>
@@ -31,6 +31,9 @@
     <type>varchar</type>
     <length>128</length>
     <default>NULL</default>
+    <html>
+      <type>Select</type>
+    </html>
   </field>
   <field>
     <name>class_name</name>
@@ -40,9 +43,13 @@
   </field>
   <field>
     <name>is_active</name>
-    <type>int</type>
+    <type>boolean</type>
     <required>true</required>
     <default>1</default>
+    <html>
+      <type>CheckBox</type>
+      <label>Enabled</label>
+    </html>
   </field>
     <field>
     <name>created_date</name>
@@ -51,8 +58,14 @@
   </field>
   <field>
     <name>created_user_id</name>
-    <type>int</type>
+    <type>int unsigned</type>
     <default>NULL</default>
+    <comment>FK to Contact ID</comment>
+    <html>
+      <type>EntityRef</type>
+      <label>Created By</label>
+    </html>
+    <readonly>true</readonly>
   </field>
   <field>
     <name>modified_date</name>
@@ -61,7 +74,13 @@
   </field>
   <field>
     <name>modified_user_id</name>
-    <type>int</type>
+    <type>int unsigned</type>
     <default>NULL</default>
+    <comment>FK to Contact ID</comment>
+    <html>
+      <type>EntityRef</type>
+      <label>Modified By</label>
+    </html>
+    <readonly>true</readonly>
   </field>
 </table>

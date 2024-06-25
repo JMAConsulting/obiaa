@@ -3,16 +3,23 @@
  * @author Véronique Gratioulet <veronique.gratioulet@atd-quartmonde.org>
  * @license http://www.gnu.org/licenses/agpl-3.0.html
  */
+
 /**
  * Trigger when an Contact Custom Data changes.
-
+ * @fixme: This should probably extend CRM_Civirules_Trigger_Post
  */
 class CRM_CivirulesPostTrigger_ContactCustomDataChanged extends CRM_Civirules_Trigger {
 
+  /**
+   * @return string
+   */
   protected static function getObjectName() {
     return 'Contact';
   }
 
+  /**
+   * @return array
+   */
   private static function getTriggers() {
     $get_called_class = get_called_class();
     $triggers = CRM_Civirules_BAO_Rule::findRulesByClassname($get_called_class);
@@ -27,6 +34,9 @@ class CRM_CivirulesPostTrigger_ContactCustomDataChanged extends CRM_Civirules_Tr
     return $triggers;
   }
 
+  /**
+   * @return \CRM_Civirules_TriggerData_EntityDefinition
+   */
   public function reactOnEntity() {
     $get_called_class = get_called_class();
     $objectName = $get_called_class::getObjectName();
@@ -52,18 +62,31 @@ class CRM_CivirulesPostTrigger_ContactCustomDataChanged extends CRM_Civirules_Tr
     return 'CRM_Contact_DAO_Contact';
   }
 
+  /**
+   * @return array|string[]
+   */
   protected static function getEntityExtensions() {
     $get_called_class = get_called_class();
     $objectName = $get_called_class::getObjectName();
     if ('Contact' == $objectName) {
-      $entity_extensions = array('Contact', 'Individual', 'Organization', 'Household');
+      $entity_extensions = ['Contact', 'Individual', 'Organization', 'Household'];
     }
     else {
-      $entity_extensions = array($objectName);
+      $entity_extensions = [$objectName];
     }
     return $entity_extensions;
   }
 
+  /**
+   * @param string $op
+   * @param int $groupID
+   * @param int $entityID
+   * @param array $params
+   *
+   * @return void
+   * @throws \CRM_Core_Exception
+   * @throws \Civi\API\Exception\UnauthorizedException
+   */
   public static function custom($op, $groupID, $entityID, &$params) {
     $config = \Civi\CiviRules\Config\ConfigContainer::getInstance();
     $custom_group = $config->getCustomGroupById($groupID);
@@ -73,14 +96,19 @@ class CRM_CivirulesPostTrigger_ContactCustomDataChanged extends CRM_Civirules_Tr
     if (!in_array($custom_group['extends'], $entity_extensions)) {
       return;
     }
-    $contact = array();
+    $contact = [];
     if (!empty($entityID)) {
       $contact = civicrm_api3('Contact', 'getsingle', ['id' => $entityID]);
       foreach ($params as $field) {
         if (!empty($field['custom_field_id'])) {
-          $contact['custom_' . $field['custom_field_id']] = $field['value'];
+          $value = $field['value'];
+          if ($field['type'] == 'Timestamp') {
+            $date = \DateTime::createFromFormat('YmdHis', $value);
+            $value = $date ? $date->format('Y-m-d H:i:s') : NULL;
+          }
+          $contact['custom_' . $field['custom_field_id']] = $value;
           $contact['custom_' . $field['custom_field_id'] . '_group_id'] = $field['custom_group_id'];
-          $contact['custom_' . $field['custom_field_id'] . '_entry_id'] = $field['id'];
+          $contact['custom_' . $field['custom_field_id'] . '_entry_id'] = $field['id'] ?? NULL;
         }
       }
     }
@@ -91,6 +119,11 @@ class CRM_CivirulesPostTrigger_ContactCustomDataChanged extends CRM_Civirules_Tr
     self::trigger($triggerData);
   }
 
+  /**
+   * @param \CRM_Civirules_TriggerData_TriggerData $triggerData
+   *
+   * @return void
+   */
   protected static function trigger(CRM_Civirules_TriggerData_TriggerData $triggerData) {
     //find matching rules for this objectName and op
     $triggers = self::getTriggers();

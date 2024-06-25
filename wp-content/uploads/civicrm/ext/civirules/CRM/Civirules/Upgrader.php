@@ -5,7 +5,7 @@ use CRM_Civirules_ExtensionUtil as E;
  * Copyright (C) 2015 Coöperatieve CiviCooP U.A. <http://www.civicoop.org>
  * Licensed to CiviCRM under the AGPL-3.0
  */
-class CRM_Civirules_Upgrader extends CRM_Civirules_Upgrader_Base {
+class CRM_Civirules_Upgrader extends CRM_Extension_Upgrader_Base {
 
   /**
    * Create CiviRules tables on extension install. Do not change the
@@ -242,21 +242,21 @@ class CRM_Civirules_Upgrader extends CRM_Civirules_Upgrader_Base {
     return TRUE;
   }
 
-	public function upgrade_1022() {
-		CRM_Core_DAO::executeQuery("
-			UPDATE civirule_trigger
-			SET class_name = 'CRM_CivirulesPostTrigger_Contribution'
-			WHERE object_name = 'Contribution'
-		");
-		return TRUE;
-	}
+  public function upgrade_1022() {
+    CRM_Core_DAO::executeQuery("
+      UPDATE civirule_trigger
+      SET class_name = 'CRM_CivirulesPostTrigger_Contribution'
+      WHERE object_name = 'Contribution'
+    ");
+    return TRUE;
+  }
 
   /**
    * Upgrade 1023 (issue #189 - replace managed entities with inserts
    *
    * @return bool
    */
-	public function upgrade_1023() {
+  public function upgrade_1023() {
     $this->ctx->log->info('Applying update 1023 - remove unwanted managed entities');
     $query = "DELETE FROM civicrm_managed WHERE module = %1 AND entity_type IN(%2, %3, %4)";
     $params = array(
@@ -312,7 +312,7 @@ class CRM_Civirules_Upgrader extends CRM_Civirules_Upgrader_Base {
     CRM_Core_DAO::executeQuery("UPDATE `civirule_trigger` SET `class_name` = 'CRM_CivirulesPostTrigger_Participant' WHERE `object_name` = 'Participant'");
 
     return TRUE;
-	}
+  }
 
   /**
    * Upgrade 1024 (issue #138 rules for trash en untrash)
@@ -328,7 +328,7 @@ class CRM_Civirules_Upgrader extends CRM_Civirules_Upgrader_Base {
   /**
    * Upgrade 1025 add Contact Lives in Country condition
    */
-	public function upgrade_1025() {
+  public function upgrade_1025() {
     $this->ctx->log->info('Applying update 1025 - add LivesInCountry condition to CiviRules');
     $select = "SELECT COUNT(*) FROM civirule_condition WHERE class_name = %1";
     $selectParams = array(
@@ -892,6 +892,58 @@ class CRM_Civirules_Upgrader extends CRM_Civirules_Upgrader_Base {
   public function upgrade_2081() {
     $this->ctx->log->info('Applying update 2081 - Add action to register participant');
     CRM_Civirules_Utils_Upgrader::insertActionsFromJson($this->extensionDir . DIRECTORY_SEPARATOR . 'sql/actions.json');
+    return TRUE;
+  }
+
+  public function upgrade_2082() {
+    $this->ctx->log->info('Update tables to match schema cleanup');
+    CRM_Core_DAO::executeQuery("ALTER TABLE civirule_action MODIFY COLUMN is_active tinyint NOT NULL DEFAULT 1");
+    CRM_Core_DAO::executeQuery("ALTER TABLE civirule_action MODIFY COLUMN created_user_id int unsigned DEFAULT NULL COMMENT 'FK to Contact ID'");
+    CRM_Core_DAO::executeQuery("ALTER TABLE civirule_action MODIFY COLUMN modified_user_id int unsigned DEFAULT NULL COMMENT 'FK to Contact ID'");
+
+    CRM_Core_DAO::executeQuery("ALTER TABLE civirule_condition MODIFY COLUMN is_active tinyint NOT NULL DEFAULT 1");
+    CRM_Core_DAO::executeQuery("ALTER TABLE civirule_condition MODIFY COLUMN created_user_id int unsigned DEFAULT NULL COMMENT 'FK to Contact ID'");
+    CRM_Core_DAO::executeQuery("ALTER TABLE civirule_condition MODIFY COLUMN modified_user_id int unsigned DEFAULT NULL COMMENT 'FK to Contact ID'");
+
+    CRM_Core_DAO::executeQuery("ALTER TABLE civirule_trigger MODIFY COLUMN is_active tinyint NOT NULL DEFAULT 1");
+    CRM_Core_DAO::executeQuery("ALTER TABLE civirule_trigger MODIFY COLUMN cron tinyint DEFAULT 0");
+    CRM_Core_DAO::executeQuery("ALTER TABLE civirule_trigger MODIFY COLUMN created_user_id int unsigned DEFAULT NULL COMMENT 'FK to Contact ID'");
+    CRM_Core_DAO::executeQuery("ALTER TABLE civirule_trigger MODIFY COLUMN modified_user_id int unsigned DEFAULT NULL COMMENT 'FK to Contact ID'");
+
+    CRM_Core_DAO::executeQuery("ALTER TABLE civirule_rule_action MODIFY COLUMN is_active tinyint NOT NULL DEFAULT 1");
+    CRM_Core_DAO::executeQuery("ALTER TABLE civirule_rule_condition MODIFY COLUMN is_active tinyint NOT NULL DEFAULT 1");
+
+    CRM_Core_DAO::executeQuery("ALTER TABLE civirule_rule MODIFY COLUMN is_active tinyint NOT NULL DEFAULT 1");
+    CRM_Core_DAO::executeQuery("ALTER TABLE civirule_rule MODIFY COLUMN created_user_id int unsigned DEFAULT NULL COMMENT 'FK to Contact ID'");
+    CRM_Core_DAO::executeQuery("ALTER TABLE civirule_rule MODIFY COLUMN modified_user_id int unsigned DEFAULT NULL COMMENT 'FK to Contact ID'");
+
+    if (!CRM_Core_BAO_SchemaHandler::checkFKExists('civirule_rule', 'FK_civirule_rule_created_user_id')) {
+      CRM_Core_DAO::executeQuery("UPDATE civirule_rule rl SET created_user_id  = NULL
+WHERE created_user_id NOT IN (select id from civicrm_contact cc where rl.created_user_id = cc.id)");
+      CRM_Core_DAO::executeQuery("ALTER TABLE civirule_rule ADD CONSTRAINT FK_civirule_rule_created_user_id FOREIGN KEY (`created_user_id`) REFERENCES `civicrm_contact`(`id`) ON DELETE SET NULL");
+    }
+    if (!CRM_Core_BAO_SchemaHandler::checkFKExists('civirule_rule', 'FK_civirule_rule_modified_user_id')) {
+      CRM_Core_DAO::executeQuery("UPDATE civirule_rule rl SET modified_user_id  = NULL
+WHERE modified_user_id NOT IN (select id from civicrm_contact cc where rl.modified_user_id = cc.id)");
+      CRM_Core_DAO::executeQuery("ALTER TABLE civirule_rule ADD CONSTRAINT FK_civirule_rule_modified_user_id FOREIGN KEY (`modified_user_id`) REFERENCES `civicrm_contact`(`id`) ON DELETE SET NULL");
+    }
+
+    if (!CRM_Core_BAO_SchemaHandler::checkFKExists('civirule_rule_log', 'FK_civirule_rule_log_rule_id')) {
+      CRM_Core_DAO::executeQuery("
+UPDATE civirule_rule_log rl SET rule_id = NULL
+WHERE rule_id NOT IN (select id from civirule_rule r where rl.rule_id = r.id)
+      ");
+      CRM_Core_DAO::executeQuery("ALTER TABLE civirule_rule_log ADD CONSTRAINT FK_civirule_rule_log_rule_id FOREIGN KEY (`rule_id`) REFERENCES `civirule_rule`(`id`) ON DELETE SET NULL");
+    }
+
+    if (!CRM_Core_BAO_SchemaHandler::checkFKExists('civirule_rule_log', 'FK_civirule_rule_log_contact_id')) {
+      CRM_Core_DAO::executeQuery("
+UPDATE civirule_rule_log rl SET contact_id = NULL
+WHERE contact_id NOT IN (select id from civicrm_contact c where c.id=rl.contact_id)
+      ");
+      CRM_Core_DAO::executeQuery("ALTER TABLE civirule_rule_log ADD CONSTRAINT FK_civirule_rule_log_contact_id FOREIGN KEY (`contact_id`) REFERENCES `civicrm_contact`(`id`) ON DELETE SET NULL");
+    }
+
     return TRUE;
   }
 

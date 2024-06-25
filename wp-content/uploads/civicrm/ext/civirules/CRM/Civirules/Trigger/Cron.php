@@ -20,31 +20,36 @@ abstract class CRM_Civirules_Trigger_Cron extends CRM_Civirules_Trigger {
    * @return array
    */
   public function process() {
-    $count = 0;
-    $isValidCount = 0;
+    $result = [
+      'count' => 0,
+      'is_valid_count' => 0,
+      'is_error_count' => 0,
+    ];
 
     if (!$this->acquireLock()) {
-      return array(
-        'count' => $count,
-        'is_valid_count' => $isValidCount,
-      );
+      return $result;
     }
 
     while($triggerData = $this->getNextEntityTriggerData()) {
       $this->alterTriggerData($triggerData);
-      $isValid = CRM_Civirules_Engine::triggerRule($this, $triggerData);
-      if ($isValid) {
-        $isValidCount++;
+      try {
+        $isValid = CRM_Civirules_Engine::triggerRule($this, $triggerData);
       }
-      $count ++;
+      catch (Exception $e) {
+        \Civi::log()->error('Failed to trigger rule: ' . $e->getMessage());
+        $result['is_error_count']++;
+        continue;
+      }
+
+      if ($isValid) {
+        $result['is_valid_count']++;
+      }
+      $result['count']++;
     }
 
     $this->releaseLock();
 
-    return array(
-      'count' => $count,
-      'is_valid_count' => $isValidCount,
-    );
+    return $result;
   }
 
   /**

@@ -1,5 +1,7 @@
 <?php
 
+use CRM_Civirules_ExtensionUtil as E;
+
 class CRM_CivirulesConditions_Contact_LoggedIn extends CRM_Civirules_Condition {
 
   private $conditionParams = [];

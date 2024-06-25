@@ -59,6 +59,11 @@
         <div class="clear"></div>
     </div>
     <div class="crm-section">
+        <div class="label">{$form.duration.label}</div>
+        <div class="content">{$form.duration.html}</div>
+        <div class="clear"></div>
+    </div>
+    <div class="crm-section">
         <div class="label">{$form.send_email.label}</div>
         <div class="content">{$form.send_email.html}</div>
         <div class="clear"></div>

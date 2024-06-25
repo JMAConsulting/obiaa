@@ -137,13 +137,7 @@ class CRM_CivirulesConditions_Contribution_PaidBy extends CRM_Civirules_Conditio
     catch (CiviCRM_API3_Exception $ex) {
       $logMessage = ts('Could not find payment_instruments in ') . __METHOD__
         . ts(', error from API OptionValue get: ') . $ex->getMessage();
-      $civiVersion = CRM_Civirules_Utils::getCiviVersion();
-      if ($civiVersion < 4.7) {
-        CRM_Core_Error::debug_log_message($logMessage);
-      }
-      else {
-        Civi::log()->debug($logMessage);
-      }
+      Civi::log()->debug($logMessage);
     }
     if (!empty($paymentNames)) {
       return 'Paid by ' . $operator . ' ' . implode(', ', $paymentNames);

@@ -2,9 +2,9 @@
 
 <table>
   <base>CRM/Civirules</base>
-  <class>RuleAction</class>
+  <class>CiviRulesRuleAction</class>
   <name>civirule_rule_action</name>
-  <comment>FIXME</comment>
+  <comment>CiviRules Rule Actions</comment>
   <table_type>Innodb</table_type>
   <log>true</log>
 
@@ -30,6 +30,7 @@
     <key>id</key>
     <onDelete>CASCADE</onDelete>
   </foreignKey>
+
   <field>
     <name>action_id</name>
     <type>int unsigned</type>
@@ -41,25 +42,34 @@
     <key>id</key>
     <onDelete>CASCADE</onDelete>
   </foreignKey>
+
   <field>
     <name>action_params</name>
     <type>text</type>
     <default>NULL</default>
   </field>
+
   <field>
     <name>delay</name>
     <type>text</type>
     <default>NULL</default>
   </field>
+
   <field>
     <name>ignore_condition_with_delay</name>
     <type>int</type>
     <default>0</default>
   </field>
+
   <field>
     <name>is_active</name>
-    <type>int</type>
+    <type>boolean</type>
+    <required>true</required>
     <default>1</default>
+    <html>
+      <type>CheckBox</type>
+      <label>Enabled</label>
+    </html>
   </field>
 
 </table>

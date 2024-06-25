@@ -88,18 +88,12 @@ class CRM_CivirulesCronTrigger_HasTag extends CRM_Civirules_Trigger_Cron {
     return CRM_Utils_System::url('civicrm/civirule/form/trigger/hastag/', 'rule_id='.$ruleId);
   }
 
-  public function setTriggerParams($triggerParams) {
-    $this->triggerParams = unserialize($triggerParams);
-  }
-
   /**
    * Returns a description of this trigger
    *
    * @return string
-   * @access public
-   * @abstract
    */
-  public function getTriggerDescription() {
+  public function getTriggerDescription(): string {
     $groupName = ts('Unknown');
     if (is_array($this->triggerParams['group_id'])) {
       $groupApi = civicrm_api3('Group', 'get', array('id' => array('IN' => $this->triggerParams['group_id']), 'options' => array('limit' => 0)));

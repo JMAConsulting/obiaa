@@ -265,10 +265,10 @@ abstract class CRM_CivirulesConditions_Generic_ValueComparison extends CRM_Civir
         return false;
         break;
       case 'contains string':
-        return stripos($leftValue,  $rightValue) !== FALSE;
+        return stripos($leftValue ?? '',  $rightValue) !== FALSE;
         break;
       case 'not contains string':
-        return stripos($leftValue,  $rightValue) === FALSE;
+        return stripos($leftValue ?? '',  $rightValue) === FALSE;
         break;
       case 'contains one of':
         $leftArray = $this->convertValueToArray($leftValue);

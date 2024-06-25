@@ -41,10 +41,10 @@ class CRM_Civirules_Trigger_Post extends CRM_Civirules_Trigger {
    *
    * This function could be overridden in a child class.
    *
-   * @return String
+   * @return string
    */
   public function getTriggerDataClassName() {
-    if ($this->op == 'edit') {
+    if ($this->op === 'edit') {
       return 'CRM_Civirules_TriggerData_Edit';
     }
     return 'CRM_Civirules_TriggerData_Post';
@@ -53,10 +53,10 @@ class CRM_Civirules_Trigger_Post extends CRM_Civirules_Trigger {
   public function setTriggerId($triggerId) {
     parent::setTriggerId($triggerId);
 
-    $trigger = new CRM_Civirules_BAO_Trigger();
+    $trigger = new CRM_Civirules_BAO_CiviRulesTrigger();
     $trigger->id = $this->triggerId;
     if (!$trigger->find(true)) {
-      throw new Exception('Civirules: could not find trigger with ID: '.$this->triggerId);
+      throw new CRM_Core_Exception('Civirules: could not find trigger with ID: '.$this->triggerId);
     }
     $this->objectName = $trigger->object_name;
     $this->op = $trigger->op;
@@ -100,8 +100,9 @@ class CRM_Civirules_Trigger_Post extends CRM_Civirules_Trigger {
     if (!in_array($op, $extensionConfig->getValidTriggerOperations())) {
       return;
     }
-    //find matching rules for this objectName and op
-    $triggers = CRM_Civirules_BAO_Rule::findRulesByObjectNameAndOp($objectName, $op);
+
+    // find matching rules for this objectName and op
+    $triggers = CRM_Civirules_BAO_CiviRulesRule::findRulesByObjectNameAndOp($objectName, $op);
     foreach($triggers as $trigger) {
       if ($trigger instanceof CRM_Civirules_Trigger_Post) {
         $trigger->triggerTrigger($op, $objectName, $objectId, $objectRef, $eventID);
@@ -119,8 +120,12 @@ class CRM_Civirules_Trigger_Post extends CRM_Civirules_Trigger {
    * @param string $eventID
    */
   public function triggerTrigger($op, $objectName, $objectId, $objectRef, $eventID) {
-    $triggerData = $this->getTriggerDataFromPost($op, $objectName, $objectId, $objectRef, $eventID);
-    CRM_Civirules_Engine::triggerRule($this, clone $triggerData);
+    if (!$this->hasTriggerData()) {
+      // Many classes inherit from CRM_Civirules_Trigger_Post and already set the triggerData
+      // Only set it here if not already set by child class
+      $this->setTriggerData($this->getTriggerDataFromPost($op, $objectName, $objectId, $objectRef, $eventID));
+    }
+    parent::triggerTrigger($op, $objectName, $objectId, $objectRef, $eventID);
   }
 
   /**
@@ -140,7 +145,7 @@ class CRM_Civirules_Trigger_Post extends CRM_Civirules_Trigger {
   protected function getTriggerDataFromPost($op, $objectName, $objectId, $objectRef, $eventID = NULL) {
     $entity = CRM_Civirules_Utils_ObjectName::convertToEntity($objectName);
     $data = $this->convertObjectRefToDataArray($entity, $objectRef, $objectId);
-    if ($op == 'edit' || 'delete') {
+    if ($op === 'edit' || $op === 'delete') {
       //set also original data with an edit event
       $oldData = CRM_Civirules_Utils_PreData::getPreData($entity, $objectId, $eventID);
       $triggerData = new CRM_Civirules_TriggerData_Edit($entity, $objectId, $data, $oldData);

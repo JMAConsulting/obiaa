@@ -69,16 +69,7 @@ class CRM_CivirulesActions_Activity_Form_AddToCase extends CRM_CivirulesActions_
     $data['details'] = $this->_submitValues['details'];
     $data['case_type_id'] = $this->_submitValues['case_type_id'];
     $data['case_status_id'] = $this->_submitValues['case_status_id'];
-    $data['assignee_contact_id'] = false;
-
-    if ($this->use_old_contact_ref_fields) {
-      $values = $this->controller->exportValues();
-      if (!empty($values['contact_select_id']) && count($values['contact_select_id']) > 0) {
-        $data['assignee_contact_id'] = $values['contact_select_id'];
-      }
-    } else {
-      $data["assignee_contact_id"] = explode(',', $this->_submitValues["assignee_contact_id"]);
-    }
+    $data["assignee_contact_id"] = explode(',', $this->_submitValues["assignee_contact_id"]);
 
     $data['activity_date_time'] = 'null';
     if (!empty($this->_submitValues['activity_date_time'])) {

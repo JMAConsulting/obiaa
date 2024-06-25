@@ -13,14 +13,16 @@ abstract class CRM_Civirules_TriggerData_TriggerData {
    *
    * @var array
    */
-  private $entity_data = [];
+  private array $entity_data = [];
 
   /**
    * Entity ID of the primary trigger data e.g. the activity id
+   * @fixme: Add type int to property. We can't do this yet because delayed execution actions are stored in civicrm_queue_item serialized
+   *   When unserialized PHP throws a fatal error because entity_id was a string in CiviRules < 3.6
    *
-   * @var Int
+   * @var int
    */
-  protected $entity_id;
+  protected $entity_id = 0;
 
   /**
    * Entity name of the primary trigger data e.g. 'contact' or 'activity'
@@ -38,17 +40,37 @@ abstract class CRM_Civirules_TriggerData_TriggerData {
    *
    * @var array
    */
-  private $custom_data = [];
+  private array $custom_data = [];
 
+  /**
+   * The Contact ID
+   * @fixme: Add type int to property. We can't do this yet because delayed execution actions are stored in civicrm_queue_item serialized
+   *   When unserialized PHP throws a fatal error because entity_id was a string in CiviRules < 3.6
+   *
+   * @var int
+   */
   protected $contact_id = 0;
+
+  /**
+   * Is this Trigger being executed with a delay (set at runtime when executing actions)
+   * @var bool
+   */
+  public bool $isDelayedExecution;
+
+  /**
+   * The datetime (YmdHis) when the rule was triggered. Only set if we are delaying execution.
+   * This will contain the original trigger time which can be used by actions (eg. to fill in an activity scheduled date).
+   *
+   * @var string
+   */
+  public string $delayedSubmitDateTime;
 
   /**
    * @var CRM_Civirules_Trigger
    */
-  protected $trigger;
+  protected CRM_Civirules_Trigger $trigger;
 
   public function __construct() {
-
   }
 
   /**
@@ -117,8 +139,8 @@ abstract class CRM_Civirules_TriggerData_TriggerData {
     if (!empty($this->contact_id)) {
       return $this->contact_id;
     }
-    if (!empty($this->entity_data['contact']['id'])) {
-      return $this->entity_data['contact']['id'];
+    if (!empty($this->entity_data['Contact']['id'])) {
+      return $this->entity_data['Contact']['id'];
     }
     foreach($this->entity_data as $entity => $data) {
       if (!empty($data['contact_id'])) {

@@ -1,8 +1,96 @@
 # CHANGELOG
 
-## Version 2.50 (not yet released)
+## Version 3.8 (2024-05-27)
 
+* Fix "Membership is Renewed" trigger that was not working because of an invalid field name.
+* Fix field names when comparing to 'pre' data - see !258.
+* Fix issue with trigger parameters being overwritten to empty array.
+
+## Version 3.7 (2024-05-21)
+
+* Fixed deprecation notice. See !257
+* Fixed type error on CRON and delayed execution in some circumstances (#224, #227).
+* Fix cron trigger execution.
+
+## Version 3.6 (2024-04-18)
+
+API:
+
+* Rename API3 CiviRuleAction to CiviRulesAction to match entity name
+* Rename API3 CiviRuleTrigger -> CiviRulesTrigger to match entity name
+* Rename API3 CiviRuleRule to CiviRulesRule to match entity name
+* Rename API3 CiviRuleRuleCondition to CiviRulesRuleCondition to match entity name
+* Rename API3 CiviRuleRuleAction to CiviRulesRuleAction to match entity name
+* Rename API3 CiviRuleCondition to CiviRulesCondition to match entity name
+* Rename API3 CiviRuleRuleTag to CiviRulesRuleTag to match entity name
+
+Triggers:
+
+* Use shared triggerTrigger parent function and triggerData property
+* Add triggerData property to Trigger class
+* Clean up setEntityID/setContactID for triggerData and add logging
+* Fix Group Contact trigger causes crash. See !247
+* Fix for Fatal error: Uncaught Error: Cannot assign null to property CRM_Civirules_TriggerData_TriggerData::$entity_id of type int. See !249 and #224
+* Fix 'triggerData cannot be accessed before initialisation for membership add trigger'
+
+Other:
+
+* Smarty 3/4 fix for Membership Status/Type condition.
+* Fix crash if membership add action does not have a valid membership_type_id.
+
+## Version 3.5 (2024-04-15)
+
+* New action: Update Membership Status. See !245
+* Fix for issue #222. Error when saving Contact
+
+## Version 3.4
+
+* Fixed issue #220: The condition "contact custom field changed is one of" does not work when it is a date field.
+* Fix crash when contact_id is array / undefined on post trigger (eg. for Case entity).
+
+## Version 3.3 (2024-04-06)
+
+* [#219](https://lab.civicrm.org/extensions/civirules/-/issues/219) Add duration field support for activity actions.
+* Fix [#218](https://lab.civicrm.org/extensions/civirules/-/issues/218) Edit triggering activity action fails with assignee contact error.
+* Fixed deprecation notices and type errors by !237 and !239
+* Fix for checking conditions with a delayed action against data in the database. See #208 and !238
+* Remove some legacy code.
+
+## Version 3.2 (2024-03-19)
+
+* Add 'Update Recurring Contribution Status' action and make it work with Membership trigger.
+* Support API4 for generic API action class.
+* Migrate 'Manage Tags' to searchkit and menu items to managed entities.
+
+## Version 3.1 (2024-03-08)
+
+* Fix editing custom fields on certain CiviCRM versions. See !228
+* Compatibility with CiviCRM 5.72.
+* Fix class entity names (fixes error on delete rule).
+* Replace deprecated DAO add functions with writeRecord (fixes error on disable rule).
+* Don't hardcode status for 'Daily trigger for case activity' (now you can use case status condition to trigger for cases with any status).
+* Fix 'Set Case Status' action when used with 'Daily case activity trigger'.
+* Update permissions hook format per https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_permission/#parameters.
+
+## Version 3.0
+
+* Added action rebuild smart group
+* Searchkit / Formbuilder UI for rules overview.
+* The condition "Case has tags/does not have tags" now can be selected for cases.
+* "Is Client of the Case" now checks really if the contact is a client.
+* [!225](https://lab.civicrm.org/extensions/civirules/-/merge_requests/225) Display membership status label instead of name in conditions.
+
+
+## Version 2.51
+
+*  Fix preData custom field collection on CiviCRM 5.67+  See !224
+
+## Version 2.50
+
+* Fixed issue #206
 * Fixed `xth recurring contribution` condition not appearing.
+* Add `administer CiviRules` permission
+* Fixed issue #202 by !223
 
 ## Version 2.49
 

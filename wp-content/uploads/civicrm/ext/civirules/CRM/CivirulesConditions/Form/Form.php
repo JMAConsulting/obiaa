@@ -74,7 +74,7 @@ class CRM_CivirulesConditions_Form_Form extends CRM_Core_Form
 
     $this->triggerClass = CRM_Civirules_BAO_Trigger::getTriggerObjectByTriggerId($this->trigger->id, true);
     $this->triggerClass->setTriggerId($this->trigger->id);
-    $this->triggerClass->setTriggerParams($this->rule->trigger_params);
+    $this->triggerClass->setTriggerParams($this->rule->trigger_params ?? '');
 
     parent::preProcess();
 

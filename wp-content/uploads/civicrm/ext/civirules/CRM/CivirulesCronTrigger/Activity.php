@@ -62,10 +62,6 @@ abstract class CRM_CivirulesCronTrigger_Activity extends CRM_Civirules_Trigger_C
     return new CRM_Civirules_TriggerData_EntityDefinition('Activity', 'Activity', 'CRM_Activity_DAO_Activity', 'Activity');
   }
 
-  public function setTriggerParams($triggerParams) {
-    $this->triggerParams = unserialize($triggerParams);
-  }
-
   /**
    * Returns an array of additional entities provided in this trigger
    *

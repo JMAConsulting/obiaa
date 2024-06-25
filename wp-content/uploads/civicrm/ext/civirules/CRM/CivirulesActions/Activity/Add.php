@@ -91,6 +91,7 @@ class CRM_CivirulesActions_Activity_Add extends CRM_CivirulesActions_Generic_Api
     $params['activity_type_id'] = $action_params['activity_type_id'];
     $params['status_id'] = $action_params['status_id'];
     $params['subject'] = $action_params['subject'];
+    $params['duration'] = $action_params['duration'];
     $params['details'] = $action_params['details'];
 
     if (!empty($action_params['assignee_contact_id'])) {

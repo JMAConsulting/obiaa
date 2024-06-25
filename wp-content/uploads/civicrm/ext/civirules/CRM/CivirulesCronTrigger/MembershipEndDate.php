@@ -139,18 +139,11 @@ class CRM_CivirulesCronTrigger_MembershipEndDate extends CRM_Civirules_Trigger_C
   }
 
   /**
-   * @param string $triggerParams
-   */
-  public function setTriggerParams($triggerParams) {
-    $this->triggerParams = unserialize($triggerParams);
-  }
-
-  /**
    * Returns a description of this trigger
    *
    * @return string
    */
-  public function getTriggerDescription() {
+  public function getTriggerDescription(): string {
     $membershipTypes = CRM_Civirules_Utils::getMembershipTypes();
     $intervalUnits = self::intervals();
     $intervalUnitLabel = $intervalUnits[$this->triggerParams['interval_unit']];

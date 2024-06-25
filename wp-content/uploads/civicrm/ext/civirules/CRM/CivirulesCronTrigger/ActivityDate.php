@@ -71,7 +71,7 @@ class CRM_CivirulesCronTrigger_ActivityDate extends CRM_CivirulesCronTrigger_Act
    *
    * @return string
    */
-  public function getTriggerDescription() {
+  public function getTriggerDescription(): string {
     $activityTypeLabel = CRM_Civirules_Utils::getOptionLabelWithValue(CRM_Civirules_Utils::getOptionGroupIdWithName('activity_type'),  $this->triggerParams['activity_type_id']);
     $activityStatusLabel = CRM_Civirules_Utils::getOptionLabelWithValue(CRM_Civirules_Utils::getOptionGroupIdWithName('activity_status'),  $this->triggerParams['activity_status_id']);
 

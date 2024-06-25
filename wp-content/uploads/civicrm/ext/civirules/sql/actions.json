@@ -25,6 +25,7 @@
   {"name":"add_related_contact_group","label":"Add Related Contact to a Group","class_name":"CRM_CivirulesActions_GroupContact_AddRelated"},
   {"name":"subscribe_contact_group","label":"Create Pending Group Subscription","class_name":"CRM_CivirulesActions_GroupContact_Subscribe"},
   {"name":"remove_contact_group","label":"Remove Contact from a Group","class_name":"CRM_CivirulesActions_GroupContact_Remove"},
+  {"name":"rebuild_smart_group","label":"Rebuild Smart Group","class_name":"CRM_CivirulesActions_GroupContact_RebuildSmartGroup"},
   {"name":"add_tag_contact","label":"Add Tag to Entity","class_name":"CRM_CivirulesActions_Tag_Add"},
   {"name":"remove_tag_contact","label":"Remove Tag from Entity","class_name":"CRM_CivirulesActions_Tag_Remove"},
   {"name":"activity_tag_add","label":"Add Tag to Activity","class_name":"CRM_CivirulesActions_Tag_ActivityTagAdd"},
@@ -41,10 +42,12 @@
   {"name":"participant_update_status","label":"Update Participant Status","class_name":"CRM_CivirulesActions_Participant_UpdateStatus"},
   {"name":"Relationship_add", "label":"Add relationship", "class_name":"CRM_CivirulesActions_Relationship_Add"},
   {"name":"membership_add","label":"Add Membership","class_name":"CRM_CivirulesActions_Membership_Add"},
+  {"name":"membership_update_status","label":"Update Membership Status","class_name":"CRM_CivirulesActions_Membership_UpdateStatus"},
   {"name":"contribution_financial_type","label":"Set the Financial Type for a Contribution","class_name":"CRM_CivirulesActions_Contribution_FinancialType"},
   {"name":"remove_contact_sub_type","label":"Remove one or more sub contact types","class_name":"CRM_CivirulesActions_Contact_RemoveSubtype"},
   {"name":"set_custom_field_generic","label":"Set Custom Field on any entity","class_name":"CRM_CivirulesActions_Generic_SetCustomField"},
   {"name":"copy_custom_field_generic","label":"Set Custom Field on an entiy with data from another Custom Field","class_name":"CRM_CivirulesActions_Generic_CopyCustomField"},
   {"name":"end_relationship","label":"Disable/end or delete a relationship","class_name":"CRM_CivirulesActions_Relationship_End"},
-  {"name":"register_participant","label":"Register Event Participant","class_name":"CRM_CivirulesActions_Participant_Register"}
+  {"name":"register_participant","label":"Register Event Participant","class_name":"CRM_CivirulesActions_Participant_Register"},
+  {"name":"contributionrecur_update_status","label":"Update Recurring Contribution Status","class_name":"CRM_CivirulesActions_ContributionRecur_UpdateStatus"}
 ]

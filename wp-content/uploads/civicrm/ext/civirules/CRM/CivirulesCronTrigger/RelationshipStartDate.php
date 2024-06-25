@@ -29,6 +29,7 @@ class CRM_CivirulesCronTrigger_RelationshipStartDate extends CRM_Civirules_Trigg
       $data = array();
       CRM_Core_DAO::storeValues($this->dao, $data);
       $triggerData = new CRM_Civirules_TriggerData_Cron($this->dao->contact_id_a, 'Relationship', $data);
+
       return $triggerData;
     }
     return false;
