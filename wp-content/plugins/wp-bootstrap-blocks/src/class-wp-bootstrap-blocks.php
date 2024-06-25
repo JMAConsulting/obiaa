@@ -33,7 +33,7 @@ class WP_Bootstrap_Blocks {
 	 *
 	 * @var string
 	 */
-	public static $version = '5.1.0';
+	public static $version = '5.2.0';
 
 	/**
 	 * The plugin token.
@@ -346,5 +346,4 @@ class WP_Bootstrap_Blocks {
 		delete_option( $this->token . '_version' );
 		update_option( $this->token . '_version', self::$version );
 	}
-
 }

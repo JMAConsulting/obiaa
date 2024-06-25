@@ -1,0 +1,51 @@
+{
+    "_readme": [
+        "This file locks the dependencies of your project to a known state",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
+        "This file is @generated automatically"
+    ],
+    "content-hash": "7fd6297525d6f796fbab979fd70c9fd4",
+    "packages": [
+        {
+            "name": "civimrf/cmrf_abstract_core",
+            "version": "0.8",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/CiviMRF/CMRF_Abstract_Core.git",
+                "reference": "6b71f326aa9774e8e0d5ff7a4f585ea0cae0bb15"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/CiviMRF/CMRF_Abstract_Core/zipball/6b71f326aa9774e8e0d5ff7a4f585ea0cae0bb15",
+                "reference": "6b71f326aa9774e8e0d5ff7a4f585ea0cae0bb15",
+                "shasum": ""
+            },
+            "type": "library",
+            "autoload": {
+                "psr-0": {
+                    "CMRF": ""
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "AGPL-3.0"
+            ],
+            "description": "Abstract implementation for the the CMRF Core. Should be included into the concrete module implementation",
+            "homepage": "https://github.com/CiviMRF/CMRF_Abstract_Core",
+            "support": {
+                "issues": "https://github.com/CiviMRF/CMRF_Abstract_Core/issues",
+                "source": "https://github.com/CiviMRF/CMRF_Abstract_Core/tree/0.8"
+            },
+            "time": "2022-02-03T16:18:43+00:00"
+        }
+    ],
+    "packages-dev": [],
+    "aliases": [],
+    "minimum-stability": "stable",
+    "stability-flags": [],
+    "prefer-stable": false,
+    "prefer-lowest": false,
+    "platform": [],
+    "platform-dev": [],
+    "plugin-api-version": "2.6.0"
+}

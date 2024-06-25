@@ -47,6 +47,9 @@ class WP_Persistent_Login {
 		// woocommerce auto remember users on register
 		add_filter( 'woocommerce_login_credentials', array( $this, 'woocommerce_remember_on_login' ), 20, 1 );
 
+		// add support for persistent login with WP Web WooCommerce Social Login
+		add_action('woo_slg_login_user_authenticated', array( $this, 'wpweb_woocommerce_remember_on_login' ), 20, 2 );
+
 	}
 
 
@@ -334,6 +337,40 @@ class WP_Persistent_Login {
 
 
 	/**
+	 * wpweb_woocommerce_remember_on_login
+	 *
+	 * @param  int $user_id
+	 * @param  string $type
+	 * @return void
+	 */
+	public function wpweb_woocommerce_remember_on_login( $user_id, $type ) {
+
+		// get the users latest session from the database
+		$sessions = get_user_meta( $user_id, 'session_tokens', true );
+		if( is_array($sessions) ) {
+
+			// fetch the login time column from the array
+			$login_times = array_column($sessions, 'login');
+
+			// sort the sessions by login times (newest first)
+			array_multisort( $login_times, SORT_DESC, $sessions );
+
+			// get the key (verifier) of the first session
+			$session_verifier = array_key_first($sessions);
+		
+			//remove the session from the database
+			$wp_login_manage_sessions = new WP_Persistent_Login_Manage_Sessions( $user_id );
+			$wp_login_manage_sessions->persistent_login_update_session( $session_verifier, null );
+
+			// set a new cookie with remember me checked
+			wp_set_auth_cookie( $user_id, true );
+
+		}
+
+	}
+
+
+	/**
 	 * does_cookie_need_updating
 	 * 
 	 * Checks to see if the cookies was set less than a day ago
@@ -413,25 +450,38 @@ class WP_Persistent_Login {
 	 */
 	protected function remove_duplicate_sessions( $sessions, $verifier, $user_id ) {
 
-		foreach( $sessions as $key => $session ) :
-			if( $key !== $verifier ) : 
-																								
+		// if the verifier doesn't exist, stop processing
+		if( 
+			!isset( $sessions[$verifier]['ip'] )
+			||
+			!isset( $sessions[$verifier]['ua'] )
+		 ) {
+			return;
+		}
+
+		foreach( $sessions as $key => $session ) {
+			if( $key !== $verifier ) { // excludes the current session
+
+				// check if the $session has an IP and UA
+				if( isset($session['ip']) && isset($session['ua']) ) {
+
 					// if we're on the same user agent and same IP, we're probably on the same device
-					// delete the duplicate session
 					if( 
-						array_key_exists( $verifier, $sessions ) &&
-                        array_key_exists( 'ip', $sessions[$verifier] ) &&
-                        array_key_exists( 'ua', $sessions[$verifier] ) &&
-                        ($session['ip'] === $sessions[$verifier]['ip']) &&
+                        ($session['ip'] === $sessions[$verifier]['ip']) 
+						&&
                         ($session['ua'] === $sessions[$verifier]['ua'])
-                    ) :
+                    ) {
+
+						// delete the duplicate session
 						$updateSession = new WP_Persistent_Login_Manage_Sessions( $user_id );
 						$updateSession->persistent_login_update_session( $key );
-					endif;
 					
+					}
+
+				}
 															
-			endif; // if key is different to identifier 
-		endforeach;
+			}
+		}
 
 	}
 

@@ -108,26 +108,56 @@ function loginpress_sanitize_image( $image, $setting ) {
 	}
 
 	$file_type = false;
+
 	/**
 	 * Return an array with file extension and mime_type.
 	 *
 	 * @since 3.0.0
-	 * @version 3.0.2
+	 * @version 3.0.3
 	 */
 	if ( ! empty( $image ) ) {
-		$headers      = get_headers( $image, 1 );
-		$content_type = isset( $headers['Content-Type'] ) && ! empty( $headers['Content-Type'] ) ? $headers['Content-Type'] : false;
-		
-		if ( $content_type ) {
 
-			$file_type = $content_type ? in_array( $content_type, $mimes ) : false;
+		// Return an array with file extension and mime_type.
+		$file = wp_check_filetype( $image, $mimes );
 
-			if ( is_array( $content_type ) ) {
-				foreach ( $content_type as $type ) {
-					$file_type = $type ? in_array( $type, $mimes ) : false;
-					if ( $file_type ) {
-						break;
-					}
+		// If $image has a valid mime_type, return it; otherwise, return the default.
+		return ( $file['ext'] ? $image : loginpress_image_content_type( $image, $mimes, $setting ) );
+	}
+
+	return $setting->default;
+}
+
+/**
+ * If CDN is being used get sanitization option.
+ *
+ * @param string $image The image URL.
+ * @param array  $mimes The mime type allowed.
+ * @param object $setting The settings object.
+ *
+ * @version 3.0.2
+ * @return mixed The images based on content type.
+ */
+function loginpress_image_content_type( $image, $mimes, $setting ) {
+	$headers           = get_headers( $image, 1 );
+	$content_type      = false;
+	$file_type         = false;
+	$content_types_can = ['Content-Type', 'content-type'];
+	foreach ( $content_types_can as $type ) {
+		if ( isset( $headers[$type] ) && !empty( $headers[$type] ) ) {
+			$content_type = $headers[$type];
+			break;
+		}
+	}
+	
+	if ( $content_type ) {
+
+		$file_type = $content_type ? in_array( $content_type, $mimes ) : false;
+
+		if ( is_array( $content_type ) ) {
+			foreach ( $content_type as $type ) {
+				$file_type = $type ? in_array( $type, $mimes ) : false;
+				if ( $file_type ) {
+					break;
 				}
 			}
 		}

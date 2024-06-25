@@ -239,111 +239,149 @@ function login_header( $title = 'Log In', $message = '', $wp_error = '' ) {
 } // End of login_header()
 
 /**
-* Outputs the footer for the login page.
-*
-* @param string $input_id Which input to auto-focus
-*/
-function login_footer($input_id = '') {
+ * Outputs the footer for the login page.
+ *
+ * @since 3.0.5
+ *
+ * @global bool|string $interim_login Whether interim login modal is being displayed. String 'success'
+ * upon successful login.
+ *
+ * @param string $input_id Which input to auto-focus.
+ */
+function login_footer( $input_id = '' ) {
 	global $interim_login;
 
 	// Don't allow interim logins to navigate away from the page.
-	if ( ! $interim_login ): ?>
-		<p id="backtoblog"><a href="<?php echo esc_url( home_url( '/' ) ); ?>"><?php
-		/* translators: %s: site title */
-		printf( _x( '&larr; Back to %s', 'site' ), get_bloginfo( 'title', 'display' ) );
-		?></a></p>
-	<?php endif; ?>
+	if ( ! $interim_login ) {
+		?>
+		<p id="backtoblog">
+			<?php
+			$html_link = sprintf(
+				'<a href="%s">%s</a>',
+				esc_url( home_url( '/' ) ),
+				sprintf(
+					/* translators: %s: Site title. */
+					_x( '&larr; Go to %s', 'site' ),
+					get_bloginfo( 'title', 'display' )
+				)
+			);
+			/**
+			 * Filters the "Go to site" link displayed in the login page footer.
+			 *
+			 * @since 5.7.0
+			 *
+			 * @param string $link HTML link to the home URL of the current site.
+			 */
+			echo apply_filters( 'login_site_html_link', $html_link );
+			?>
+		</p>
+		<?php if ( !empty($input_id) ) : ?>
+			<script type="text/javascript">
+			try{document.getElementById('<?php echo $input_id; ?>').focus();}catch(e){}
+			if(typeof wpOnload=='function')wpOnload();
+			</script>
+		<?php endif;
 
-	</div>
+		the_privacy_policy_link( '<div class="privacy-policy-page-link">', '</div>' );
+	}
 
-	<?php if ( !empty($input_id) ) : ?>
-		<script type="text/javascript">
+	?>
+	</div><?php // End of <div id="login">. ?>
+
+	<?php
+	if (
+		! $interim_login &&
+		/**
+		 * Filters whether to display the Language selector on the login screen.
+		 *
+		 * @since 5.9.0
+		 *
+		 * @param bool $display Whether to display the Language selector on the login screen.
+		 */
+		apply_filters( 'login_display_language_dropdown', true )
+	) {
+		$languages = get_available_languages();
+
+		if ( ! empty( $languages ) ) {
+			?>
+			<div class="language-switcher">
+				<form id="language-switcher" action="" method="get">
+
+					<label for="language-switcher-locales">
+						<span class="dashicons dashicons-translation" aria-hidden="true"></span>
+						<span class="screen-reader-text">
+							<?php
+							/* translators: Hidden accessibility text. */
+							_e( 'Language' );
+							?>
+						</span>
+					</label>
+
+					<?php
+					$args = array(
+						'id'                          => 'language-switcher-locales',
+						'name'                        => 'wp_lang',
+						'selected'                    => determine_locale(),
+						'show_available_translations' => false,
+						'explicit_option_en_us'       => true,
+						'languages'                   => $languages,
+					);
+
+					/**
+					 * Filters default arguments for the Languages select input on the login screen.
+					 *
+					 * The arguments get passed to the wp_dropdown_languages() function.
+					 *
+					 * @since 5.9.0
+					 *
+					 * @param array $args Arguments for the Languages select input on the login screen.
+					 */
+					wp_dropdown_languages( apply_filters( 'login_language_dropdown_args', $args ) );
+					?>
+
+					<?php if ( $interim_login ) { ?>
+						<input type="hidden" name="interim-login" value="1" />
+					<?php } ?>
+
+					<?php if ( isset( $_GET['redirect_to'] ) && '' !== $_GET['redirect_to'] ) { ?>
+						<input type="hidden" name="redirect_to" value="<?php echo sanitize_url( $_GET['redirect_to'] ); ?>" />
+					<?php } ?>
+
+					<?php if ( isset( $_GET['action'] ) && '' !== $_GET['action'] ) { ?>
+						<input type="hidden" name="action" value="<?php echo esc_attr( $_GET['action'] ); ?>" />
+					<?php } ?>
+
+						<input type="submit" class="button" value="<?php esc_attr_e( 'Change' ); ?>">
+
+					</form>
+				</div>
+		<?php } ?>
+	<?php } ?>
+	<?php
+
+	if ( ! empty( $input_id ) ) {
+		ob_start();
+		?>
+		<script>
 		try{document.getElementById('<?php echo $input_id; ?>').focus();}catch(e){}
 		if(typeof wpOnload=='function')wpOnload();
 		</script>
-	<?php endif; ?>
+		<?php
+		wp_print_inline_script_tag( wp_remove_surrounding_empty_script_tags( ob_get_clean() ) );
+	}
 
-	<?php
 	/**
-	* Fires in the login page footer.
-	*
-	* @since 3.0.1
-	*/
-	do_action( 'login_footer' ); ?>
-	<div class="clear"></div>
+	 * Fires in the login page footer.
+	 *
+	 * @since 3.0.5
+	 */
+	do_action( 'login_footer' );
+
+	?>
 	</body>
 	</html>
 	<?php
 }
-?>
-</div><?php // End of <div id="login">.
-/**
- * WordPress language switcher functionality of login form
- *
- * @since 1.5.11
- */
-if (
-	! $interim_login && version_compare( $GLOBALS['wp_version'], '5.9', '>=' ) &&
-	/**
-	 * Filters the Languages select input activation on the login screen.
-	 *
-	 * @since 1.5.11
-	 *
-	 * @param bool Whether to display the Languages select input on the login screen.
-	 */
-	apply_filters( 'login_display_language_dropdown', true )
-) {
-	$languages = get_available_languages();
-
-	if ( ! empty( $languages ) ) {
-		?>
-		<div class="language-switcher">
-			<form id="language-switcher" action="" method="get">
-
-				<label for="language-switcher-locales">
-					<span class="dashicons dashicons-translation" aria-hidden="true"></span>
-					<span class="screen-reader-text"><?php _e( 'Language' ); ?></span>
-				</label>
-
-				<?php
-				$args = array(
-					'id'                          => 'language-switcher-locales',
-					'name'                        => 'wp_lang',
-					'selected'                    => determine_locale(),
-					'show_available_translations' => false,
-					'explicit_option_en_us'       => true,
-					'languages'                   => $languages,
-				);
-
-				/**
-				 * Filters default arguments for the Languages select input on the login screen.
-				 *
-				 * @since 5.9.0
-				 *
-				 * @param array $args Arguments for the Languages select input on the login screen.
-				 */
-				wp_dropdown_languages( apply_filters( 'login_language_dropdown_args', $args ) );
-				?>
-
-				<?php if ( $interim_login ) { ?>
-					<input type="hidden" name="interim-login" value="1" />
-				<?php } ?>
-
-				<?php if ( isset( $_GET['redirect_to'] ) && '' !== $_GET['redirect_to'] ) { ?>
-					<input type="hidden" name="redirect_to" value="<?php echo esc_url_raw( $_GET['redirect_to'] ); ?>" />
-				<?php } ?>
-
-				<?php if ( isset( $_GET['action'] ) && '' !== $_GET['action'] ) { ?>
-					<input type="hidden" name="action" value="<?php echo esc_attr( $_GET['action'] ); ?>" />
-				<?php } ?>
-
-					<input type="submit" class="button" value="<?php esc_attr_e( 'Change' ); ?>">
-
-				</form>
-			</div>
-	<?php } ?>
-<?php } ?>
-<?php
 
 /**
 * @since 3.7.0
@@ -364,10 +402,13 @@ if ( isset($_GET['key']) )
 if ( !in_array( $action, array( 'postpass', 'logout', 'lostpassword', 'retrievepassword', 'resetpass', 'rp', 'register', 'login' ), true ) && false === has_filter( 'login_form_' . $action ) )
 	$action = 'login';
 
-nocache_headers();
+	nocache_headers();
 
-header('Content-Type: '.get_bloginfo('html_type').'; charset='.get_bloginfo('charset'));
 
+if ( ! is_customize_preview() ) {
+	header('Content-Type: '.get_bloginfo('html_type').'; charset='.get_bloginfo('charset'));
+
+}
 if ( defined( 'RELOCATE' ) && RELOCATE ) { // Move flag is set
 	if ( isset( $_SERVER['PATH_INFO'] ) && ($_SERVER['PATH_INFO'] != $_SERVER['PHP_SELF']) )
 		$_SERVER['PHP_SELF'] = str_replace( $_SERVER['PATH_INFO'], '', $_SERVER['PHP_SELF'] );
@@ -379,9 +420,13 @@ if ( defined( 'RELOCATE' ) && RELOCATE ) { // Move flag is set
 
 //Set a cookie now to see if they are supported by the browser.
 $secure = ( 'https' === wp_parse_url( wp_login_url(), PHP_URL_SCHEME ) );
-setcookie( TEST_COOKIE, 'WP Cookie check', 0, COOKIEPATH, COOKIE_DOMAIN, $secure );
-if ( SITECOOKIEPATH != COOKIEPATH )
-	setcookie( TEST_COOKIE, 'WP Cookie check', 0, SITECOOKIEPATH, COOKIE_DOMAIN, $secure );
+if ( ! is_customize_preview() ) {
+
+	setcookie( TEST_COOKIE, 'WP Cookie check', 0, COOKIEPATH, COOKIE_DOMAIN, $secure );
+	if ( SITECOOKIEPATH != COOKIEPATH ) {
+		setcookie( TEST_COOKIE, 'WP Cookie check', 0, SITECOOKIEPATH, COOKIE_DOMAIN, $secure );
+	}
+}
 
 $lang            = ! empty( $_GET['wp_lang'] ) ? sanitize_text_field( $_GET['wp_lang'] ) : '';
 $switched_locale = switch_to_locale( $lang );

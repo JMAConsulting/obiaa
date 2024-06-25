@@ -3,9 +3,9 @@ Contributors: liip, tschortsch
 Donate link: https://liip.ch/
 Tags: gutenberg, blocks, bootstrap
 Requires at least: 5.3
-Tested up to: 6.1
+Tested up to: 6.4
 Requires PHP: 5.6
-Stable tag: 5.1.0
+Stable tag: 5.2.0
 License: GPLv2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -71,8 +71,8 @@ This plugin supports Bootstrap v4 and v5.
 
 The version can be selected in the plugin settings (Settings > Bootstrap Blocks) or by defining the `WP_BOOTSTRAP_BLOCKS_BOOTSTRAP_VERSION` constant in the `wp-config.php` file:
 
-* Bootstrap 4 (default): `define( 'WP_BOOTSTRAP_BLOCKS_BOOTSTRAP_VERSION', '4' );`
-* Bootstrap 5: `define( 'WP_BOOTSTRAP_BLOCKS_BOOTSTRAP_VERSION', '5' );`
+* Bootstrap 4: `define( 'WP_BOOTSTRAP_BLOCKS_BOOTSTRAP_VERSION', '4' );`
+* Bootstrap 5 (default): `define( 'WP_BOOTSTRAP_BLOCKS_BOOTSTRAP_VERSION', '5' );`
 
 Possible values right now are `'4'` or `'5'`. By default Bootstrap version **5** is selected.
 
@@ -142,6 +142,11 @@ Please create a new GitHub issue and let us know: [https://github.com/liip/boots
 1. Container block
 
 == Changelog ==
+
+= 5.2.0 =
+
+* [COMPATIBILITY] Tested up to WordPress 6.4.
+* [DEVELOPMENT] Migrate E2E tests to Playwright.
 
 = 5.1.0 =
 

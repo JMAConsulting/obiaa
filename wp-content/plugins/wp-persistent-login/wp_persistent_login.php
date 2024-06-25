@@ -9,7 +9,7 @@
  *   Author URI:  https://persistentlogin.com/
  * 	 Text Domain: wp-persistent-login
  *   Domain Path: /languages
- *   Version: 2.0.15
+ *   Version: 2.1.0
  *
  *
  */
@@ -37,7 +37,7 @@ if ( function_exists( 'persistent_login' ) ) {
     persistent_login()->set_basename( false, __FILE__ );
 } else {
     // definitions to use throughout application.
-    define( 'WPPL_DATABASE_VERSION', '2.0.9' );
+    define( 'WPPL_DATABASE_VERSION', '2.0.10' );
     define( 'WPPL_DATABASE_NAME', 'persistent_logins' );
     define( 'WPPL_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
     define( 'WPPL_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
@@ -74,6 +74,8 @@ if ( function_exists( 'persistent_login' ) ) {
     new WP_Persistent_Login_Admin();
     new WP_Persistent_Login_Profile();
     new WP_Persistent_Login_Active_Logins();
+    new WP_Persistent_Login_Email();
+    new WP_Persistent_Login_Login_History();
     new WP_Persistent_Login_User_Count();
     /**
      * Action hook to execute after WP Persistent Login plugin init.

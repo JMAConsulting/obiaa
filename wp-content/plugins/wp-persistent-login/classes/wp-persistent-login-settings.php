@@ -50,8 +50,28 @@ class WP_Persistent_Login_Settings {
         if( isset($this->message) && isset($this->type) ) {
             add_action('admin_init', array($this, 'show_message'));
         }
+
+		// enqueue admin js if on the settings page
+		add_action( 'admin_enqueue_scripts', array($this, 'enqueue_admin_js') );
         
 		
+	}
+
+
+	/**
+	 * enqueue_admin_js
+	 * 
+	 * Enqueue a script in the WordPress admin on users.php?page=wp-persistent-login
+	 *
+	 * @return void
+	 */
+	public function enqueue_admin_js( $hook ) {
+
+		if( $hook !== 'users_page_wp-persistent-login' ) {
+			return;
+		}
+		wp_enqueue_script( 'wppl_admin_controls', WPPL_PLUGIN_URL . '/js/admin-controls.js', array('jquery'), '1.0' );
+
 	}
 
     
@@ -210,6 +230,23 @@ class WP_Persistent_Login_Settings {
 		
 	}
 
+	
+	/**
+	 * update_login_history_settings
+	 *
+	 * @param  mixed $post_data
+	 * @return void
+	 */
+	protected function update_login_history_settings($post_data) {
+
+		$this->update_login_history($post_data);
+
+		$this->update_notify_new_logins($post_data);
+
+		$this->update_notification_email_template($post_data);
+
+	}
+
     
     /**
      * update_dashboard_stats
@@ -257,6 +294,12 @@ class WP_Persistent_Login_Settings {
     protected function get_persistent_login_options() {
 
         $options = get_option('persistent_login_options');
+
+		// check if options is empty, if it is, return an empty array
+		if( empty($options) ) {
+			return array();
+		}
+
         return $options;
 
     }
@@ -373,7 +416,7 @@ class WP_Persistent_Login_Settings {
      * @param  array $post_data
      * @return bool
      */
-    private function update_limit_reached_logic($post_data) {
+    protected function update_limit_reached_logic($post_data) {
 
         if( isset($post_data['activeLoginLogic']) ) : 
 							    
@@ -386,6 +429,155 @@ class WP_Persistent_Login_Settings {
         endif;
 
     }
+
+	
+	/**
+	 * get_login_history
+	 *
+	 * @return string
+	 */
+	public function get_login_history() {
+
+		$options = $this->get_persistent_login_options();
+        if( isset( $options['enableLoginHistory'] ) ) {
+            $login_history = $options['enableLoginHistory'];
+        } else {
+            $login_history = '0';
+        }
+
+        return $login_history;
+
+	}
+
+
+	/**
+     * update_login_history
+     *
+     * @param  array $post_data
+     * @return bool
+     */
+    protected function update_login_history($post_data) {
+
+		$options = $this->get_persistent_login_options();
+
+        if( isset($post_data['enableLoginHistory']) ) {
+            $login_history = $post_data['enableLoginHistory'];
+		} else {
+			$login_history = '0';
+        }
+
+		// update the option
+		$options['enableLoginHistory'] = $login_history;
+
+		// if login history is enabled, create the table if it doesn't exist
+		if( $login_history === '1' ) {
+			$login_history = new WP_Persistent_Login_Login_History();
+			$has_table = $login_history->has_login_history_table();
+			if( !$has_table ) {
+				$create_table = $login_history->create_login_history_table();
+			}
+		}
+
+		return update_option('persistent_login_options', $options);
+
+    }
+
+
+	
+	/**
+	 * get_notify_new_logins
+	 *
+	 * @return void
+	 */
+	protected function get_notify_new_logins() {
+
+		$options = $this->get_persistent_login_options();
+        if( isset( $options['notifyNewLogins'] ) ) {
+            $notify_new_logins = $options['notifyNewLogins'];
+        } else {
+            $notify_new_logins = '0';
+        }
+
+        return $notify_new_logins;
+
+	}
+
+	
+	/**
+	 * update_notify_new_logins
+	 *
+	 * @return void
+	 */
+	protected function update_notify_new_logins($post_data) {
+
+		$options = $this->get_persistent_login_options();
+        if( isset($post_data['notifyNewLogins']) ) {
+            $notify_new_logins = $post_data['notifyNewLogins'];
+		} else {
+			$notify_new_logins = '0';
+        }
+
+		$options['notifyNewLogins'] = $notify_new_logins;
+
+		return update_option('persistent_login_options', $options);
+
+	}
+
+
+	/**
+	 * get_notification_email_template
+	 *
+	 * @return string
+	 */
+	public function get_notification_email_template($wpautop = true) {
+
+		$notification_email_template = get_option('persistent_login_notification_email_template');
+        if( $notification_email_template === false || $notification_email_template === '' ) {
+            $notification_email_template = __('
+Hi,
+
+This is an email notification to let you know that you have been logged in from a new device, browser or location on your {{SITE_NAME}} account. 
+			
+If you have just logged in, you can safely ignore this email. 
+			
+If you did not login, we recommend that you login and review your active logins and update your password. 
+			
+New Login Details:
+Device: {{DEVICE_DETAILS}}
+IP Address: {{IP_ADDRESS}}
+Date & Time: {{TIMESTAMP}}
+
+Thanks,
+{{SITE_NAME}}
+', 'wp-persistent-login');
+        }
+
+		// wpautop $notification_email_template
+		if( $wpautop === true ) {
+			$notification_email_template = wpautop($notification_email_template);
+		}
+
+        return $notification_email_template;
+
+	}
+
+	
+	/**
+	 * update_notification_email_template
+	 *
+	 * @return void
+	 */
+	private function update_notification_email_template($post_data) {
+
+        if( isset($post_data['notificatioinEmailTemplate']) ) {
+            $notificatioin_email_template = $post_data['notificatioinEmailTemplate'];
+		} else {
+			$notificatioin_email_template = '';
+        }
+
+		return update_option('persistent_login_notification_email_template', $notificatioin_email_template);
+
+	}
 
 
 
@@ -478,6 +670,8 @@ class WP_Persistent_Login_Settings {
 	 */
 	public function persistent_login_options_display() {
 
+		$default_tab = NULL;
+		$tab = isset($_GET['tab']) ? $_GET['tab'] : $default_tab;
 
 		if( isset($_GET['view']) ) {
 			
@@ -516,10 +710,6 @@ class WP_Persistent_Login_Settings {
 			
 			<div class="main-content" style="width: calc(100% - 270px); float: left;">
 						
-				<?php
-					$default_tab = NULL;
-					$tab = isset($_GET['tab']) ? $_GET['tab'] : $default_tab;
-				?>
 				<nav class="nav-tab-wrapper">
 					<a 
 						href="<?php echo WPPL_SETTINGS_PAGE; ?>" 
@@ -538,6 +728,12 @@ class WP_Persistent_Login_Settings {
 						class="nav-tab <?php echo ( $tab === 'active-logins' ) ? 'nav-tab-active' : ''; ?>"
 					>
 						<?php _e('Active Logins', 'wp-persistent-login' ); ?>
+					</a>
+					<a 
+						href="<?php echo WPPL_SETTINGS_PAGE; ?>&tab=login-history" 
+						class="nav-tab <?php echo ( $tab === 'login-history' ) ? 'nav-tab-active' : ''; ?>"
+					>
+						<?php _e('Login History (beta)', 'wp-persistent-login' ); ?>
 					</a>
 				</nav>
 
@@ -781,6 +977,140 @@ class WP_Persistent_Login_Settings {
 							</p>
 						</form>
 					
+					<?php elseif( $tab === 'login-history' ) : ?>
+
+						<h1>
+							<?php 
+								_e(
+									'Login History Settings', 
+									 'wp-persistent-login' ); 
+							?>
+						</h1>
+						<p>
+							<?php 
+								_e(
+									'Store login history and notify users of logins from new devices for improved security.', 
+									 'wp-persistent-login' ); 
+							?>
+						</p>
+						<p>
+							<?php 
+								_e(
+									'This feature is currently in beta testing. Please send any feedback to <a href="mailto:luke@persistentlogin.com">luke@persistentlogin.com</a>.', 
+									'wp-persistent-login' ); 
+							?>
+						</p>
+
+						<form method="POST">
+					
+							<input type="hidden" name="wppl_method" value="update_login_history_settings" />
+							<?php wp_nonce_field( 'update_login_history_settings_action', 'update_login_history_settings_nonce' ); ?>
+						
+							<table class="form-table">
+								<tbody>
+
+									<!-- enable login history -->
+									<?php  $login_history = $this->get_login_history(); ?> 
+									<tr style="border-bottom: 1px solid #dfdfdf;">
+										<th>
+											<?php _e('Collect login history', 'wp-persistent-login' ); ?><br/>
+										</th>
+										<td>
+											<label style="width: auto; display: inline-block;">
+												<input 
+													name="enableLoginHistory" id="enableLoginHistory" type="checkbox" value="1" 
+													class="regular-checkbox" <?php echo ($login_history === '0' || $login_history === NULL ) ? '' : 'checked'; ?>
+												/>
+												<?php _e('Collect login history', 'wp-persistent-login' ); ?>
+											</label><br/>
+											<p class="description">
+												<small>
+													<?php _e('When enabled, your website will start collecting login history data.', 'wp-persistent-login' ); ?><br/>
+												</small>
+											
+											</p>	
+											
+										</td>
+									</tr>
+									<!-- END enable login history -->
+
+									<?php if( $login_history === '1' ) : ?>
+
+										<!-- notify users of new logins -->
+										<?php $notify_new_logins = $this->get_notify_new_logins(); ?> 
+										<tr style="border-bottom: 1px solid #dfdfdf;">
+											<th>
+												<?php _e('Notify users of new logins', 'wp-persistent-login' ); ?><br/>
+											</th>
+											<td>
+												<label style="width: auto; display: inline-block;">
+													<input 
+														name="notifyNewLogins" id="notifyNewLogins" type="checkbox" value="1" 
+														class="regular-checkbox" <?php echo ($notify_new_logins === '0' || $notify_new_logins === NULL ) ? '' : 'checked'; ?>
+													/>
+													<?php _e('Send users an email when they login from a new device or browser.', 'wp-persistent-login' ); ?>
+												</label><br/>
+												<p class="description">
+													<small>
+														<?php _e('When selected, the email template below will be sent to users when a login from a new device is detected. If unchecked, no email will be sent.', 'wp-persistent-login' ); ?>
+													</small>
+												</p>								
+											</td>
+										</tr>
+										<!-- END notify users of new logins -->
+
+
+										<!-- email notificaton to users -->
+										<?php $email_notification_email_template = $this->get_notification_email_template(false); ?> 
+										<tr style="border-bottom: 1px solid #dfdfdf;">
+											<th>
+												<?php _e('Email notification template', 'wp-persistent-login' ); ?><br/>
+											</th>
+											<td>
+												<textarea name="notificatioinEmailTemplate" id="notificatioinEmailTemplate" cols="1" rows="17" style="width: 100%;"><?php echo $email_notification_email_template; ?></textarea>
+												<h4>
+													<?php _e('Shortcodes', 'wp-persistent-login' ); ?>:
+												</h4>
+												<ul>
+													<li><strong>{{TIMESTAMP}}</strong> - <?php _e('The date and time of the new login.', 'wp-persistent-login' ); ?></li>
+													<li><strong>{{DEVICE_DETAILS}}</strong> - <?php _e('The browser and device details of the new login.', 'wp-persistent-login' ); ?></li></li>
+													<li><strong>{{IP_ADDRESS}}</strong> - <?php _e('The IP address of the new login.', 'wp-persistent-login' ); ?></li>
+													<li><strong>{{SITE_NAME}}</strong> - <?php _e('The title of the website from Settings > General.', 'wp-persistent-login' ); ?></li>
+												</ul>
+												<div style="display: flex; align-items: center; gap: 1rem; margin-top: 2rem;">
+													<h4 style="margin: 0;">
+														<?php _e('Test email notification template', 'wp-persistent-login' ); ?>
+													</h4>
+													<div class="test-email-container">
+														<input type="email" id="testEmail" name="testEmail" placeholder="test@email.com" class="js-test-email" />
+														<button class="button button-primary js-send-test-email">
+															<?php _e('Send Test Email', 'wp-persistent-login' ); ?>
+														</button>
+													</div>
+												</div>
+												<span class="js-test-email-response" style="text-align: center; display: block; padding: 0.5rem;"></span>
+												<p class="description">
+													<small>
+														<?php _e('Sends a test email using the data from your current login session.', 'wp-persistent-login' ); ?>
+													</small>
+												</p>	
+											</td>
+										</tr>
+										<!-- END email notification to users -->
+
+									<?php endif; ?>
+
+								</tbody>
+							</table>
+							<p class="submit">
+								<input 
+									type="submit" name="submit" id="submit" class="button button-primary" 
+									value="<?php _e('Save Login History Settings', 'wp-persistent-login' ); ?>"
+								>
+							</p>
+						</form>
+
+
 					<?php endif; ?>	
 				</div>
 

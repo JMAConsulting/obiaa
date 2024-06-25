@@ -14,6 +14,18 @@
 	.admin_page_loginpress-optin #wpwrap {
 		background-color: #F6F9FF;
 	}
+	.admin_page_loginpress-optin #wpbody-content{
+		display: flex;
+		flex-direction: column;
+	}
+	.loginpress-alert-notice{
+		order: -1;
+	}
+	.admin_page_loginpress-optin #wpbody-content .loginpress-header-wrapper{
+		order: -2;
+		margin: 0 0px 20px 0 !important;
+		width: 100% !important;
+	}
 	#wpcontent {
 		padding: 0!important
 	}

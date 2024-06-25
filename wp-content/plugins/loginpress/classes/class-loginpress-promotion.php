@@ -116,7 +116,7 @@ if ( ! class_exists( 'LoginPress_Promotion_tabs' ) ) :
 			return '<hr /><div class="loginpress-addon-promotion-video">
 				<h3><span class="dashicons dashicons-dashboard"></span>&nbsp;&nbsp;' . esc_html__( $title, 'loginpress' ) . '</h3>
 				<div class="inside">
-					<iframe width="800" height="400" src="https://www.youtube.com/embed/' . $code . '?showinfo=0" frameborder="0" allowfullscreen="" style=" max-width: 100%;"></iframe>
+					<iframe width="800" height="400" src="https://www.youtube.com/embed/' . $code . '?showinfo=0" frameborder="0" allowfullscreen="" style=" max-width: 100%;" class="loginPress-feature-video"></iframe>
 				</div>
 			</div>';
 		}

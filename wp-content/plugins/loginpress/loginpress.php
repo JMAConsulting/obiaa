@@ -3,7 +3,7 @@
 * Plugin Name: LoginPress
 * Plugin URI: https://loginpress.pro/?utm_source=loginpress-lite&utm_medium=plugin-inside&utm_campaign=pro-upgrade&utm_content=plugin_uri
 * Description: LoginPress is the best <code>wp-login</code> Login Page Customizer plugin by <a href="https://wpbrigade.com/?utm_source=loginpress-lite">WPBrigade</a> which allows you to completely change the layout of login, register and forgot password forms.
-* Version: 3.0.2
+* Version: 3.0.5
 * Author: LoginPress
 * Author URI: https://loginpress.pro/?utm_source=loginpress-lite
 * Text Domain: loginpress
@@ -22,7 +22,7 @@ if ( ! class_exists( 'LoginPress' ) ) :
 		/**
 		* @var string
 		*/
-		public $version = '3.0.2';
+		public $version = '3.0.5';
 
 		/**
 		* @var The single instance of the class
@@ -81,7 +81,6 @@ if ( ! class_exists( 'LoginPress' ) ) :
 			include_once( LOGINPRESS_DIR_PATH . 'custom.php' );
 			include_once( LOGINPRESS_DIR_PATH . 'classes/class-loginpress-setup.php' );
 			include_once( LOGINPRESS_DIR_PATH . 'classes/class-loginpress-ajax.php' );
-
 			// include_once( LOGINPRESS_DIR_PATH . 'classes/class-loginpress-filter-plugin.php' );
 			include_once( LOGINPRESS_DIR_PATH . 'classes/class-loginpress-developer-hooks.php' );
 			include_once( LOGINPRESS_DIR_PATH . 'classes/class-loginpress-notifications.php' );

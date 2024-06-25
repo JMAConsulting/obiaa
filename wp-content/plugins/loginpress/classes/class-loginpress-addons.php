@@ -4,44 +4,292 @@
  *
  * @package LoginPress
  * @since 1.0.19
- * @version 1.5.8
- *
+ * @version 3.0.5
  */
 
 if ( ! class_exists( 'LoginPress_Addons' ) ) :
 
 	class LoginPress_Addons {
 
-		/**
-		 * The plugins list array.
-		 *
-		 * @since  1.0.19
-		 * @access protected
-		 * @var    array
-		 */
+		private $addons_construct;
+		private $addons_array;
+		private $addons_meta;
 		protected $plugins_list;
 
 		/**
-		 * Class constructor. Get the plugins list.
+		 * Class Constructor.
 		 */
 		function __construct() {
+			$this->includes();
+			$this->addons_array_construct();
 			$this->plugins_list = get_plugins();
+			$this->addons_array = get_option( 'loginpress_pro_addons' );
+		}
+
+		private function includes() {
+			require_once LOGINPRESS_DIR_PATH . 'classes/class-loginpress-addons-meta.php';
 		}
 
 		/**
-		 * The Addons listings from the plugin API.
+		 * Construct addons array.
 		 *
-		 * @return array $plugins_list The plugins list array.
+		 * @since 3.0.5
 		 */
-		public function _get_addons() {
+		public function addons_array_construct() {
+
+			// Don't uncomment this bleow unless you know what you are doing.
+			// delete_option( 'loginpress_pro_addons' );
+
+			$this->addons_array = get_option( 'loginpress_pro_addons' );
+			$this->addons_meta  = LoginPress_Addons_Meta::addons_details();
+		}
+
+		/**
+		 * Render addons page.
+		 *
+		 * @since 1.0.19
+		 * @version 3.0.5
+		 * @return void HTML
+		 */
+		public function show_addon_page() {
+
+			if ( class_exists( 'LoginPress_Pro' ) ) {
+
+				if ( LoginPress_Pro::is_activated() ) {
+
+					$expiration_date = LoginPress_Pro::get_expiration_date();
+
+					if ( 'lifetime' == $expiration_date ) {
+						echo esc_html__( 'You have a lifetime license, it will never expire.', 'loginpress' );
+					} else {
+						echo '<div class="main_notice_msg">' . sprintf(
+							esc_html__( 'Your (%2$s) license key is valid until %1$s.', 'loginpress' ),
+							'<strong>' . date_i18n( get_option( 'date_format' ), strtotime( $expiration_date, current_time( 'timestamp' ) ) ) . '</strong>',
+							LoginPress_Pro::get_license_type()
+						) . '</div>';
+					} ?>
+
+					<div class="addon_cards_wraper"> 
+						<?php
+						if ( isset( $this->addons_array ) && ! empty( $this->addons_array ) ) {
+							foreach ( $this->addons_array as $addon ) {
+								$this->addon_card( $addon );
+							}
+						}
+						?>
+					</div> 
+					<?php
+				} else {
+					$expiration_date = LoginPress_Pro::get_expiration_date();
+					$license_data    = LoginPress_Pro::get_registration_data();
+
+					if ( isset( $license_data['license_data']['error'] ) && 'expired' === $license_data['license_data']['error'] ) {
+						echo '<div class="main_notice_msg">' . sprintf( esc_html__( 'Your license key has been expired on %1$s.', 'loginpress' ), date_i18n( get_option( 'date_format' ), strtotime( $expiration_date, current_time( 'timestamp' ) ) ) ) . '</div>';
+					} else {
+						echo '<div class="main_notice_msg">' . sprintf( esc_html__( 'You need to activate your license to use the following add-ons.', 'loginpress' ) ) . '</div>';
+
+					}
+
+					?>
+					<div class="addon_cards_wraper"> 
+						<?php
+						if ( isset( $this->addons_array ) && ! empty( $this->addons_array ) ) {
+							foreach ( $this->addons_array as $addon ) {
+								$this->addon_card_free( $addon );
+							}
+						}
+						?>
+					</div> 
+					<?php
+				}
+			} else {
+				echo '<div class="main_notice_msg">' . sprintf( esc_html__( 'You need to upgrade to LoginPress Pro to access these add-ons.', 'loginpress' ) ) . '</div>';
+				?>
+
+				<div class="addon_cards_wraper"> 
+				<?php
+
+				if ( isset( $this->addons_array ) && ! empty( $this->addons_array ) ) {
+					foreach ( $this->addons_array as $addon ) {
+						$this->addon_card_free( $addon );
+					}
+				}
+				?>
+				</div> 
+		
+				<?php
+			}
+		}
+
+		/**
+		 * Generate pro addons card.
+		 *
+		 * @param array $addon
+		 * @since 1.0.19
+		 * @version 3.0.5
+		 * @return void HTML
+		 */
+		function addon_card( $addon ) {
+
+			$addon_slug  = $addon['slug'];
+			$addon_thumb = LOGINPRESS_DIR_URL . 'img/addons/' . $addon_slug . '.png';
+			?>
+
+			<div class="loginpress-extension <?php echo true == $addon['is_free'] ? 'loginpress-free-add-ons' : ''; ?> ">
+				<a target="_blank" href="https://wpbrigade.com/wordpress/plugins/loginpress-pro/?utm_source=loginpress-lite&utm_medium=addons-coming-soon&utm_campaign=pro-upgrade" class="logoinpress_addons_links">
+					<h3>
+						<img src=<?php echo esc_url( $addon_thumb ); ?> class="logoinpress_addons_thumbnails"/>
+						<span><?php echo esc_html( $this->addons_meta[ $addon_slug ]['title'] ); ?></span>
+					</h3>
+				</a>
+				<?php echo '<p>' . $this->addons_meta[ $addon_slug ]['excerpt'] . '</p>'; ?>
+				<p><?php echo $this->check_addon_status( $addon ); ?></p>
+				<p><?php echo $this->ajax_responce( $this->addons_meta[ $addon_slug ]['title'], $addon['slug'] ); ?></p>
+				</div>
+			<?php
+		}
+
+		/**
+		 * Ajax workflow.
+		 *
+		 * @param string $text
+		 * @param string $slug
+		 * @since 1.0.19
+		 * @version 3.0.5
+		 * @return void HTML
+		 */
+		function ajax_responce( $text, $slug ) {
+
+			if ( $this->license_life( $slug ) ) {
+				$message = __( $text . ' Something Wrong.', 'loginpress' );
+			} else {
+				$message = __( 'Your License Key isn\'t valid', 'loginpress' );
+			}
+
+			$html  = '<div id="loginpressEnableAddon' . $slug . '" class="loginpress-addon-enable" style="display:none;">
+				<div class="loginpress-logo-container">
+				<img src="' . plugins_url( '../../loginpress/img/loginpress-logo-divid-logo.svg', __FILE__ ) . '" alt="loginpress">
+				<svg class="circular-loader" viewBox="25 25 50 50" >
+					<circle class="loader-path" cx="50" cy="50" r="18" fill="none" stroke="#d8d8d8" stroke-width="1" />
+				</svg>
+				</div>
+				<p>' . __( 'Activating ' . $text . '...', 'loginpress' ) . '</p>
+				</div>';
+			$html .= '<div id="loginpressActivatedAddon' . $slug . '" class="loginpress-install activated" style="display:none">
+				<svg class="circular-loader2" viewBox="25 25 50 50" >
+					<circle class="loader-path2" cx="50" cy="50" r="18" fill="none" stroke="#00c853" stroke-width="1" />
+				</svg>
+				<div class="checkmark draw"></div>
+				<p>' . __( $text . ' Activated.', 'loginpress' ) . '</p>
+				</div>';
+			$html .= '<div id="loginpressUninstallingAddon' . $slug . '" class="loginpress-uninstalling activated" style="display:none">
+				<div class="loginpress-logo-container">
+					<img src="' . plugins_url( '../../loginpress/img/loginpress-logo-divid-logo.svg', __FILE__ ) . '" alt="loginpress">
+					<svg class="circular-loader" viewBox="25 25 50 50" >
+					<circle class="loader-path" cx="50" cy="50" r="18" fill="none" stroke="#d8d8d8" stroke-width="1" />
+					</svg>
+				</div>
+				<p>' . __( 'Deactivating ' . $text . '...', 'loginpress' ) . '</p>
+				</div>';
+			$html .= '<div id="loginpressDeactivatedAddon' . $slug . '" class="loginpress-uninstall activated" style="display:none">
+				<svg class="circular-loader2" viewBox="25 25 50 50" >
+					<circle class="loader-path2" cx="50" cy="50" r="18" fill="none" stroke="#ff0000" stroke-width="1" />
+				</svg>
+				<div class="checkmark draw"></div>
+				<p>' . __( $text . ' Deactivated.', 'loginpress' ) . '</p>
+				</div>';
+			$html .= '<div id="loginpressWrongAddon' . $slug . '" class="loginpress-wrong activated" style="display:none">
+				<svg class="checkmark_login" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+					<circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none"></circle>
+					<path class="checkmark__check" stroke="#ff0000" fill="none" d="M16 16 36 36 M36 16 16 36"></path>
+				</svg>
+				<p>' . $message . '</p>
+				</div>';
+
+			return $html;
+		}
+
+		/**
+		 * Render free addons cards.
+		 *
+		 * @param array $addon
+		 * @since 1.0.19
+		 * @version 3.0.5
+		 * @return void HTML
+		 */
+		function addon_card_free( $addon ) {
+			$addon_slug  = $addon['slug'];
+			$addon_thumb = LOGINPRESS_DIR_URL . 'img/addons/' . $addon_slug . '.png';
+			?>
+
+			<div class="loginpress-extension <?php echo true == $addon['is_free'] ? 'loginpress-free-add-ons' : ''; ?> ">
+				<a target="_blank" href="https://wpbrigade.com/wordpress/plugins/loginpress-pro/?utm_source=loginpress-lite&utm_medium=addons-coming-soon&utm_campaign=pro-upgrade" class="logoinpress_addons_links">
+					<h3>
+						<img src=<?php echo esc_url( $addon_thumb ); ?> class="logoinpress_addons_thumbnails"/>
+						<span><?php echo esc_html( $this->addons_meta[ $addon_slug ]['title'] ); ?></span>
+					</h3>
+				</a>
+				<?php
+				echo '<p>' . $this->addons_meta[ $addon_slug ]['excerpt'] . '</p>';
+				$this->check_free_addon_status( $addon );
+				echo $this->ajax_responce( $this->addons_meta[ $addon_slug ]['title'], $addon['slug'] );
+				?>
+			</div>
+			<?php
+		}
+
+		/**
+		 * Check the license life.
+		 *
+		 * @param array $categories
+		 * @since 1.0.19
+		 * @version 3.0.5
+		 * @return boolean
+		 */
+		function is_addon_licensed( $categories ) {
+
+			if ( ! class_exists( 'LoginPress_Pro' ) ) {
+				return false;
+			}
+
+			if ( LoginPress_Pro::get_license_id() === '2' && in_array( 'loginpress-pro-small-business', $categories ) ) {
+				return true;
+			} elseif ( LoginPress_Pro::get_license_id() === '3' && in_array( 'loginpress-pro-agency', $categories ) ) {
+				return true;
+			} elseif ( LoginPress_Pro::get_license_id() === '4' && in_array( 'loginpress-pro-agency', $categories ) ) {
+				return true;
+			} elseif ( LoginPress_Pro::get_license_id() === '5' ) {
+				return true;
+			} elseif ( LoginPress_Pro::get_license_id() === '6' ) {
+				return true;
+			} elseif ( LoginPress_Pro::get_license_id() === '7' && in_array( 'loginpress-pro-agency', $categories ) ) {
+				return true;
+			} elseif ( LoginPress_Pro::get_license_id() === '8' && in_array( 'loginpress-pro-agency', $categories ) ) {
+				return true;
+			} elseif ( LoginPress_Pro::get_license_id() === '9' && in_array( 'loginpress-pro-agency', $categories ) ) {
+				return true;
+			} elseif ( LoginPress_Pro::get_license_id() === '1' && in_array( 'loginpress-free-add-ons', $categories ) ) {
+				return true;
+			} else {
+				return false;
+			}
+		}
+
+		/**
+		 * Get the Add-Ons data.
+		 *
+		 * @since 1.0.19
+		 */
+		function _get_addons() {
 
 			// For Testing
 			// delete_transient( 'loginpress_api_addons' );
+
 			// Get the transient where the addons are stored on-site.
 			$data = get_transient( 'loginpress_api_addons' );
 
 			// If we already have data, return it.
-			if ( ! empty( $data ) && is_array( $data ) ) {
+			if ( ! empty( $data ) ) {
 				return $data;
 			}
 
@@ -62,913 +310,602 @@ if ( ! class_exists( 'LoginPress_Addons' ) ) :
 					set_transient( 'loginpress_api_addons', $data, 7 * DAY_IN_SECONDS );
 
 					return $data;
-				} else {
-					return array( 'error_message' => __( 'Something went wrong in loading the Add-Ons, Try again later!', 'loginpress' ) );
 				}
 			}
 
-			return array( 'error_message' => __( 'Something went wrong in loading the Add-Ons, Try again later!', 'loginpress' ) );
+			return false;
 		}
 
 		/**
-		 * Addon card for a specific addon.
+		 * Convert the slug into an array
 		 *
-		 * @param object $addon The LoginPress addon object.
-		 * @return void
+		 * @param object $categories
+		 * @since 3.0.5
+		 * @return array $arr
 		 */
-		public function _addon_card( $addon ) { ?>
-
-			<div class="loginpress-extension<?php if( in_array('loginpress-free-add-ons', $this->convert_to_array($addon->categories) ) ){ echo ' loginpress-free-add-ons'; } ?>">
-				<a target="_blank" href="https://loginpress.pro/pricing/?utm_source=loginpress-lite&utm_medium=addons-coming-soon&utm_campaign=pro-upgrade" class="loginpress_addons_links">
-
-					<h3><img src=<?php if ( $addon->media->icon->url ) echo esc_url( $addon->media->icon->url ); else echo plugins_url( '../img/thumbnail/gray-loginpress.png', __FILE__ );?> class="loginpress_addons_thumbnails"/><span><?php echo esc_html( $addon->title ); ?></span></h3>
-				</a>
-
-				<?php echo wpautop( wp_strip_all_tags( $addon->excerpt ) ); ?>
-				<p>
-					<?php
-					// $this->check_plugin_status( $addon->id, $addon->slug, $this->convert_to_array( $addon->categories ) );
-						$this->sa_check_plugin_status( $addon->id, $addon->slug, $this->convert_to_array( $addon->categories ) );
-					?>
-				</p>
-				<?php 
-				echo $this->_ajax_response( $addon->title, $addon->slug ); ?>
-			</div>
-
-		<?php }
-
-		/**
-		 * Ajax Response on activation/installation of an addon of LoginPress.
-		 *
-		 * @param string $title The title of the plugin.
-		 * @param string $slug The slug of the plugin.
-		 *
-		 * @version 3.0.0
-		 * @return string $response The response of the ajax request.
-		 */
-		public function _ajax_response( $text, $slug ){
-			$html = '<div id="loginpressEnableAddon' . esc_attr( $slug ) . '" class="loginpress-addon-enable" style="display:none;">
-			<div class="loginpress-logo-container">
-			<img src="' .  plugins_url( "../../loginpress/img/loginpress.png", __FILE__ ) . '" alt="loginpress">
-			<svg class="circular-loader" viewBox="25 25 50 50" >
-			<circle class="loader-path" cx="50" cy="50" r="18" fill="none" stroke="#d8d8d8" stroke-width="1" />
-			</svg>
-			</div>
-			<p>' .  __( "Activating " . $text . "...", "loginpress" ) . '</p>
-			</div>';
-
-			$html .= '<div id="loginpressActivatedAddon' . esc_attr( $slug ) . '" class="loginpress-install activated" style="display:none">
-			<svg class="circular-loader2" viewBox="25 25 50 50" >
-			<circle class="loader-path2" cx="50" cy="50" r="18" fill="none" stroke="#00c853" stroke-width="1" />
-			</svg>
-			<div class="checkmark draw"></div>
-			<p>' . __( $text . ' Activated.', 'loginpress' ) . '</p>
-			</div>';
-
-			$html .= '<div id="loginpressUnnstallingAddon' . esc_attr( $slug ) . '" class="loginpress-uninstalling activated" style="display:none">
-			<div class="loginpress-logo-container">
-			<img src="' .  plugins_url( "../../loginpress/img/loginpress.png", __FILE__ ) . '" alt="loginpress">
-			<svg class="circular-loader" viewBox="25 25 50 50" >
-			<circle class="loader-path" cx="50" cy="50" r="18" fill="none" stroke="#d8d8d8" stroke-width="1" />
-			</svg>
-			</div>
-			<p>' .  __( "Deactivating " . $text . "...", "loginpress" ) . '</p>
-			</div>';
-
-			$html .= '<div id="loginpressDeactivatedAddon' . esc_attr( $slug ) . '" class="loginpress-uninstall activated" style="display:none">
-			<svg class="circular-loader2" viewBox="25 25 50 50" >
-			<circle class="loader-path2" cx="50" cy="50" r="18" fill="none" stroke="#ff0000" stroke-width="1" />
-			</svg>
-			<div class="checkmark draw"></div>
-			<p>' . __( $text . ' Deactivated.', 'loginpress' ) . '</p>
-			</div>';
-
-			$html .= '<div id="loginpressWrongAddon' . esc_attr( $slug ) . '" class="loginpress-wrong activated" style="display:none">
-			<svg class="checkmark_login" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
-			<circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none"></circle>
-			<path class="checkmark__check" stroke="#ff0000" fill="none" d="M16 16 36 36 M36 16 16 36"></path>
-			</svg>
-			<p>' . esc_html__( $text . ' Something Wrong.', 'loginpress' ) . '</p>
-			</div>';
-
-			return $html;
-		}
-
-		/**
-		 * The free addon card of LoginPress.
-		 *
-		 * @param object $addon The object of the addon.
-		 * @return string $html The html of the card.
-		 */
-		public function _addon_card_free( $addon ) { ?>
-
-			<div class="loginpress-extension<?php if( in_array('loginpress-free-add-ons', $this->convert_to_array($addon->categories) ) ){ echo ' loginpress-free-add-ons'; } ?>">
-				<a target="_blank" href="https://loginpress.pro/pricing/?utm_source=loginpress-lite&utm_medium=addons-coming-soon&utm_campaign=pro-upgrade" class="loginpress_addons_links">
-
-					<h3><img src=<?php if ( $addon->media->icon->url ) echo esc_url( $addon->media->icon->url ); else echo plugins_url( '../img/thumbnail/gray-loginpress.png', __FILE__ );?> class="loginpress_addons_thumbnails"/><span><?php echo esc_html( $addon->title ); ?></span></h3>
-				</a>
-
-				<?php echo wpautop( wp_strip_all_tags( $addon->excerpt ) );
-				$slug_id = $addon->slug;
-				if ( in_array('loginpress-free-add-ons', $this->convert_to_array( $addon->categories ) ) ) {
-					$slug = $addon->slug . '/' . $addon->slug . '.php';
-
-					if ( is_plugin_active( $slug ) ) { ?>
-
-						<input name="loginpress_pro_addon_nonce" type="hidden" value="<?php echo wp_create_nonce( 'uninstall_' . $slug ); ?>">
-						<input name="loginpress_pro_addon_slug" type="hidden" value="<?php echo $slug; ?>">
-						<!-- <a class="button-primary loginpress-uninstall-pro-addon" href="#">Uninstall</a> -->
-						<input id="<?php echo esc_attr( $slug_id ); ?>" type="checkbox" checked class="loginpress-radio loginpress-radio-ios loginpress-uninstall-pro-addon" value="<?php echo esc_attr( $slug_id ); ?>">
-						<label for="<?php echo esc_attr( $slug_id ); ?>" class="loginpress-radio-btn"></label>
-
-						<?php
-
-						// echo sprintf( esc_html__( '%1$s Already Installed %2$s', 'loginpress' ), '<button class="button-primary">', '</button>' );
-					} else if ( array_key_exists( $slug , $this->plugins_list ) ) { ?>
-
-						<input name="loginpress_pro_addon_nonce" type="hidden" value="<?php echo wp_create_nonce( 'install-plugin_' . $slug ); ?>">
-						<input name="loginpress_pro_addon_slug" type="hidden" value="<?php echo $slug; ?>">
-						<!-- <a class="button-primary loginpress-active-pro-addon" href="#">Activate Plugin</a> -->
-						<input id="<?php echo esc_attr( $slug_id ); ?>" type="checkbox" class="loginpress-radio loginpress-radio-ios loginpress-active-pro-addon" value="<?php echo esc_attr( $slug_id ); ?>">
-						<label for="<?php echo esc_attr( $slug_id ); ?>" class="loginpress-radio-btn"></label>
-
-						<?php
-
-						// $link = wp_nonce_url( add_query_arg( array( 'action' => 'activate', 'plugin' => $slug ), admin_url( 'plugins.php' ) ),  'activate-plugin_' . $slug ) ;
-						// echo sprintf( esc_html__( '%1$s Activate Plugin %2$s', 'loginpress' ), '<a href="' .  $link . '" class="button-primary">', '</a>' );
-					} else {
-
-						$action = 'install-plugin';
-						$slug   = 'login-logout-menu';
-						$link   = wp_nonce_url( add_query_arg( array( 'action' => $action, 'plugin' => $slug ), admin_url( 'update.php' ) ), $action . '_' . $slug );
-						?>
-						<input name="loginpress_pro_addon_nonce" type="hidden" value="<?php echo wp_create_nonce( 'install-plugin_' . $slug ); ?>">
-						<input name="loginpress_pro_addon_slug" type="hidden" value="<?php echo $slug; ?>">
-						<input id="<?php echo esc_attr( $slug_id ); ?>" type="checkbox" class="loginpress-radio loginpress-radio-ios loginpress-install-pro-addon" value="<?php echo esc_attr( $slug_id ); ?>">
-						<label for="<?php echo esc_attr( $slug_id ); ?>" class="loginpress-radio-btn"></label>
-						<?php
-					}
-				} else{
-
-					?>
-					<p>
-						<a target="_blank" href="https://loginpress.pro/pricing/?utm_source=loginpress-lite&utm_medium=addons-coming-soon&utm_campaign=pro-upgrade" class="button-primary"><?php esc_html_e( 'UPGRADE NOW', 'loginpress' ); ?></a>
-					</p>
-					<?php
-				}
-				?>
-				<?php echo $this->_ajax_response( $addon->title, $addon->slug ); ?>
-			</div>
-
-		<?php }
-
-		/**
-		 * Turn the object into an array of addon category.
-		 *
-		 * @param array $categories The categories of the addon.
-		 * @return array $categories The categories of the addon.
-		 */
-		public function convert_to_array( $categories ) {
+		function convert_to_array( $categories ) {
 
 			$arr = array();
-			if ( $categories ) {
-				foreach ( $categories as $category ) {
-					$arr[] = $category->slug;
-				}
+			foreach ( $categories as $category ) {
+				$arr[] = $category->slug;
 			}
 			return $arr;
 		}
 
 		/**
-		 * Get the addon link for downloading.
+		 * Check the life of the license, Is it legal or not.
 		 *
-		 * @return string $link The link for downloading.
+		 * @param string $slug slug of the addon
+		 * @since 3.0.5
+		 * @return boolean
 		 */
-		function get_addons_link() {
+		public function license_life( $slug ) {
 
-			$addons = $this->get_addons_name();
-			if ( $addons ) {
-				foreach ( $addons as $addon ) {
+			$response = $this->_get_addons();
+			if ( is_array( $response ) ) {
+				foreach ( $response as $key => $value ) {
 
-					$action = 'install-plugin';
-					$slug   = $addon['key'];
-					$link   = wp_nonce_url( add_query_arg( array( 'action' => $action, 'plugin' => $slug, 'lgp' => 1 ), admin_url( 'update.php' ) ), $action . '_' . $slug );
+					if ( 'loginpress-' . $slug == $value->slug ) {
+						return $this->is_addon_licensed( $this->convert_to_array( $value->categories ) );
+					}
 				}
 			}
+			return false;
 		}
 
-
 		/**
-		 * Is the addon license valid and belongs to the category?
+		 * Check addon status.
 		 *
-		 * @param array $categories The categories of the addon.
-		 * @return boolean $valid The validity of the addon.
+		 * @since 1.0.19
+		 * @version 3.0.5
+		 *
+		 * @return void HTML
 		 */
-		function is_addon_licensed( $categories ) {
+		public function check_addon_status( $addon ) {
+			$slug = $addon['slug'];
 
-			if( LoginPress_Pro::get_license_id() === '2' && in_array( 'loginpress-pro-small-business', $categories ) ) {
-				return true;
-			} else if ( LoginPress_Pro::get_license_id() === '3' && in_array( 'loginpress-pro-agency', $categories ) ) {
-				return true;
-			} else if ( LoginPress_Pro::get_license_id() === '4' && in_array( 'loginpress-pro-agency', $categories ) ) {
-				return true;
-			} else if ( LoginPress_Pro::get_license_id() === '5' ) {
-				return true;
-			} else if ( LoginPress_Pro::get_license_id() === '6' ) {
-				return true;
-			} else if ( LoginPress_Pro::get_license_id() === '7' && in_array( 'loginpress-pro-agency', $categories ) ) {
-				return true;
-			} else if ( LoginPress_Pro::get_license_id() === '8' && in_array( 'loginpress-pro-agency', $categories ) ) {
-				return true;
-			} else if ( LoginPress_Pro::get_license_id() === '9' && in_array( 'loginpress-pro-agency', $categories ) ) {
-				return true;
-			} else if ( LoginPress_Pro::get_license_id() === '1' && in_array( 'loginpress-free-add-ons', $categories ) ) {
-				return true;
+			if ( $addon['is_free'] ) {
+				$this->check_free_addon_status( $addon );
+			} elseif ( $this->license_life( $slug ) ) {
+				if ( true === $addon['is_active'] ) {
+					?>
+
+						<input name="loginpress_pro_addon_nonce" type="hidden" value="<?php echo wp_create_nonce( 'uninstall_' . $slug ); ?>">
+						<input name="loginpress_pro_addon_slug" type="hidden" value="<?php echo $slug; ?>">
+						<input id="<?php echo $slug; ?>" type="checkbox" checked class="loginpress-radio loginpress-radio-ios loginpress-uninstall-pro-addon" value="<?php echo $slug; ?>">
+						<label for="<?php echo $slug; ?>" class="loginpress-radio-btn"></label>
+
+					<?php } else { ?>
+
+						<input name="loginpress_pro_addon_nonce" type="hidden" value="<?php echo wp_create_nonce( 'install-plugin_' . $slug ); ?>">
+						<input name="loginpress_pro_addon_slug" type="hidden" value="<?php echo $slug; ?>">
+						<input name="loginpress_pro_addon_id" type="hidden" value="<?php echo $slug; ?>">
+						<input id="<?php echo $slug; ?>" type="checkbox" class="loginpress-radio loginpress-radio-ios loginpress-active-pro-addon" value="<?php echo $slug; ?>">
+						<label for="<?php echo $slug; ?>" class="loginpress-radio-btn"></label>
+
+					<?php
+					}
 			} else {
-				return false;
+				?>
+					<p><a target="_blank" href="https://wpbrigade.com/wordpress/plugins/loginpress-pro/?utm_source=loginpress-lite&utm_medium=addons-coming-soon&utm_campaign=pro-upgrade" class="button-primary"><?php esc_html_e( 'UPGRADE NOW', 'loginpress' ); ?></a></p>
+				<?php
+
 			}
 		}
 
 		/**
-		* Check plugin status
-		*
-		* @return array
-		* @since 1.0.19
-		*/
-		public function check_plugin_status( $id, $slug, $categories = array() ) {
+		 * Check installation status for free addons.
+		 *
+		 * @param array $addon
+		 *
+		 * @since 3.0.5
+		 */
+		function check_free_addon_status( $addon ) {
+			if ( true === $addon['is_free'] ) {
+				$slug = $addon['slug'] . '/' . $addon['slug'] . '.php';
 
-			$slug = $slug.'/'.$slug.'.php';
-
-			if ( $this->is_addon_licensed ( $categories ) ) {
-
-				if ( is_plugin_active( $slug ) ) { ?>
-
-					<input name="loginpress_pro_addon_nonce" type="hidden" value="<?php echo wp_create_nonce( 'uninstall_' . $slug ); ?>">
-					<input name="loginpress_pro_addon_slug" type="hidden" value="<?php echo $slug; ?>">
-					<a class="button-primary loginpress-uninstall-pro-addon" href="#"><?php esc_html_e( 'Uninstall', 'loginpress' ); ?></a>
-
-					<?php
-					// echo sprintf( esc_html__( '%1$s Already Installed %2$s', 'loginpress' ), '<button class="button-primary">', '</button>' );
-				} else if ( array_key_exists( $slug , $this->plugins_list ) ) { ?>
-
-					<input name="loginpress_pro_addon_nonce" type="hidden" value="<?php echo wp_create_nonce( 'install-plugin_' . $slug ); ?>">
-					<input name="loginpress_pro_addon_slug" type="hidden" value="<?php echo $slug; ?>">
-					<a class="button-primary loginpress-active-pro-addon" href="#"><?php esc_html_e( 'Activate Plugin', 'loginpress' ); ?></a>
-
-					<?php
-					// $link = wp_nonce_url( add_query_arg( array( 'action' => 'activate', 'plugin' => $slug ), admin_url( 'plugins.php' ) ),  'activate-plugin_' . $slug ) ;
-					// echo sprintf( esc_html__( '%1$s Activate Plugin %2$s', 'loginpress' ), '<a href="' .  $link . '" class="button-primary">', '</a>' );
-				} else {
-					// $link   = wp_nonce_url( add_query_arg( array( 'action' => 'install-plugin', 'plugin' => $slug, 'lgp' => 1, 'id' => $id), admin_url( 'update.php' ) ), 'install-plugin_' . $slug );
-					// echo sprintf( esc_html__( '%1$s Install %2$s', 'loginpress' ), '<a  href="' . $link . '" class="button-primary">', '</a>' );
-
+				if ( is_plugin_active( $slug ) ) {
 					?>
-					<input name="loginpress_pro_addon_nonce" type="hidden" value="<?php echo wp_create_nonce( 'install-plugin_' . $slug ); ?>">
-					<input name="loginpress_pro_addon_slug" type="hidden" value="<?php echo $slug; ?>">
-					<input name="loginpress_pro_addon_id" type="hidden" value="<?php echo $id; ?>">
-					<a class="button-primary loginpress-install-pro-addon" href="#"><?php esc_html_e( 'Install', 'loginpress' ); ?></a>
-					<!-- <a target="_blank" href="https://loginpress.pro/pricing/?utm_source=loginpress-lite&utm_medium=addons-coming-soon&utm_campaign=pro-upgrade" class="button-primary">INSTALL NOW</a> -->
+
+					<input name="loginpress_pro_addon_nonce" type="hidden" value="<?php echo wp_create_nonce( 'uninstall_' . $addon['slug'] ); ?>">
+					<input name="loginpress_pro_addon_slug" type="hidden" value="<?php echo $addon['slug']; ?>">
+					<input id="<?php echo $addon['slug']; ?>" type="checkbox" checked class="loginpress-radio loginpress-radio-ios loginpress-uninstall-pro-addon" value="<?php echo $addon['slug']; ?>">
+					<label for="<?php echo $addon['slug']; ?>" class="loginpress-radio-btn"></label>
+					
+				<?php } elseif ( array_key_exists( $slug, $this->plugins_list ) ) { ?>
+
+					<input name="loginpress_pro_addon_nonce" type="hidden" value="<?php echo wp_create_nonce( 'install-plugin_' . $addon['slug'] ); ?>">
+					<input name="loginpress_pro_addon_slug" type="hidden" value="<?php echo $addon['slug']; ?>">
+					<input id="<?php echo $addon['slug']; ?>" type="checkbox" class="loginpress-radio loginpress-radio-ios loginpress-active-pro-addon" value="<?php echo $addon['slug']; ?>">
+					<label for="<?php echo $addon['slug']; ?>" class="loginpress-radio-btn"></label>
+
+				<?php } else { ?>
+
+					<input name="loginpress_pro_addon_nonce" type="hidden" value="<?php echo wp_create_nonce( 'install-plugin_' . $addon['slug'] ); ?>">
+					<input name="loginpress_pro_addon_slug" type="hidden" value="<?php echo $addon['slug']; ?>">
+					<input id="<?php echo $addon['slug']; ?>" type="checkbox" class="loginpress-radio loginpress-radio-ios loginpress-install-pro-addon" value="<?php echo $addon['slug']; ?>">
+					<label for="<?php echo $addon['slug']; ?>" class="loginpress-radio-btn"></label>
+
 					<?php
 				}
 			} else {
 				?>
-				<a target="_blank" href="https://loginpress.pro/pricing/?utm_source=loginpress-lite&utm_medium=addons-coming-soon&utm_campaign=pro-upgrade" class="button-primary"><?php esc_html_e( 'UPGRADE NOW', 'loginpress' ); ?></a>
+				<p><a target="_blank" href="https://wpbrigade.com/wordpress/plugins/loginpress-pro/?utm_source=loginpress-lite&utm_medium=addons-coming-soon&utm_campaign=pro-upgrade" class="button-primary"><?php esc_html_e( 'UPGRADE NOW', 'loginpress' ); ?></a></p>
 				<?php
 			}
 		}
 
 		/**
-		* Check plugin status
-		*
-		* @return array
-		* @since 1.0.19
-		*/
-		public function sa_check_plugin_status( $id, $slug, $categories = array() ) {
-			$slugid = $slug;
-			$slug   = $slug.'/'.$slug.'.php';
-
-			if ( $this->is_addon_licensed ( $categories ) ) {
-
-				if ( is_plugin_active( $slug ) ) { ?>
-
-					<input name="loginpress_pro_addon_nonce" type="hidden" value="<?php echo wp_create_nonce( 'uninstall_' . $slug ); ?>">
-					<input name="loginpress_pro_addon_slug" type="hidden" value="<?php echo esc_attr( $slug ); ?>">
-					<!-- <a class="button-primary loginpress-uninstall-pro-addon" href="#">Uninstall</a> -->
-
-					<input id="<?php echo esc_attr( $slugid ); ?>" type="checkbox" checked class="loginpress-radio loginpress-radio-ios loginpress-uninstall-pro-addon" value="<?php echo esc_attr( $slugid ); ?>">
-					<label for="<?php echo esc_attr( $slugid ); ?>" class="loginpress-radio-btn"></label>
-
-					<?php
-					// echo sprintf( esc_html__( '%1$s Already Installed %2$s', 'loginpress' ), '<button class="button-primary">', '</button>' );
-				} else if ( array_key_exists( $slug , $this->plugins_list ) ) { ?>
-
-					<input name="loginpress_pro_addon_nonce" type="hidden" value="<?php echo wp_create_nonce( 'install-plugin_' . $slug ); ?>">
-					<input name="loginpress_pro_addon_slug" type="hidden" value="<?php echo esc_attr( $slug ); ?>">
-					<input id="<?php echo esc_attr( $slugid ); ?>" type="checkbox" class="loginpress-radio loginpress-radio-ios loginpress-active-pro-addon" value="<?php echo esc_attr( $slugid ); ?>">
-					<label for="<?php echo esc_attr( $slugid ); ?>" class="loginpress-radio-btn"></label>
-					<!-- <a class="button-primary loginpress-active-pro-addon" href="#">Activate Plugin</a> -->
-
-					<?php
-					// $link = wp_nonce_url( add_query_arg( array( 'action' => 'activate', 'plugin' => $slug ), admin_url( 'plugins.php' ) ),  'activate-plugin_' . $slug ) ;
-					// echo sprintf( esc_html__( '%1$s Activate Plugin %2$s', 'loginpress' ), '<a href="' .  $link . '" class="button-primary">', '</a>' );
-				} else{
-					// $link   = wp_nonce_url( add_query_arg( array( 'action' => 'install-plugin', 'plugin' => $slug, 'lgp' => 1, 'id' => $id), admin_url( 'update.php' ) ), 'install-plugin_' . $slug );
-					// echo sprintf( esc_html__( '%1$s Install %2$s', 'loginpress' ), '<a  href="' . $link . '" class="button-primary">', '</a>' );
-
-					?>
-					<input name="loginpress_pro_addon_nonce" type="hidden" value="<?php echo wp_create_nonce( 'install-plugin_' . $slug ); ?>">
-					<input name="loginpress_pro_addon_slug" type="hidden" value="<?php echo esc_attr( $slug ); ?>">
-					<input name="loginpress_pro_addon_id" type="hidden" value="<?php echo $id; ?>">
-					<input id="<?php echo esc_attr( $slugid ); ?>" type="checkbox" class="loginpress-radio loginpress-radio-ios loginpress-install-pro-addon" value="<?php echo esc_attr( $slugid ); ?>">
-					<label for="<?php echo esc_attr( $slugid ); ?>" class="loginpress-radio-btn"></label>
-					<!-- <a class="button-primary loginpress-install-pro-addon" href="#">Install</a> -->
-					<!-- <a target="_blank" href="https://loginpress.pro/pricing/?utm_source=loginpress-lite&utm_medium=addons-coming-soon&utm_campaign=pro-upgrade" class="button-primary">INSTALL NOW</a> -->
-					<?php
-				}
-			} else {
-				?>
-				<a target="_blank" href="https://loginpress.pro/pricing/?utm_source=loginpress-lite&utm_medium=addons-coming-soon&utm_campaign=pro-upgrade" class="button-primary"><?php esc_html_e( 'UPGRADE NOW', 'loginpress' ); ?></a>
-				<?php
-			}
-		}
-
-		/**
-		 * Check if the plugin is already installed
+		 * Generate the markup for addons.
 		 *
-		 * @return void
+		 * @since 1.0.19
 		 */
-		public function validate_addons() {
-			$data = get_transient( 'loginpress_api_addons' );
-		}
-
 		/**
-		 * All addon page content.
+		 * Generate the markup for addons.
 		 *
-		 * @return 
+		 * @since 1.0.19
+		 * @version 3.0.5
+		 * @return void Add Ons HTML
 		 */
-		public function show_addon_page() {
+		function _addon_html() {
 
-			$addons_list = $this->_get_addons();
-
-			if ( class_exists('LoginPress_Pro') ) {
-
-				if ( LoginPress_Pro::is_activated() ) {
-
-					$expiration_date = LoginPress_Pro::get_expiration_date();
-
-					if ( 'lifetime' == $expiration_date ) {
-						echo '<div class="main_notice_msg">' . esc_html__( 'You have a lifetime license, it will never expire.', 'loginpress-pro' ) . '</div>';
-					}
-					else {
-						echo '<div class="main_notice_msg">' . sprintf(
-						esc_html__( 'Your (%2$s) license key is valid until %s.', 'loginpress-pro' ),
-						'<strong>' . date_i18n( get_option( 'date_format' ), strtotime( $expiration_date, current_time( 'timestamp' ) ) ) . '</strong>', LoginPress_Pro::get_license_type()
-						) . '</div>';
-					}
-
-					?> <div class="addon_cards_wraper"> <?php
-					foreach( $addons_list as $key => $addon ) {
-						if ( 'error_message' === $key) {
-							include_once( LOGINPRESS_DIR_PATH . 'include/loginpress-static-addons.php' );
-							if ( class_exists('LoginPress_Pro') && LoginPress_Pro::is_activated() && LoginPress_Pro::get_license_type() ) {
-								LoginPress_Static_Addons::pro_static_addon_cards();
-							} else {
-								LoginPress_Static_Addons::free_static_addon_cards();
-							}
-							return;
-						}
-						$this->_addon_card( $addon );
-					}
-					?> </div> <?php
-
-				} else {
-
-					echo '<div class="main_notice_msg">' . sprintf( esc_html__( 'You need to activate your license to download the following add-ons.', 'loginpress-pro' ) ) . '</div>';
-
-					// Show full list of add-ons
-					?> <div class="addon_cards_wraper"> <?php
-					foreach( $addons_list as $key => $addon ) {
-						if ( 'error_message' === $key) {
-							include_once( LOGINPRESS_DIR_PATH . 'include/loginpress-static-addons.php' );
-							if ( class_exists( 'LoginPress_Pro' ) && LoginPress_Pro::is_activated() && LoginPress_Pro::get_license_type() ) {
-								LoginPress_Static_Addons::pro_static_addon_cards();
-							} else {
-								LoginPress_Static_Addons::free_static_addon_cards();
-							}
-							return;
-						}
-						$this->_addon_card_free( $addon );
-					}
-					?> </div> <?php
-				}
-
-			} else {
-
-				echo '<div class="main_notice_msg">' . esc_html__( 'You need to upgrade to LoginPress Pro to access these add-ons.', 'loginpress-pro' ) . '</div>';
-
-				// Show full list of add-ons
-				echo '<div class="addon_cards_wraper">';
-				foreach( $addons_list as $key => $addon ) {
-					if ( 'error_message' === $key) {
-						include_once( LOGINPRESS_DIR_PATH . 'include/loginpress-static-addons.php' );
-						if ( class_exists('LoginPress_Pro') && LoginPress_Pro::is_activated() && LoginPress_Pro::get_license_type() ) {
-							LoginPress_Static_Addons::pro_static_addon_cards();
-						} else {
-							LoginPress_Static_Addons::free_static_addon_cards();
-						}
-						return;
-					}
-					$this->_addon_card_free( $addon );
-				}
-				echo '</div>';
-			}
-		}
-
-		/**
-		 * Addon card.
-		 *
-		 * @return void
-		 */
-		function _addon_html() { ?>
-
+			?>
 			<!-- Style for Add-ons Page -->
 			<style media="screen">
+				.loginpress_page_loginpress-addons #wpcontent .loginpress-addons-wrap{
+					padding: 0px 20px 0 0;
+					max-width: 1370px;
+					width: 100%;
+					margin: 0 auto;
+					box-sizing: border-box;
+				}
+				.loginpress_page_loginpress-addons{
+					background-color: #F6F9FF;
+				}
+				.loginpress-extension p:empty {
+					display: none;
+				}
+					#wpbody-content .loginpress-extension .button-primary{
+					border:0;
+					text-shadow:none;
+					background: #516885;
+					padding: 12px 18px;
+					height:auto;
+					font-size:15px;
+					cursor: pointer;
+					position: absolute;
+					bottom: 20px;
+					left: 50%;
+					transform: translateX(-50%);
+					box-shadow:none;
+					border-radius:5px;
+					transition: background-color .3s;
+					font-size: 16px;
+					line-height: 24px;
+					color: #fff;
+					font-family: "Poppins", sans-serif;
+					font-weight: 500;
+					text-decoration: none;
+					}
+				#wpbody-content .loginpress-extension .button-primary:active,
+				#wpbody-content .loginpress-extension .button-primary:hover,
+				#wpbody-content .loginpress-extension .button-primary:focus{
+					background: #2B3D54;
+					box-shadow: none;
+					outline: none;
+					}
+				.notice_msg{
+					box-shadow: rgba(0, 0, 0, 0.1) 0px 1px 1px 0px;
+					background: rgb(255, 255, 255);
+					border-left: 4px solid #46b450;
+					margin: 5px 0 20px;
+					padding: 15px;
+				}
+				.loginpress-extension button.button-primary{
+					background: #f9fafa;
+					border-radius: 0;
+					box-shadow: none;
+					color: #444;
+					position: absolute;
+					bottom: 15px;
+					left: 50%;
+					transform: translateX(-50%);
+					border: 2px solid #a5dff6 !important;
+					background: #d3f3ff54 !important;
+					cursor: default;
+					transition: background-color .3s;
+				}
+				.loginpress-extension button.button-primary:visited,
+				.loginpress-extension button.button-primary:active,
+				.loginpress-extension button.button-primary:hover,
+				.loginpress-extension button.button-primary:focus{
+					background: #36bcf2;
+					color: #444;
+					border: 0;
+					outline: none;
+					box-shadow: none;
+				}
+				.logoinpress_addons_thumbnails{
+					max-width: 100px;
+					position: absolute;
+					top: 5px;
+					left: 10px;
+					height: auto;
+					width: auto;
+					max-height: 75px;
+					position: static;
+					vertical-align: middle;
+					margin-right: 20px;
+					margin-top: 0;
+				}
+				.loginpress-extension p {
+					margin: 0;
+					padding: 10px 20px;
+					color: #5C7697;
+					font-size: 13px;
+					font-family: "Poppins", sans-serif;
+				}
+				.loginpress-addons-loading-errors {
+					padding-top: 15px;
+				}
+				.loginpress-addons-loading-errors img {
+					float: left;
+					padding-right: 10px;
+				}
+				.loginpress-free-add-ons h3:after{
+					content: "Free";
+					position: absolute;
+					top: 10px;
+					right: -30px;
+					width: 100px;
+					height: 30px;
+					background-color: #7FC22B;
+					color: #fff;
+					transform: rotate(45deg);
+					line-height: 30px;
+					text-align: center;
+					font-size: 13px;
+				}
 
-			.loginpress-free-add-ons h3:after{
-				content: "Free";
-				position: absolute;
-				top: 10px;
-				right: -30px;
-				width: 100px;
-				height: 30px;
-				background-color: #00a0d2;
-				color: #fff;
-				transform: rotate(45deg);
-				line-height: 30px;
-				text-align: center;
-				font-size: 13px;
-			}
-			/* .loginpress-extension {
-				float: none;
-				box-sizing: border-box;
-				width: calc(33% - 20px);
-				margin: 0px 0px 30px 30px;
-				border: 1px solid #a5dff6;
-				display: inline-block;
-				height: auto;
-				vertical-align: top;
-				background: #fff;
-				min-height: 300px;
-				position: relative;
-				padding-bottom: 50px;
-				max-width: 465px;
-			} */
-			.loginpress-extension .button-primary{
-				border:0;
-				text-shadow:none;
-				background:#1a61a7;
-				padding:8px 18px;
-				height:auto;
-				font-size:15px;
-				cursor: pointer;
-				position: absolute;
-				bottom: 15px;
-				left: 50%;
-				transform: translateX(-50%);
-				box-shadow:none;
-				border-radius:0;
-				transition: background-color .3s;
-			}
-			.loginpress-extension .button-primary:active,.loginpress-extension .button-primary:hover,.loginpress-extension .button-primary:focus{
-				background: #36bcf2;
-				box-shadow: none;
-				outline: none;
-			}
-			.notice_msg{
-				box-shadow: rgba(0, 0, 0, 0.1) 0px 1px 1px 0px;
-				background: rgb(255, 255, 255);
-				border-left: 4px solid #46b450;
-				margin: 5px 0 20px;
-				padding: 15px;
-			}
-			.main_notice_msg{
-				background: #1a61a7;
-				margin: 5px 0 20px;
-				padding: 15px;
-				color: #fff;
-				display: inline-block;
-			}
-			.loginpress-extension button.button-primary{
-				background: #f9fafa;
-				border-radius: 0;
-				box-shadow: none;
-				color: #444;
-				position: absolute;
-				bottom: 15px;
-				left: 50%;
-				transform: translateX(-50%);
+				.loginpress-extension .logoinpress_addons_links{
+					position: relative;
+					background-color: #DEE5F2;
+					text-decoration: none !important;
+					display: inline-block;
+					width: 100%;
+					line-height: 90px;
+					padding-bottom: 0px;
+					height: auto;
+				}
 
-				border: 2px solid #a5dff6 !important;
-				background: #d3f3ff54 !important;
-				cursor: default;
-				transition: background-color .3s;
-			}
-			.loginpress-extension button.button-primary:visited,
-			.loginpress-extension button.button-primary:active,
-			.loginpress-extension button.button-primary:hover,
-			.loginpress-extension button.button-primary:focus{
-				background: #36bcf2;
-				color: #444;
-				border: 0;
-				outline: none;
-				box-shadow: none;
-			}
-			.loginpress_addons_thumbnails{
-				max-width: 100px;
-				position: absolute;
-				top: 5px;
-				left: 10px;
-				max-height: 95px;
-				height: auto;
-				width: auto;
-			}
-			.loginpress-extension .loginpress_addons_links{
-				position: relative;
-				background-color: #d3f3ff;
-			}
-			.loginpress-extension p {
-				margin: 0;
-				padding: 10px 20px;
-			}
-			.loginpress-addons-loading-errors {
-				padding-top: 15px;
-			}
-			.loginpress-addons-loading-errors img {
-				float: left;
-				padding-right: 10px;
-			}
-			a.loginpress_addons_links {
-				display: inline-block;
-				width: 100%;
-				line-height: 90px;
-				padding-bottom: 0px;
-				height: auto;
-				text-decoration: none;
-			}
-			.loginpress_addons_thumbnails {
-				max-width: 100px;
-				position: absolute;
-				top: 5px;
-				left: 10px;
-				max-height: 75px;
-				height: auto;
-				width: auto;
-				position: static;
-				vertical-align: middle;
-				margin-right: 20px;
-			}
-			.loginpress-extension{
-				border-width: 2px;
-			}
-			.wrap.loginpress-addons-wrap{
-				max-width: 1400px;
-				margin: 0 auto;
-			}
-			@media only screen and (min-width: 1680px) {
-				.loginpress-extension{
-					min-height: 315px;
-					width: calc(25% - 30px);
+				@media only screen and (min-width: 1700px) {
+					.loginpress-extension{
+						width: calc(25% - 30px);
+					}
 				}
-				/* .loginpress-extension:nth-child(4n+1){
-					margin-left: 0;
-				} */
-			}
-			@media only screen and (max-width: 1500px) {
-				.loginpress-extension{
-					min-height: 330px
+				@media only screen and (max-width: 1400px) {
+					.loginpress-extension{
+						width: calc(50% - 30px);
+					}
 				}
-			}
-			@media only screen and (max-width: 1024px) {
-				.loginpress-extension{
-					width: calc(50% - 30px);
-				}
-			}
-			@media only screen and (max-width: 600px) {
-				.loginpress-extension:nth-child(n){
-					width:100%;
-					margin-left: 0;
-				}
-			}
-			.loginpress-addon-enable{
-				position: absolute;
-				top: -2px;
-				left: -2px;
-				bottom: -2px;
-				right: -2px;
-				background: rgba(255,255,255, .9);
-				z-index: 100;
-			}
-			.loginpress-logo-container{
-				position: absolute;
-				top: 50%;
-				left: 50%;
-				transform: translate(-50%, -50%);
-				width: 250px;
-				height: 250px;
-				display: flex;
-				flex-direction: column;
-				align-items: center;
-			}
-			.loginpress-logo-container img{
-				width: auto;
-				height: auto;
-				position: absolute;
-				top: 50%;
-				left: 50%;
-				transform: translate(-50%, -50%);
-				max-width: 100px;
-			}
-			.loginpress-addon-enable p{
-				position: absolute;
-				bottom: 0;
-				left: 0;
-				width: 100%;
-				text-align: center;
-				box-sizing: border-box;
-			}
-			.loader-path {
-				stroke-dasharray: 150,200;
-				stroke-dashoffset: -10;
-				-webkit-animation: dash 1.5s ease-in-out infinite, color 6s ease-in-out infinite;
-				animation: dash 1.5s ease-in-out infinite, color 6s ease-in-out infinite;
-				stroke-linecap: round;
-			}
-			@-webkit-keyframes rotate {
-				100% {
-					-webkit-transform: rotate(360deg);
-					transform: rotate(360deg);
-				}
-			}
+				@media only screen and (max-width: 670px) {
+					.loginpress-extension:nth-child(n){
+						width:calc(100% - 15px);
+						margin: 0 0 20px;
+					}
 
-			@keyframes rotate {
-				100% {
-					-webkit-transform: rotate(360deg);
-					transform: rotate(360deg);
+					.addon_cards_wraper{
+						margin: 0;
+					}
 				}
-			}
-			.circular-loader{
-				-webkit-animation: rotate 2s ease-in-out infinite, color 6s ease-in-out infinite;
-				animation: rotate 2s ease-in-out infinite, color 6s ease-in-out infinite;
-				stroke-linecap: round;
-			}
-			@keyframes loader-spin {
-				0% {
-					transform: rotate(0deg);
+				.loginpress-addon-enable{
+					position: absolute;
+					top: -2px;;
+					left: -2px;
+					bottom: -2px;
+					right: -2px;
+					background: #fff;
+					z-index: 100;
 				}
-				100% {
-					transform: rotate(360deg);
+				.loginpress-logo-container{
+					position: absolute;
+					top: 50%;
+					left: 50%;
+					transform: translate(-50%, -50%);
+					width: 250px;
+					height: 250px;
+					display: flex;
+					flex-direction: column;
+					align-items: center;
 				}
-			}
-			@keyframes dash {
-				0% {
-					stroke-dasharray: 1,200;
-					stroke-dashoffset: 0;
+				.loginpress-logo-container img{
+					height: auto;
+					position: absolute;
+					top: 50%;
+					left: 50%;
+					transform: translate(-50%, -50%);
+					width: 100%;
+					max-width: 100px;
 				}
-				50% {
-					stroke-dasharray: 89,200;
-					stroke-dashoffset: -35;
+				.loginpress-addon-enable p{
+					font-weight: 700;
+					position: absolute;
+					bottom: 0;
+					left: 0;
+					width: 100%;
+					text-align: center;
+					box-sizing: border-box;
 				}
-				100% {
-					stroke-dasharray: 89,200;
-					stroke-dashoffset: -124;
+				.loader-path {
+					stroke-dasharray: 150,200;
+					stroke-dashoffset: -10;
+					-webkit-animation: dash 1.5s ease-in-out infinite, color 6s ease-in-out infinite;
+					animation: dash 1.5s ease-in-out infinite, color 6s ease-in-out infinite;
+					stroke-linecap: round;
 				}
-			}
-			.loginpress-install,.loginpress-uninstall,.loginpress-uninstalling, .loginpress-wrong{
-				position: absolute;
-				top: -2px;
-				left: -2px;
-				bottom: -2px;
-				right: -2px;
-				background: rgba(255,255,255, .9);
-				z-index: 100;
-			}
-			.loader-path2{
-				stroke-dasharray: 150,200;
-				stroke-dashoffset: 150px;
-				-webkit-animation: dashtwo 1s ease-in-out 1 forwards;
-				animation: dashtwo 1s ease-in-out 1 forwards;
-			}
-			.checkmark__circle {
-				stroke-width: 2;
-				stroke: #ff0000;
-			}
-			.checkmark_login {
-				width: 150px;
-				height: 150px;
-				border-radius: 50%;
-				display: block;
-				stroke-width: 2;
-				stroke: #fff;
-				stroke-miterlimit: 10;
-				margin: 10% auto;
-				animation: scale .3s ease-in-out .2s both;
-				position: absolute;
-				top: 50%;
-				left: 50%;
-				margin: -75px 0 0 -75px;
-			}
-			.checkmark__check {
-				transform-origin: 50% 50%;
-				stroke-dasharray: 29;
-				stroke-dashoffset: 29;
-				animation: stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.5s forwards;
-			}
-			@keyframes stroke {
-				100% {
-					stroke-dashoffset: 0;
+				@-webkit-keyframes rotate {
+					100% {
+						-webkit-transform: rotate(360deg);
+						transform: rotate(360deg);
+					}
 				}
-			}
-			@keyframes scale {
-				0%, 100% {
-					transform: none;
+
+				@keyframes rotate {
+					100% {
+						-webkit-transform: rotate(360deg);
+						transform: rotate(360deg);
+					}
 				}
-				50% {
-					transform: scale3d(1.1, 1.1, 1);
+				.circular-loader{
+					-webkit-animation: rotate 2s ease-in-out infinite, color 6s ease-in-out infinite;
+					animation: rotate 2s ease-in-out infinite, color 6s ease-in-out infinite;
+					stroke-linecap: round;
 				}
-			}
-			@keyframes fill {
-				100% {
-					box-shadow: inset 0px 0px 0px 30px #7ac142;
+				@keyframes loader-spin {
+					0% {
+						transform: rotate(0deg);
+					}
+					100% {
+						transform: rotate(360deg);
+					}
 				}
-			}
-			@keyframes dashtwo {
-				0% {
+				@keyframes dash {
+					0% {
+						stroke-dasharray: 1,200;
+						stroke-dashoffset: 0;
+					}
+					50% {
+						stroke-dasharray: 89,200;
+						stroke-dashoffset: -35;
+					}
+					100% {
+						stroke-dasharray: 89,200;
+						stroke-dashoffset: -124;
+					}
+				}
+				.loginpress-install,.loginpress-uninstall,.loginpress-uninstalling, .loginpress-wrong{
+					position: absolute;
+					top: -2px;;
+					left: -2px;
+					bottom: -2px;
+					right: -2px;
+					background: rgb(255,255,255);
+					z-index: 100;
+				}
+				.loader-path2{
+					stroke-dasharray: 150,200;
 					stroke-dashoffset: 150px;
+					-webkit-animation: dashtwo 1s ease-in-out 1 forwards;
+					animation: dashtwo 1s ease-in-out 1 forwards;
 				}
-				100% {
-					stroke-dashoffset: 20px;
+				.checkmark__circle {
+					stroke-width: 2;
+					stroke: #ff0000;
 				}
-			}
-			.circular-loader2, .circular-loader3{
-				width: 200px;
-				height: 200px;
-				top: 50%;
-				left: 50%;
-				transform: translate(-50%, -50%) rotate(-90deg);
-				position: absolute;
-			}
-			.loginpress-install.activated p{
-				position: absolute;
-				bottom: 0;
-				left: 0;
-				text-align: center;
-				width: 100%;
-				box-sizing: border-box;
-			}
-			.loginpress-wrong.activated p{
-				position: absolute;
-				bottom: 0;
-				left: 0;
-				text-align: center;
-				width: 100%;
-				box-sizing: border-box;
-				color: #ff0000;
-				font-weight: 700;
-			}
-			.checkmark {
-				/*   display: none; */
-				top: 50%;
-				position: absolute;
-				left: 50%;
-				transform: translate(-50%, -50%);
-				width: 140px;
-				height: 140px;
-			}
-			.checkmark.draw:after {
-				animation-duration: 800ms;
-				animation-delay: 1s;
-				animation-timing-function: ease;
-				animation-name: checkmark;
-				transform: scaleX(-0.9) rotate(135deg);
-				opacity: 0;
-				animation-fill-mode: forwards;
-			}
-			.checkmark:after {
-				height: 4em;
-				width: 2em;
-				transform-origin: left top;
-				border-right: 2px solid #00c853;
-				border-top: 2px solid #00c853;
-				content: '';
-				left: 42px;
-				top: 70px;
-				position: absolute;
-			}
-			.loginpress-uninstall .checkmark:after{
-				border-right: 2px solid #ff0000;
-				border-top: 2px solid #ff0000;
-			}
-			.loginpress-uninstall p, .loginpress-uninstalling p{
-				position: absolute;
-				bottom: 0;
-				left: 0;
-				text-align: center;
-				width: 100%;
-				box-sizing: border-box;
-			}
-			@keyframes checkmark {
-				0% {
-					height: 0;
-					width: 0;
-					opacity: 1;
+				.checkmark_login {
+					width: 150px;
+					height: 150px;
+					border-radius: 50%;
+					display: block;
+					stroke-width: 2;
+					stroke: #fff;
+					stroke-miterlimit: 10;
+					margin: 10% auto;
+					animation: scale .3s ease-in-out .2s both;
+					position: absolute;
+					top: 50%;
+					left: 50%;
+					margin: -75px 0 0 -75px;
 				}
-				20% {
-					height: 0;
-					width: 2em;
-					opacity: 1;
+				.checkmark__check {
+					transform-origin: 50% 50%;
+					stroke-dasharray: 29;
+					stroke-dashoffset: 29;
+					animation: stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.5s forwards;
 				}
-				40% {
+				@keyframes stroke {
+					100% {
+						stroke-dashoffset: 0;
+					}
+				}
+				@keyframes scale {
+					0%, 100% {
+						transform: none;
+					}
+					50% {
+						transform: scale3d(1.1, 1.1, 1);
+					}
+				}
+				@keyframes fill {
+					100% {
+						box-shadow: inset 0px 0px 0px 30px #7ac142;
+					}
+				}
+				@keyframes dashtwo {
+					0% {
+						stroke-dashoffset: 150px;
+					}
+					100% {
+						stroke-dashoffset: 20px;
+					}
+				}
+				.circular-loader2, .circular-loader3{
+					width: 200px;
+					height: 200px;
+					top: 50%;
+					left: 50%;
+					transform: translate(-50%, -50%) rotate(-90deg);
+					position: absolute;
+				}
+				.loginpress-install.activated p{
+					position: absolute;
+					bottom: 0;
+					left: 0;
+					text-align: center;
+					width: 100%;
+					box-sizing: border-box;
+				}
+				.loginpress-wrong.activated p{
+					position: absolute;
+					bottom: 0;
+					left: 0;
+					text-align: center;
+					width: 100%;
+					box-sizing: border-box;
+					color: #ff0000;
+					font-weight: 700;
+				}
+				.checkmark {
+					top: 50%;
+					position: absolute;
+					left: 50%;
+					transform: translate(-50%, -50%);
+					width: 140px;
+					height: 140px;
+				}
+				.checkmark.draw:after {
+					animation-duration: 800ms;
+					animation-delay: 1s;
+					animation-timing-function: ease;
+					animation-name: checkmark;
+					transform: scaleX(-1) rotate(135deg);
+					opacity: 0;
+					animation-fill-mode: forwards;
+				}
+				.checkmark:after {
 					height: 4em;
 					width: 2em;
-					opacity: 1;
+					transform-origin: left top;
+					border-right: 2px solid #00c853;
+					border-top: 2px solid #00c853;
+					content: '';
+					left: 42px;
+					top: 70px;
+					position: absolute;
 				}
-				100% {
-					height: 4em;
-					width: 2em;
-					opacity: 1;
+				.loginpress-uninstall .checkmark:after{
+					border-right: 2px solid #ff0000;
+					border-top: 2px solid #ff0000;
 				}
-			}
-			.loginpress-extension input[type="checkbox"]{
-				display: none;
-			}
-			.loginpress-extension .loginpress-radio-btn{
-				outline: 0;
-				display: block;
-				width: 36px;
-				height: 18px;
-				position: relative;
-				cursor: pointer;
-				-webkit-user-select: none;
-				-moz-user-select: none;
-				-ms-user-select: none;
-				user-select: none;
-			}
-			.loginpress-extension input[type=checkbox].loginpress-radio-ios + .loginpress-radio-btn {
-				background: #fff;
-				border-radius: 2em;
-				padding: 2px;
-				-webkit-transition: all .4s ease;
-				transition: all .4s ease;
-				border: 2px solid #555d66;
-				position: absolute;
-				bottom: 15px;
-				left: 50%;
-				transform: translateX(-50%);
-			}
-			.loginpress-extension input[type=checkbox].loginpress-radio + .loginpress-radio-btn:after{
-				position: relative;
-				display: block;
-				content: "";
-				width: 18px;
-				height: 18px;
-			}
-			.loginpress-extension input[type=checkbox].loginpress-radio-ios + .loginpress-radio-btn:after {
-				border-radius: 2em;
-				background: #fbfbfb;
-				-webkit-transition: left 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), padding 0.3s ease, margin 0.3s ease;
-				transition: left 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), padding 0.3s ease, margin 0.3s ease;
-				border: 2px solid #555d66;
-				box-sizing: border-box;
-				left: 0;
-			}
-			.loginpress-extension input[type=checkbox].loginpress-radio + .loginpress-radio-btn:hover {
-			background-color: #e2e4e7;
-			}
-			.loginpress-extension input[type=checkbox].loginpress-radio-ios + .loginpress-radio-btn:active:after {
-				border-width: 9px;
-			}
-			.loginpress-extension input[type=checkbox].loginpress-radio:checked + .loginpress-radio-btn:after {
-				left: 18px;
-				border-color: #fff;
-				background: #33b3db;
-				border-width: 9px;
-			}
-			.loginpress-extension input[type=checkbox].loginpress-radio:checked + .loginpress-radio-btn{
-				background: #33b3db;
-				border-color: #33b3db;
-			}
-			</style>
+				.loginpress-uninstall p, .loginpress-uninstalling p{
+					position: absolute;
+					bottom: 0;
+					left: 0;
+					text-align: center;
+					width: 100%;
+					box-sizing: border-box;
+				}
+				@keyframes checkmark {
+					0% {
+						height: 0;
+						width: 0;
+						opacity: 1;
+					}
+					20% {
+						height: 0;
+						width: 2em;
+						opacity: 1;
+					}
+					40% {
+						height: 4em;
+						width: 2em;
+						opacity: 1;
+					}
+					100% {
+						height: 4em;
+						width: 2em;
+						opacity: 1;
+					}
+				}
+				.loginpress-extension input[type="checkbox"]{
+					display: none;
+				}
+				.loginpress-extension .loginpress-radio-btn{
+						outline: 0;
+					display: block;
+					width: 36px;
+					height: 18px;
+					position: relative;
+					cursor: pointer;
+					-webkit-user-select: none;
+					-moz-user-select: none;
+					-ms-user-select: none;
+					user-select: none;
+				}
+				.loginpress-extension input[type=checkbox].loginpress-radio-ios + .loginpress-radio-btn {
+					background: #fff;
+					border-radius: 2em;
+					padding: 2px;
+					-webkit-transition: all .4s ease;
+					transition: all .4s ease;
+					border: 2px solid #D2DDF2;
+					position: absolute;
+					bottom: 20px;
+					left: 50%;
+					transform: translateX(-50%);
+				}
+				.loginpress-extension input[type=checkbox].loginpress-radio + .loginpress-radio-btn:after{
+					position: relative;
+					display: block;
+					content: "";
+					width: 18px;
+					height: 18px;
+				}
+				.loginpress-extension input[type=checkbox].loginpress-radio-ios + .loginpress-radio-btn:after {
+					border-radius: 2em;
+					background: #fbfbfb;
+					-webkit-transition: left 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), padding 0.3s ease, margin 0.3s ease;
+					transition: left 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), padding 0.3s ease, margin 0.3s ease;
+					border: 2px solid #D2DDF2;
+					box-sizing: border-box;
+					left: 0;
+				}
+				.loginpress-extension input[type=checkbox].loginpress-radio + .loginpress-radio-btn:hover {
+					background-color: #e2e4e7;
+				}
+				.loginpress-extension input[type=checkbox].loginpress-radio-ios + .loginpress-radio-btn:active:after {
+					border-width: 9px;
+				}
+				.loginpress-extension input[type=checkbox].loginpress-radio:checked + .loginpress-radio-btn:after {
+					left: 18px;
+					border-color: #fff;
+					background: #33b3db;
+					border-width: 9px;
+				}
+				.loginpress-extension input[type=checkbox].loginpress-radio:checked + .loginpress-radio-btn{
+					background: #5C7697;
+					border-color: #5C7697;
+				}
+				</style>
 
 			<div class="wrap loginpress-addons-wrap">
-				<h2 class='opt-title'>
-					<?php esc_html_e( 'Extend the functionality of LoginPress with these awesome Add-ons', 'loginpress' ); ?>
-				</h2>
+				<h2 class='opt-title'><?php esc_html_e( 'Extend the functionality of LoginPress with these awesome Add-ons', 'loginpress' ); ?></h2>
 				<div class="tabwrapper">
 					<?php $this->show_addon_page(); ?>
 				</div>
 			</div>
 			<?php
 		}
-	} // Enf of Class.
+	} // Enf of Class
 
 endif;
