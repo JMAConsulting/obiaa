@@ -88,7 +88,7 @@ function biasync_civicrm_post(string $op, string $objectName, int $objectId, &$o
     if ($objectName === 'UnitBusiness') {
       /* @var CRM_Biaproperty_DAO_UnitBusiness $objectRef */
       $objectRef->find(TRUE);
-      $propertyId = Proprety::get(FALSE)
+      $propertyId = Property::get(FALSE)
         ->addSelect('id')
         ->addJoin('Unit AS unit', 'INNER', ['id', '=', 'unit.property_id'])
         ->addWhere('unit.id', '=', $objectRef->unit_id)
