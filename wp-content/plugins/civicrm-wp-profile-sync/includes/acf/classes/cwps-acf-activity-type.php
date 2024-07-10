@@ -57,9 +57,9 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Type {
 	public function __construct( $parent ) {
 
 		// Store references to objects.
-		$this->plugin = $parent->acf_loader->plugin;
+		$this->plugin     = $parent->acf_loader->plugin;
 		$this->acf_loader = $parent->acf_loader;
-		$this->civicrm = $parent;
+		$this->civicrm    = $parent;
 
 		// Init when the ACF CiviCRM object is loaded.
 		add_action( 'cwps/acf/civicrm/loaded', [ $this, 'initialise' ] );
@@ -114,16 +114,16 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Type {
 
 		// Define params to get Activity Types Option Group.
 		$params = [
-			'version' => 3,
+			'version'    => 3,
 			'sequential' => 1,
-			'name' => 'activity_type',
+			'name'       => 'activity_type',
 		];
 
 		// Call API.
 		$result = civicrm_api( 'OptionGroup', 'get', $params );
 
 		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
 			return $option_group_id;
 		}
 
@@ -170,10 +170,10 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Type {
 
 		// Define params to get queried Activity.
 		$params = [
-			'version' => 3,
+			'version'    => 3,
 			'sequential' => 1,
-			'id' => $activity_type_id,
-			'options' => [
+			'id'         => $activity_type_id,
+			'options'    => [
 				'limit' => 0, // No limit.
 			],
 		];
@@ -182,7 +182,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Type {
 		$result = civicrm_api( 'OptionValue', 'get', $params );
 
 		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
 			return $activity_type;
 		}
 
@@ -224,11 +224,11 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Type {
 
 		// Define params to get queried Activity.
 		$params = [
-			'version' => 3,
-			'sequential' => 1,
-			'value' => $activity_type_value,
+			'version'         => 3,
+			'sequential'      => 1,
+			'value'           => $activity_type_value,
 			'option_group_id' => $this->option_group_id_get(),
-			'options' => [
+			'options'         => [
 				'limit' => 0, // No limit.
 			],
 		];
@@ -237,7 +237,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Type {
 		$result = civicrm_api( 'OptionValue', 'get', $params );
 
 		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
 			return $activity_type;
 		}
 
@@ -273,12 +273,12 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Type {
 
 		// Params to query Activities.
 		$params = [
-			'version' => 3,
+			'version'          => 3,
 			'activity_type_id' => $activity_type_id,
-			'return' => [
+			'return'           => [
 				'id',
 			],
-			'options' => [
+			'options'          => [
 				'limit' => 0,
 			],
 		];
@@ -287,16 +287,17 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Type {
 		$result = civicrm_api( 'Activity', 'get', $params );
 
 		// Add log entry on failure.
-		if ( isset( $result['is_error'] ) && $result['is_error'] == '1' ) {
-			$e = new \Exception();
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
+			$e     = new \Exception();
 			$trace = $e->getTraceAsString();
-			error_log( print_r( [
-				'method' => __METHOD__,
+			$log   = [
+				'method'           => __METHOD__,
 				'activity_type_id' => $activity_type_id,
-				'params' => $params,
-				'result' => $result,
-				'backtrace' => $trace,
-			], true ) );
+				'params'           => $params,
+				'result'           => $result,
+				'backtrace'        => $trace,
+			];
+			$this->plugin->log_error( $log );
 			return false;
 		}
 
@@ -361,10 +362,10 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Type {
 
 		// Define params to get queried Activity Types.
 		$params = [
-			'version' => 3,
+			'version'    => 3,
 			'sequential' => 1,
-			'field' => 'activity_type_id',
-			'options' => [
+			'field'      => 'activity_type_id',
+			'options'    => [
 				'limit' => 0, // No limit.
 			],
 		];
@@ -373,7 +374,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Type {
 		$result = civicrm_api( 'Activity', 'getoptions', $params );
 
 		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
 			return $choices;
 		}
 
@@ -424,11 +425,11 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Type {
 
 		// Define params to get queried Activity Types.
 		$params = [
-			'version' => 3,
-			'sequential' => 1,
+			'version'         => 3,
+			'sequential'      => 1,
 			'option_group_id' => $this->option_group_id_get(),
-			'options' => [
-				'sort' => 'weight',
+			'options'         => [
+				'sort'  => 'weight',
 				'limit' => 0, // No limit.
 			],
 		];
@@ -437,7 +438,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Type {
 		$result = civicrm_api( 'OptionValue', 'get', $params );
 
 		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
 			return $activity_types;
 		}
 
@@ -497,12 +498,12 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Type {
 
 		// Define params to get queried Activity Types.
 		$params = [
-			'version' => 3,
-			'sequential' => 1,
-			'value' => [ 'IN' => $activity_type_ids ],
+			'version'         => 3,
+			'sequential'      => 1,
+			'value'           => [ 'IN' => $activity_type_ids ],
 			'option_group_id' => $this->option_group_id_get(),
-			'options' => [
-				'sort' => 'label',
+			'options'         => [
+				'sort'  => 'label',
 				'limit' => 0, // No limit.
 			],
 		];
@@ -511,7 +512,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Type {
 		$result = civicrm_api( 'OptionValue', 'get', $params );
 
 		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
 			return $activity_types;
 		}
 

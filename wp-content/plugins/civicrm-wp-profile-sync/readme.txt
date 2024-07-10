@@ -1,15 +1,15 @@
 === CiviCRM Profile Sync ===
 Contributors: needle, cuny-academic-commons, kcristiano, tadpolecc
 Donate link: https://www.paypal.me/interactivist
-Tags: civicrm, user, buddypress, acf, profile, xprofile, sync
+Tags: civicrm, buddypress, acf, profile, sync
 Requires at least: 4.9
-Tested up to: 6.3
+Tested up to: 6.5
 Requires PHP: 7.1
-Stable tag: 0.6.5
+Stable tag: 0.6.8
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Keeps a WordPress User profile in sync with a CiviCRM Contact and integrates WordPress and CiviCRM Entities with data synced via Advanced Custom Fields.
+Keeps a WordPress User profile in sync with a CiviCRM Contact and integrates WordPress and CiviCRM Entities when using Advanced Custom Fields.
 
 
 
@@ -85,6 +85,21 @@ I'll say it again: test early, test often and - above all - test on a developmen
 
 
 == Changelog ==
+
+= 0.6.8 =
+
+* Fixes Custom Field sync from CiviCRM to ACF
+* Improves PHP8.1+ compatibility
+
+= 0.6.7 =
+
+* Improves caching for Form Actions
+* Improves performance in CiviCRM admin
+
+= 0.6.6 =
+
+* Implements a "Use cache" setting for Form Actions
+* Adds placeholder setting to fields
 
 = 0.6.5 =
 

@@ -68,22 +68,22 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Address {
 	 * @var array
 	 */
 	public $address_fields = [
-		'is_primary' => 'true_false',
-		'is_billing' => 'true_false',
-		'address_name' => 'text',
-		'street_address' => 'text',
+		'is_primary'             => 'true_false',
+		'is_billing'             => 'true_false',
+		'address_name'           => 'text',
+		'street_address'         => 'text',
 		'supplemental_address_1' => 'text',
 		'supplemental_address_2' => 'text',
 		'supplemental_address_3' => 'text',
-		'city' => 'text',
-		'county_id' => 'select',
-		'state_province_id' => 'select',
-		'country_id' => 'select',
-		'postal_code' => 'text',
-		//'postal_code_suffix' => 'text',
-		'geo_code_1' => 'text',
-		'geo_code_2' => 'text',
-		'name' => 'text',
+		'city'                   => 'text',
+		'county_id'              => 'select',
+		'state_province_id'      => 'select',
+		'country_id'             => 'select',
+		'postal_code'            => 'text',
+		// 'postal_code_suffix' => 'text',
+		'geo_code_1'             => 'text',
+		'geo_code_2'             => 'text',
+		'name'                   => 'text',
 	];
 
 	/**
@@ -97,9 +97,9 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Address {
 	 * @var array
 	 */
 	public $bypass_fields_to_remove = [
-		'county_id' => 'select',
+		'county_id'         => 'select',
 		'state_province_id' => 'select',
-		'country_id' => 'select',
+		'country_id'        => 'select',
 	];
 
 	/**
@@ -112,9 +112,9 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Address {
 	public function __construct( $parent ) {
 
 		// Store references to objects.
-		$this->plugin = $parent->acf_loader->plugin;
+		$this->plugin     = $parent->acf_loader->plugin;
 		$this->acf_loader = $parent->acf_loader;
-		$this->civicrm = $parent;
+		$this->civicrm    = $parent;
 
 		// Init when the ACF CiviCRM object is loaded.
 		add_action( 'cwps/acf/civicrm/loaded', [ $this, 'initialise' ] );
@@ -191,16 +191,14 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Address {
 		$result = civicrm_api( 'Address', 'getfields', $params );
 
 		// Override return if we get some.
-		if ( $result['is_error'] == 0 && ! empty( $result['values'] ) ) {
+		if ( empty( $result['is_error'] ) && ! empty( $result['values'] ) ) {
 
-			// Check for no filter.
-			if ( $filter == 'none' ) {
+			if ( 'none' === $filter ) {
 
-				// Grab all of them.
+				// Grab all Fields.
 				$fields = $result['values'];
 
-			// Check public filter.
-			} elseif ( $filter == 'public' ) {
+			} elseif ( 'public' === $filter ) {
 
 				// Get the CiviCRM Address Options.
 				$address_options = $this->plugin->civicrm->address->settings_get();
@@ -286,7 +284,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Address {
 		}
 
 		// Get the public Fields on the Entity for this Field Type.
-		$public_fields = $this->civicrm_fields_get( 'public' );
+		$public_fields     = $this->civicrm_fields_get( 'public' );
 		$fields_for_entity = [];
 		foreach ( $public_fields as $key => $value ) {
 			if ( $field['type'] == $this->address_fields[ $value['name'] ] ) {
@@ -373,7 +371,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Address {
 
 		// Get the mapped Address Field name if present.
 		$address_field_name = $this->address_field_name_get( $field );
-		if ( $address_field_name === false ) {
+		if ( false === $address_field_name ) {
 			return $field;
 		}
 
@@ -397,22 +395,22 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Address {
 	 *
 	 * @since 0.5
 	 *
-	 * @param bool $valid The existing valid status.
-	 * @param mixed $value The value of the Field.
-	 * @param array $field The Field data array.
+	 * @param bool   $valid The existing valid status.
+	 * @param mixed  $value The value of the Field.
+	 * @param array  $field The Field data array.
 	 * @param string $input The input element's name attribute.
 	 * @return string|bool $valid A string to display a custom error message, boolean otherwise.
 	 */
 	public function value_validate( $valid, $value, $field, $input ) {
 
 		// Bail if it's not required and is empty.
-		if ( $field['required'] == '0' && empty( $value ) ) {
+		if ( 0 === (int) $field['required'] && empty( $value ) ) {
 			return $valid;
 		}
 
 		// Get the mapped Address Field name if present.
 		$address_field_name = $this->address_field_name_get( $field );
-		if ( $address_field_name === false ) {
+		if ( false === $address_field_name ) {
 			return $valid;
 		}
 

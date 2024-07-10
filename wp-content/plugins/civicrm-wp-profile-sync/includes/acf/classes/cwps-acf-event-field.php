@@ -57,25 +57,25 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Field {
 	 * @var array
 	 */
 	public $event_fields = [
-		'event_type_id' => 'select',
-		'default_role_id' => 'select',
+		'event_type_id'          => 'select',
+		'default_role_id'        => 'select',
 		'participant_listing_id' => 'select',
-		'campaign_id' => 'select',
-		'id' => 'number',
-		'title' => 'text',
-		'summary' => 'textarea',
-		'description' => 'wysiwyg',
-		'created_date' => 'date_time_picker',
-		'start_date' => 'date_time_picker',
-		'end_date' => 'date_time_picker',
-		'is_map' => 'true_false',
-		'is_public' => 'true_false',
-		'is_active' => 'true_false',
-		'is_share' => 'true_false',
-		'max_participants' => 'number',
-		'event_full_text' => 'textarea',
-		'has_waitlist' => 'true_false',
-		'waitlist_text' => 'textarea',
+		'campaign_id'            => 'select',
+		'id'                     => 'number',
+		'title'                  => 'text',
+		'summary'                => 'textarea',
+		'description'            => 'wysiwyg',
+		'created_date'           => 'date_time_picker',
+		'start_date'             => 'date_time_picker',
+		'end_date'               => 'date_time_picker',
+		'is_map'                 => 'true_false',
+		'is_public'              => 'true_false',
+		'is_active'              => 'true_false',
+		'is_share'               => 'true_false',
+		'max_participants'       => 'number',
+		'event_full_text'        => 'textarea',
+		'has_waitlist'           => 'true_false',
+		'waitlist_text'          => 'textarea',
 	];
 
 	/**
@@ -86,10 +86,10 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Field {
 	 * @var array
 	 */
 	public $settings_fields = [
-		'event_type_id' => 'select',
-		'default_role_id' => 'select',
+		'event_type_id'          => 'select',
+		'default_role_id'        => 'select',
 		'participant_listing_id' => 'select',
-		'campaign_id' => 'select',
+		'campaign_id'            => 'select',
 	];
 
 	/**
@@ -103,25 +103,25 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Field {
 	 */
 	public $fee_fields = [
 		// phpcs:disable WordPress.Arrays.ArrayIndentation.ItemNotAligned
-		'is_monetary' => 'true_false',
-		'currency' => 'select',
-		//'payment_processor' => 'select',
+		'is_monetary'             => 'true_false',
+		'currency'                => 'select',
+		// 'payment_processor' => 'select',
 			// Pay Later.
-			'is_pay_later' => 'true_false',
-			'pay_later_text' => 'textarea',
-			'pay_later_receipt' => 'wysiwyg',
+			'is_pay_later'        => 'true_false',
+			'pay_later_text'      => 'textarea',
+			'pay_later_receipt'   => 'wysiwyg',
 			'is_billing_required' => 'true_false',
-		'fee_label' => 'text',
-		//'financial_type_id' => 'select',
-		//'price_set_id' => 'select',
+		'fee_label'               => 'text',
+		// 'financial_type_id' => 'select',
+		// 'price_set_id' => 'select',
 		// Internal "pseudo" Price Set.
-		//'default_fee_id' => 'select',
-		//'default_discount_fee_id' => 'select',
+		// 'default_fee_id' => 'select',
+		// 'default_discount_fee_id' => 'select',
 			// Partial Payment - CiviCRM admin only.
-			//'is_partial_payment' => 'true_false',
-			//'initial_amount_label' => 'text',
-			//'initial_amount_help_text' => 'textarea',
-			//'min_initial_amount' => 'number',
+			// 'is_partial_payment' => 'true_false',
+			// 'initial_amount_label' => 'text',
+			// 'initial_amount_help_text' => 'textarea',
+			// 'min_initial_amount' => 'number',
 		// phpcs:enable WordPress.Arrays.ArrayIndentation.ItemNotAligned
 	];
 
@@ -138,12 +138,12 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Field {
 		// phpcs:disable Squiz.Commenting.InlineComment.InvalidEndChar
 
 		// Template.
-		//'is_template' => 'true_false',
-		//'template_title' => 'text',
+		// 'is_template' => 'true_false',
+		// 'template_title' => 'text',
 
 		// Repeating Event.
-		//'parent_event_id' => 'select',
-		//'slot_label_id' => 'select',
+		// 'parent_event_id' => 'select',
+		// 'slot_label_id' => 'select',
 
 		// phpcs:enable Squiz.Commenting.InlineComment.InvalidEndChar
 	];
@@ -158,9 +158,9 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Field {
 	public function __construct( $parent ) {
 
 		// Store references to objects.
-		$this->plugin = $parent->acf_loader->plugin;
+		$this->plugin     = $parent->acf_loader->plugin;
 		$this->acf_loader = $parent->acf_loader;
-		$this->civicrm = $parent;
+		$this->civicrm    = $parent;
 
 		// Init when the ACF CiviCRM object is loaded.
 		add_action( 'cwps/acf/civicrm/loaded', [ $this, 'initialise' ] );
@@ -188,7 +188,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Field {
 
 		// Some Event "Text" Fields need their own validation.
 		// phpcs:ignore Squiz.Commenting.InlineComment.InvalidEndChar
-		//add_filter( 'acf/validate_value/type=text', [ $this, 'value_validate' ], 10, 4 );
+		// add_filter( 'acf/validate_value/type=text', [ $this, 'value_validate' ], 10, 4 );
 
 		// Listen for queries from our ACF Field class.
 		add_filter( 'cwps/acf/field_group/field/pre_update', [ $this, 'select_settings_modify' ], 20, 2 );
@@ -236,22 +236,22 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Field {
 	 *
 	 * @since 0.5.4
 	 *
-	 * @param bool $valid The existing valid status.
-	 * @param mixed $value The value of the Field.
-	 * @param array $field The Field data array.
+	 * @param bool   $valid The existing valid status.
+	 * @param mixed  $value The value of the Field.
+	 * @param array  $field The Field data array.
 	 * @param string $input The input element's name attribute.
 	 * @return string|bool $valid A string to display a custom error message, boolean otherwise.
 	 */
 	public function value_validate( $valid, $value, $field, $input ) {
 
 		// Bail if it's not required and is empty.
-		if ( $field['required'] == '0' && empty( $value ) ) {
+		if ( 0 === (int) $field['required'] && empty( $value ) ) {
 			return $valid;
 		}
 
 		// Get the mapped Event Field name if present.
 		$event_field_name = $this->civicrm->event->event_field_name_get( $field );
-		if ( $event_field_name === false ) {
+		if ( false === $event_field_name ) {
 			return $valid;
 		}
 
@@ -279,9 +279,9 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Field {
 	 *
 	 * @since 0.5.4
 	 *
-	 * @param mixed $value The Event Field value.
-	 * @param array $name The Event Field name.
-	 * @param string $selector The ACF Field selector.
+	 * @param mixed          $value The Event Field value.
+	 * @param array          $name The Event Field name.
+	 * @param string         $selector The ACF Field selector.
 	 * @param integer|string $post_id The ACF "Post ID".
 	 * @return mixed $value The formatted Field value.
 	 */
@@ -293,7 +293,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Field {
 		}
 
 		// Bail if value is (string) 'null' which CiviCRM uses for some reason.
-		if ( $value == 'null' ) {
+		if ( 'null' === $value ) {
 			return '';
 		}
 
@@ -306,43 +306,39 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Field {
 			// Unused at present.
 			case 'select':
 			case 'checkbox':
-
 				// Convert if the value has the special CiviCRM array-like format.
 				if ( is_string( $value ) && false !== strpos( $value, CRM_Core_DAO::VALUE_SEPARATOR ) ) {
 					$value = CRM_Utils_Array::explodePadded( $value );
 				}
-
 				break;
 
 			// Used by "Birth Date" and "Deceased Date".
 			case 'date_picker':
 			case 'date_time_picker':
-
 				// Get Field setting.
 				$acf_setting = get_field_object( $selector, $post_id );
 
-				// Date Picker test.
-				if ( $acf_setting['type'] == 'date_picker' ) {
+				// Test for Date Picker or Date & Time Picker.
+				if ( 'date_picker' === $acf_setting['type'] ) {
 
 					// Event edit passes a Y-m-d format, so test for that.
 					$datetime = DateTime::createFromFormat( 'Y-m-d', $value );
 
 					// Event create passes a different format, so test for that.
-					if ( $datetime === false ) {
+					if ( false === $datetime ) {
 						$datetime = DateTime::createFromFormat( 'YmdHis', $value );
 					}
 
 					// Convert to ACF format.
 					$value = $datetime->format( 'Ymd' );
 
-				// Date & Time Picker test.
-				} elseif ( $acf_setting['type'] == 'date_time_picker' ) {
+				} elseif ( 'date_time_picker' === $acf_setting['type'] ) {
 
 					// Event edit passes a YmdHis format, so test for that.
 					$datetime = DateTime::createFromFormat( 'YmdHis', $value );
 
 					// Event API passes a different format, so test for that.
-					if ( $datetime === false ) {
+					if ( false === $datetime ) {
 						$datetime = DateTime::createFromFormat( 'Y-m-d H:i:s', $value );
 					}
 
@@ -350,7 +346,6 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Field {
 					$value = $datetime->format( 'Y-m-d H:i:s' );
 
 				}
-
 				break;
 
 		}
@@ -380,12 +375,12 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Field {
 		// We only have a few to account for.
 
 		// Event Type ID.
-		if ( $name == 'event_type_id' ) {
+		if ( 'event_type_id' === $name ) {
 			$options = $this->civicrm->event_type->choices_get();
 		}
 
 		// Participant Role ID.
-		if ( $name == 'default_role_id' ) {
+		if ( 'default_role_id' === $name ) {
 			$option_group = $this->plugin->civicrm->option_group_get( 'participant_role' );
 			if ( ! empty( $option_group ) ) {
 				$options = CRM_Core_OptionGroup::valuesByID( $option_group['id'] );
@@ -393,7 +388,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Field {
 		}
 
 		// Participant Listing ID.
-		if ( $name == 'participant_listing_id' ) {
+		if ( 'participant_listing_id' === $name ) {
 			$option_group = $this->plugin->civicrm->option_group_get( 'participant_listing' );
 			if ( ! empty( $option_group ) ) {
 				$options = CRM_Core_OptionGroup::valuesByID( $option_group['id'] );
@@ -401,7 +396,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Field {
 		}
 
 		// Campaign ID.
-		if ( $name == 'campaign_id' ) {
+		if ( 'campaign_id' === $name ) {
 			$options = $this->civicrm->campaign->choices_get();
 		}
 
@@ -435,7 +430,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Field {
 
 		// Bail if this is not an Event Field Group.
 		$is_event_field_group = $this->civicrm->event->is_event_field_group( $field_group );
-		if ( $is_event_field_group === false ) {
+		if ( false === $is_event_field_group ) {
 			return $event_fields;
 		}
 
@@ -513,10 +508,10 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Field {
 		$fields = $this->data_get_by_action();
 
 		// Check for filter.
-		if ( $filter !== 'none' ) {
+		if ( 'none' !== $filter ) {
 
 			// Check public filter.
-			if ( $filter == 'public' ) {
+			if ( 'public' === $filter ) {
 
 				// Grab the public Event Fields.
 				$public_fields = $this->public_fields_get();
@@ -584,7 +579,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Field {
 		// Construct params.
 		$params = [
 			'version' => 3,
-			'action' => $action,
+			'action'  => $action,
 			'options' => [
 				'limit' => 0, // No limit.
 			],
@@ -594,7 +589,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Field {
 		$result = civicrm_api( 'Event', 'getfields', $params );
 
 		// Don't cache if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
 			return $fields;
 		}
 
@@ -638,10 +633,9 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Field {
 		$fields = $this->data_get_by_action( $action );
 
 		// Check for filter.
-		if ( $filter !== 'none' ) {
+		if ( 'none' !== $filter ) {
 
-			// Check "public" filter.
-			if ( $filter == 'public' ) {
+			if ( 'public' === $filter ) {
 
 				// Grab the public Event Fields.
 				$public_fields = $this->public_fields_get();
@@ -667,8 +661,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Field {
 					}
 				}
 
-			// Check "Settings" filter.
-			} elseif ( $filter == 'settings' ) {
+			} elseif ( 'settings' === $filter ) {
 
 				// Skip all but those defined in our Event Settings Fields array.
 				$filtered = [];
@@ -691,8 +684,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Field {
 					}
 				}
 
-			// Check "Fee" filter.
-			} elseif ( $filter == 'fee' ) {
+			} elseif ( 'fee' === $filter ) {
 
 				// Skip all but those defined in our Event Fields array.
 				$filtered = [];
@@ -715,8 +707,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Field {
 					}
 				}
 
-			// Check "Registration" filter.
-			} elseif ( $filter == 'registration' ) {
+			} elseif ( 'registration' === $filter ) {
 
 				// Skip all but those defined in our Online Registration Fields array.
 				$filtered = [];
@@ -871,7 +862,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Field {
 
 		// Get the mapped Event Field name if present.
 		$event_field_name = $this->civicrm->event->event_field_name_get( $field );
-		if ( $event_field_name === false ) {
+		if ( false === $event_field_name ) {
 			return $field;
 		}
 
@@ -884,14 +875,14 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Field {
 		$field['choices'] = $this->options_get( $event_field_name );
 
 		// Set a default for "Participant Listing".
-		if ( $event_field_name == 'participant_listing_id' ) {
-			$field['choices'] = [ '' => __( 'Disabled', 'civicrm-wp-profile-sync' ) ] + $field['choices'];
+		if ( 'participant_listing_id' === $event_field_name ) {
+			$field['choices']       = [ '' => __( 'Disabled', 'civicrm-wp-profile-sync' ) ] + $field['choices'];
 			$field['default_value'] = '';
 		}
 
 		// Set a default for "Campaign ID".
-		if ( $event_field_name == 'campaign_id' ) {
-			$field['choices'] = [ '' => __( 'None', 'civicrm-wp-profile-sync' ) ] + $field['choices'];
+		if ( 'campaign_id' === $event_field_name ) {
+			$field['choices']       = [ '' => __( 'None', 'civicrm-wp-profile-sync' ) ] + $field['choices'];
 			$field['default_value'] = '';
 		}
 
@@ -924,7 +915,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Field {
 
 		// Get the mapped Event Field name if present.
 		$event_field_name = $this->civicrm->event->event_field_name_get( $field );
-		if ( $event_field_name === false ) {
+		if ( false === $event_field_name ) {
 			return $field;
 		}
 
@@ -966,7 +957,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Field {
 		$date_fields = [ 'created_date', 'start_date', 'end_date' ];
 
 		// If it's one of our Fields.
-		if ( in_array( $name, $date_fields ) ) {
+		if ( in_array( $name, $date_fields, true ) ) {
 
 			// Get the "Event Date Time" preference.
 			$format = CRM_Utils_Date::getDateFormat( 'eventDateTime' );

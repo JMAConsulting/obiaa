@@ -107,8 +107,8 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Activity_Target extends acf_field {
 	 */
 	public $settings = [
 		'version' => CIVICRM_WP_PROFILE_SYNC_VERSION,
-		'url' => CIVICRM_WP_PROFILE_SYNC_URL,
-		'path' => CIVICRM_WP_PROFILE_SYNC_PATH,
+		'url'     => CIVICRM_WP_PROFILE_SYNC_URL,
+		'path'    => CIVICRM_WP_PROFILE_SYNC_PATH,
 	];
 
 	/**
@@ -137,9 +137,9 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Activity_Target extends acf_field {
 	public function __construct( $parent ) {
 
 		// Store references to objects.
-		$this->plugin = $parent->acf_loader->plugin;
+		$this->plugin     = $parent->acf_loader->plugin;
 		$this->acf_loader = $parent->acf_loader;
-		$this->acf = $parent->acf;
+		$this->acf        = $parent->acf;
 
 		// Define label.
 		$this->label = __( 'CiviCRM Activity: Target', 'civicrm-wp-profile-sync' );
@@ -191,6 +191,34 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Activity_Target extends acf_field {
 		// Now add it.
 		acf_render_field_setting( $field, $setting );
 
+		// Only render Placeholder Setting Field here in ACF prior to version 6.
+		if ( version_compare( ACF_MAJOR_VERSION, '6', '>=' ) ) {
+			return;
+		}
+
+		// Get Placeholder Setting Field.
+		$placeholder = $this->acf->field->field_setting_placeholder_get();
+
+		// Now add it.
+		acf_render_field_setting( $field, $placeholder );
+
+	}
+
+	/**
+	 * Renders the Field Fettings used in the "Presentation" tab.
+	 *
+	 * @since 0.6.6
+	 *
+	 * @param array $field The field settings array.
+	 */
+	public function render_field_presentation_settings( $field ) {
+
+		// Get Placeholder Setting Field.
+		$placeholder = $this->acf->field->field_setting_placeholder_get();
+
+		// Now add it.
+		acf_render_field_setting( $field, $placeholder );
+
 	}
 
 	/**
@@ -203,11 +231,11 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Activity_Target extends acf_field {
 	public function render_field( $field ) {
 
 		// Change Field into a select.
-		$field['type'] = 'select';
-		$field['ui'] = 1;
-		$field['ajax'] = 1;
+		$field['type']       = 'select';
+		$field['ui']         = 1;
+		$field['ajax']       = 1;
 		$field['allow_null'] = 1;
-		$field['multiple'] = 1;
+		$field['multiple']   = 1;
 
 		// Init choices array.
 		$field['choices'] = [];
@@ -283,15 +311,15 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Activity_Target extends acf_field {
 		// Init response.
 		$response = [
 			'results' => [],
-			'limit' => $autocomplete_count,
+			'limit'   => $autocomplete_count,
 		];
 
 		// Init defaults.
 		$defaults = [
-			'post_id' => 0,
-			's' => '',
+			'post_id'   => 0,
+			's'         => '',
 			'field_key' => '',
-			'paged' => 1,
+			'paged'     => 1,
 		];
 
 		// Parse the incoming POST array.
@@ -342,15 +370,15 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Activity_Target extends acf_field {
 		$offset = 0;
 		if ( ! empty( $options['paged'] ) ) {
 			$zero_adjusted = (int) $options['paged'] - 1;
-			$offset = $zero_adjusted * (int) $autocomplete_count;
+			$offset        = $zero_adjusted * (int) $autocomplete_count;
 		}
 
 		// Build extra params.
 		$params = [
 			'contact_type' => $args['contact_type'],
-			'return' => $this->plugin->civicrm->get_autocomplete_options( 'contact_autocomplete_options' ),
-			'rowCount' => $autocomplete_count,
-			'offset' => $offset,
+			'return'       => $this->plugin->civicrm->get_autocomplete_options( 'contact_autocomplete_options' ),
+			'rowCount'     => $autocomplete_count,
+			'offset'       => $offset,
 		];
 
 		// Get Contacts.
@@ -373,7 +401,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Activity_Target extends acf_field {
 
 				// Append to results.
 				$results[] = [
-					'id' => $contact['id'],
+					'id'   => $contact['id'],
 					'text' => $name,
 				];
 

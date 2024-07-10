@@ -74,9 +74,9 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Group {
 	public function __construct( $parent ) {
 
 		// Store references to objects.
-		$this->plugin = $parent->acf_loader->plugin;
+		$this->plugin     = $parent->acf_loader->plugin;
 		$this->acf_loader = $parent->acf_loader;
-		$this->civicrm = $parent;
+		$this->civicrm    = $parent;
 
 		// Init when the ACF CiviCRM object is loaded.
 		add_action( 'cwps/acf/civicrm/loaded', [ $this, 'register_hooks' ] );
@@ -109,7 +109,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Group {
 	public function register_mapper_hooks() {
 
 		// Bail if already registered.
-		if ( $this->mapper_hooks === true ) {
+		if ( true === $this->mapper_hooks ) {
 			return;
 		}
 
@@ -138,7 +138,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Group {
 	public function unregister_mapper_hooks() {
 
 		// Bail if already unregistered.
-		if ( $this->mapper_hooks === false ) {
+		if ( false === $this->mapper_hooks ) {
 			return;
 		}
 
@@ -177,7 +177,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Group {
 			foreach ( $current as $group_membership ) {
 
 				// Get params.
-				$group_id = $group_membership['group_id'];
+				$group_id    = $group_membership['group_id'];
 				$contact_ids = [ $args['objectId'] ];
 
 				// Sync this Group Contact to WordPress Terms.
@@ -191,7 +191,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Group {
 			foreach ( $removed as $group_membership ) {
 
 				// Get params.
-				$group_id = $group_membership['group_id'];
+				$group_id    = $group_membership['group_id'];
 				$contact_ids = [ $args['objectId'] ];
 
 				// Sync this Group Contact to WordPress Terms.
@@ -274,13 +274,13 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Group {
 
 		// Params to get queried Groups.
 		$params = [
-			'version' => 3,
+			'version'    => 3,
 			'sequential' => 1,
-			'is_hidden' => 0,
-			'is_active' => 1,
-			'id' => [ 'IN' => $group_ids ],
-			'options' => [
-				'sort' => 'title',
+			'is_hidden'  => 0,
+			'is_active'  => 1,
+			'id'         => [ 'IN' => $group_ids ],
+			'options'    => [
+				'sort'  => 'title',
 				'limit' => 0,
 			],
 		];
@@ -289,15 +289,16 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Group {
 		$result = civicrm_api( 'Group', 'get', $params );
 
 		// Add log entry on failure.
-		if ( isset( $result['is_error'] ) && $result['is_error'] == '1' ) {
-			$e = new \Exception();
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
+			$e     = new \Exception();
 			$trace = $e->getTraceAsString();
-			error_log( print_r( [
-				'method' => __METHOD__,
-				'params' => $params,
-				'result' => $result,
+			$log   = [
+				'method'    => __METHOD__,
+				'params'    => $params,
+				'result'    => $result,
 				'backtrace' => $trace,
-			], true ) );
+			];
+			$this->plugin->log_error( $log );
 			return [];
 		}
 
@@ -325,15 +326,15 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Group {
 
 		// Params to get all Groups (except Smart Groups).
 		$params = [
-			'version' => 3,
-			'sequential' => 1,
-			'is_hidden' => 0,
-			'is_active' => 1,
+			'version'         => 3,
+			'sequential'      => 1,
+			'is_hidden'       => 0,
+			'is_active'       => 1,
 			'saved_search_id' => [ // Exclude Smart Groups.
 				'IS NULL' => 1,
 			],
-			'options' => [
-				'sort' => 'name',
+			'options'         => [
+				'sort'  => 'name',
 				'limit' => 0,
 			],
 		];
@@ -342,15 +343,16 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Group {
 		$result = civicrm_api( 'Group', 'get', $params );
 
 		// Add log entry on failure.
-		if ( isset( $result['is_error'] ) && $result['is_error'] == '1' ) {
-			$e = new \Exception();
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
+			$e     = new \Exception();
 			$trace = $e->getTraceAsString();
-			error_log( print_r( [
-				'method' => __METHOD__,
-				'params' => $params,
-				'result' => $result,
+			$log   = [
+				'method'    => __METHOD__,
+				'params'    => $params,
+				'result'    => $result,
 				'backtrace' => $trace,
-			], true ) );
+			];
+			$this->plugin->log_error( $log );
 			return [];
 		}
 
@@ -387,13 +389,13 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Group {
 
 		// Params to query Group membership.
 		$params = [
-			'version' => 3,
+			'version'    => 3,
 			'contact_id' => $contact_id,
-			'status' => 'Added',
+			'status'     => 'Added',
 			'sequential' => 1,
-			'is_hidden' => 0,
-			'is_active' => 1,
-			'options' => [
+			'is_hidden'  => 0,
+			'is_active'  => 1,
+			'options'    => [
 				'limit' => 0,
 			],
 		];
@@ -444,32 +446,34 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Group {
 
 		// Query via cache method.
 		// phpcs:ignore Squiz.Commenting.InlineComment.InvalidEndChar
-		//$cache = CRM_Contact_BAO_GroupContactCache::contactGroup( $contact_id );
+		// $cache = CRM_Contact_BAO_GroupContactCache::contactGroup( $contact_id );
 
 		/*
 		$e = new \Exception();
 		$trace = $e->getTraceAsString();
-		error_log( print_r( [
+		$log = [
 			'method' => __METHOD__,
 			'params' => $params,
 			'result' => $result,
 			//'smart' => $smart,
 			//'cache' => $cache,
 			//'backtrace' => $trace,
-		], true ) );
+		];
+		$this->plugin->log_error( $log );
 		*/
 
 		// Add log entry on failure.
-		if ( isset( $result['is_error'] ) && $result['is_error'] == '1' ) {
-			$e = new \Exception();
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
+			$e     = new \Exception();
 			$trace = $e->getTraceAsString();
-			error_log( print_r( [
-				'method' => __METHOD__,
+			$log   = [
+				'method'     => __METHOD__,
 				'contact_id' => $contact_id,
-				'params' => $params,
-				'result' => $result,
-				'backtrace' => $trace,
-			], true ) );
+				'params'     => $params,
+				'result'     => $result,
+				'backtrace'  => $trace,
+			];
+			$this->plugin->log_error( $log );
 			return $group_data;
 		}
 
@@ -511,13 +515,13 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Group {
 
 		// Params to query Group membership.
 		$params = [
-			'version' => 3,
+			'version'    => 3,
 			'contact_id' => $contact_id,
-			'status' => 'Removed',
+			'status'     => 'Removed',
 			'sequential' => 1,
-			//'is_hidden' => 0,
-			'is_active' => 1,
-			'options' => [
+			// 'is_hidden' => 0,
+			'is_active'  => 1,
+			'options'    => [
 				'limit' => 0,
 			],
 		];
@@ -526,16 +530,17 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Group {
 		$result = civicrm_api( 'GroupContact', 'get', $params );
 
 		// Add log entry on failure.
-		if ( isset( $result['is_error'] ) && $result['is_error'] == '1' ) {
-			$e = new \Exception();
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
+			$e     = new \Exception();
 			$trace = $e->getTraceAsString();
-			error_log( print_r( [
-				'method' => __METHOD__,
+			$log   = [
+				'method'     => __METHOD__,
 				'contact_id' => $contact_id,
-				'params' => $params,
-				'result' => $result,
-				'backtrace' => $trace,
-			], true ) );
+				'params'     => $params,
+				'result'     => $result,
+				'backtrace'  => $trace,
+			];
+			$this->plugin->log_error( $log );
 			return $group_data;
 		}
 
@@ -571,9 +576,9 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Group {
 
 		// Params to query Group membership.
 		$params = [
-			'version' => 3,
+			'version'  => 3,
 			'group_id' => $group_id,
-			'options' => [
+			'options'  => [
 				'limit' => 0,
 			],
 		];
@@ -582,16 +587,17 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Group {
 		$result = civicrm_api( 'GroupContact', 'get', $params );
 
 		// Add log entry on failure.
-		if ( isset( $result['is_error'] ) && $result['is_error'] == '1' ) {
-			$e = new \Exception();
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
+			$e     = new \Exception();
 			$trace = $e->getTraceAsString();
-			error_log( print_r( [
-				'method' => __METHOD__,
-				'group_id' => $group_id,
-				'params' => $params,
-				'result' => $result,
+			$log   = [
+				'method'    => __METHOD__,
+				'group_id'  => $group_id,
+				'params'    => $params,
+				'result'    => $result,
 				'backtrace' => $trace,
-			], true ) );
+			];
+			$this->plugin->log_error( $log );
 			return false;
 		}
 
@@ -606,7 +612,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Group {
 	 * @since 0.4
 	 *
 	 * @param integer $group_id The ID of the CiviCRM Group.
-	 * @param array $contact_id The numeric ID of a CiviCRM Contact.
+	 * @param array   $contact_id The numeric ID of a CiviCRM Contact.
 	 * @return bool $is_member True if the Contact is in the Group, or false otherwise.
 	 */
 	public function group_contact_exists( $group_id, $contact_id ) {
@@ -618,8 +624,8 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Group {
 
 		// Params to query Group membership.
 		$params = [
-			'version' => 3,
-			'group_id' => $group_id,
+			'version'    => 3,
+			'group_id'   => $group_id,
 			'contact_id' => $contact_id,
 		];
 
@@ -627,17 +633,18 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Group {
 		$result = civicrm_api( 'GroupContact', 'get', $params );
 
 		// Add log entry on failure.
-		if ( isset( $result['is_error'] ) && $result['is_error'] == '1' ) {
-			$e = new \Exception();
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
+			$e     = new \Exception();
 			$trace = $e->getTraceAsString();
-			error_log( print_r( [
-				'method' => __METHOD__,
-				'group_id' => $group_id,
+			$log   = [
+				'method'     => __METHOD__,
+				'group_id'   => $group_id,
 				'contact_id' => $contact_id,
-				'params' => $params,
-				'result' => $result,
-				'backtrace' => $trace,
-			], true ) );
+				'params'     => $params,
+				'result'     => $result,
+				'backtrace'  => $trace,
+			];
+			$this->plugin->log_error( $log );
 			return false;
 		}
 
@@ -652,7 +659,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Group {
 	 * @since 0.4
 	 *
 	 * @param integer $group_id The ID of the CiviCRM Group.
-	 * @param array $contact_id The numeric ID of a CiviCRM Contact.
+	 * @param array   $contact_id The numeric ID of a CiviCRM Contact.
 	 * @return array|bool $result The Group-Contact data, or false on failure.
 	 */
 	public function group_contact_create( $group_id, $contact_id ) {
@@ -664,27 +671,28 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Group {
 
 		// Params to add Group membership.
 		$params = [
-			'version' => 3,
-			'group_id' => $group_id,
+			'version'    => 3,
+			'group_id'   => $group_id,
 			'contact_id' => $contact_id,
-			'status' => 'Added',
+			'status'     => 'Added',
 		];
 
 		// Call API.
 		$result = civicrm_api( 'GroupContact', 'create', $params );
 
 		// Add log entry on failure.
-		if ( isset( $result['is_error'] ) && $result['is_error'] == '1' ) {
-			$e = new \Exception();
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
+			$e     = new \Exception();
 			$trace = $e->getTraceAsString();
-			error_log( print_r( [
-				'method' => __METHOD__,
-				'group_id' => $group_id,
+			$log   = [
+				'method'     => __METHOD__,
+				'group_id'   => $group_id,
 				'contact_id' => $contact_id,
-				'params' => $params,
-				'result' => $result,
-				'backtrace' => $trace,
-			], true ) );
+				'params'     => $params,
+				'result'     => $result,
+				'backtrace'  => $trace,
+			];
+			$this->plugin->log_error( $log );
 			return false;
 		}
 
@@ -699,7 +707,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Group {
 	 * @since 0.4
 	 *
 	 * @param integer $group_id The ID of the CiviCRM Group.
-	 * @param array $contact_id The numeric ID of a CiviCRM Contact.
+	 * @param array   $contact_id The numeric ID of a CiviCRM Contact.
 	 * @return array|bool $result The Group-Contact data, or false on failure.
 	 */
 	public function group_contact_delete( $group_id, $contact_id ) {
@@ -711,27 +719,28 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Group {
 
 		// Params to remove Group membership.
 		$params = [
-			'version' => 3,
-			'group_id' => $group_id,
+			'version'    => 3,
+			'group_id'   => $group_id,
 			'contact_id' => $contact_id,
-			'status' => 'Removed',
+			'status'     => 'Removed',
 		];
 
 		// Call API.
 		$result = civicrm_api( 'GroupContact', 'create', $params );
 
 		// Add log entry on failure.
-		if ( isset( $result['is_error'] ) && $result['is_error'] == '1' ) {
-			$e = new \Exception();
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
+			$e     = new \Exception();
 			$trace = $e->getTraceAsString();
-			error_log( print_r( [
-				'method' => __METHOD__,
-				'group_id' => $group_id,
+			$log   = [
+				'method'     => __METHOD__,
+				'group_id'   => $group_id,
 				'contact_id' => $contact_id,
-				'params' => $params,
-				'result' => $result,
-				'backtrace' => $trace,
-			], true ) );
+				'params'     => $params,
+				'result'     => $result,
+				'backtrace'  => $trace,
+			];
+			$this->plugin->log_error( $log );
 			return false;
 		}
 
@@ -748,7 +757,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Group {
 	 * @since 0.5
 	 *
 	 * @param integer $group_id The ID of the CiviCRM Group.
-	 * @param array $contact_id The numeric ID of a CiviCRM Contact.
+	 * @param array   $contact_id The numeric ID of a CiviCRM Contact.
 	 * @return array|bool $result The Group-Contact data, or false on failure.
 	 */
 	public function group_contact_create_via_opt_in( $group_id, $contact_id ) {
@@ -765,35 +774,36 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Group {
 		$primary_email = $this->civicrm->email->primary_email_get( $contact['id'] );
 
 		// Skip if we can't find it.
-		if ( $primary_email === false ) {
+		if ( false === $primary_email ) {
 			return $result;
 		}
 
 		// Define params to send the Opt In Email.
 		$params = [
-			'version' => 3,
+			'version'    => 3,
 			'sequential' => 1,
-			'group_id' => $group['group_id'],
+			'group_id'   => $group['group_id'],
 			'contact_id' => $contact['id'],
-			'email' => $primary_email['email'],
+			'email'      => $primary_email['email'],
 		];
 
 		// Call the CiviCRM API.
 		$result = civicrm_api( 'MailingEventSubscribe', 'create', $params );
 
 		// Add log entry on failure.
-		if ( isset( $result['is_error'] ) && $result['is_error'] == '1' ) {
-			$e = new \Exception();
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
+			$e     = new \Exception();
 			$trace = $e->getTraceAsString();
-			error_log( print_r( [
-				'method' => __METHOD__,
-				'message' => __( 'Could not send Opt In Email.', 'civicrm-wp-profile-sync' ),
-				'group_id' => $group['group_id'],
+			$log   = [
+				'method'     => __METHOD__,
+				'message'    => __( 'Could not send Opt In Email.', 'civicrm-wp-profile-sync' ),
+				'group_id'   => $group['group_id'],
 				'contact_id' => $contact['id'],
-				'params' => $params,
-				'result' => $result,
-				'backtrace' => $trace,
-			], true ) );
+				'params'     => $params,
+				'result'     => $result,
+				'backtrace'  => $trace,
+			];
+			$this->plugin->log_error( $log );
 			return false;
 		}
 
@@ -826,13 +836,13 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Group {
 
 		// Params to query Group membership.
 		$params = [
-			'version' => 3,
+			'version'  => 3,
 			'group_id' => $group_id,
-			'status' => [
+			'status'   => [
 				'IS NOT NULL' => 1,
 			],
-			'options' => [
-				'limit' => $limit,
+			'options'  => [
+				'limit'  => $limit,
 				'offset' => $offset,
 			],
 		];
@@ -841,18 +851,19 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Group {
 		$result = civicrm_api( 'GroupContact', 'get', $params );
 
 		// Add log entry on failure.
-		if ( isset( $result['is_error'] ) && $result['is_error'] == '1' ) {
-			$e = new \Exception();
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
+			$e     = new \Exception();
 			$trace = $e->getTraceAsString();
-			error_log( print_r( [
-				'method' => __METHOD__,
-				'group_id' => $group_id,
-				'offset' => $offset,
-				'limit' => $limit,
-				'params' => $params,
-				'result' => $result,
+			$log   = [
+				'method'    => __METHOD__,
+				'group_id'  => $group_id,
+				'offset'    => $offset,
+				'limit'     => $limit,
+				'params'    => $params,
+				'result'    => $result,
 				'backtrace' => $trace,
-			], true ) );
+			];
+			$this->plugin->log_error( $log );
 			return $result;
 		}
 
@@ -922,7 +933,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Group {
 	 *
 	 * The issue here is that CiviCRM fires 'civicrm_pre' with $op = 'delete' regardless
 	 * of whether the Contact is being removed or deleted. If a Contact is later re-added
-	 * to the Group, then $op != 'create', so we need to intercept $op = 'edit'.
+	 * to the Group, then 'create' !== $op, so we need to intercept $op = 'edit'.
 	 *
 	 * @since 0.4
 	 *

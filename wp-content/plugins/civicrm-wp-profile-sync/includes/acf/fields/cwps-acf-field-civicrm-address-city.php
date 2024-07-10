@@ -116,8 +116,8 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Address_City_Field extends acf_field {
 	 */
 	public $settings = [
 		'version' => CIVICRM_WP_PROFILE_SYNC_VERSION,
-		'url' => CIVICRM_WP_PROFILE_SYNC_URL,
-		'path' => CIVICRM_WP_PROFILE_SYNC_PATH,
+		'url'     => CIVICRM_WP_PROFILE_SYNC_URL,
+		'path'    => CIVICRM_WP_PROFILE_SYNC_PATH,
 	];
 
 	/**
@@ -146,10 +146,10 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Address_City_Field extends acf_field {
 	public function __construct( $parent ) {
 
 		// Store references to objects.
-		$this->plugin = $parent->acf_loader->plugin;
+		$this->plugin     = $parent->acf_loader->plugin;
 		$this->acf_loader = $parent->acf_loader;
-		$this->acf = $parent->acf;
-		$this->civicrm = $this->acf_loader->civicrm;
+		$this->acf        = $parent->acf;
+		$this->civicrm    = $this->acf_loader->civicrm;
 
 		// Define label.
 		$this->label = __( 'CiviCRM Address: City (Read Only)', 'civicrm-wp-profile-sync' );
@@ -193,13 +193,13 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Address_City_Field extends acf_field {
 
 		// Define Primary setting Field.
 		$primary = [
-			'label' => __( 'CiviCRM Primary Address', 'civicrm-wp-profile-sync' ),
-			'name' => 'city_is_primary',
-			'type' => 'true_false',
-			'instructions' => __( 'Sync with the CiviCRM Primary Address.', 'civicrm-wp-profile-sync' ),
-			'ui' => 0,
+			'label'         => __( 'CiviCRM Primary Address', 'civicrm-wp-profile-sync' ),
+			'name'          => 'city_is_primary',
+			'type'          => 'true_false',
+			'instructions'  => __( 'Sync with the CiviCRM Primary Address.', 'civicrm-wp-profile-sync' ),
+			'ui'            => 0,
 			'default_value' => 0,
-			'required' => 0,
+			'required'      => 0,
 		];
 
 		// Now add it.
@@ -207,27 +207,27 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Address_City_Field extends acf_field {
 
 		// Define Location Type setting Field.
 		$type = [
-			'label' => __( 'CiviCRM Location Type', 'civicrm-wp-profile-sync' ),
-			'name' => 'city_location_type_id',
-			'type' => 'select',
-			'instructions' => __( 'Choose the Location Type of the CiviCRM Address that this ACF Field should sync with.', 'civicrm-wp-profile-sync' ),
-			'default_value' => '',
-			'placeholder' => '',
-			'allow_null' => 0,
-			'multiple' => 0,
-			'ui' => 0,
-			'required' => 0,
-			'return_format' => 'value',
+			'label'             => __( 'CiviCRM Location Type', 'civicrm-wp-profile-sync' ),
+			'name'              => 'city_location_type_id',
+			'type'              => 'select',
+			'instructions'      => __( 'Choose the Location Type of the CiviCRM Address that this ACF Field should sync with.', 'civicrm-wp-profile-sync' ),
+			'default_value'     => '',
+			'placeholder'       => '',
+			'allow_null'        => 0,
+			'multiple'          => 0,
+			'ui'                => 0,
+			'required'          => 0,
+			'return_format'     => 'value',
 			'conditional_logic' => [
 				[
 					[
-						'field' => 'city_is_primary',
+						'field'    => 'city_is_primary',
 						'operator' => '==',
-						'value' => 0,
+						'value'    => 0,
 					],
 				],
 			],
-			'choices' => $choices,
+			'choices'           => $choices,
 		];
 
 		// Now add it.
@@ -245,12 +245,12 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Address_City_Field extends acf_field {
 	public function render_field( $field ) {
 
 		// Change Field into a simple text Field.
-		$field['type'] = 'text';
-		$field['readonly'] = 1;
+		$field['type']       = 'text';
+		$field['readonly']   = 1;
 		$field['allow_null'] = 0;
-		$field['prepend'] = '';
-		$field['append'] = '';
-		$field['step'] = '';
+		$field['prepend']    = '';
+		$field['append']     = '';
+		$field['step']       = '';
 
 		// Populate Field.
 		if ( ! empty( $field['value'] ) ) {
@@ -273,9 +273,9 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Address_City_Field extends acf_field {
 	 *
 	 * @since 0.4
 	 *
-	 * @param mixed $value The value found in the database.
+	 * @param mixed          $value The value found in the database.
 	 * @param integer|string $post_id The ACF "Post ID" from which the value was loaded.
-	 * @param array $field The Field array holding all the Field options.
+	 * @param array          $field The Field array holding all the Field options.
 	 * @return mixed $value The modified value.
 	 */
 	public function load_value( $value, $post_id, $field ) {
@@ -295,9 +295,9 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Address_City_Field extends acf_field {
 	 *
 	 * @since 0.4
 	 *
-	 * @param mixed $value The value found in the database.
+	 * @param mixed   $value The value found in the database.
 	 * @param integer $post_id The Post ID from which the value was loaded.
-	 * @param array $field The Field array holding all the Field options.
+	 * @param array   $field The Field array holding all the Field options.
 	 * @return mixed $value The modified value.
 	 */
 	public function update_value( $value, $post_id, $field ) {
@@ -317,9 +317,9 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Address_City_Field extends acf_field {
 	 *
 	 * @since 0.4
 	 *
-	 * @param mixed $value The value found in the database.
+	 * @param mixed   $value The value found in the database.
 	 * @param integer $post_id The Post ID from which the value was loaded.
-	 * @param array $field The Field array holding all the Field options.
+	 * @param array   $field The Field array holding all the Field options.
 	 * @return mixed $value The modified value.
 	 */
 	public function get_city( $value, $post_id, $field ) {
@@ -328,7 +328,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Address_City_Field extends acf_field {
 		$contact_id = $this->acf->field->query_contact_id( $post_id );
 
 		// Overwrite if we get a value.
-		if ( $contact_id !== false ) {
+		if ( false !== $contact_id ) {
 
 			// Get this Contact's Addresses.
 			$addresses = $this->plugin->civicrm->address->addresses_get_by_contact_id( $contact_id );
@@ -336,7 +336,6 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Address_City_Field extends acf_field {
 			// Init City.
 			$city = false;
 
-			// Does this Field sync with the Primary Address?
 			if ( ! empty( $field['city_is_primary'] ) ) {
 
 				// Assign City from the Primary Address.
@@ -347,10 +346,9 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Address_City_Field extends acf_field {
 					}
 				}
 
-			// We need a Location Type.
 			} elseif ( ! empty( $field['city_location_type_id'] ) ) {
 
-				// Assign City from the type of Address.
+				// Assign City from the type of Address Location Type.
 				foreach ( $addresses as $address ) {
 					if ( $address->location_type_id == $field['city_location_type_id'] ) {
 						$city = $address->city;
@@ -361,7 +359,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Address_City_Field extends acf_field {
 			}
 
 			// Overwrite if we get a value.
-			if ( $city !== false ) {
+			if ( false !== $city ) {
 				$value = $city;
 			}
 

@@ -48,7 +48,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Phone {
 	public function __construct( $parent ) {
 
 		// Store references to objects.
-		$this->plugin = $parent->plugin;
+		$this->plugin  = $parent->plugin;
 		$this->civicrm = $parent;
 
 		// Init when the CiviCRM object is loaded.
@@ -110,14 +110,14 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Phone {
 		// Construct API query.
 		$params = [
 			'version' => 3,
-			'id' => $phone_id,
+			'id'      => $phone_id,
 		];
 
 		// Get Phone Record details via API.
 		$result = civicrm_api( 'Phone', 'get', $params );
 
 		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
 			return $phone;
 		}
 
@@ -156,17 +156,17 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Phone {
 
 		// Construct API query.
 		$params = [
-			'version' => 3,
-			'contact_id' => $contact_id,
+			'version'          => 3,
+			'contact_id'       => $contact_id,
 			'location_type_id' => $location_type_id,
-			'phone_type_id' => $phone_type_id,
+			'phone_type_id'    => $phone_type_id,
 		];
 
 		// Get Phone Record details via API.
 		$result = civicrm_api( 'Phone', 'get', $params );
 
 		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
 			return $phones;
 		}
 
@@ -211,10 +211,10 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Phone {
 
 		// Define params to get queried Phone Records.
 		$params = [
-			'version' => 3,
+			'version'    => 3,
 			'sequential' => 1,
 			'contact_id' => $contact_id,
-			'options' => [
+			'options'    => [
 				'limit' => 0, // No limit.
 			],
 		];
@@ -223,7 +223,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Phone {
 		$result = civicrm_api( 'Phone', 'get', $params );
 
 		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
 			return $phone_data;
 		}
 
@@ -252,7 +252,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Phone {
 	 * @since 0.5 Moved to this class.
 	 *
 	 * @param integer $contact_id The numeric ID of the Contact.
-	 * @param string $data The Phone data to update the Contact with.
+	 * @param string  $data The Phone data to update the Contact with.
 	 * @return array|bool $phone The array of Phone Record data, or false on failure.
 	 */
 	public function update( $contact_id, $data ) {
@@ -267,7 +267,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Phone {
 
 		// Define params to create new Phone Record.
 		$params = [
-			'version' => 3,
+			'version'    => 3,
 			'contact_id' => $contact_id,
 		] + $data;
 
@@ -275,15 +275,16 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Phone {
 		$result = civicrm_api( 'Phone', 'create', $params );
 
 		// Log and bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
-			$e = new Exception();
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
+			$e     = new Exception();
 			$trace = $e->getTraceAsString();
-			error_log( print_r( [
-				'method' => __METHOD__,
-				'params' => $params,
-				'result' => $result,
+			$log   = [
+				'method'    => __METHOD__,
+				'params'    => $params,
+				'result'    => $result,
 				'backtrace' => $trace,
-			], true ) );
+			];
+			$this->plugin->log_error( $log );
 			return $phone;
 		}
 
@@ -322,14 +323,14 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Phone {
 		// Define params to delete this Phone Record.
 		$params = [
 			'version' => 3,
-			'id' => $phone_id,
+			'id'      => $phone_id,
 		];
 
 		// Call the API.
 		$result = civicrm_api( 'Phone', 'delete', $params );
 
 		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
 			return $success;
 		}
 
@@ -339,7 +340,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Phone {
 		}
 
 		// The result set should contain only one item.
-		$success = ( $result['values'] == '1' ) ? true : false;
+		$success = ( 1 === (int) $result['values'] ) ? true : false;
 
 		// --<
 		return $success;
@@ -416,15 +417,15 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Phone {
 		// Construct params.
 		$params = [
 			'version' => 3,
-			'name' => $name,
-			'action' => 'get',
+			'name'    => $name,
+			'action'  => 'get',
 		];
 
 		// Call the API.
 		$result = civicrm_api( 'Phone', 'getfield', $params );
 
 		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
 			return $field;
 		}
 

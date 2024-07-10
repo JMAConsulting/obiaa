@@ -57,6 +57,19 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Address_State extends CiviCRM_Profile_Syn
 	public $mapper_hooks = false;
 
 	/**
+	 * An array of Addresses prior to delete.
+	 *
+	 * There are situations where nested updates take place (e.g. via CiviRules)
+	 * so we keep copies of the Addresses in an array and try and match them up
+	 * in the post delete hook.
+	 *
+	 * @since 0.4
+	 * @access private
+	 * @var array
+	 */
+	private $bridging_array = [];
+
+	/**
 	 * Fields which must be handled separately.
 	 *
 	 * @since 0.4
@@ -77,9 +90,9 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Address_State extends CiviCRM_Profile_Syn
 	public function __construct( $parent ) {
 
 		// Store references to objects.
-		$this->plugin = $parent->acf_loader->plugin;
+		$this->plugin     = $parent->acf_loader->plugin;
 		$this->acf_loader = $parent->acf_loader;
-		$this->civicrm = $parent;
+		$this->civicrm    = $parent;
 
 		// Init when the ACF CiviCRM object is loaded.
 		add_action( 'cwps/acf/civicrm/loaded', [ $this, 'initialise' ] );
@@ -127,7 +140,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Address_State extends CiviCRM_Profile_Syn
 	public function register_mapper_hooks() {
 
 		// Bail if already registered.
-		if ( $this->mapper_hooks === true ) {
+		if ( true === $this->mapper_hooks ) {
 			return;
 		}
 
@@ -150,7 +163,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Address_State extends CiviCRM_Profile_Syn
 	public function unregister_mapper_hooks() {
 
 		// Bail if already unregistered.
-		if ( $this->mapper_hooks === false ) {
+		if ( false === $this->mapper_hooks ) {
 			return;
 		}
 
@@ -200,8 +213,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Address_State extends CiviCRM_Profile_Syn
 			// Init State/Province ID.
 			$state_id = false;
 
-			// Does this Field sync with the Primary Address?
-			if ( $address_field === 'primary' ) {
+			if ( 'primary' === $address_field ) {
 
 				// Assign State from the Primary Address.
 				foreach ( $data as $address ) {
@@ -211,12 +223,11 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Address_State extends CiviCRM_Profile_Syn
 					}
 				}
 
-			// Must sync with a Location Type.
 			} elseif ( is_int( $address_field ) ) {
 
-				// Assign State from the type of Address.
+				// Assign State from the Address Location Type.
 				foreach ( $data as $address ) {
-					if ( $address->location_type_id == $address_field ) {
+					if ( $address->location_type_id === $address_field ) {
 						$state_id = (int) $address->state_province_id;
 						break;
 					}
@@ -228,7 +239,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Address_State extends CiviCRM_Profile_Syn
 			$value = '';
 
 			// Overwrite if we get a value.
-			if ( $state_id !== false ) {
+			if ( false !== $state_id ) {
 				$state = $this->plugin->civicrm->address->state_province_get_by_id( $state_id );
 				$value = $state['name'];
 			}
@@ -292,23 +303,19 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Address_State extends CiviCRM_Profile_Syn
 	 */
 	public function address_pre_delete( $args ) {
 
-		// Always clear properties if set previously.
-		if ( isset( $this->address_pre ) ) {
-			unset( $this->address_pre );
-		}
-
 		// We just need the Address ID.
 		$address_id = (int) $args['objectId'];
 
 		// Grab the Address Record data from the database.
 		$address_pre = $this->plugin->civicrm->address->address_get_by_id( $address_id );
 
-		// Maybe cast previous Address Record data as object and stash in a property.
+		// Maybe cast previous Address Record data as object.
 		if ( ! is_object( $address_pre ) ) {
-			$this->address_pre = (object) $address_pre;
-		} else {
-			$this->address_pre = $address_pre;
+			$address_pre = (object) $address_pre;
 		}
+
+		// Stash in property array.
+		$this->bridging_array[ $address_id ] = $address_pre;
 
 	}
 
@@ -324,21 +331,28 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Address_State extends CiviCRM_Profile_Syn
 		// We just need the Address ID.
 		$address_id = (int) $args['objectId'];
 
-		// Sanity check.
-		if ( $address_id != $this->address_pre->id ) {
+		// Populate "Previous Address" if we have it stored.
+		$address_pre = null;
+		if ( ! empty( $this->bridging_array[ $address_id ] ) ) {
+			$address_pre = $this->bridging_array[ $address_id ];
+			unset( $this->bridging_array[ $address_id ] );
+		}
+
+		// Bail if we can't find the previous Address Record or it doesn't match.
+		if ( empty( $address_pre ) || $address_id !== (int) $address_pre->id ) {
 			return;
 		}
 
 		// Bail if this is not a Contact's Address Record.
-		if ( empty( $this->address_pre->contact_id ) ) {
+		if ( empty( $address_pre->contact_id ) ) {
 			return;
 		}
 
 		// Process the Address Record.
-		$this->address_process( $this->address_pre, $args );
+		$this->address_process( $address_pre, $args );
 
 		// If this address is a "Master Address" then it will return "Shared Addresses".
-		$addresses_shared = $this->plugin->civicrm->address->addresses_shared_get_by_id( $this->address_pre->id );
+		$addresses_shared = $this->plugin->civicrm->address->addresses_shared_get_by_id( $address_pre->id );
 
 		// Bail if there are none.
 		if ( empty( $addresses_shared ) ) {
@@ -358,7 +372,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Address_State extends CiviCRM_Profile_Syn
 	 * @since 0.4
 	 *
 	 * @param object $address The CiviCRM Address Record object.
-	 * @param array $args The array of CiviCRM params.
+	 * @param array  $args The array of CiviCRM params.
 	 */
 	public function address_process( $address, $args ) {
 
@@ -370,7 +384,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Address_State extends CiviCRM_Profile_Syn
 
 		// Test if any of this Contact's Contact Types is mapped to a Post Type.
 		$post_types = $this->civicrm->contact->is_mapped( $contact, 'create' );
-		if ( $post_types !== false ) {
+		if ( false !== $post_types ) {
 
 			// Handle each Post Type in turn.
 			foreach ( $post_types as $post_type ) {
@@ -379,12 +393,12 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Address_State extends CiviCRM_Profile_Syn
 				$post_id = $this->civicrm->contact->is_mapped_to_post( $contact, $post_type );
 
 				// Skip if not mapped or Post doesn't yet exist.
-				if ( $post_id === false ) {
+				if ( false === $post_id ) {
 					continue;
 				}
 
 				// Exclude "reverse" edits when a Post is the originator.
-				if ( $entity['entity'] === 'post' && $post_id == $entity['id'] ) {
+				if ( 'post' === $entity['entity'] && $post_id == $entity['id'] ) {
 					continue;
 				}
 
@@ -414,8 +428,8 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Address_State extends CiviCRM_Profile_Syn
 	 * @since 0.4
 	 *
 	 * @param integer|string $post_id The ACF "Post ID".
-	 * @param object $address The CiviCRM Address Record object.
-	 * @param array $args The array of CiviCRM params.
+	 * @param object         $address The CiviCRM Address Record object.
+	 * @param array          $args The array of CiviCRM params.
 	 */
 	public function fields_update( $post_id, $address, $args ) {
 
@@ -434,20 +448,18 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Address_State extends CiviCRM_Profile_Syn
 			$state_id = false;
 
 			// Process Address if not deleting it.
-			if ( $args['op'] !== 'delete' ) {
+			if ( 'delete' !== $args['op'] ) {
 
-				// Does this Field sync with the Primary Address?
-				if ( $address_field === 'primary' ) {
+				if ( 'primary' === $address_field ) {
 
 					// Assign State from the Primary Address.
 					if ( ! empty( $address->is_primary ) ) {
 						$state_id = (int) $address->state_province_id;
 					}
 
-				// Must sync with a Location Type.
 				} elseif ( is_int( $address_field ) ) {
 
-					// Assign State from the type of Address.
+					// Assign State from the Address Location Type.
 					if ( $address->location_type_id == $address_field ) {
 						$state_id = (int) $address->state_province_id;
 					}
@@ -460,7 +472,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Address_State extends CiviCRM_Profile_Syn
 			$value = '';
 
 			// Overwrite if we get a value.
-			if ( $state_id !== false ) {
+			if ( false !== $state_id ) {
 				$state = $this->plugin->civicrm->address->state_province_get_by_id( $state_id );
 				$value = $state['name'];
 			}
@@ -479,16 +491,16 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Address_State extends CiviCRM_Profile_Syn
 	 *
 	 * @since 0.4
 	 *
-	 * @param array $acf_fields The existing ACF Fields array.
-	 * @param array $field The ACF Field.
+	 * @param array   $acf_fields The existing ACF Fields array.
+	 * @param array   $field The ACF Field.
 	 * @param integer $post_id The numeric ID of the WordPress Post.
 	 * @return array $acf_fields The modified ACF Fields array.
 	 */
 	public function acf_fields_get_for_post( $acf_fields, $field, $post_id ) {
 
 		// Add if it has a reference to a State Field.
-		if ( ! empty( $field['type'] ) && $field['type'] == 'civicrm_address_state' ) {
-			if ( $field['state_is_primary'] === 1 ) {
+		if ( ! empty( $field['type'] ) && 'civicrm_address_state' === $field['type'] ) {
+			if ( 1 === $field['state_is_primary'] ) {
 				$acf_fields['state'][ $field['name'] ] = 'primary';
 			} else {
 				$acf_fields['state'][ $field['name'] ] = $field['state_location_type_id'];

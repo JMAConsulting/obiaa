@@ -116,8 +116,8 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Instant_Messenger extends acf_field {
 	 */
 	public $settings = [
 		'version' => CIVICRM_WP_PROFILE_SYNC_VERSION,
-		'url' => CIVICRM_WP_PROFILE_SYNC_URL,
-		'path' => CIVICRM_WP_PROFILE_SYNC_PATH,
+		'url'     => CIVICRM_WP_PROFILE_SYNC_URL,
+		'path'    => CIVICRM_WP_PROFILE_SYNC_PATH,
 	];
 
 	/**
@@ -146,10 +146,10 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Instant_Messenger extends acf_field {
 	public function __construct( $parent ) {
 
 		// Store references to objects.
-		$this->plugin = $parent->acf_loader->plugin;
+		$this->plugin     = $parent->acf_loader->plugin;
 		$this->acf_loader = $parent->acf_loader;
-		$this->acf = $parent;
-		$this->civicrm = $this->acf_loader->civicrm;
+		$this->acf        = $parent->acf;
+		$this->civicrm    = $this->acf_loader->civicrm;
 
 		// Define label.
 		$this->label = __( 'CiviCRM Instant Messenger: Complete', 'civicrm-wp-profile-sync' );
@@ -182,14 +182,14 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Instant_Messenger extends acf_field {
 
 		// Define setting Field.
 		$setting = [
-			'label' => __( 'CiviCRM Instant Messenger ID', 'civicrm-wp-profile-sync' ),
-			'name' => 'show_im_id',
-			'type' => 'true_false',
-			'ui' => 1,
-			'ui_on_text' => __( 'Show', 'civicrm-wp-profile-sync' ),
-			'ui_off_text' => __( 'Hide', 'civicrm-wp-profile-sync' ),
+			'label'         => __( 'CiviCRM Instant Messenger ID', 'civicrm-wp-profile-sync' ),
+			'name'          => 'show_im_id',
+			'type'          => 'true_false',
+			'ui'            => 1,
+			'ui_on_text'    => __( 'Show', 'civicrm-wp-profile-sync' ),
+			'ui_off_text'   => __( 'Hide', 'civicrm-wp-profile-sync' ),
 			'default_value' => 0,
-			'required' => 0,
+			'required'      => 0,
 		];
 
 		// Now add it.
@@ -287,9 +287,9 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Instant_Messenger extends acf_field {
 	 *
 	 * @since 0.4
 	 *
-	 * @param mixed $value The value found in the database.
+	 * @param mixed   $value The value found in the database.
 	 * @param integer $post_id The Post ID from which the value was loaded.
-	 * @param array $field The Field array holding all the Field options.
+	 * @param array   $field The Field array holding all the Field options.
 	 * @return mixed $value The modified value.
 	 */
 	public function load_value( $value, $post_id, $field ) {
@@ -314,9 +314,9 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Instant_Messenger extends acf_field {
 	 *
 	 * @since 0.4
 	 *
-	 * @param mixed $value The value found in the database.
+	 * @param mixed   $value The value found in the database.
 	 * @param integer $post_id The Post ID from which the value was loaded.
-	 * @param array $field The Field array holding all the Field options.
+	 * @param array   $field The Field array holding all the Field options.
 	 * @return mixed $value The modified value.
 	 */
 	public function update_value( $value, $post_id, $field ) {
@@ -340,16 +340,16 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Instant_Messenger extends acf_field {
 	 *
 	 * @since 0.4
 	 *
-	 * @param bool $valid The validation status based on the value and the Field's required setting.
-	 * @param mixed $value The $_POST value.
-	 * @param array $field The Field array holding all the Field options.
+	 * @param bool   $valid The validation status based on the value and the Field's required setting.
+	 * @param mixed  $value The $_POST value.
+	 * @param array  $field The Field array holding all the Field options.
 	 * @param string $input The corresponding input name for $_POST value.
 	 * @return string|bool $valid False if not valid, or string for error message.
 	 */
 	public function validate_value( $valid, $value, $field, $input ) {
 
 		// Bail if it's not required and is empty.
-		if ( $field['required'] == '0' && empty( $value ) ) {
+		if ( 0 === (int) $field['required'] && empty( $value ) ) {
 			return $valid;
 		}
 
@@ -357,12 +357,15 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Instant_Messenger extends acf_field {
 		$primary_values = wp_list_pluck( $value, 'field_im_primary' );
 
 		// Sanitise array contents.
-		array_walk( $primary_values, function( &$item ) {
-			$item = (int) trim( $item );
-		} );
+		array_walk(
+			$primary_values,
+			function( &$item ) {
+				$item = (int) trim( $item );
+			}
+		);
 
 		// Check that we have a Primary Number.
-		if ( ! in_array( 1, $primary_values ) ) {
+		if ( ! in_array( 1, $primary_values, true ) ) {
 			$valid = __( 'Please select a Primary Instant Messenger', 'civicrm-wp-profile-sync' );
 			return $valid;
 		}
@@ -371,12 +374,15 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Instant_Messenger extends acf_field {
 		$ims = wp_list_pluck( $value, 'field_im_name' );
 
 		// Sanitise array contents.
-		array_walk( $ims, function( &$item ) {
-			$item = (string) trim( $item );
-		} );
+		array_walk(
+			$ims,
+			function( &$item ) {
+				$item = (string) trim( $item );
+			}
+		);
 
 		// Check that all "Name" Fields are populated.
-		if ( in_array( '', $ims ) ) {
+		if ( in_array( '', $ims, true ) ) {
 			$valid = __( 'Please enter an Instant Messenger', 'civicrm-wp-profile-sync' );
 			return $valid;
 		}
@@ -458,35 +464,35 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Instant_Messenger extends acf_field {
 		$field['min'] = 0;
 
 		// Set sensible defaults.
-		$field['layout'] = 'table';
+		$field['layout']       = 'table';
 		$field['button_label'] = __( 'Add Instant Messenger', 'civicrm-wp-profile-sync' );
-		$field['collapsed'] = '';
-		$field['prefix'] = '';
+		$field['collapsed']    = '';
+		$field['prefix']       = '';
 
 		// Set wrapper class.
 		$field['wrapper']['class'] = 'civicrm_im';
 
 		// Define Instant Messenger "Name" subfield.
 		$number = [
-			'key' => 'field_im_name',
-			'label' => __( 'Instant Messenger', 'civicrm-wp-profile-sync' ),
-			'name' => 'im_name',
-			'type' => 'text',
-			'parent' => $field['key'],
-			'instructions' => '',
-			'required' => 0,
+			'key'               => 'field_im_name',
+			'label'             => __( 'Instant Messenger', 'civicrm-wp-profile-sync' ),
+			'name'              => 'im_name',
+			'type'              => 'text',
+			'parent'            => $field['key'],
+			'instructions'      => '',
+			'required'          => 0,
 			'conditional_logic' => 0,
-			'wrapper' => [
+			'wrapper'           => [
 				'width' => '30',
 				'class' => 'civicrm_im_name',
-				'id' => '',
+				'id'    => '',
 			],
-			'default_value' => '',
-			'placeholder' => '',
-			'prepend' => '',
-			'append' => '',
-			'maxlength' => '',
-			'prefix' => '',
+			'default_value'     => '',
+			'placeholder'       => '',
+			'prepend'           => '',
+			'append'            => '',
+			'maxlength'         => '',
+			'prefix'            => '',
 		];
 
 		// Instant Messenger Locations are standard Location Types.
@@ -500,107 +506,107 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Instant_Messenger extends acf_field {
 
 		// Define Location Field.
 		$location = [
-			'key' => 'field_im_location',
-			'label' => __( 'Location', 'civicrm-wp-profile-sync' ),
-			'name' => 'location',
-			'type' => 'select',
-			'parent' => $field['key'],
-			'instructions' => '',
-			'required' => 0,
+			'key'               => 'field_im_location',
+			'label'             => __( 'Location', 'civicrm-wp-profile-sync' ),
+			'name'              => 'location',
+			'type'              => 'select',
+			'parent'            => $field['key'],
+			'instructions'      => '',
+			'required'          => 0,
 			'conditional_logic' => 0,
-			'wrapper' => [
+			'wrapper'           => [
 				'width' => '25',
 				'class' => '',
-				'id' => '',
+				'id'    => '',
 			],
-			'choices' => $locations,
-			'default_value' => false,
-			'allow_null' => 0,
-			'multiple' => 0,
-			'ui' => 0,
-			'return_format' => 'value',
-			'ajax' => 0,
-			'placeholder' => '',
-			'prefix' => '',
+			'choices'           => $locations,
+			'default_value'     => false,
+			'allow_null'        => 0,
+			'multiple'          => 0,
+			'ui'                => 0,
+			'return_format'     => 'value',
+			'ajax'              => 0,
+			'placeholder'       => '',
+			'prefix'            => '',
 		];
 
 		// Define Provider Field.
 		$provider = [
-			'key' => 'field_im_provider',
-			'label' => __( 'Provider', 'civicrm-wp-profile-sync' ),
-			'name' => 'provider',
-			'type' => 'select',
-			'parent' => $field['key'],
-			'instructions' => '',
-			'required' => 0,
+			'key'               => 'field_im_provider',
+			'label'             => __( 'Provider', 'civicrm-wp-profile-sync' ),
+			'name'              => 'provider',
+			'type'              => 'select',
+			'parent'            => $field['key'],
+			'instructions'      => '',
+			'required'          => 0,
 			'conditional_logic' => 0,
-			'wrapper' => [
+			'wrapper'           => [
 				'width' => '25',
 				'class' => '',
-				'id' => '',
+				'id'    => '',
 			],
-			'choices' => $this->civicrm->im->im_providers_get(),
-			'default_value' => false,
-			'allow_null' => 0,
-			'multiple' => 0,
-			'ui' => 0,
-			'return_format' => 'value',
-			'ajax' => 0,
-			'placeholder' => '',
-			'prefix' => '',
+			'choices'           => $this->civicrm->im->im_providers_get(),
+			'default_value'     => false,
+			'allow_null'        => 0,
+			'multiple'          => 0,
+			'ui'                => 0,
+			'return_format'     => 'value',
+			'ajax'              => 0,
+			'placeholder'       => '',
+			'prefix'            => '',
 		];
 
 		// Define Is Primary Field.
 		$primary = [
-			'key' => 'field_im_primary',
-			'label' => __( 'Is Primary', 'civicrm-wp-profile-sync' ),
-			'name' => 'is_primary',
-			'type' => 'radio',
-			'parent' => $field['key'],
-			'instructions' => '',
-			'required' => 0,
+			'key'               => 'field_im_primary',
+			'label'             => __( 'Is Primary', 'civicrm-wp-profile-sync' ),
+			'name'              => 'is_primary',
+			'type'              => 'radio',
+			'parent'            => $field['key'],
+			'instructions'      => '',
+			'required'          => 0,
 			'conditional_logic' => 0,
-			'wrapper' => [
+			'wrapper'           => [
 				'width' => '10',
 				'class' => 'civicrm_im_primary',
-				'id' => '',
+				'id'    => '',
 			],
-			'choices' => [
+			'choices'           => [
 				1 => __( 'Primary', 'civicrm-wp-profile-sync' ),
 			],
-			'allow_null' => 1,
-			'other_choice' => 0,
-			'default_value' => '',
-			'layout' => 'vertical',
-			'return_format' => 'value',
+			'allow_null'        => 1,
+			'other_choice'      => 0,
+			'default_value'     => '',
+			'layout'            => 'vertical',
+			'return_format'     => 'value',
 			'save_other_choice' => 0,
-			'prefix' => '',
+			'prefix'            => '',
 		];
 
 		// Define hidden CiviCRM Instant Messenger ID Field.
 		$im_id = [
-			'readonly' => true,
-			'key' => 'field_im_id',
-			'label' => __( 'CiviCRM ID', 'civicrm-wp-profile-sync' ),
-			'name' => 'civicrm_im_id',
-			'type' => 'number',
-			'parent' => $field['key'],
-			'instructions' => '',
-			'required' => 0,
+			'readonly'          => true,
+			'key'               => 'field_im_id',
+			'label'             => __( 'CiviCRM ID', 'civicrm-wp-profile-sync' ),
+			'name'              => 'civicrm_im_id',
+			'type'              => 'number',
+			'parent'            => $field['key'],
+			'instructions'      => '',
+			'required'          => 0,
 			'conditional_logic' => 0,
-			'wrapper' => [
+			'wrapper'           => [
 				'width' => '10',
 				'class' => 'civicrm_im_id',
-				'id' => '',
+				'id'    => '',
 			],
-			'default_value' => '',
-			'placeholder' => '',
-			'prepend' => '',
-			'append' => '',
-			'min' => '',
-			'max' => '',
-			'step' => '',
-			'prefix' => '',
+			'default_value'     => '',
+			'placeholder'       => '',
+			'prepend'           => '',
+			'append'            => '',
+			'min'               => '',
+			'max'               => '',
+			'step'              => '',
+			'prefix'            => '',
 		];
 
 		// Add Subfields.

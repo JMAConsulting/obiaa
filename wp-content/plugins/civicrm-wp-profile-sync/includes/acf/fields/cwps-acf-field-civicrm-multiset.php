@@ -116,8 +116,8 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Multiple_Record_Set extends acf_field 
 	 */
 	public $settings = [
 		'version' => CIVICRM_WP_PROFILE_SYNC_VERSION,
-		'url' => CIVICRM_WP_PROFILE_SYNC_URL,
-		'path' => CIVICRM_WP_PROFILE_SYNC_PATH,
+		'url'     => CIVICRM_WP_PROFILE_SYNC_URL,
+		'path'    => CIVICRM_WP_PROFILE_SYNC_PATH,
 	];
 
 	/**
@@ -146,10 +146,10 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Multiple_Record_Set extends acf_field 
 	public function __construct( $parent ) {
 
 		// Store references to objects.
-		$this->plugin = $parent->acf_loader->plugin;
+		$this->plugin     = $parent->acf_loader->plugin;
 		$this->acf_loader = $parent->acf_loader;
-		$this->acf = $parent;
-		$this->civicrm = $this->acf_loader->civicrm;
+		$this->acf        = $parent->acf;
+		$this->civicrm    = $this->acf_loader->civicrm;
 
 		// Define label.
 		$this->label = __( 'CiviCRM Multiple Record Set', 'civicrm-wp-profile-sync' );
@@ -276,9 +276,9 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Multiple_Record_Set extends acf_field 
 	 *
 	 * @since 0.4
 	 *
-	 * @param mixed $value The value found in the database.
+	 * @param mixed   $value The value found in the database.
 	 * @param integer $post_id The Post ID from which the value was loaded.
-	 * @param array $field The Field array holding all the Field options.
+	 * @param array   $field The Field array holding all the Field options.
 	 * @return mixed $value The modified value.
 	 */
 	public function load_value( $value, $post_id, $field ) {
@@ -350,16 +350,16 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Multiple_Record_Set extends acf_field 
 	 *
 	 * @since 0.4
 	 *
-	 * @param bool $valid The validation status based on the value and the Field's required setting.
-	 * @param mixed $value The $_POST value.
-	 * @param array $field The Field array holding all the Field options.
+	 * @param bool   $valid The validation status based on the value and the Field's required setting.
+	 * @param mixed  $value The $_POST value.
+	 * @param array  $field The Field array holding all the Field options.
 	 * @param string $input The corresponding input name for $_POST value.
 	 * @return string|bool $valid False if not valid, or string for error message.
 	 */
 	public function validate_value( $valid, $value, $field, $input ) {
 
 		// Bail if it's not required and is empty.
-		if ( $field['required'] == '0' && empty( $value ) ) {
+		if ( 0 === (int) $field['required'] && empty( $value ) ) {
 			return $valid;
 		}
 
@@ -474,8 +474,8 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Multiple_Record_Set extends acf_field 
 
 		// Set sensible defaults.
 		$field['button_label'] = __( 'Add Record Set', 'civicrm-wp-profile-sync' );
-		$field['collapsed'] = '';
-		$field['prefix'] = '';
+		$field['collapsed']    = '';
+		$field['prefix']       = '';
 
 		// Set wrapper class.
 		$field['wrapper']['class'] = 'civicrm_multiset';

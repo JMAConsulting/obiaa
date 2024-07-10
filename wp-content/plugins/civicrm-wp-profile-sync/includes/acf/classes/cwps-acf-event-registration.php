@@ -57,19 +57,19 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Registration {
 	 * @var array
 	 */
 	public $settings_fields = [
-		'is_online_registration' => 'true_false',
-		'registration_link_text' => 'text',
-		'registration_start_date' => 'date_time_picker',
-		'registration_end_date' => 'date_time_picker',
-		'is_multiple_registrations' => 'true_false',
-		'max_additional_participants' => 'select',
+		'is_online_registration'        => 'true_false',
+		'registration_link_text'        => 'text',
+		'registration_start_date'       => 'date_time_picker',
+		'registration_end_date'         => 'date_time_picker',
+		'is_multiple_registrations'     => 'true_false',
+		'max_additional_participants'   => 'select',
 		'allow_same_participant_emails' => 'true_false',
-		'dedupe_rule_group_id' => 'select',
-		'requires_approval' => 'true_false', // Possibly disabled.
-		'approval_req_text' => 'textarea', // Possibly disabled.
-		'expiration_time' => 'number',
-		'allow_selfcancelxfer' => 'true_false',
-		'selfcancelxfer_time' => 'number',
+		'dedupe_rule_group_id'          => 'select',
+		'requires_approval'             => 'true_false', // Possibly disabled.
+		'approval_req_text'             => 'textarea', // Possibly disabled.
+		'expiration_time'               => 'number',
+		'allow_selfcancelxfer'          => 'true_false',
+		'selfcancelxfer_time'           => 'number',
 	];
 
 	/**
@@ -82,7 +82,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Registration {
 	 * @var array
 	 */
 	public $registration_screen_fields = [
-		'intro_text' => 'wysiwyg',
+		'intro_text'  => 'wysiwyg',
 		'footer_text' => 'wysiwyg',
 	];
 
@@ -98,10 +98,10 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Registration {
 	 * @var array
 	 */
 	public $registration_screen_profiles = [
-		'custom_pre_id' => 'select',
+		'custom_pre_id'  => 'select',
 		'custom_post_id' => 'select',
-		//'additional_profile_pre_id' => 'select',
-		//'additional_profile_post_id' => 'select',
+		// 'additional_profile_pre_id' => 'select',
+		// 'additional_profile_post_id' => 'select',
 	];
 
 	/**
@@ -114,9 +114,9 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Registration {
 	 * @var array
 	 */
 	public $confirm_screen_fields = [
-		'is_confirm_enabled' => 'true_false',
-		'confirm_title' => 'text',
-		'confirm_text' => 'wysiwyg',
+		'is_confirm_enabled'  => 'true_false',
+		'confirm_title'       => 'text',
+		'confirm_text'        => 'wysiwyg',
 		'confirm_footer_text' => 'wysiwyg',
 	];
 
@@ -130,8 +130,8 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Registration {
 	 * @var array
 	 */
 	public $thankyou_screen_fields = [
-		'thankyou_title' => 'text',
-		'thankyou_text' => 'wysiwyg',
+		'thankyou_title'       => 'text',
+		'thankyou_text'        => 'wysiwyg',
 		'thankyou_footer_text' => 'wysiwyg',
 	];
 
@@ -145,12 +145,12 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Registration {
 	 * @var array
 	 */
 	public $confirmation_email_fields = [
-		'is_email_confirm' => 'true_false',
+		'is_email_confirm'   => 'true_false',
 		'confirm_email_text' => 'textarea',
-		'confirm_from_name' => 'text',
+		'confirm_from_name'  => 'text',
 		'confirm_from_email' => 'email',
-		'cc_confirm' => 'email',
-		'bcc_confirm' => 'email',
+		'cc_confirm'         => 'email',
+		'bcc_confirm'        => 'email',
 	];
 
 	/**
@@ -163,9 +163,9 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Registration {
 	public function __construct( $parent ) {
 
 		// Store references to objects.
-		$this->plugin = $parent->acf_loader->plugin;
+		$this->plugin     = $parent->acf_loader->plugin;
 		$this->acf_loader = $parent->acf_loader;
-		$this->civicrm = $parent;
+		$this->civicrm    = $parent;
 
 		// Init when the ACF CiviCRM object is loaded.
 		add_action( 'cwps/acf/civicrm/loaded', [ $this, 'initialise' ] );
@@ -193,7 +193,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Registration {
 
 		// Some "Text" Fields need their own validation.
 		// phpcs:ignore Squiz.Commenting.InlineComment.InvalidEndChar
-		//add_filter( 'acf/validate_value/type=text', [ $this, 'value_validate' ], 10, 4 );
+		// add_filter( 'acf/validate_value/type=text', [ $this, 'value_validate' ], 10, 4 );
 
 		// Listen for queries from our ACF Field class.
 		add_filter( 'cwps/acf/field_group/field/pre_update', [ $this, 'select_settings_modify' ], 20, 2 );
@@ -217,7 +217,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Registration {
 		}
 
 		// Build array of all Fields.
-		$done = $this->settings_fields_get();
+		$done  = $this->settings_fields_get();
 		$done += $this->registration_screen_fields;
 		$done += $this->registration_screen_profiles;
 		$done += $this->confirm_screen_fields;
@@ -254,9 +254,9 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Registration {
 
 		// Needs Participant Statuses 8, 9 and 11 to be enabled.
 		if (
-			in_array( 'Awaiting approval', $participant_statuses ) &&
-			in_array( 'Pending from approval', $participant_statuses ) &&
-			in_array( 'Rejected', $participant_statuses )
+			in_array( 'Awaiting approval', $participant_statuses, true ) &&
+			in_array( 'Pending from approval', $participant_statuses, true ) &&
+			in_array( 'Rejected', $participant_statuses, true )
 		) {
 
 			// Build array of all Fields.
@@ -285,22 +285,22 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Registration {
 	 *
 	 * @since 0.5.4
 	 *
-	 * @param bool $valid The existing valid status.
-	 * @param mixed $value The value of the Field.
-	 * @param array $field The Field data array.
+	 * @param bool   $valid The existing valid status.
+	 * @param mixed  $value The value of the Field.
+	 * @param array  $field The Field data array.
 	 * @param string $input The input element's name attribute.
 	 * @return string|bool $valid A string to display a custom error message, boolean otherwise.
 	 */
 	public function value_validate( $valid, $value, $field, $input ) {
 
 		// Bail if it's not required and is empty.
-		if ( $field['required'] == '0' && empty( $value ) ) {
+		if ( 0 === (int) $field['required'] && empty( $value ) ) {
 			return $valid;
 		}
 
 		// Get the mapped Field name if present.
 		$event_field_name = $this->civicrm->event->event_field_name_get( $field );
-		if ( $event_field_name === false ) {
+		if ( false === $event_field_name ) {
 			return $valid;
 		}
 
@@ -328,9 +328,9 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Registration {
 	 *
 	 * @since 0.5.4
 	 *
-	 * @param mixed $value The Field value.
-	 * @param array $name The Field name.
-	 * @param string $selector The ACF Field selector.
+	 * @param mixed          $value The Field value.
+	 * @param array          $name The Field name.
+	 * @param string         $selector The ACF Field selector.
 	 * @param integer|string $post_id The ACF "Post ID".
 	 * @return mixed $value The formatted Field value.
 	 */
@@ -342,7 +342,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Registration {
 		}
 
 		// Bail if value is (string) 'null' which CiviCRM uses for some reason.
-		if ( $value == 'null' ) {
+		if ( 'null' === $value ) {
 			return '';
 		}
 
@@ -355,43 +355,39 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Registration {
 			// Unused at present.
 			case 'select':
 			case 'checkbox':
-
 				// Convert if the value has the special CiviCRM array-like format.
 				if ( is_string( $value ) && false !== strpos( $value, CRM_Core_DAO::VALUE_SEPARATOR ) ) {
 					$value = CRM_Utils_Array::explodePadded( $value );
 				}
-
 				break;
 
 			// Used by "Birth Date" and "Deceased Date".
 			case 'date_picker':
 			case 'date_time_picker':
-
 				// Get Field setting.
 				$acf_setting = get_field_object( $selector, $post_id );
 
-				// Date Picker test.
-				if ( $acf_setting['type'] == 'date_picker' ) {
+				// Test for Date Picker or Date & Time Picker.
+				if ( 'date_picker' === $acf_setting['type'] ) {
 
 					// Event edit passes a Y-m-d format, so test for that.
 					$datetime = DateTime::createFromFormat( 'Y-m-d', $value );
 
 					// Event create passes a different format, so test for that.
-					if ( $datetime === false ) {
+					if ( false === $datetime ) {
 						$datetime = DateTime::createFromFormat( 'YmdHis', $value );
 					}
 
 					// Convert to ACF format.
 					$value = $datetime->format( 'Ymd' );
 
-				// Date & Time Picker test.
-				} elseif ( $acf_setting['type'] == 'date_time_picker' ) {
+				} elseif ( 'date_time_picker' === $acf_setting['type'] ) {
 
 					// Event edit passes a YmdHis format, so test for that.
 					$datetime = DateTime::createFromFormat( 'YmdHis', $value );
 
 					// Event API passes a different format, so test for that.
-					if ( $datetime === false ) {
+					if ( false === $datetime ) {
 						$datetime = DateTime::createFromFormat( 'Y-m-d H:i:s', $value );
 					}
 
@@ -399,7 +395,6 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Registration {
 					$value = $datetime->format( 'Y-m-d H:i:s' );
 
 				}
-
 				break;
 
 		}
@@ -429,12 +424,12 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Registration {
 		// We only have a few to account for.
 
 		// Dedupe Rule.
-		if ( $name == 'dedupe_rule_group_id' ) {
+		if ( 'dedupe_rule_group_id' === $name ) {
 			$options = $this->civicrm->contact->dedupe_rules_get( 'Individual' );
 		}
 
 		// Max Additional Participants.
-		if ( $name == 'max_additional_participants' ) {
+		if ( 'max_additional_participants' === $name ) {
 			$options = [ 1, 2, 3, 4, 5, 6, 7, 8, 9 ];
 		}
 
@@ -473,7 +468,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Registration {
 
 		// Bail if this is not an Event Field Group.
 		$is_event_field_group = $this->civicrm->event->is_event_field_group( $field_group );
-		if ( $is_event_field_group === false ) {
+		if ( false === $is_event_field_group ) {
 			return $event_fields;
 		}
 
@@ -519,15 +514,15 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Registration {
 		// Construct params.
 		$params = [
 			'version' => 3,
-			'name' => $name,
-			'action' => $action,
+			'name'    => $name,
+			'action'  => $action,
 		];
 
 		// Call the API.
 		$result = civicrm_api( 'Event', 'getfield', $params );
 
 		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
 			return $field;
 		}
 
@@ -565,10 +560,9 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Registration {
 		$fields = $this->civicrm->event_field->data_get_by_action();
 
 		// Check for filter.
-		if ( $filter !== 'none' ) {
+		if ( 'none' !== $filter ) {
 
-			// Check public filter.
-			if ( $filter == 'public' ) {
+			if ( 'public' === $filter ) {
 
 				// Get all public Fields.
 				$public_fields = $this->public_fields_get();
@@ -589,8 +583,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Registration {
 					}
 				}
 
-			// Check "settings" filter.
-			} elseif ( $filter == 'settings' ) {
+			} elseif ( 'settings' === $filter ) {
 
 				// Get all settings Fields.
 				$settings_fields = $this->settings_fields_get();
@@ -611,8 +604,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Registration {
 					}
 				}
 
-			// Check "register" filter.
-			} elseif ( $filter == 'register' ) {
+			} elseif ( 'register' === $filter ) {
 
 				// Skip all but those defined in our Registration Screen Fields array.
 				$filtered = [];
@@ -630,8 +622,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Registration {
 					}
 				}
 
-			// Check "confirm" filter.
-			} elseif ( $filter == 'confirm' ) {
+			} elseif ( 'confirm' === $filter ) {
 
 				// Skip all but those defined in our Comfirmation Screen Fields array.
 				$filtered = [];
@@ -649,8 +640,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Registration {
 					}
 				}
 
-			// Check "thankyou" filter.
-			} elseif ( $filter == 'thankyou' ) {
+			} elseif ( 'thankyou' === $filter ) {
 
 				// Skip all but those defined in our Thank You Screen Fields array.
 				$filtered = [];
@@ -668,8 +658,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Registration {
 					}
 				}
 
-			// Check "email" filter.
-			} elseif ( $filter == 'email' ) {
+			} elseif ( 'email' === $filter ) {
 
 				// Skip all but those defined in our Thank You Screen Fields array.
 				$filtered = [];
@@ -728,10 +717,9 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Registration {
 		$fields = $this->civicrm->event_field->data_get_by_action( $action );
 
 		// Check for filter.
-		if ( $filter !== 'none' ) {
+		if ( 'none' !== $filter ) {
 
-			// Check "public" filter.
-			if ( $filter == 'public' ) {
+			if ( 'public' === $filter ) {
 
 				// Skip all but those defined in our public Fields array.
 				$filtered = [];
@@ -754,8 +742,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Registration {
 					}
 				}
 
-			// Check "settings" filter.
-			} elseif ( $filter == 'settings' ) {
+			} elseif ( 'settings' === $filter ) {
 
 				// Skip all but those defined in our Settings Fields array.
 				$filtered = [];
@@ -778,8 +765,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Registration {
 					}
 				}
 
-			// Check "register" filter.
-			} elseif ( $filter == 'register' ) {
+			} elseif ( 'register' === $filter ) {
 
 				// Skip all but those defined in our Registration Screen Fields array.
 				$filtered = [];
@@ -802,8 +788,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Registration {
 					}
 				}
 
-			// Check "confirm" filter.
-			} elseif ( $filter == 'confirm' ) {
+			} elseif ( 'confirm' === $filter ) {
 
 				// Skip all but those defined in our Confirmation Screen Fields array.
 				$filtered = [];
@@ -826,8 +811,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Registration {
 					}
 				}
 
-			// Check "thankyou" filter.
-			} elseif ( $filter == 'thankyou' ) {
+			} elseif ( 'thankyou' === $filter ) {
 
 				// Skip all but those defined in our Thank You Screen Fields array.
 				$filtered = [];
@@ -850,8 +834,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Registration {
 					}
 				}
 
-			// Check "email" filter.
-			} elseif ( $filter == 'email' ) {
+			} elseif ( 'email' === $filter ) {
 
 				// Skip all but those defined in our Confirmation Email Fields array.
 				$filtered = [];
@@ -1072,7 +1055,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Registration {
 
 		// Get the mapped Field name if present.
 		$event_field_name = $this->civicrm->event->event_field_name_get( $field );
-		if ( $event_field_name === false ) {
+		if ( false === $event_field_name ) {
 			return $field;
 		}
 
@@ -1085,14 +1068,14 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Registration {
 		$field['choices'] = $this->options_get( $event_field_name );
 
 		// Set a default for "Dedupe Rule".
-		if ( $event_field_name == 'dedupe_rule_group_id' ) {
-			$field['choices'] = [ '' => __( 'None', 'civicrm-wp-profile-sync' ) ] + $field['choices'];
+		if ( 'dedupe_rule_group_id' === $event_field_name ) {
+			$field['choices']       = [ '' => __( 'None', 'civicrm-wp-profile-sync' ) ] + $field['choices'];
 			$field['default_value'] = '';
 		}
 
 		// Set a default for "Profile Fields".
 		if ( array_key_exists( $event_field_name, $this->registration_screen_profiles ) ) {
-			$field['choices'] = [ '' => __( 'None', 'civicrm-wp-profile-sync' ) ] + $field['choices'];
+			$field['choices']       = [ '' => __( 'None', 'civicrm-wp-profile-sync' ) ] + $field['choices'];
 			$field['default_value'] = '';
 		}
 
@@ -1125,7 +1108,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Registration {
 
 		// Get the mapped Field name if present.
 		$event_field_name = $this->civicrm->event->event_field_name_get( $field );
-		if ( $event_field_name === false ) {
+		if ( false === $event_field_name ) {
 			return $field;
 		}
 
@@ -1159,7 +1142,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Registration {
 	 *
 	 * @since 0.5.4
 	 *
-	 * @param array $event The array of CiviCRM Event data.
+	 * @param array  $event The array of CiviCRM Event data.
 	 * @param string $position The position of the Profile. Pass "top", "bottom" or "any". Default "any".
 	 * @return array|bool $profile The CiviCRM UFJoin data, or false otherwise.
 	 */
@@ -1175,19 +1158,19 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Registration {
 
 		// Define query params.
 		$params = [
-			'version' => 3,
+			'version'      => 3,
 			'entity_table' => 'civicrm_event',
-			'module' => 'CiviEvent',
-			'entity_id' => $event['id'],
+			'module'       => 'CiviEvent',
+			'entity_id'    => $event['id'],
 		];
 
 		// Maybe restrict to "top".
-		if ( $position === 'top' ) {
+		if ( 'top' === $position ) {
 			$params['weight'] = 1;
 		}
 
 		// Maybe restrict to "bottom".
-		if ( $position === 'bottom' ) {
+		if ( 'bottom' === $position ) {
 			$params['weight'] = 2;
 		}
 
@@ -1195,7 +1178,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Registration {
 		$result = civicrm_api( 'UFJoin', 'get', $params );
 
 		// Return early if we get an error.
-		if ( ! empty( $result['is_error'] ) ) {
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
 			return $profile;
 		}
 
@@ -1217,8 +1200,8 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Registration {
 	 *
 	 * @since 0.5.4
 	 *
-	 * @param array $event The array of CiviCRM Event data.
-	 * @param int $profile_id The numeric ID of the CiviCRM Profile.
+	 * @param array  $event The array of CiviCRM Event data.
+	 * @param int    $profile_id The numeric ID of the CiviCRM Profile.
 	 * @param string $position The position of the Profile. Pass "top" or "bottom". Default "top".
 	 * @return array|bool $profile CiviCRM Profiles array, or false on failure.
 	 */
@@ -1244,18 +1227,18 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Registration {
 
 		// Construct params.
 		$params = [
-			'version' => 3,
-			'module' => 'CiviEvent',
+			'version'      => 3,
+			'module'       => 'CiviEvent',
 			'entity_table' => 'civicrm_event',
-			'entity_id' => $event['id'],
-			'uf_group_id' => $profile_id,
-			'is_active' => 1,
-			'sequential' => 1,
+			'entity_id'    => $event['id'],
+			'uf_group_id'  => $profile_id,
+			'is_active'    => 1,
+			'sequential'   => 1,
 		];
 
 		// Default to "top" but maybe set to "bottom".
 		$params['weight'] = 1;
-		if ( $position !== 'top' ) {
+		if ( 'top' !== $position ) {
 			$params['weight'] = 2;
 		}
 
@@ -1263,16 +1246,17 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Registration {
 		$result = civicrm_api( 'UFJoin', 'create', $params );
 
 		// Log and bail if there's an error.
-		if ( ! empty( $result['is_error'] ) ) {
-			$e = new Exception();
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
+			$e     = new Exception();
 			$trace = $e->getTraceAsString();
-			error_log( print_r( [
-				'method' => __METHOD__,
-				'event' => $event,
-				'result' => $result,
-				'params' => $params,
+			$log   = [
+				'method'    => __METHOD__,
+				'event'     => $event,
+				'result'    => $result,
+				'params'    => $params,
 				'backtrace' => $trace,
-			], true ) );
+			];
+			$this->plugin->log_error( $log );
 			return $profile;
 		}
 
@@ -1321,15 +1305,16 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Registration {
 		$result = civicrm_api( 'UFGroup', 'get', $params );
 
 		// Log and bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
-			$e = new Exception();
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
+			$e     = new Exception();
 			$trace = $e->getTraceAsString();
-			error_log( print_r( [
-				'method' => __METHOD__,
-				'result' => $result,
-				'params' => $params,
+			$log   = [
+				'method'    => __METHOD__,
+				'result'    => $result,
+				'params'    => $params,
 				'backtrace' => $trace,
-			], true ) );
+			];
+			$this->plugin->log_error( $log );
 			return $profiles;
 		}
 

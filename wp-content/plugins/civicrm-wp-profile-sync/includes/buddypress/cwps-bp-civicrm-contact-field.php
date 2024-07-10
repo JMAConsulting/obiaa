@@ -69,21 +69,21 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Contact_Field {
 	 * @var array
 	 */
 	public $contact_fields_common = [
-		'nick_name' => 'textbox',
-		'image_URL' => 'image',
-		'source' => 'textbox',
-		'do_not_email' => 'true_false',
-		'do_not_phone' => 'true_false',
-		'do_not_mail' => 'true_false',
-		'do_not_sms' => 'true_false',
-		'do_not_trade' => 'true_false',
-		'is_opt_out' => 'true_false',
+		'nick_name'                      => 'textbox',
+		'image_URL'                      => 'image',
+		'source'                         => 'textbox',
+		'do_not_email'                   => 'true_false',
+		'do_not_phone'                   => 'true_false',
+		'do_not_mail'                    => 'true_false',
+		'do_not_sms'                     => 'true_false',
+		'do_not_trade'                   => 'true_false',
+		'is_opt_out'                     => 'true_false',
 		'preferred_communication_method' => 'checkbox',
-		'preferred_language' => 'selectbox',
-		'preferred_mail_format' => 'selectbox',
-		'legal_identifier' => 'textbox',
-		'external_identifier' => 'textbox',
-		'communication_style_id' => 'selectbox',
+		'preferred_language'             => 'selectbox',
+		'preferred_mail_format'          => 'selectbox',
+		'legal_identifier'               => 'textbox',
+		'external_identifier'            => 'textbox',
+		'communication_style_id'         => 'selectbox',
 	];
 
 	/**
@@ -96,18 +96,18 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Contact_Field {
 	 * @var array
 	 */
 	public $contact_fields_individual = [
-		'prefix_id' => 'selectbox',
-		'first_name' => 'textbox',
-		'last_name' => 'textbox',
-		'middle_name' => 'textbox',
-		'suffix_id' => 'selectbox',
-		'job_title' => 'textbox',
-		'gender_id' => 'radio',
-		'birth_date' => 'datebox',
-		'is_deceased' => 'true_false',
+		'prefix_id'     => 'selectbox',
+		'first_name'    => 'textbox',
+		'last_name'     => 'textbox',
+		'middle_name'   => 'textbox',
+		'suffix_id'     => 'selectbox',
+		'job_title'     => 'textbox',
+		'gender_id'     => 'radio',
+		'birth_date'    => 'datebox',
+		'is_deceased'   => 'true_false',
 		'deceased_date' => 'datebox',
-		'employer_id' => 'civicrm_contact',
-		'formal_title' => 'textbox',
+		'employer_id'   => 'civicrm_contact',
+		'formal_title'  => 'textbox',
 	];
 
 	/**
@@ -120,9 +120,9 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Contact_Field {
 	 * @var array
 	 */
 	public $contact_fields_organization = [
-		'legal_name' => 'textbox',
+		'legal_name'        => 'textbox',
 		'organization_name' => 'textbox',
-		'sic_code' => 'textbox',
+		'sic_code'          => 'textbox',
 	];
 
 	/**
@@ -159,10 +159,10 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Contact_Field {
 	public function __construct( $xprofile ) {
 
 		// Store references to objects.
-		$this->plugin = $xprofile->bp_loader->plugin;
+		$this->plugin    = $xprofile->bp_loader->plugin;
 		$this->bp_loader = $xprofile->bp_loader;
-		$this->civicrm = $this->plugin->civicrm;
-		$this->xprofile = $xprofile;
+		$this->civicrm   = $this->plugin->civicrm;
+		$this->xprofile  = $xprofile;
 
 		// Init when the BuddyPress Field object is loaded.
 		add_action( 'cwps/buddypress/field/loaded', [ $this, 'initialise' ] );
@@ -196,7 +196,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Contact_Field {
 		add_filter( 'cwps/bp/field/query_options', [ $this, 'true_false_settings_modify' ], 10, 3 );
 		add_filter( 'cwps/bp/field/query_options', [ $this, 'select_settings_modify' ], 10, 3 );
 		// phpcs:ignore Squiz.Commenting.InlineComment.InvalidEndChar
-		//add_filter( 'cwps/bp/field/query_options', [ $this, 'multiselect_settings_modify' ], 10, 3 );
+		// add_filter( 'cwps/bp/field/query_options', [ $this, 'multiselect_settings_modify' ], 10, 3 );
 		add_filter( 'cwps/bp/field/query_options', [ $this, 'radio_settings_modify' ], 10, 3 );
 
 		// Append "True/False" mappings to the "Checkbox" xProfile Field Type.
@@ -234,10 +234,10 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Contact_Field {
 	 *
 	 * @since 0.5
 	 *
-	 * @param array $choices The existing array of choices for the Setting Field.
+	 * @param array  $choices The existing array of choices for the Setting Field.
 	 * @param string $field_type The BuddyPress Field Type.
 	 * @param string $entity_type The CiviCRM Entity Type.
-	 * @param array $entity_type_data The array of Entity Type data.
+	 * @param array  $entity_type_data The array of Entity Type data.
 	 * @return array $choices The modified array of choices for the Setting Field.
 	 */
 	public function query_setting_choices( $choices, $field_type, $entity_type, $entity_type_data ) {
@@ -248,7 +248,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Contact_Field {
 		}
 
 		// Bail if not the "Contact" Entity Type.
-		if ( $entity_type !== 'Contact' ) {
+		if ( 'Contact' !== $entity_type ) {
 			return $choices;
 		}
 
@@ -283,7 +283,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Contact_Field {
 	 * @since 0.5
 	 *
 	 * @param string $field_type The BuddyPress Field Type.
-	 * @param array $contact_type The array of Contact Type data.
+	 * @param array  $contact_type The array of Contact Type data.
 	 * @return array $contact_fields The array of Contact Fields.
 	 */
 	public function get_for_bp_field_type( $field_type, $contact_type ) {
@@ -297,7 +297,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Contact_Field {
 		// Get the "name" of the top-level Contact Type if this is a Sub-type.
 		if ( ! empty( $contact_type['parent_id'] ) ) {
 			$parent_type = $this->civicrm->contact->type_get_by_id( $contact_type['parent_id'] );
-			$name = $parent_type['name'];
+			$name        = $parent_type['name'];
 		}
 
 		// Get public Fields of this type.
@@ -335,7 +335,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Contact_Field {
 		// We only have a few to account for.
 
 		// Individual Prefix.
-		if ( $name == 'prefix_id' ) {
+		if ( 'prefix_id' === $name ) {
 			$option_group = $this->civicrm->option_group_get( 'individual_prefix' );
 			if ( ! empty( $option_group ) ) {
 				$options = CRM_Core_OptionGroup::valuesByID( $option_group['id'] );
@@ -343,7 +343,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Contact_Field {
 		}
 
 		// Individual Suffix.
-		if ( $name == 'suffix_id' ) {
+		if ( 'suffix_id' === $name ) {
 			$option_group = $this->civicrm->option_group_get( 'individual_suffix' );
 			if ( ! empty( $option_group ) ) {
 				$options = CRM_Core_OptionGroup::valuesByID( $option_group['id'] );
@@ -351,7 +351,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Contact_Field {
 		}
 
 		// Gender.
-		if ( $name == 'gender_id' ) {
+		if ( 'gender_id' === $name ) {
 			$option_group = $this->civicrm->option_group_get( 'gender' );
 			if ( ! empty( $option_group ) ) {
 				$options = CRM_Core_OptionGroup::valuesByID( $option_group['id'] );
@@ -359,22 +359,22 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Contact_Field {
 		}
 
 		// Preferred Communication Method.
-		if ( $name == 'preferred_communication_method' ) {
+		if ( 'preferred_communication_method' === $name ) {
 			$options = CRM_Contact_BAO_Contact::buildOptions( 'preferred_communication_method' );
 		}
 
 		// Preferred Language.
-		if ( $name == 'preferred_language' ) {
+		if ( 'preferred_language' === $name ) {
 			$options = CRM_Contact_BAO_Contact::buildOptions( 'preferred_language' );
 		}
 
 		// Preferred Mail Format.
-		if ( $name == 'preferred_mail_format' ) {
+		if ( 'preferred_mail_format' === $name ) {
 			$options = CRM_Core_SelectValues::pmf();
 		}
 
 		// Communication Style.
-		if ( $name == 'communication_style_id' ) {
+		if ( 'communication_style_id' === $name ) {
 			$option_group = $this->civicrm->option_group_get( 'communication_style' );
 			if ( ! empty( $option_group ) ) {
 				$options = CRM_Core_OptionGroup::valuesByID( $option_group['id'] );
@@ -403,7 +403,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Contact_Field {
 		$birth_fields = [ 'birth_date', 'deceased_date' ];
 
 		// "Birth Date" and "Deceased Date" use the same preference.
-		if ( in_array( $name, $birth_fields ) ) {
+		if ( in_array( $name, $birth_fields, true ) ) {
 			$format = CRM_Utils_Date::getDateFormat( 'birth' );
 		}
 
@@ -467,7 +467,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Contact_Field {
 	 *
 	 * @since 0.5
 	 *
-	 * @param array $contact_type The Contact Type to query.
+	 * @param array  $contact_type The Contact Type to query.
 	 * @param string $field_type The type of BuddyPress Field.
 	 * @param string $filter The token by which to filter the array of Fields.
 	 * @return array $fields The array of Field names.
@@ -500,28 +500,26 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Contact_Field {
 		$result = civicrm_api( 'Contact', 'getfields', $params );
 
 		// Override return if we get some.
-		if ( $result['is_error'] == 0 && ! empty( $result['values'] ) ) {
+		if ( empty( $result['is_error'] ) && ! empty( $result['values'] ) ) {
 
-			// Check for no filter.
-			if ( $filter == 'none' ) {
+			if ( 'none' === $filter ) {
 
-				// Grab all of them.
+				// Grab all Fields.
 				$fields = $result['values'];
 
-			// Check public filter.
-			} elseif ( $filter == 'public' ) {
+			} elseif ( 'public' === $filter ) {
 
 				// Init Fields array.
 				$contact_fields = [];
 
 				// Check against different Field sets per type.
-				if ( $contact_type == 'Individual' ) {
+				if ( 'Individual' === $contact_type ) {
 					$contact_fields = $this->contact_fields_individual;
 				}
-				if ( $contact_type == 'Organization' ) {
+				if ( 'Organization' === $contact_type ) {
 					$contact_fields = $this->contact_fields_organization;
 				}
-				if ( $contact_type == 'Household' ) {
+				if ( 'Household' === $contact_type ) {
 					$contact_fields = $this->contact_fields_household;
 				}
 
@@ -630,7 +628,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Contact_Field {
 	public function value_get_for_bp( $value, $name, $params ) {
 
 		// Bail if value is (string) 'null' which CiviCRM uses for some reason.
-		if ( $value == 'null' || $value == 'NULL' ) {
+		if ( 'null' === $value || 'NULL' === $value ) {
 			return '';
 		}
 
@@ -642,44 +640,38 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Contact_Field {
 
 			// Used by "Do not Sms" etc.
 			case 'true_false':
-
 				// Clear the value when empty.
 				if ( empty( $value ) ) {
 					$value = null;
 				} else {
 					$value = 1;
 				}
-
 				break;
 
 			// May not be used.
 			case 'checkbox':
-
 				// Convert if the value has the special CiviCRM array-like format.
 				if ( is_string( $value ) ) {
 					if ( false !== strpos( $value, CRM_Core_DAO::VALUE_SEPARATOR ) ) {
 						$value = CRM_Utils_Array::explodePadded( $value );
 					}
 				}
-
 				break;
 
 			// Used by "Birth Date" and "Deceased Date".
 			case 'datebox':
-
 				// Contact edit passes a Y-m-d format, so test for that.
 				$datetime = DateTime::createFromFormat( 'Y-m-d', $value );
 
 				// Contact create passes a different format, so test for that.
-				if ( $datetime === false ) {
+				if ( false === $datetime ) {
 					$datetime = DateTime::createFromFormat( 'YmdHis', $value );
 				}
 
 				// Convert to BuddyPress format which cannot have "H:m:s".
-				if ( $datetime !== false ) {
+				if ( false !== $datetime ) {
 					$value = $datetime->format( 'Y-m-d' ) . ' 00:00:00';
 				}
-
 				break;
 
 		}
@@ -689,12 +681,12 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Contact_Field {
 		 * email address is appended as an array. At other times, it is a string.
 		 * We find the first "primary" email entry and use that.
 		 */
-		if ( $name == 'email' ) {
+		if ( 'email' === $name ) {
 
 			// Maybe grab the email from the array.
 			if ( is_array( $value ) ) {
 				foreach ( $value as $email ) {
-					if ( $email->is_primary == '1' ) {
+					if ( 1 === (int) $email->is_primary ) {
 						$value = $email->email;
 						break;
 					}
@@ -809,7 +801,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Contact_Field {
 	 * @since 0.5
 	 *
 	 * @param object $field The xProfile Field object.
-	 * @param array $args The array of CiviCRM mapping data.
+	 * @param array  $args The array of CiviCRM mapping data.
 	 */
 	public function date_settings_modify( $field, $args ) {
 
@@ -847,7 +839,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Contact_Field {
 	 * @since 0.5
 	 *
 	 * @param object $field The xProfile Field object.
-	 * @param array $args The array of CiviCRM mapping data.
+	 * @param array  $args The array of CiviCRM mapping data.
 	 */
 	public function text_settings_modify( $field, $args ) {
 
@@ -908,7 +900,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Contact_Field {
 
 		// Bail if not a "True/False" Field Type.
 		$civicrm_field_type = $this->get_bp_type( $contact_field_name );
-		if ( $civicrm_field_type !== 'true_false' ) {
+		if ( 'true_false' !== $civicrm_field_type ) {
 			return $options;
 		}
 
@@ -931,7 +923,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Contact_Field {
 	 *
 	 * @since 0.5
 	 *
-	 * @param array $contact_fields The existing array of Contact Fields.
+	 * @param array  $contact_fields The existing array of Contact Fields.
 	 * @param string $field_type The BuddyPress Field Type.
 	 * @param string $name The name of the top-level Contact Type.
 	 * @return array $contact_fields The modified array of Contact Fields.
@@ -962,7 +954,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Contact_Field {
 	 *
 	 * @since 0.5
 	 *
-	 * @param bool $is_true_false True if "Checkbox" is a "True/False" Field. False by default.
+	 * @param bool  $is_true_false True if "Checkbox" is a "True/False" Field. False by default.
 	 * @param array $args The array of arguments.
 	 * @return bool $is_true_false True if "Checkbox" is a "True/False" Field. False by default.
 	 */
@@ -980,7 +972,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Contact_Field {
 
 		// Check if this is a "True/False" Field Type.
 		$civicrm_field_type = $this->get_bp_type( $args['contact_field_name'] );
-		if ( $civicrm_field_type === 'true_false' ) {
+		if ( 'true_false' === $civicrm_field_type ) {
 			$is_true_false = true;
 		}
 

@@ -18,7 +18,7 @@ defined( 'ABSPATH' ) || exit;
  *
  * @since 0.5
  */
-class CiviCRM_Profile_Sync_BP_xProfile {
+class CiviCRM_Profile_Sync_BP_XProfile {
 
 	/**
 	 * Plugin object.
@@ -207,15 +207,15 @@ class CiviCRM_Profile_Sync_BP_xProfile {
 	public function __construct( $bp_loader ) {
 
 		// Store references to objects.
-		$this->plugin = $bp_loader->plugin;
+		$this->plugin    = $bp_loader->plugin;
 		$this->bp_loader = $bp_loader;
-		$this->civicrm = $bp_loader->plugin->civicrm;
+		$this->civicrm   = $bp_loader->plugin->civicrm;
 
 		// Build Entity Type labels and enable translation.
 		$this->entity_types = [
 			'Contact' => __( 'Contact', 'civicrm-wp-profile-sync' ),
 			'Address' => __( 'Address', 'civicrm-wp-profile-sync' ),
-			'Phone' => __( 'Phone', 'civicrm-wp-profile-sync' ),
+			'Phone'   => __( 'Phone', 'civicrm-wp-profile-sync' ),
 			'Website' => __( 'Website', 'civicrm-wp-profile-sync' ),
 		];
 
@@ -278,12 +278,12 @@ class CiviCRM_Profile_Sync_BP_xProfile {
 	public function setup_objects() {
 
 		// Init objects.
-		$this->contact = new CiviCRM_Profile_Sync_BP_CiviCRM_Contact( $this );
+		$this->contact       = new CiviCRM_Profile_Sync_BP_CiviCRM_Contact( $this );
 		$this->contact_field = new CiviCRM_Profile_Sync_BP_CiviCRM_Contact_Field( $this );
-		$this->custom_field = new CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field( $this );
-		$this->address = new CiviCRM_Profile_Sync_BP_CiviCRM_Address( $this );
-		$this->phone = new CiviCRM_Profile_Sync_BP_CiviCRM_Phone( $this );
-		$this->website = new CiviCRM_Profile_Sync_BP_CiviCRM_Website( $this );
+		$this->custom_field  = new CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field( $this );
+		$this->address       = new CiviCRM_Profile_Sync_BP_CiviCRM_Address( $this );
+		$this->phone         = new CiviCRM_Profile_Sync_BP_CiviCRM_Phone( $this );
+		$this->website       = new CiviCRM_Profile_Sync_BP_CiviCRM_Website( $this );
 
 	}
 
@@ -298,7 +298,7 @@ class CiviCRM_Profile_Sync_BP_xProfile {
 
 		// Filter the output of an xProfile Field.
 		// phpcs:ignore Squiz.Commenting.InlineComment.InvalidEndChar
-		//add_action( 'xprofile_get_field_data', [ $this, 'data_get' ], 10, 3 );
+		// add_action( 'xprofile_get_field_data', [ $this, 'data_get' ], 10, 3 );
 
 		// Filter the xProfile Field options when displaying the Field.
 		add_action( 'bp_xprofile_field_get_children', [ $this, 'get_children' ], 10, 3 );
@@ -339,14 +339,14 @@ class CiviCRM_Profile_Sync_BP_xProfile {
 	public function register_mapper_hooks() {
 
 		// Bail if already registered.
-		if ( $this->mapper_hooks === true ) {
+		if ( true === $this->mapper_hooks ) {
 			return;
 		}
 
 		// Listen for events from our Mapper that require Contact updates.
 		add_action( 'cwps/mapper/bp_xprofile/edited', [ $this, 'fields_edited' ], 50 );
 		// phpcs:ignore Squiz.Commenting.InlineComment.InvalidEndChar
-		//add_action( 'cwps/mapper/bp_field/edited', [ $this, 'field_edited' ], 50 );
+		// add_action( 'cwps/mapper/bp_field/edited', [ $this, 'field_edited' ], 50 );
 
 		// Declare registered.
 		$this->mapper_hooks = true;
@@ -361,14 +361,14 @@ class CiviCRM_Profile_Sync_BP_xProfile {
 	public function unregister_mapper_hooks() {
 
 		// Bail if already unregistered.
-		if ( $this->mapper_hooks === false ) {
+		if ( false === $this->mapper_hooks ) {
 			return;
 		}
 
 		// Remove all Mapper listeners.
 		remove_action( 'cwps/mapper/bp_xprofile/edited', [ $this, 'fields_edited' ], 50 );
 		// phpcs:ignore Squiz.Commenting.InlineComment.InvalidEndChar
-		//remove_action( 'cwps/mapper/bp_field/edited', [ $this, 'field_edited' ], 50 );
+		// remove_action( 'cwps/mapper/bp_field/edited', [ $this, 'field_edited' ], 50 );
 
 		// Declare unregistered.
 		$this->mapper_hooks = false;
@@ -401,14 +401,14 @@ class CiviCRM_Profile_Sync_BP_xProfile {
 
 		// Bail if this User doesn't have a Contact.
 		$contact = $this->plugin->mapper->ufmatch->contact_get_by_user_id( $args['user_id'] );
-		if ( $contact === false ) {
+		if ( false === $contact ) {
 			return;
 		}
 
 		// Add our Field data to the params.
 		$args['field_data'] = $this->civicrm_ref;
 		$args['contact_id'] = $contact['id'];
-		$args['contact'] = $contact;
+		$args['contact']    = $contact;
 
 		/**
 		 * Broadcast that a set of mapped BuddyPress Fields were saved.
@@ -437,12 +437,13 @@ class CiviCRM_Profile_Sync_BP_xProfile {
 		/*
 		$e = new \Exception();
 		$trace = $e->getTraceAsString();
-		error_log( print_r( [
+		$log = [
 			'method' => __METHOD__,
 			'args' => $args,
 			'civicrm_ref' => $this->civicrm_ref,
 			//'backtrace' => $trace,
-		], true ) );
+		];
+		$this->plugin->log_error( $log );
 		*/
 
 	}
@@ -495,7 +496,7 @@ class CiviCRM_Profile_Sync_BP_xProfile {
 
 		// Build params by which to query xProfile.
 		$query = [
-			'user_id' => $user_id,
+			'user_id'           => $user_id,
 			'hide_empty_groups' => false,
 			'hide_empty_fields' => false,
 		];
@@ -521,8 +522,8 @@ class CiviCRM_Profile_Sync_BP_xProfile {
 
 					// Add to the return array.
 					$fields[] = [
-						'field_id' => $field_id,
-						'field' => $field,
+						'field_id'   => $field_id,
+						'field'      => $field,
 						'field_meta' => $field_meta,
 					];
 
@@ -550,15 +551,15 @@ class CiviCRM_Profile_Sync_BP_xProfile {
 	 *
 	 * @since 0.5
 	 *
-	 * @param string $field_id The numeric ID of the BuddyPress Field.
+	 * @param string  $field_id The numeric ID of the BuddyPress Field.
 	 * @param integer $user_id The numeric ID of the WordPress User.
-	 * @param mixed $value The value to save in the database.
+	 * @param mixed   $value The value to save in the database.
 	 * @return bool $result True if update is successful, false otherwise.
 	 */
 	public function value_update( $field_id, $user_id, $value ) {
 
 		// Protect against (string) 'null' which CiviCRM uses for some reason.
-		if ( $value === 'null' || $value === 'NULL' ) {
+		if ( 'null' === $value || 'NULL' === $value ) {
 			$value = '';
 		}
 
@@ -581,9 +582,9 @@ class CiviCRM_Profile_Sync_BP_xProfile {
 	 *
 	 * @since 0.5
 	 *
-	 * @param mixed $value The BuddyPress Field value.
+	 * @param mixed  $value The BuddyPress Field value.
 	 * @param string $field_type The BuddyPress Field type.
-	 * @param array $args Any additional arguments.
+	 * @param array  $args Any additional arguments.
 	 * @return mixed $value The value formatted for CiviCRM.
 	 */
 	public function value_get_for_civicrm( $value, $field_type, $args = [] ) {
@@ -629,7 +630,7 @@ class CiviCRM_Profile_Sync_BP_xProfile {
 	 * @since 0.5
 	 *
 	 * @param string $value The existing Field value.
-	 * @param array $args Any additional arguments.
+	 * @param array  $args Any additional arguments.
 	 * @return string $value The modified value for CiviCRM.
 	 */
 	public function date_value_get_for_civicrm( $value, $args ) {
@@ -664,7 +665,7 @@ class CiviCRM_Profile_Sync_BP_xProfile {
 	 * @since 0.5
 	 *
 	 * @param string $value The existing Field value.
-	 * @param array $args Any additional arguments.
+	 * @param array  $args Any additional arguments.
 	 * @return string $value The modified value for CiviCRM.
 	 */
 	public function textarea_value_get_for_civicrm( $value, $args ) {
@@ -689,7 +690,7 @@ class CiviCRM_Profile_Sync_BP_xProfile {
 	 * @since 0.5
 	 *
 	 * @param string $value The existing Field value.
-	 * @param array $args Any additional arguments.
+	 * @param array  $args Any additional arguments.
 	 * @return string $value The modified value for CiviCRM.
 	 */
 	public function checkbox_value_get_for_civicrm( $value, $args ) {
@@ -710,7 +711,7 @@ class CiviCRM_Profile_Sync_BP_xProfile {
 		$true_false = apply_filters( 'cwps/bp/xprofile/value/checkbox/query_type', false, $args );
 
 		// Overwrite if this is a "True/False" Field.
-		if ( $true_false === true ) {
+		if ( true === $true_false ) {
 			$value = 1;
 		}
 
@@ -726,11 +727,11 @@ class CiviCRM_Profile_Sync_BP_xProfile {
 	 *
 	 * @since 0.5
 	 *
-	 * @param string $new_html Label and checkbox input Field.
-	 * @param object $value The current option being rendered for.
+	 * @param string  $new_html Label and checkbox input Field.
+	 * @param object  $value The current option being rendered for.
 	 * @param integer $id The ID of the Field object being rendered.
-	 * @param string $selected The current selected value.
-	 * @param string $k The current index in the foreach loop.
+	 * @param string  $selected The current selected value.
+	 * @param string  $k The current index in the foreach loop.
 	 */
 	public function options_checkbox( $new_html, $value, $id, $selected, $k ) {
 
@@ -740,7 +741,8 @@ class CiviCRM_Profile_Sync_BP_xProfile {
 		}
 
 		// $new_html, $options[$k], $this->field_obj->id, $selected, $k
-		$new_html = sprintf( '<label for="%3$s" class="option-label"><input %1$s type="checkbox" name="%2$s" id="%3$s" value="%4$s">%5$s</label>',
+		$new_html = sprintf(
+			'<label for="%3$s" class="option-label"><input %1$s type="checkbox" name="%2$s" id="%3$s" value="%4$s">%5$s</label>',
 			$selected,
 			esc_attr( bp_get_the_profile_field_input_name() . '[]' ),
 			esc_attr( "option_{$value->id}" ),
@@ -758,11 +760,11 @@ class CiviCRM_Profile_Sync_BP_xProfile {
 	 *
 	 * @since 0.5
 	 *
-	 * @param string $new_html Label and select input Field.
-	 * @param object $value The current option being rendered for.
+	 * @param string  $new_html Label and select input Field.
+	 * @param object  $value The current option being rendered for.
 	 * @param integer $id The ID of the Field object being rendered.
-	 * @param string $selected The current selected value.
-	 * @param string $k The current index in the foreach loop.
+	 * @param string  $selected The current selected value.
+	 * @param string  $k The current index in the foreach loop.
 	 */
 	public function options_select( $new_html, $value, $id, $selected, $k ) {
 
@@ -784,11 +786,11 @@ class CiviCRM_Profile_Sync_BP_xProfile {
 	 *
 	 * @since 0.5
 	 *
-	 * @param string $new_html Label and multiselect input Field.
-	 * @param object $value The current option being rendered for.
+	 * @param string  $new_html Label and multiselect input Field.
+	 * @param object  $value The current option being rendered for.
 	 * @param integer $id The ID of the Field object being rendered.
-	 * @param string $selected The current selected value.
-	 * @param string $k The current index in the foreach loop.
+	 * @param string  $selected The current selected value.
+	 * @param string  $k The current index in the foreach loop.
 	 */
 	public function options_multiselect( $new_html, $value, $id, $selected, $k ) {
 
@@ -810,11 +812,11 @@ class CiviCRM_Profile_Sync_BP_xProfile {
 	 *
 	 * @since 0.5
 	 *
-	 * @param string $new_html Label and radio input Field.
-	 * @param object $value The current option being rendered for.
+	 * @param string  $new_html Label and radio input Field.
+	 * @param object  $value The current option being rendered for.
 	 * @param integer $id The ID of the Field object being rendered.
-	 * @param string $selected The current selected value.
-	 * @param string $k The current index in the foreach loop.
+	 * @param string  $selected The current selected value.
+	 * @param string  $k The current index in the foreach loop.
 	 */
 	public function options_radio( $new_html, $value, $id, $selected, $k ) {
 
@@ -824,7 +826,8 @@ class CiviCRM_Profile_Sync_BP_xProfile {
 		}
 
 		// $new_html, $options[$k], $this->field_obj->id, $selected, $k
-		$new_html = sprintf( '<label for="%3$s" class="option-label"><input %1$s type="radio" name="%2$s" id="%3$s" value="%4$s">%5$s</label>',
+		$new_html = sprintf(
+			'<label for="%3$s" class="option-label"><input %1$s type="radio" name="%2$s" id="%3$s" value="%4$s">%5$s</label>',
 			$selected,
 			esc_attr( bp_get_the_profile_field_input_name() ),
 			esc_attr( "option_{$value->id}" ),
@@ -847,8 +850,8 @@ class CiviCRM_Profile_Sync_BP_xProfile {
 	 *
 	 * @since 0.5
 	 *
-	 * @param mixed $value The value passed to xprofile_set_field_data().
-	 * @param BP_XProfile_Field $field The Field object.
+	 * @param mixed                  $value The value passed to xprofile_set_field_data().
+	 * @param BP_XProfile_Field      $field The Field object.
 	 * @param BP_XProfile_Field_Type $field_type_obj The Field Type object.
 	 * @return mixed $value The Field value.
 	 */
@@ -882,41 +885,41 @@ class CiviCRM_Profile_Sync_BP_xProfile {
 		if ( empty( $options ) ) {
 			// It is mapped, so add value.
 			$field->civicrm_value = $value;
-			$this->civicrm_ref[] = [
-				'field_id' => $field->id,
+			$this->civicrm_ref[]  = [
+				'field_id'   => $field->id,
 				'field_type' => $field->type,
-				'value' => $value,
-				'meta' => $args,
+				'value'      => $value,
+				'meta'       => $args,
 			];
 			return $value;
 		}
 
 		// Overwrite "value" to pass BuddyPress validation.
 		if ( is_array( $value ) ) {
-			$value_for_bp = [];
+			$value_for_bp      = [];
 			$value_for_civicrm = [];
 			foreach ( $value as $item ) {
 				if ( array_key_exists( $item, $options ) ) {
-					$value_for_bp[] = $options[ $item ];
+					$value_for_bp[]      = $options[ $item ];
 					$value_for_civicrm[] = $item;
 				}
 			}
 		} else {
-			$value_for_bp = 0;
+			$value_for_bp      = 0;
 			$value_for_civicrm = 0;
 			if ( array_key_exists( $value, $options ) ) {
-				$value_for_bp = $options[ $value ];
+				$value_for_bp      = $options[ $value ];
 				$value_for_civicrm = $value;
 			}
 		}
 
 		// Always save the "real" CiviCRM value for later.
 		$field->civicrm_value = $value_for_civicrm;
-		$this->civicrm_ref[] = [
-			'field_id' => $field->id,
+		$this->civicrm_ref[]  = [
+			'field_id'   => $field->id,
 			'field_type' => $field->type,
-			'value' => $value,
-			'meta' => $args,
+			'value'      => $value,
+			'meta'       => $args,
 		];
 
 		// Now maybe overwrite the return.
@@ -936,8 +939,8 @@ class CiviCRM_Profile_Sync_BP_xProfile {
 	 *
 	 * @since 0.5
 	 *
-	 * @param object $children Found children for a Field.
-	 * @param bool $for_editing Whether or not the Field is for editing.
+	 * @param object            $children Found children for a Field.
+	 * @param bool              $for_editing Whether or not the Field is for editing.
 	 * @param BP_XProfile_Field $field The xProfile Field object.
 	 */
 	public function get_children( $children, $for_editing, $field ) {
@@ -997,7 +1000,7 @@ class CiviCRM_Profile_Sync_BP_xProfile {
 	 *
 	 * @since 0.5
 	 *
-	 * @param array $post_option The submitted options array. Need to check.
+	 * @param array  $post_option The submitted options array. Need to check.
 	 * @param string $field_type The type of xProfile Field.
 	 */
 	public function options_before_save( $post_option, $field_type ) {
@@ -1016,7 +1019,7 @@ class CiviCRM_Profile_Sync_BP_xProfile {
 		}
 
 		// Get data for the "Website" Entity Type.
-		if ( $entity_type === 'Website' ) {
+		if ( 'Website' === $entity_type ) {
 
 			// Extract the Website Type ID from our metabox.
 			$website_type_id = '';
@@ -1034,7 +1037,7 @@ class CiviCRM_Profile_Sync_BP_xProfile {
 		}
 
 		// Get data for the "Address" and "Phone" Entity Types.
-		if ( $entity_type === 'Address' || $entity_type === 'Phone' ) {
+		if ( 'Address' === $entity_type || 'Phone' === $entity_type ) {
 
 			// Extract the Location Type ID from our metabox.
 			$location_type_id = '';
@@ -1052,7 +1055,7 @@ class CiviCRM_Profile_Sync_BP_xProfile {
 		}
 
 		// Get data for the "Contact" Entity Type.
-		if ( $entity_type === 'Contact' ) {
+		if ( 'Contact' === $entity_type ) {
 
 			// Extract the Contact Type ID from our metabox.
 			$contact_type_id = '';
@@ -1072,7 +1075,7 @@ class CiviCRM_Profile_Sync_BP_xProfile {
 
 			// Build Entity data.
 			$entity_data = [
-				'contact_type_id' => $contact_type_id,
+				'contact_type_id'    => $contact_type_id,
 				'contact_subtype_id' => $contact_subtype_id,
 			];
 
@@ -1095,7 +1098,7 @@ class CiviCRM_Profile_Sync_BP_xProfile {
 		$args = [
 			'entity_type' => $entity_type,
 			'entity_data' => $entity_data,
-			'value' => $value,
+			'value'       => $value,
 		];
 
 		/**
@@ -1145,7 +1148,7 @@ class CiviCRM_Profile_Sync_BP_xProfile {
 		$entity_data = [];
 
 		// Get data for the "Contact" Entity Type.
-		if ( $entity_type === 'Contact' ) {
+		if ( 'Contact' === $entity_type ) {
 
 			// Extract the Contact Type ID from our metabox.
 			$contact_type_id = '';
@@ -1165,14 +1168,14 @@ class CiviCRM_Profile_Sync_BP_xProfile {
 
 			// Build Entity data.
 			$entity_data = [
-				'contact_type_id' => $contact_type_id,
+				'contact_type_id'    => $contact_type_id,
 				'contact_subtype_id' => $contact_subtype_id,
 			];
 
 		}
 
 		// Get data for the "Address" and "Phone" Entity Types.
-		if ( $entity_type === 'Address' || $entity_type === 'Phone' ) {
+		if ( 'Address' === $entity_type || 'Phone' === $entity_type ) {
 
 			// Extract the Location Type ID from our metabox.
 			$location_type_id = '';
@@ -1188,7 +1191,7 @@ class CiviCRM_Profile_Sync_BP_xProfile {
 			];
 
 			// Get data for the "Phone" Entity Type.
-			if ( $entity_type === 'Phone' ) {
+			if ( 'Phone' === $entity_type ) {
 
 				// Extract the Phone Type ID from our metabox.
 				$phone_type_id = '';
@@ -1206,7 +1209,7 @@ class CiviCRM_Profile_Sync_BP_xProfile {
 		}
 
 		// Get data for the "Website" Entity Type.
-		if ( $entity_type === 'Website' ) {
+		if ( 'Website' === $entity_type ) {
 
 			// Extract the Website Type ID from our metabox.
 			$website_type_id = '';
@@ -1233,7 +1236,7 @@ class CiviCRM_Profile_Sync_BP_xProfile {
 		$args = [
 			'entity_type' => $entity_type,
 			'entity_data' => $entity_data,
-			'value' => $value,
+			'value'       => $value,
 		];
 
 		// Save setting(s).
@@ -1267,19 +1270,19 @@ class CiviCRM_Profile_Sync_BP_xProfile {
 	public function metabox_render( $field ) {
 
 		// Get our Field settings.
-		$meta = $this->get_metadata_all( $field );
-		$entity_type = isset( $meta['entity_type'] ) ? $meta['entity_type'] : '';
-		$entity_data = isset( $meta['entity_data'] ) ? $meta['entity_data'] : '';
+		$meta          = $this->get_metadata_all( $field );
+		$entity_type   = isset( $meta['entity_type'] ) ? $meta['entity_type'] : '';
+		$entity_data   = isset( $meta['entity_data'] ) ? $meta['entity_data'] : '';
 		$civicrm_field = isset( $meta['value'] ) ? $meta['value'] : '';
 
 		// Get data for the "Address" and "Phone" Entity Types.
 		$location_type_id = '';
-		if ( $entity_type === 'Address' || $entity_type === 'Phone' ) {
+		if ( 'Address' === $entity_type || 'Phone' === $entity_type ) {
 			$location_type_id = isset( $entity_data['location_type_id'] ) ? $entity_data['location_type_id'] : '';
 		}
 
 		// Add entries for Location Types.
-		$locations = [];
+		$locations      = [];
 		$location_types = $this->plugin->civicrm->address->location_types_get();
 		if ( ! empty( $location_types ) ) {
 			foreach ( $location_types as $location ) {
@@ -1289,12 +1292,12 @@ class CiviCRM_Profile_Sync_BP_xProfile {
 
 		// Get data for the "Phone" Entity Type.
 		$phone_type_id = '';
-		if ( $entity_type === 'Phone' ) {
+		if ( 'Phone' === $entity_type ) {
 			$phone_type_id = isset( $entity_data['phone_type_id'] ) ? $entity_data['phone_type_id'] : '';
 		}
 
 		// Add entries for Phone Types.
-		$phones = [];
+		$phones      = [];
 		$phone_types = $this->plugin->civicrm->phone->phone_types_get();
 		if ( ! empty( $phone_types ) ) {
 			foreach ( $phone_types as $id => $label ) {
@@ -1304,7 +1307,7 @@ class CiviCRM_Profile_Sync_BP_xProfile {
 
 		// Get data for the "Website" Entity Type.
 		$website_type_id = '';
-		if ( $entity_type === 'Website' ) {
+		if ( 'Website' === $entity_type ) {
 			$website_type_id = isset( $entity_data['website_type_id'] ) ? $entity_data['website_type_id'] : '';
 		}
 
@@ -1319,7 +1322,7 @@ class CiviCRM_Profile_Sync_BP_xProfile {
 		$user_website_type_id = $this->plugin->admin->setting_get( 'user_profile_website_type', 0 );
 
 		// Add entries for Website Types.
-		$websites = [];
+		$websites      = [];
 		$website_types = $this->plugin->civicrm->website->types_get();
 		if ( ! empty( $website_types ) ) {
 			foreach ( $website_types as $id => $label ) {
@@ -1331,15 +1334,15 @@ class CiviCRM_Profile_Sync_BP_xProfile {
 
 		// Get data for the "Contact" Entity.
 		$top_level_type = '';
-		$sub_type = '';
-		if ( $entity_type === 'Contact' ) {
+		$sub_type       = '';
+		if ( 'Contact' === $entity_type ) {
 			$top_level_type = isset( $entity_data['contact_type_id'] ) ? $entity_data['contact_type_id'] : '';
-			$sub_type = isset( $entity_data['contact_subtype_id'] ) ? $entity_data['contact_subtype_id'] : '';
+			$sub_type       = isset( $entity_data['contact_subtype_id'] ) ? $entity_data['contact_subtype_id'] : '';
 		}
 
 		// Init Contact arrays.
 		$top_level_types = [];
-		$sub_types = [];
+		$sub_types       = [];
 
 		// Get all Contact Types.
 		$contact_types = $this->plugin->civicrm->contact_type->types_get_nested();
@@ -1366,7 +1369,7 @@ class CiviCRM_Profile_Sync_BP_xProfile {
 		$entity_type_data = [];
 
 		// Get data based on Entity.
-		if ( $entity_type === 'Contact' ) {
+		if ( 'Contact' === $entity_type ) {
 
 			// Set the lowest-level Contact Type ID that we can.
 			$contact_type_id = 0;
@@ -1404,7 +1407,7 @@ class CiviCRM_Profile_Sync_BP_xProfile {
 		}
 
 		// Assign Location Type data for the "Address" and "Phone" Entity Types.
-		if ( $entity_type === 'Address' || $entity_type === 'Phone' ) {
+		if ( 'Address' === $entity_type || 'Phone' === $entity_type ) {
 			if ( ! empty( $location_types ) ) {
 				foreach ( $location_types as $location ) {
 					if ( $location['id'] == $location_type_id ) {
@@ -1415,12 +1418,12 @@ class CiviCRM_Profile_Sync_BP_xProfile {
 		}
 
 		// Assign Phone Type data if we got some.
-		if ( $entity_type === 'Phone' ) {
+		if ( 'Phone' === $entity_type ) {
 			if ( ! empty( $phone_types ) ) {
 				foreach ( $phone_types as $id => $label ) {
 					if ( $id == $phone_type_id ) {
 						$entity_type_data['phone_type'] = [
-							'id' => $id,
+							'id'    => $id,
 							'label' => $label,
 						];
 					}
@@ -1429,12 +1432,12 @@ class CiviCRM_Profile_Sync_BP_xProfile {
 		}
 
 		// Assign Website Type data if we got some.
-		if ( $entity_type === 'Website' ) {
+		if ( 'Website' === $entity_type ) {
 			if ( ! empty( $website_types ) ) {
 				foreach ( $website_types as $id => $label ) {
 					if ( $id == $website_type_id ) {
 						$entity_type_data['website_type'] = [
-							'id' => $id,
+							'id'    => $id,
 							'label' => $label,
 						];
 					}
@@ -1519,7 +1522,7 @@ class CiviCRM_Profile_Sync_BP_xProfile {
 							];
 						}
 						$data[] = [
-							'label' => $optgroup,
+							'label'   => $optgroup,
 							'options' => $opts,
 						];
 					}
@@ -1561,7 +1564,7 @@ class CiviCRM_Profile_Sync_BP_xProfile {
 							];
 						}
 						$data[] = [
-							'label' => $optgroup,
+							'label'   => $optgroup,
 							'options' => $opts,
 						];
 					}
@@ -1575,7 +1578,7 @@ class CiviCRM_Profile_Sync_BP_xProfile {
 
 			// Is this the default "Name" Field?
 			$is_fullname_field = false;
-			if ( ! empty( $_GET['field_id'] ) && (int) $_GET['field_id'] === (int) bp_xprofile_fullname_field_id() ) {
+			if ( ! empty( $_GET['field_id'] ) && (int) bp_xprofile_fullname_field_id() === (int) $_GET['field_id'] ) {
 				$is_fullname_field = true;
 			}
 
@@ -1584,8 +1587,8 @@ class CiviCRM_Profile_Sync_BP_xProfile {
 				'localisation' => [
 					'placeholder' => __( '- Select Field -', 'civicrm-wp-profile-sync' ),
 				],
-				'settings' => [
-					'options' => $options,
+				'settings'     => [
+					'options'        => $options,
 					'fullname_field' => $is_fullname_field,
 				],
 			];
@@ -1658,7 +1661,7 @@ class CiviCRM_Profile_Sync_BP_xProfile {
 	 * @since 0.5
 	 *
 	 * @param object|integer $field The xProfile Field object or Field ID.
-	 * @param array $data The array of our Field metadata.
+	 * @param array          $data The array of our Field metadata.
 	 */
 	public function set_metadata_all( $field, $data ) {
 
@@ -1680,7 +1683,7 @@ class CiviCRM_Profile_Sync_BP_xProfile {
 	 * @since 0.5
 	 *
 	 * @param object|integer $field The xProfile Field object or Field ID.
-	 * @param string $setting The xProfile Field setting.
+	 * @param string         $setting The xProfile Field setting.
 	 * @return mixed $value The value if the setting or false if not present.
 	 */
 	public function get_metadata( $field, $setting = 'value' ) {
@@ -1717,8 +1720,8 @@ class CiviCRM_Profile_Sync_BP_xProfile {
 	 * @since 0.5
 	 *
 	 * @param object|integer $field The xProfile Field object or Field ID.
-	 * @param string $setting The xProfile Field setting.
-	 * @param mixed $value The value of the xProfile Field setting.
+	 * @param string         $setting The xProfile Field setting.
+	 * @param mixed          $value The value of the xProfile Field setting.
 	 */
 	public function set_metadata( $field, $setting, $value ) {
 

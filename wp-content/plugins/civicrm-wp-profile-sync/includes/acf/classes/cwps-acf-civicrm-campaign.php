@@ -57,9 +57,9 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Campaign {
 	public function __construct( $parent ) {
 
 		// Store references to objects.
-		$this->plugin = $parent->acf_loader->plugin;
+		$this->plugin     = $parent->acf_loader->plugin;
 		$this->acf_loader = $parent->acf_loader;
-		$this->civicrm = $parent;
+		$this->civicrm    = $parent;
 
 		// Init when the ACF CiviCRM object is loaded.
 		add_action( 'cwps/acf/civicrm/loaded', [ $this, 'register_hooks' ] );
@@ -107,15 +107,16 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Campaign {
 		$result = civicrm_api( 'Campaign', 'create', $params );
 
 		// Log and bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
-			$e = new Exception();
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
+			$e     = new Exception();
 			$trace = $e->getTraceAsString();
-			error_log( print_r( [
-				'method' => __METHOD__,
-				'params' => $params,
-				'result' => $result,
+			$log   = [
+				'method'    => __METHOD__,
+				'params'    => $params,
+				'result'    => $result,
 				'backtrace' => $trace,
-			], true ) );
+			];
+			$this->plugin->log_error( $log );
 			return $campaign;
 		}
 
@@ -147,14 +148,15 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Campaign {
 
 		// Log and bail if there's no Campaign ID.
 		if ( empty( $data['id'] ) ) {
-			$e = new \Exception();
+			$e     = new \Exception();
 			$trace = $e->getTraceAsString();
-			error_log( print_r( [
-				'method' => __METHOD__,
-				'message' => __( 'A numeric ID must be present to update a Campaign.', 'civicrm-wp-profile-sync' ),
-				'data' => $data,
+			$log   = [
+				'method'    => __METHOD__,
+				'message'   => __( 'A numeric ID must be present to update a Campaign.', 'civicrm-wp-profile-sync' ),
+				'data'      => $data,
 				'backtrace' => $trace,
-			], true ) );
+			];
+			$this->plugin->log_error( $log );
 			return false;
 		}
 
@@ -186,14 +188,14 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Campaign {
 		// Construct API query.
 		$params = [
 			'version' => 3,
-			'id' => $campaign_id,
+			'id'      => $campaign_id,
 		];
 
 		// Get Campaign details via API.
 		$result = civicrm_api( 'Campaign', 'get', $params );
 
 		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
 			return $campaign;
 		}
 
@@ -234,28 +236,30 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Campaign {
 
 		// Build params.
 		$params = [
+			'version'    => 3,
 			'sequential' => 1,
-			'is_active' => 1,
-			'status_id' => [ 'NOT IN' => [ 'Completed', 'Cancelled' ] ],
-			'options' => [
-				'sort' => 'name',
+			'is_active'  => 1,
+			'status_id'  => [ 'NOT IN' => [ 'Completed', 'Cancelled' ] ],
+			'options'    => [
+				'sort'  => 'name',
 				'limit' => 0,
 			],
 		];
 
 		// Call the CiviCRM API.
-		$result = civicrm_api3( 'Campaign', 'get', $params );
+		$result = civicrm_api( 'Campaign', 'get', $params );
 
 		// Return early if something went wrong.
-		if ( ! empty( $result['error'] ) ) {
-			$e = new \Exception();
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
+			$e     = new \Exception();
 			$trace = $e->getTraceAsString();
-			error_log( print_r( [
-				'method' => __METHOD__,
-				'params' => $params,
-				'result' => $result,
+			$log   = [
+				'method'    => __METHOD__,
+				'params'    => $params,
+				'result'    => $result,
 				'backtrace' => $trace,
-			], true ) );
+			];
+			$this->plugin->log_error( $log );
 			return [];
 		}
 

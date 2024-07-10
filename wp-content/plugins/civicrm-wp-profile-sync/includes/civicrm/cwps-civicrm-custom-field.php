@@ -48,7 +48,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Custom_Field {
 	public function __construct( $parent ) {
 
 		// Store references.
-		$this->plugin = $parent->plugin;
+		$this->plugin  = $parent->plugin;
 		$this->civicrm = $parent;
 
 		// Init when the CiviCRM object is loaded.
@@ -110,16 +110,16 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Custom_Field {
 
 		// Build params to get Custom Group data.
 		$params = [
-			'version' => 3,
+			'version'    => 3,
 			'sequential' => 1,
-			'id' => $field_id,
+			'id'         => $field_id,
 		];
 
 		// Call the CiviCRM API.
 		$result = civicrm_api( 'CustomField', 'get', $params );
 
 		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
 			return $field;
 		}
 
@@ -157,10 +157,10 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Custom_Field {
 
 		// Build params to get Custom Group data.
 		$params = [
-			'version' => 3,
-			'sequential' => 1,
+			'version'         => 3,
+			'sequential'      => 1,
 			'custom_group_id' => $custom_group_id,
-			'options' => [
+			'options'         => [
 				'limit' => 0, // No limit.
 			],
 		];
@@ -169,7 +169,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Custom_Field {
 		$result = civicrm_api( 'CustomField', 'get', $params );
 
 		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
 			return $fields;
 		}
 
@@ -194,7 +194,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Custom_Field {
 	 * @since 0.4
 	 *
 	 * @param integer $contact_id The numeric ID of the CiviCRM Contact to query.
-	 * @param array $custom_field_ids The Custom Field IDs to query.
+	 * @param array   $custom_field_ids The Custom Field IDs to query.
 	 * @return array $contact_data An array of Contact data.
 	 */
 	public function values_get_by_contact_id( $contact_id, $custom_field_ids = [] ) {
@@ -220,11 +220,11 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Custom_Field {
 
 		// Define params to get queried Contact.
 		$params = [
-			'version' => 3,
+			'version'    => 3,
 			'sequential' => 1,
-			'id' => $contact_id,
-			'return' => $codes,
-			'options' => [
+			'id'         => $contact_id,
+			'return'     => $codes,
+			'options'    => [
 				'limit' => 0, // No limit.
 			],
 		];
@@ -233,7 +233,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Custom_Field {
 		$result = civicrm_api( 'Contact', 'get', $params );
 
 		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
 			return $contact_data;
 		}
 
@@ -246,7 +246,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Custom_Field {
 		foreach ( $result['values'] as $item ) {
 			foreach ( $item as $key => $value ) {
 				if ( substr( $key, 0, 7 ) == 'custom_' ) {
-					$index = (int) str_replace( 'custom_', '', $key );
+					$index                  = (int) str_replace( 'custom_', '', $key );
 					$contact_data[ $index ] = $value;
 				}
 			}
@@ -331,17 +331,17 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Custom_Field {
 
 		// Construct params to get Fields for all Contacts.
 		$params = [
-			'version' => 3,
-			'sequential' => 1,
-			'is_active' => 1,
-			'extends' => 'Contact',
+			'version'             => 3,
+			'sequential'          => 1,
+			'is_active'           => 1,
+			'extends'             => 'Contact',
 			'api.CustomField.get' => [
 				'is_active' => 1,
-				'options' => [
+				'options'   => [
 					'limit' => 0, // No limit.
 				],
 			],
-			'options' => [
+			'options'             => [
 				'limit' => 0, // No limit.
 			],
 		];
@@ -350,7 +350,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Custom_Field {
 		$result = civicrm_api( 'CustomGroup', 'get', $params );
 
 		// Override return if we get some.
-		if ( $result['is_error'] == 0 && ! empty( $result['values'] ) ) {
+		if ( empty( $result['is_error'] ) && ! empty( $result['values'] ) ) {
 
 			// Add the Custom Fields from the chained API data.
 			foreach ( $result['values'] as $key => $value ) {
@@ -395,19 +395,19 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Custom_Field {
 
 		// Construct params.
 		$params = [
-			'version' => 3,
-			'sequential' => 1,
-			'is_active' => 1,
-			'options' => [
+			'version'             => 3,
+			'sequential'          => 1,
+			'is_active'           => 1,
+			'options'             => [
 				'limit' => 0,
 			],
 			'api.CustomField.get' => [
 				'is_active' => 1,
-				'options' => [
+				'options'   => [
 					'limit' => 0,
 				],
 			],
-			'extends' => [
+			'extends'             => [
 				'IN' => $this->plugin->civicrm->contact_type->types_get_top_level(),
 			],
 		];
@@ -416,7 +416,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Custom_Field {
 		$result = civicrm_api( 'CustomGroup', 'get', $params );
 
 		// Override return if we get some.
-		if ( $result['is_error'] == 0 && ! empty( $result['values'] ) ) {
+		if ( empty( $result['is_error'] ) && ! empty( $result['values'] ) ) {
 
 			// Add the Custom Fields from the chained API data.
 			foreach ( $result['values'] as $key => $value ) {
@@ -475,17 +475,17 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Custom_Field {
 
 		// Construct params.
 		$params = [
-			'version' => 3,
-			'sequential' => 1,
-			'is_active' => 1,
-			'extends' => $type,
+			'version'             => 3,
+			'sequential'          => 1,
+			'is_active'           => 1,
+			'extends'             => $type,
 			'api.CustomField.get' => [
 				'is_active' => 1,
-				'options' => [
+				'options'   => [
 					'limit' => 0, // No limit.
 				],
 			],
-			'options' => [
+			'options'             => [
 				'limit' => 0, // No limit.
 			],
 		];
@@ -494,14 +494,14 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Custom_Field {
 		$result = civicrm_api( 'CustomGroup', 'get', $params );
 
 		// Append to return if we get some.
-		if ( $result['is_error'] == 0 && ! empty( $result['values'] ) ) {
+		if ( empty( $result['is_error'] ) && ! empty( $result['values'] ) ) {
 
 			// We only need the results from the chained API data.
 			foreach ( $result['values'] as $key => $value ) {
 
 				// Skip adding if it extends a sibling Sub-type.
 				if ( ! empty( $subtype ) && ! empty( $value['extends_entity_column_value'] ) ) {
-					if ( ! in_array( $subtype, $value['extends_entity_column_value'] ) ) {
+					if ( ! in_array( $subtype, $value['extends_entity_column_value'], true ) ) {
 						continue;
 					}
 				}
@@ -571,23 +571,23 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Custom_Field {
 		}
 
 		// Start with the Custom Fields for all Contact Types.
-		if ( in_array( $type, $this->plugin->civicrm->contact_type->types_get_top_level() ) ) {
+		if ( in_array( $type, $this->plugin->civicrm->contact_type->types_get_top_level(), true ) ) {
 			$custom_fields = $this->get_for_contacts();
 		}
 
 		// Construct params.
 		$params = [
-			'version' => 3,
-			'sequential' => 1,
-			'is_active' => 1,
-			'extends' => $type,
+			'version'             => 3,
+			'sequential'          => 1,
+			'is_active'           => 1,
+			'extends'             => $type,
 			'api.CustomField.get' => [
 				'is_active' => 1,
-				'options' => [
+				'options'   => [
 					'limit' => 0, // No limit.
 				],
 			],
-			'options' => [
+			'options'             => [
 				'limit' => 0, // No limit.
 			],
 		];
@@ -596,14 +596,14 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Custom_Field {
 		$result = civicrm_api( 'CustomGroup', 'get', $params );
 
 		// Append to return if we get some.
-		if ( $result['is_error'] == 0 && ! empty( $result['values'] ) ) {
+		if ( empty( $result['is_error'] ) && ! empty( $result['values'] ) ) {
 
 			// We only need the results from the chained API data.
 			foreach ( $result['values'] as $key => $value ) {
 
 				// Skip adding if it extends a sibling Sub-type.
 				if ( ! empty( $subtype ) && ! empty( $value['extends_entity_column_value'] ) ) {
-					if ( ! in_array( $subtype, $value['extends_entity_column_value'] ) ) {
+					if ( ! in_array( $subtype, $value['extends_entity_column_value'], true ) ) {
 						continue;
 					}
 				}
