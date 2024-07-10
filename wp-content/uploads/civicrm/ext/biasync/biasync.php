@@ -86,8 +86,11 @@ function biasync_civicrm_post(string $op, string $objectName, int $objectId, &$o
 
   if (($objectName === 'PropertyOwner' || $objectName === 'UnitBusiness') && in_array($op, $modified)) {
     if ($objectName === 'UnitBusiness') {
-      /* @var CRM_Biaproperty_DAO_UnitBusiness $objectRef */
-      $objectRef->find(TRUE);
+      /** @var \CRM_Biaproperty_DAO_UnitBusiness $objectRef */
+      if (empty($objectRef->unit_id)) {
+        $objectRef->addSelect('*');
+        $objectRef->find(TRUE);
+      }
       $propertyId = Proprety::get(FALSE)
         ->addSelect('id')
         ->addJoin('Unit AS unit', 'INNER', ['id', '=', 'unit.property_id'])
@@ -104,20 +107,20 @@ function biasync_civicrm_post(string $op, string $objectName, int $objectId, &$o
         ->first()['id'];
     }
     PropertyLog::save(FALSE)
-      ->setRecords(['property_id' => $propertyId, 'is_synced' => 0])
+      ->addRecord(['property_id' => $propertyId, 'is_synced' => 0])
       ->setMatch(['property_id'])
       ->execute();
   }
   if ($objectName === 'Property' && in_array($op, $modified) && !\Civi::$statics['biasync']['post_sync_property_update']) {
     PropertyLog::save(FALSE)
-      ->setRecords(['property_id' => $objectId, 'is_synced' => 0])
+      ->addRecord(['property_id' => $objectId, 'is_synced' => 0])
       ->setMatch(['property_id'])
       ->execute();
   }
   if ($objectName === 'Unit' && in_array($op, $modified)) {
     $objectRef->find(TRUE);
     PropertyLog::save(FALSE)
-      ->setRecords(['property_id' => $objectRef->property_id, 'is_synced' => 0])
+      ->addRecord(['property_id' => $objectRef->property_id, 'is_synced' => 0])
       ->setMatch(['property_id'])
       ->execute();
   }
