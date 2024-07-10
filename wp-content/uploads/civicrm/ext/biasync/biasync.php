@@ -7,7 +7,7 @@ use CRM_Biasync_ExtensionUtil as E;
 Use Civi\Api4\Contact;
 use Civi\Api4\Property;
 use Civi\Api4\Unit;
-use Civi\APi4\PropertyLog;
+use Civi\Api4\PropertyLog;
 
 /**
  * Implements hook_civicrm_config().
