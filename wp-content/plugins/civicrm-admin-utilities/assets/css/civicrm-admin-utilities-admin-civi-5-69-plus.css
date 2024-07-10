@@ -1,0 +1,240 @@
+/**
+ * CiviCRM style overrides for CiviCRM 5.69+.
+ *
+ * Implements changes in admin styling introduced in CiviCRM 5.69.
+ *
+ * @package WordPress
+ * @subpackage CiviCRM_Admin_Utilities
+ */
+
+
+/*
+--------------------------------------------------------------------------------
+Use FontAwesome instead of background image.
+--------------------------------------------------------------------------------
+*/
+
+.crm-container .crm-accordion-header,
+.crm-container .collapsed .crm-accordion-header
+{
+	padding-left: 8px;
+	background-image: none;
+}
+
+.crm-container div.crm-accordion-header:before,
+.crm-container .collapsed div.crm-accordion-header:before,
+.crm-container .crm-collapsible.collapsed .collapsible-title:before,
+.crm-container span.collapsed:before,
+.crm-container a.collapsed:before,
+.crm-container .crm-expand-row:before
+{
+	font-family: "FontAwesome";
+	content: "\f0da";
+	display: inline-block;
+	width: 0.8em;
+	font-size: 13px;
+}
+
+.crm-container div.crm-accordion-header:before,
+.crm-container .crm-collapsible .collapsible-title:before,
+.crm-container span.expanded:before,
+.crm-container a.expanded:before,
+.crm-container .crm-expand-row.expanded:before
+{
+	font-family: "FontAwesome";
+	content: "\f0d7";
+	display: inline-block;
+	width: 0.8em;
+	font-size: 13px;
+}
+
+/* Reset older discovery tabs, e.g. Extensions screen */
+.crm-container span.collapsed,
+.crm-container a.collapsed,
+.crm-container .crm-expand-row,
+.crm-container span.expanded,
+.crm-container a.expanded,
+#contact-summary .contact_panel .crm-collapsible .collapsible-title
+{
+	background: none;
+	padding-left: 0;
+}
+
+/* Fix community messages */
+.crm-container .civicrm-community-messages .crm-collapsible .collapsible-title:before
+{
+	content: '';
+	float: left;
+}
+
+.crm-container div.civicrm-community-messages a.civicrm-community-message-dismiss
+{
+	top: 6px;
+}
+
+
+/*
+--------------------------------------------------------------------------------
+Basic styling of <details> and <summary> elements.
+See also "#bootstrap-theme.crm-search summary" in the main Admin CSS file.
+--------------------------------------------------------------------------------
+*/
+
+/* Remove user agent icon */
+.crm-container details > summary {
+	display: list-item;
+	list-style: none;
+	cursor: pointer;
+}
+
+/* Collapsed icon */
+.crm-container details > summary:before {
+	font-family: "FontAwesome";
+	display: inline-block;
+	width: 1em;
+	content: "\f0da";
+	font-size: 13px;
+}
+
+/* Expanded icon */
+.crm-container details[open] > summary:before {
+	font-family: "FontAwesome";
+	content: "\f0d7";
+}
+
+.crm-container summary::-webkit-details-marker {
+	/* Safari fix to remove summary icon */
+	display: none;
+}
+
+
+/*
+--------------------------------------------------------------------------------
+Bold and Light Accordions
+--------------------------------------------------------------------------------
+*/
+
+.crm-container .crm-accordion-bold,
+.crm-container .crm-accordion-light
+{
+    margin-bottom: 1em;
+}
+
+.crm-container .crm-accordion-bold summary,
+.crm-container .crm-accordion-light summary
+{
+    cursor: pointer;
+    padding: 8px;
+	line-height: 150%;
+    font-weight: bold;
+    border: 1px solid #e5e5e5;
+    box-shadow: 0 1px 1px rgba(0,0,0,.04);
+    background-color: #fafafa;
+	background-image: none;
+}
+
+.crm-container .crm-accordion-bold summary:hover,
+.crm-container .crm-accordion-light summary:hover
+{
+	background-color: #eee;
+}
+
+.crm-container .crm-accordion-bold summary:focus-visible,
+.crm-container .crm-accordion-light summary:focus-visible
+{
+    color: #043959;
+    box-shadow: 0 0 0 1px #4f94d4,0 0 2px 1px rgba(79,148,212,.8);
+    outline: 1px solid transparent
+}
+
+.crm-container .crm-accordion-bold[open] summary,
+.crm-container .crm-accordion-light[open] summary
+{
+	margin-bottom: 0;
+}
+
+.crm-container .crm-accordion-bold .crm-accordion-body,
+.crm-container .crm-accordion-light .crm-accordion-body
+{
+	padding: 12px 8px 1px;
+}
+
+
+/*
+--------------------------------------------------------------------------------
+Light Accordions that really need to be "light".
+--------------------------------------------------------------------------------
+1. The Extensions screen.
+2. Add more here...
+--------------------------------------------------------------------------------
+*/
+
+#extensions .crm-accordion-light
+{
+	margin: 0;
+}
+
+#extensions .crm-accordion-light summary
+{
+	padding: 0;
+	background-color: transparent;
+	border: none;
+	box-shadow: none;
+    font-weight: normal;
+}
+
+#extensions .crm-accordion-light summary:focus-visible
+{
+    color: #043959;
+    box-shadow: 0 0 0 1px #4f94d4,0 0 2px 1px rgba(79,148,212,.8);
+    outline: 1px solid transparent
+}
+
+#extensions .crm-accordion-light[open] summary
+{
+	margin-bottom: 8px;
+}
+
+
+/*
+--------------------------------------------------------------------------------
+News Feed accordions are also custom.
+--------------------------------------------------------------------------------
+*/
+
+#civicrm-dashboard #civicrm-news-feed-blog .crm-accordion-bold summary
+{
+    cursor: pointer;
+    padding: 8px;
+    color: #23282d;
+    font-weight: bold;
+	background-color: #eee;
+    border: 1px solid #e5e5e5;
+    box-shadow: 0 1px 1px rgba(0,0,0,.04);
+}
+
+#civicrm-dashboard #civicrm-news-feed-blog .crm-accordion-bold summary:hover
+{
+	background-color: #ddd;
+}
+
+#civicrm-dashboard #civicrm-news-feed-blog .crm-accordion-body
+{
+	padding: 1px 8px 12px 8px;
+}
+
+
+/*
+--------------------------------------------------------------------------------
+Advanced Search amends.
+--------------------------------------------------------------------------------
+*/
+.crm-advanced_search_form-accordion #display-settings
+{
+	padding-top: 0;
+}
+
+.crm-advanced_search_form-accordion #display-settings table
+{
+	margin: 0;
+}

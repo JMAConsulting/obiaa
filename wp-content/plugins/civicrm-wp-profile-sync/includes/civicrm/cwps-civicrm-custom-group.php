@@ -57,7 +57,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Custom_Group {
 	public function __construct( $parent ) {
 
 		// Store references.
-		$this->plugin = $parent->plugin;
+		$this->plugin  = $parent->plugin;
 		$this->civicrm = $parent;
 
 		// Init when the CiviCRM object is loaded.
@@ -113,7 +113,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Custom_Group {
 	public function register_mapper_hooks() {
 
 		// Bail if already registered.
-		if ( $this->mapper_hooks === true ) {
+		if ( true === $this->mapper_hooks ) {
 			return;
 		}
 
@@ -130,7 +130,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Custom_Group {
 	public function unregister_mapper_hooks() {
 
 		// Bail if already unregistered.
-		if ( $this->mapper_hooks === false ) {
+		if ( false === $this->mapper_hooks ) {
 			return;
 		}
 
@@ -161,9 +161,9 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Custom_Group {
 
 		// Construct params.
 		$params = [
-			'version' => 3,
+			'version'    => 3,
 			'sequential' => 1,
-			'options' => [
+			'options'    => [
 				'limit' => 0, // No limit.
 			],
 		];
@@ -172,7 +172,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Custom_Group {
 		$result = civicrm_api( 'CustomGroup', 'get', $params );
 
 		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
 			return $custom_groups;
 		}
 
@@ -210,16 +210,16 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Custom_Group {
 
 		// Construct params.
 		$params = [
-			'version' => 3,
+			'version'    => 3,
 			'sequential' => 1,
-			'id' => $custom_group_id,
+			'id'         => $custom_group_id,
 		];
 
 		// Call the API.
 		$result = civicrm_api( 'CustomGroup', 'get', $params );
 
 		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
 			return $custom_group;
 		}
 
@@ -256,8 +256,8 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Custom_Group {
 
 		// Construct params.
 		$params = [
-			'version' => 3,
-			'sequential' => 1,
+			'version'      => 3,
+			'sequential'   => 1,
 			'entity_table' => $entity_table,
 		];
 
@@ -265,7 +265,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Custom_Group {
 		$result = civicrm_api( 'CustomGroup', 'get', $params );
 
 		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
 			return $custom_group;
 		}
 
@@ -315,17 +315,17 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Custom_Group {
 
 		// Construct params to get Groups for all Contacts.
 		$params = [
-			'version' => 3,
-			'sequential' => 1,
-			'is_active' => 1,
-			'extends' => 'Contact',
+			'version'             => 3,
+			'sequential'          => 1,
+			'is_active'           => 1,
+			'extends'             => 'Contact',
 			'api.CustomField.get' => [
 				'is_active' => 1,
-				'options' => [
+				'options'   => [
 					'limit' => 0, // No limit.
 				],
 			],
-			'options' => [
+			'options'             => [
 				'limit' => 0, // No limit.
 			],
 		];
@@ -334,7 +334,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Custom_Group {
 		$result = civicrm_api( 'CustomGroup', 'get', $params );
 
 		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
 			return $custom_groups;
 		}
 
@@ -381,19 +381,19 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Custom_Group {
 
 		// Construct params.
 		$params = [
-			'version' => 3,
-			'sequential' => 1,
-			'is_active' => 1,
-			'options' => [
+			'version'             => 3,
+			'sequential'          => 1,
+			'is_active'           => 1,
+			'options'             => [
 				'limit' => 0,
 			],
 			'api.CustomField.get' => [
 				'is_active' => 1,
-				'options' => [
+				'options'   => [
 					'limit' => 0,
 				],
 			],
-			'extends' => [
+			'extends'             => [
 				'IN' => $this->plugin->civicrm->contact_type->types_get_top_level(),
 			],
 		];
@@ -402,7 +402,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Custom_Group {
 		$result = civicrm_api( 'CustomGroup', 'get', $params );
 
 		// Append the Custom Groups if we get some.
-		if ( $result['is_error'] == 0 && ! empty( $result['values'] ) ) {
+		if ( empty( $result['is_error'] ) && ! empty( $result['values'] ) ) {
 			foreach ( $result['values'] as $key => $value ) {
 				$custom_groups[] = $value;
 			}
@@ -433,26 +433,26 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Custom_Group {
 
 		// Construct params.
 		$params = [
-			'version' => 3,
-			'sequential' => 1,
-			'is_active' => 1,
-			'options' => [
+			'version'             => 3,
+			'sequential'          => 1,
+			'is_active'           => 1,
+			'options'             => [
 				'limit' => 0,
 			],
 			'api.CustomField.get' => [
 				'is_active' => 1,
-				'options' => [
+				'options'   => [
 					'limit' => 0,
 				],
 			],
-			'extends' => 'Activity',
+			'extends'             => 'Activity',
 		];
 
 		// Call the API.
 		$result = civicrm_api( 'CustomGroup', 'get', $params );
 
 		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
 			return $custom_groups;
 		}
 
@@ -489,26 +489,26 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Custom_Group {
 
 		// Construct params.
 		$params = [
-			'version' => 3,
-			'sequential' => 1,
-			'is_active' => 1,
-			'options' => [
+			'version'             => 3,
+			'sequential'          => 1,
+			'is_active'           => 1,
+			'options'             => [
 				'limit' => 0,
 			],
 			'api.CustomField.get' => [
 				'is_active' => 1,
-				'options' => [
+				'options'   => [
 					'limit' => 0,
 				],
 			],
-			'extends' => 'Case',
+			'extends'             => 'Case',
 		];
 
 		// Call the API.
 		$result = civicrm_api( 'CustomGroup', 'get', $params );
 
 		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
 			return $custom_groups;
 		}
 
@@ -544,27 +544,27 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Custom_Group {
 
 		// Construct params.
 		$params = [
-			'version' => 3,
-			'sequential' => 1,
-			'is_active' => 1,
-			'options' => [
+			'version'             => 3,
+			'sequential'          => 1,
+			'is_active'           => 1,
+			'options'             => [
 				'limit' => 0,
-				'sort' => 'weight',
+				'sort'  => 'weight',
 			],
 			'api.CustomField.get' => [
 				'is_active' => 1,
-				'options' => [
+				'options'   => [
 					'limit' => 0,
 				],
 			],
-			'extends' => 'Participant',
+			'extends'             => 'Participant',
 		];
 
 		// Call the API.
 		$result = civicrm_api( 'CustomGroup', 'get', $params );
 
 		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
 			return $custom_groups;
 		}
 
@@ -606,26 +606,26 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Custom_Group {
 
 		// Construct params.
 		$params = [
-			'version' => 3,
-			'sequential' => 1,
-			'is_active' => 1,
-			'options' => [
+			'version'             => 3,
+			'sequential'          => 1,
+			'is_active'           => 1,
+			'options'             => [
 				'limit' => 0,
 			],
 			'api.CustomField.get' => [
 				'is_active' => 1,
-				'options' => [
+				'options'   => [
 					'limit' => 0,
 				],
 			],
-			'extends' => 'Relationship',
+			'extends'             => 'Relationship',
 		];
 
 		// Call the API.
 		$result = civicrm_api( 'CustomGroup', 'get', $params );
 
 		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
 			return $custom_groups;
 		}
 
@@ -673,26 +673,26 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Custom_Group {
 
 		// Construct params.
 		$params = [
-			'version' => 3,
-			'sequential' => 1,
-			'is_active' => 1,
-			'options' => [
+			'version'             => 3,
+			'sequential'          => 1,
+			'is_active'           => 1,
+			'options'             => [
 				'limit' => 0,
 			],
 			'api.CustomField.get' => [
 				'is_active' => 1,
-				'options' => [
+				'options'   => [
 					'limit' => 0,
 				],
 			],
-			'extends' => 'Address',
+			'extends'             => 'Address',
 		];
 
 		// Call the API.
 		$result = civicrm_api( 'CustomGroup', 'get', $params );
 
 		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
 			return $custom_groups;
 		}
 
@@ -720,7 +720,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Custom_Group {
 	 *
 	 * @param string $type The Entity Type that the Custom Group applies to.
 	 * @param string $subtype The Entity Sub-type that the Custom Group applies to.
-	 * @param bool $with_fields Pass "true" to retrieve the Custom Fields as well.
+	 * @param bool   $with_fields Pass "true" to retrieve the Custom Fields as well.
 	 * @return array $custom_groups The array of Custom Groups.
 	 */
 	public function get_for_entity_type( $type = '', $subtype = '', $with_fields = false ) {
@@ -752,17 +752,17 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Custom_Group {
 		}
 
 		// Start with the Custom Groups for all Contact Types.
-		if ( in_array( $type, $this->plugin->civicrm->contact_type->types_get_top_level() ) ) {
+		if ( in_array( $type, $this->plugin->civicrm->contact_type->types_get_top_level(), true ) ) {
 			$custom_groups = $this->get_for_contacts();
 		}
 
 		// Construct params.
 		$params = [
-			'version' => 3,
+			'version'    => 3,
 			'sequential' => 1,
-			'is_active' => 1,
-			'extends' => $type,
-			'options' => [
+			'is_active'  => 1,
+			'extends'    => $type,
+			'options'    => [
 				'limit' => 0, // No limit.
 			],
 		];
@@ -771,7 +771,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Custom_Group {
 		if ( ! empty( $with_fields ) ) {
 			$params['api.CustomField.get'] = [
 				'is_active' => 1,
-				'options' => [
+				'options'   => [
 					'limit' => 0, // No limit.
 				],
 			];
@@ -781,12 +781,12 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Custom_Group {
 		$result = civicrm_api( 'CustomGroup', 'get', $params );
 
 		// Append the Custom Groups if we get some.
-		if ( $result['is_error'] == 0 && ! empty( $result['values'] ) ) {
+		if ( empty( $result['is_error'] ) && ! empty( $result['values'] ) ) {
 			foreach ( $result['values'] as $key => $value ) {
 
 				// Skip adding if it extends a sibling Sub-type.
 				if ( ! empty( $subtype ) && ! empty( $value['extends_entity_column_value'] ) ) {
-					if ( ! in_array( $subtype, $value['extends_entity_column_value'] ) ) {
+					if ( ! in_array( $subtype, $value['extends_entity_column_value'], true ) ) {
 						continue;
 					}
 				}

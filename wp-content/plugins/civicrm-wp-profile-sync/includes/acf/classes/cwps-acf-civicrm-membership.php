@@ -57,10 +57,10 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Membership {
 	 * @var array
 	 */
 	public $membership_fields = [
-		//'status_id' => 'select',
-		//'campaign_id' => 'select',
+		// 'status_id' => 'select',
+		// 'campaign_id' => 'select',
 		'num_terms' => 'number',
-		'source' => 'text',
+		'source'    => 'text',
 	];
 
 	/**
@@ -73,9 +73,9 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Membership {
 	public function __construct( $parent ) {
 
 		// Store references to objects.
-		$this->plugin = $parent->acf_loader->plugin;
+		$this->plugin     = $parent->acf_loader->plugin;
 		$this->acf_loader = $parent->acf_loader;
-		$this->civicrm = $parent;
+		$this->civicrm    = $parent;
 
 	}
 
@@ -100,11 +100,11 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Membership {
 
 		// Params to get all free Memberships.
 		$params = [
-			'version' => 3,
-			'sequential' => 1,
-			'is_active' => 1,
+			'version'     => 3,
+			'sequential'  => 1,
+			'is_active'   => 1,
 			'minimum_fee' => 0,
-			'options' => [
+			'options'     => [
 				'limit' => 0,
 			],
 		];
@@ -113,15 +113,16 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Membership {
 		$result = civicrm_api( 'MembershipType', 'get', $params );
 
 		// Add log entry on failure.
-		if ( isset( $result['is_error'] ) && $result['is_error'] == '1' ) {
-			$e = new \Exception();
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
+			$e     = new \Exception();
 			$trace = $e->getTraceAsString();
-			error_log( print_r( [
-				'method' => __METHOD__,
-				'params' => $params,
-				'result' => $result,
+			$log   = [
+				'method'    => __METHOD__,
+				'params'    => $params,
+				'result'    => $result,
 				'backtrace' => $trace,
-			], true ) );
+			];
+			$this->plugin->log_error( $log );
 			return $membership_types;
 		}
 
@@ -162,22 +163,22 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Membership {
 
 		// Params to query Memberships.
 		$params = [
-			'version' => 3,
-			'sequential' => 1,
-			'contact_id' => $contact_id,
+			'version'     => 3,
+			'sequential'  => 1,
+			'contact_id'  => $contact_id,
 			'active_only' => 1,
-			'options' => [
+			'options'     => [
 				'sort' => 'end_date ASC',
 			],
 		];
 
 		// Add the Membership Type ID if supplied.
-		if ( $type_id !== 0 ) {
+		if ( 0 !== $type_id ) {
 			$params['membership_type_id'] = $type_id;
 		}
 
 		// Add the Membership Status ID if supplied.
-		if ( $status_id !== 0 ) {
+		if ( 0 !== $status_id ) {
 			$params['status_id'] = $status_id;
 		}
 
@@ -185,16 +186,17 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Membership {
 		$result = civicrm_api( 'Membership', 'get', $params );
 
 		// Add log entry on failure.
-		if ( isset( $result['is_error'] ) && $result['is_error'] == '1' ) {
-			$e = new \Exception();
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
+			$e     = new \Exception();
 			$trace = $e->getTraceAsString();
-			error_log( print_r( [
-				'method' => __METHOD__,
+			$log   = [
+				'method'     => __METHOD__,
 				'contact_id' => $contact_id,
-				'params' => $params,
-				'result' => $result,
-				'backtrace' => $trace,
-			], true ) );
+				'params'     => $params,
+				'result'     => $result,
+				'backtrace'  => $trace,
+			];
+			$this->plugin->log_error( $log );
 			return $membership_data;
 		}
 
@@ -263,15 +265,16 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Membership {
 		$result = civicrm_api( 'Membership', 'create', $params );
 
 		// Log and bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
-			$e = new Exception();
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
+			$e     = new Exception();
 			$trace = $e->getTraceAsString();
-			error_log( print_r( [
-				'method' => __METHOD__,
-				'params' => $params,
-				'result' => $result,
+			$log   = [
+				'method'    => __METHOD__,
+				'params'    => $params,
+				'result'    => $result,
 				'backtrace' => $trace,
-			], true ) );
+			];
+			$this->plugin->log_error( $log );
 			return $membership;
 		}
 
@@ -303,14 +306,15 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Membership {
 
 		// Log and bail if there's no Membership ID.
 		if ( empty( $data['id'] ) ) {
-			$e = new \Exception();
+			$e     = new \Exception();
 			$trace = $e->getTraceAsString();
-			error_log( print_r( [
-				'method' => __METHOD__,
-				'message' => __( 'A numeric ID must be present to update a Membership.', 'civicrm-wp-profile-sync' ),
-				'data' => $data,
+			$log   = [
+				'method'    => __METHOD__,
+				'message'   => __( 'A numeric ID must be present to update a Membership.', 'civicrm-wp-profile-sync' ),
+				'data'      => $data,
 				'backtrace' => $trace,
-			], true ) );
+			];
+			$this->plugin->log_error( $log );
 			return false;
 		}
 
@@ -340,14 +344,14 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Membership {
 		// Construct API query.
 		$params = [
 			'version' => 3,
-			'id' => $membership_id,
+			'id'      => $membership_id,
 		];
 
 		// Get details via API.
 		$result = civicrm_api( 'Membership', 'get', $params );
 
 		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
 			return $membership;
 		}
 
@@ -392,9 +396,9 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Membership {
 
 		// Construct params.
 		$params = [
-			'version' => 3,
+			'version'    => 3,
 			'api_action' => 'create',
-			'options' => [
+			'options'    => [
 				'limit' => 0, // No limit.
 			],
 		];
@@ -403,16 +407,14 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Membership {
 		$result = civicrm_api( 'Membership', 'getfields', $params );
 
 		// Override return if we get some.
-		if ( $result['is_error'] == 0 && ! empty( $result['values'] ) ) {
+		if ( empty( $result['is_error'] ) && ! empty( $result['values'] ) ) {
 
-			// Check for no filter.
-			if ( $filter == 'none' ) {
+			if ( 'none' === $filter ) {
 
-				// Grab all of them.
+				// Grab all Fields.
 				$fields = $result['values'];
 
-			// Check public filter.
-			} elseif ( $filter == 'public' ) {
+			} elseif ( 'public' === $filter ) {
 
 				// Skip all but those defined in our public Membership Fields array.
 				foreach ( $result['values'] as $key => $value ) {

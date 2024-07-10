@@ -245,7 +245,7 @@ if ( ! class_exists( 'LoginPress_Settings' ) ):
 		 * Returns all the settings fields
 		 *
 		 * @since 1.0.9
-		 * @version 3.0.0
+		 * @version 3.0.8
 		 * @return array settings fields
 		 */
 		function get_settings_fields() {
@@ -311,13 +311,13 @@ if ( ! class_exists( 'LoginPress_Settings' ) ):
 				array(
 					'name'  => 'auto_remember_me',
 					'label' => __( 'Auto Remember Me', 'loginpress' ),
-					'desc'  => sprintf( __( 'Enable to keep the %1$sRemember Me%2$s option always checked on the Login Page.', 'loginpress' ), '<a href="' . esc_url( 'https://loginpress.pro/doc/enable-the-auto-remember-me-checkbox/?utm_source=loginpress-lite' ) . '" target="_blank">', '</a>' ),
+					'desc'  => sprintf( __( 'Enable to keep the %1$sRemember Me%2$s option always checked on the Login Page.', 'loginpress' ), '<a href="' . esc_url( 'https://loginpress.pro/doc/enable-the-auto-remember-me-checkbox?utm_source=loginpress-lite&utm_medium=settings&utm_campaign=user-guide&utm_content=Auto+Remember+Me+Documentation' ) . '" target="_blank">', '</a>' ),
 					'type'  => 'checkbox'
 				),
 				array(
 					'name'  => 'enable_reg_pass_field',
 					'label' => __( 'Custom Password Fields', 'loginpress' ),
-					'desc'  => sprintf( __( 'Enable to add %1$sCustom Password Fields%2$s to the Registration Form.', 'loginpress' ), '<a href="' . esc_url( 'https://loginpress.pro/doc/custom-password-fields-on-the-registration-form/?utm_source=loginpress-lite' ) . '" target="_blank">', '</a>' ),
+					'desc'  => sprintf( __( 'Enable to add %1$sCustom Password Fields%2$s to the Registration Form.', 'loginpress' ), '<a href="' . esc_url( 'https://loginpress.pro/doc/enable-the-auto-remember-me-checkbox?utm_source=loginpress-lite&utm_medium=settings&utm_campaign=user-guide&utm_content=Custom+Password+Fields+Documentation' ) . '" target="_blank">', '</a>' ),
 					'type'  => 'checkbox'
 				),
 				array(
@@ -335,7 +335,7 @@ if ( ! class_exists( 'LoginPress_Settings' ) ):
 				array(
 					'name'  => 'enable_pci_compliance',
 					'label' => __( 'Enable PCI Compliance', 'loginpress' ),
-					'desc'  => sprintf( __( 'Enable to add %1$sPCI Compliance%2$s to WordPress Login Forms.', 'loginpress' ), '<a href="' . esc_url( 'https://loginpress.pro/doc/wordpress-login-page-pci-compliance/?utm_source=loginpress-lite' ) . '" target="_blank">', '</a>' ),
+					'desc'  => sprintf( __( 'Enable to add %1$sPCI Compliance%2$s to WordPress Login Forms.', 'loginpress' ), '<a href="' . esc_url( 'https://loginpress.pro/doc/enable-the-auto-remember-me-checkbox?utm_source=loginpress-lite&utm_medium=settings&utm_campaign=user-guide&utm_content=PCI+Compliance+Documentation' ) . '" target="_blank">', '</a>' ),
 					'type'  => 'checkbox'
 				),
 				// array(
@@ -431,7 +431,7 @@ if ( ! class_exists( 'LoginPress_Settings' ) ):
 		/**
 		 * [loginpress_help_page callback function for sub-page Help]
 		 * @since 1.0.19
-		 * @version 3.0.0
+		 * @version 3.0.8
 		 */
 		function loginpress_help_page(){
 
@@ -445,7 +445,7 @@ if ( ! class_exists( 'LoginPress_Settings' ) ):
 			$html .="<br />";
 
 			if ( ! class_exists( 'LoginPress_Pro' ) ) {
-				$html .= sprintf( __( 'For premium features, add-ons and priority email support, %1$s upgrade to pro%2$s.', 'loginpress' ), '<a href="https://loginpress.pro/pricing/?utm_source=loginpress-lite&utm_medium=help-page&utm_campaign=pro-upgrade" target="_blank">', '</a>' );
+				$html .= sprintf( __( 'For premium features, add-ons and priority email support, %1$s upgrade to pro%2$s.', 'loginpress' ), '<a href="https://loginpress.pro/pricing/?utm_source=loginpress-lite&utm_medium=help-page&utm_campaign=pro-upgrade&utm_content=upgrade-text-link" target="_blank">', '</a>' );
 			} else {
 				$html .= sprintf( __( 'For premium features, add-ons and priority email support, Please submit a question %1$shere%2$s!', 'loginpress' ), '<a href="https://loginpress.pro/contact/" target="_blank">','</a>' );
 			}
@@ -611,13 +611,16 @@ if ( ! class_exists( 'LoginPress_Settings' ) ):
 		 * Call on LoginPress pages at dashboard.
 		 *
 		 * @since 3.0.0
+		 * @version 3.0.8
 		 */
 		public static function loginpress_admin_page_header() {
 
 			if ( ! has_action( 'loginpress_pro_add_template' ) ) {
-				$button_text = '<a href="https://loginpress.pro/pricing/?utm_source=loginpress-lite&utm_medium=top-links&utm_campaign=pro-upgrade" class="loginpress-pro-cta" target="_blank"><span class="dashicons dashicons-star-filled"></span>' . sprintf( __( 'Upgrade%1$s to Pro%2$s', 'loginpress' ), '<span>', '</span>' ) . '</a>';
+				$button_text = '<a href="https://loginpress.pro/pricing/?utm_source=loginpress-lite&utm_medium=top-banner&utm_campaign=pro-upgrade&utm_content=Upgrade+to+Pro+CTA" class="loginpress-pro-cta" target="_blank"><span class="dashicons dashicons-star-filled"></span>' . sprintf( __( 'Upgrade%1$s to Pro%2$s', 'loginpress' ), '<span>', '</span>' ) . '</a>';
+				$documentation_link = 'https://loginpress.pro/documentation/?utm_source=loginpress-lite&utm_medium=top-banner&utm_campaign=pro-upgrade&utm_content=Documentation+CTA';
 			} else {
-				$button_text = '<a href="https://loginpress.pro/contact/?utm_source=loginpress-lite&utm_medium=top-links&utm_campaign=pro-upgrade" class="loginpress-pro-cta" target="_blank">' . esc_html__( 'Support', 'loginpress' ) . '</a>';
+				$button_text = '<a href="https://loginpress.pro/contact?utm_source=loginpress-pro&utm_medium=top-banner&utm_campaign=customer-support&utm_content=Support+CTA" class="loginpress-pro-cta" target="_blank">' . esc_html__( 'Support', 'loginpress' ) . '</a>';
+				$documentation_link = 'https://loginpress.pro/contact?utm_source=loginpress-pro&utm_medium=top-banner&utm_campaign=user-guide&utm_content=Documentation+CTA';
 			}
 			?>
 			<div class="loginpress-header-wrapper">
@@ -627,7 +630,7 @@ if ( ! class_exists( 'LoginPress_Settings' ) ):
 					</div>
 					<div class="loginpress-header-cta">
 						<?php echo $button_text; ?>
-						<a href="https://loginpress.pro/documentation/?utm_source=loginpress-lite&utm_medium=top-links&utm_campaign=pro-upgrade" class="loginpress-documentation" target="_blank"><?php echo esc_html__( 'Documentation', 'loginpress' ); ?></a>
+						<a href="<?php echo esc_url( $documentation_link ); ?>" class="loginpress-documentation" target="_blank"><?php echo esc_html__( 'Documentation', 'loginpress' ); ?></a>
 					</div>
 				</div>
 			</div>

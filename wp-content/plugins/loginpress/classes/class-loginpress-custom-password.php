@@ -8,6 +8,7 @@
  */
 if ( ! class_exists( 'LoginPress_Custom_Password' ) ) :
 
+
 	/**
 	 * LoginPress Custom Passwords class.
 	 * 
@@ -15,7 +16,11 @@ if ( ! class_exists( 'LoginPress_Custom_Password' ) ) :
 	 * @version 1.4.5
 	 */
 	class LoginPress_Custom_Password {
-
+		/**
+		 * @var The single instance of the class
+		 * @since 1.0.0
+		 */
+		public $loginpress_key;
 		/**
 		 * Class Constructor.
 		 */

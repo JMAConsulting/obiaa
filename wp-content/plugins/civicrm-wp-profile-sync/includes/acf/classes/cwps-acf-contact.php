@@ -79,6 +79,15 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 	public $contact_field_prefix = 'caicontact_';
 
 	/**
+	 * Post should not be synced flag.
+	 *
+	 * @since 0.4
+	 * @access public
+	 * @var bool
+	 */
+	public $do_not_sync;
+
+	/**
 	 * Constructor.
 	 *
 	 * @since 0.4
@@ -88,9 +97,9 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 	public function __construct( $parent ) {
 
 		// Store references to objects.
-		$this->plugin = $parent->acf_loader->plugin;
+		$this->plugin     = $parent->acf_loader->plugin;
 		$this->acf_loader = $parent->acf_loader;
-		$this->civicrm = $parent;
+		$this->civicrm    = $parent;
 
 		// Init when the ACF CiviCRM object is loaded.
 		add_action( 'cwps/acf/civicrm/loaded', [ $this, 'initialise' ] );
@@ -140,7 +149,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 
 		// Listen for queries from the ACF Bypass class.
 		// phpcs:ignore Squiz.Commenting.InlineComment.InvalidEndChar
-		//add_filter( 'cwps/acf/bypass/query_settings_field', [ $this, 'query_bypass_settings_field' ], 20, 4 );
+		// add_filter( 'cwps/acf/bypass/query_settings_field', [ $this, 'query_bypass_settings_field' ], 20, 4 );
 		add_filter( 'cwps/acf/bypass/query_settings_choices', [ $this, 'query_bypass_settings_choices' ], 20, 4 );
 
 		// Listen for queries from the ACF Bypass Location Rule class.
@@ -156,7 +165,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 	public function register_mapper_hooks() {
 
 		// Bail if already registered.
-		if ( $this->mapper_hooks === true ) {
+		if ( true === $this->mapper_hooks ) {
 			return;
 		}
 
@@ -177,7 +186,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 	public function unregister_mapper_hooks() {
 
 		// Bail if already unregistered.
-		if ( $this->mapper_hooks === false ) {
+		if ( false === $this->mapper_hooks ) {
 			return;
 		}
 
@@ -217,7 +226,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 
 		// Bail if this Post should not be synced now.
 		$this->do_not_sync = false;
-		$post = $this->acf_loader->post->should_be_synced( $args['post'] );
+		$post              = $this->acf_loader->post->should_be_synced( $args['post'] );
 		if ( false === $post ) {
 			$this->do_not_sync = true;
 			return;
@@ -233,13 +242,13 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 		$contact_id = $this->acf_loader->post->contact_id_get( $post->ID );
 
 		// Does this Post have a Contact ID?
-		if ( $contact_id === false ) {
+		if ( false === $contact_id ) {
 
 			// No - create a Contact.
 			$contact = $this->create_from_post( $post );
 
 			// Store Contact ID if successful.
-			if ( $contact !== false ) {
+			if ( false !== $contact ) {
 				$this->acf_loader->post->contact_id_set( $post->ID, $contact['id'] );
 			}
 
@@ -251,7 +260,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 		}
 
 		// Add our data to the params.
-		$args['contact'] = $contact;
+		$args['contact']    = $contact;
 		$args['contact_id'] = $contact['id'];
 
 		/**
@@ -302,13 +311,13 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 		 * Bail early if this Post Type shouldn't be synced.
 		 * @see self::post_saved()
 		 */
-		if ( $this->do_not_sync === true ) {
+		if ( true === $this->do_not_sync ) {
 			return;
 		}
 
 		// Bail if it's not a Post.
 		$entity = $this->acf_loader->acf->field->entity_type_get( $args['post_id'] );
-		if ( $entity !== 'post' ) {
+		if ( 'post' !== $entity ) {
 			return;
 		}
 
@@ -316,7 +325,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 		$post = get_post( $args['post_id'] );
 
 		// Bail if this is a revision.
-		if ( $post->post_type == 'revision' ) {
+		if ( 'revision' === $post->post_type ) {
 			return;
 		}
 
@@ -324,7 +333,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 		$contact_id = $this->acf_loader->post->contact_id_get( $post->ID );
 
 		// Bail if there isn't one.
-		if ( $contact_id === false ) {
+		if ( false === $contact_id ) {
 			return;
 		}
 
@@ -342,16 +351,16 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 		// TODO: Decide if we should get the ACF Field data without formatting.
 		// This also applies to any calls to get_field_object().
 		// phpcs:ignore Squiz.Commenting.InlineComment.InvalidEndChar
-		//$fields = get_fields( $post->ID, false );
+		// $fields = get_fields( $post->ID, false );
 
 		// Update the Contact with this data.
 		$contact = $this->update_from_fields( $contact_id, $fields, $post->ID );
 
 		// Add our data to the params.
 		$args['contact_id'] = $contact_id;
-		$args['contact'] = $contact;
-		$args['post'] = $post;
-		$args['fields'] = $fields;
+		$args['contact']    = $contact;
+		$args['post']       = $post;
+		$args['fields']     = $fields;
 
 		/**
 		 * Broadcast that a Contact has been updated when ACF Fields were saved.
@@ -445,7 +454,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 		}
 
 		// Assign checksum values.
-		$checksum['checksum'] = trim( wp_unslash( filter_input( INPUT_GET, 'cs' ) ) );
+		$checksum['checksum']   = trim( wp_unslash( filter_input( INPUT_GET, 'cs' ) ) );
 		$checksum['contact_id'] = (int) trim( wp_unslash( filter_input( INPUT_GET, 'cid' ) ) );
 
 		// --<
@@ -478,7 +487,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 
 		// Bail if no "Edit Contact" permission or not a valid checksum.
 		$allowed = CRM_Contact_BAO_Contact_Permission::allow( $checksum['contact_id'], CRM_Core_Permission::EDIT );
-		$valid = CRM_Contact_BAO_Contact_Utils::validChecksum( $checksum['contact_id'], $checksum['checksum'] );
+		$valid   = CRM_Contact_BAO_Contact_Utils::validChecksum( $checksum['contact_id'], $checksum['checksum'] );
 		if ( ! $allowed && ! $valid ) {
 			return $contact_id;
 		}
@@ -507,7 +516,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 		}
 
 		// Get the logged-in Contact.
-		$user = wp_get_current_user();
+		$user       = wp_get_current_user();
 		$contact_id = $this->plugin->mapper->ufmatch->contact_id_get_by_user_id( $user->ID );
 
 		// --<
@@ -521,8 +530,8 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 	 * @since 0.4
 	 *
 	 * @param string $search The search string to query.
-	 * @param array $args The array of search params to query.
-	 * @param array $advanced The array of "Advanced Filter" search params.
+	 * @param array  $args The array of search params to query.
+	 * @param array  $advanced The array of "Advanced Filter" search params.
 	 * @return array|bool $contact_data An array of Contact data, or false on failure.
 	 */
 	public function get_by_search_string( $search, $args = [], $advanced = [] ) {
@@ -550,12 +559,12 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 
 		// Define params to get queried Contacts.
 		$params = [
-			'version' => 3,
+			'version'    => 3,
 			'sequential' => 1,
-			'sort_name' => $search,
-			'sort' => 'sort_name',
-			'action' => $args['action'],
-			'rowCount' => $args['rowCount'],
+			'sort_name'  => $search,
+			'sort'       => 'sort_name',
+			'action'     => $args['action'],
+			'rowCount'   => $args['rowCount'],
 		];
 
 		// Define the returned values.
@@ -593,7 +602,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 		$result = civicrm_api( 'Contact', 'get', $params );
 
 		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
 			return $contact_data;
 		}
 
@@ -603,17 +612,23 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 		}
 
 		// Format the return as per "getlist".
+		$contact_data = [];
 		foreach ( $result['values'] as $value ) {
 			$data = [
-				'id' => $value['id'],
+				'id'    => $value['id'],
 				'label' => $value['sort_name'],
 			];
 			foreach ( $args['return'] as $return ) {
-				if ( $return !== 'sort_name' && ! empty( $value[ $return ] ) ) {
+				if ( 'sort_name' !== $return && ! empty( $value[ $return ] ) ) {
 					$data['description'][] = $value[ $return ];
 				}
 			}
 			$contact_data[] = $data;
+		}
+
+		// Cast as boolean if empty.
+		if ( empty( $contact_data ) ) {
+			$contact_data = false;
 		}
 
 		// --<
@@ -650,10 +665,10 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 
 		// Define params to get queried Contact.
 		$params = [
-			'version' => 3,
+			'version'    => 3,
 			'sequential' => 1,
-			'image_URL' => $image_url,
-			'options' => [
+			'image_URL'  => $image_url,
+			'options'    => [
 				'limit' => 0, // No limit.
 			],
 		];
@@ -662,7 +677,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 		$result = civicrm_api( 'Contact', 'get', $params );
 
 		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
 			return $contacts;
 		}
 
@@ -684,7 +699,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 	 *
 	 * @since 0.5
 	 *
-	 * @param array $contact The array of CiviCRM Contact data.
+	 * @param array  $contact The array of CiviCRM Contact data.
 	 * @param string $contact_type The Contact Type.
 	 * @return integer|bool $contact_id The suggested Contact ID, or false on failure.
 	 */
@@ -701,7 +716,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 		}
 
 		// Get the Dedupe params.
-		$dedupe_params = CRM_Dedupe_Finder::formatParams( $contact, $contact_type );
+		$dedupe_params                     = CRM_Dedupe_Finder::formatParams( $contact, $contact_type );
 		$dedupe_params['check_permission'] = false;
 
 		// Use Dedupe Rules to find possible Contact IDs.
@@ -711,7 +726,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 		$contact_id = false;
 		if ( ! empty( $contact_ids ) ) {
 			$contact_ids = array_reverse( $contact_ids );
-			$contact_id = array_pop( $contact_ids );
+			$contact_id  = array_pop( $contact_ids );
 		}
 
 		return $contact_id;
@@ -723,8 +738,8 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 	 *
 	 * @since 0.5
 	 *
-	 * @param array $contact The array of Contact data.
-	 * @param string $contact_type The Contact Type.
+	 * @param array   $contact The array of Contact data.
+	 * @param string  $contact_type The Contact Type.
 	 * @param integer $dedupe_rule_id The Dedupe Rule ID.
 	 * @return integer|bool $contact_id The numeric Contact ID, or false on failure.
 	 */
@@ -741,7 +756,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 		}
 
 		// Build the Dedupe params.
-		$dedupe_params = CRM_Dedupe_Finder::formatParams( $contact, $contact_type );
+		$dedupe_params                     = CRM_Dedupe_Finder::formatParams( $contact, $contact_type );
 		$dedupe_params['check_permission'] = false;
 
 		// Check for duplicates.
@@ -751,7 +766,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 		$contact_id = false;
 		if ( ! empty( $contact_ids ) ) {
 			$contact_ids = array_reverse( $contact_ids );
-			$contact_id = array_pop( $contact_ids );
+			$contact_id  = array_pop( $contact_ids );
 		}
 
 		// --<
@@ -791,7 +806,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 
 			// Build params to get Dedupe Rule Groups.
 			$params = [
-				'limit' => 0,
+				'limit'            => 0,
 				'checkPermissions' => false,
 			];
 
@@ -856,17 +871,17 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 		$hierarchy = $this->plugin->civicrm->contact_type->hierarchy_get_by_id( $contact_type_id, 'id' );
 
 		// Bail if we didn't get any.
-		if ( $hierarchy === false ) {
+		if ( false === $hierarchy ) {
 			return 0;
 		}
 
 		// Params to query Contacts.
 		$params = [
-			'version' => 3,
-			'contact_type' => $hierarchy['type'],
+			'version'          => 3,
+			'contact_type'     => $hierarchy['type'],
 			'contact_sub_type' => $hierarchy['subtype'],
-			'options' => [
-				'limit' => $limit,
+			'options'          => [
+				'limit'  => $limit,
 				'offset' => $offset,
 			],
 		];
@@ -875,18 +890,19 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 		$result = civicrm_api( 'Contact', 'get', $params );
 
 		// Add log entry on failure.
-		if ( isset( $result['is_error'] ) && $result['is_error'] == '1' ) {
-			$e = new \Exception();
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
+			$e     = new \Exception();
 			$trace = $e->getTraceAsString();
-			error_log( print_r( [
-				'method' => __METHOD__,
+			$log   = [
+				'method'          => __METHOD__,
 				'contact_type_id' => $contact_type_id,
-				'offset' => $offset,
-				'limit' => $limit,
-				'params' => $params,
-				'result' => $result,
-				'backtrace' => $trace,
-			], true ) );
+				'offset'          => $offset,
+				'limit'           => $limit,
+				'params'          => $params,
+				'result'          => $result,
+				'backtrace'       => $trace,
+			];
+			$this->plugin->log_error( $log );
 			return $result;
 		}
 
@@ -909,7 +925,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 	 * @since 0.4
 	 *
 	 * @param array|obj $contact The Contact data.
-	 * @param string $create_post Create a mapped Post if missing. Either 'create' or 'skip'.
+	 * @param string    $create_post Create a mapped Post if missing. Either 'create' or 'skip'.
 	 * @return array|bool $is_mapped An array of Post Types if the Contact is mapped, false otherwise.
 	 */
 	public function is_mapped( $contact, $create_post = 'skip' ) {
@@ -935,7 +951,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 			$post_type = $this->civicrm->contact_type->is_mapped_to_post_type( $contact_type );
 
 			// Skip if this Contact Type is not mapped.
-			if ( $post_type === false ) {
+			if ( false === $post_type ) {
 				continue;
 			}
 
@@ -952,7 +968,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 			}
 
 			// If there's no Contact ID, carry on.
-			if ( $contact_id === false ) {
+			if ( false === $contact_id ) {
 				continue;
 			}
 
@@ -960,7 +976,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 			$post_ids = $this->acf_loader->post->get_by_contact_id( $contact_id, $post_type );
 
 			// Create the Post if it's missing.
-			if ( $post_ids === false && $create_post === 'create' ) {
+			if ( false === $post_ids && 'create' === $create_post ) {
 
 				// Prevent recursion and the resulting unexpected Post creation.
 				if ( doing_action( 'cwps/acf/post/contact/sync' ) ) {
@@ -978,10 +994,10 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 
 				// Let's make an array of params.
 				$args = [
-					'op' => 'sync',
+					'op'         => 'sync',
 					'objectName' => $contact_data['contact_type'],
-					'objectId' => $contact_data['contact_id'],
-					'objectRef' => (object) $contact_data,
+					'objectId'   => $contact_data['contact_id'],
+					'objectRef'  => (object) $contact_data,
 				];
 
 				// Sync this Contact to the Post Type.
@@ -1011,7 +1027,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 	 * @since 0.4
 	 *
 	 * @param array|obj $contact The Contact data.
-	 * @param string $post_type The WordPress Post Type.
+	 * @param string    $post_type The WordPress Post Type.
 	 * @return integer|bool $is_mapped The ID of the WordPress Post if the Contact is mapped, false otherwise.
 	 */
 	public function is_mapped_to_post( $contact, $post_type = 'any' ) {
@@ -1028,7 +1044,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 
 		// Bail if none of this Contact's Contact Types is mapped.
 		$post_types = $this->is_mapped( $contact );
-		if ( $post_types === false ) {
+		if ( false === $post_types ) {
 			return $is_mapped;
 		}
 
@@ -1098,7 +1114,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 		if ( empty( $contact_id ) ) {
 
 			// Assign new Contact Type data.
-			$contact_data['contact_type'] = $contact_types['type'];
+			$contact_data['contact_type']     = $contact_types['type'];
 			$contact_data['contact_sub_type'] = $contact_types['subtype'];
 
 		} else {
@@ -1113,7 +1129,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 			$contact_data['contact_type'] = $hierarchy['type'];
 
 			// Merge existing and new Contact Subtype data.
-			$subtypes = array_unique( array_merge( $hierarchy['subtype'], $contact_types['subtype'] ) );
+			$subtypes                         = array_unique( array_merge( $hierarchy['subtype'], $contact_types['subtype'] ) );
 			$contact_data['contact_sub_type'] = $subtypes;
 
 		}
@@ -1131,20 +1147,20 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 		}
 
 		// Remove Subtype when empty.
-		if ( $empty_subtype === true ) {
+		if ( true === $empty_subtype ) {
 			unset( $contact_data['contact_sub_type'] );
 		}
 
 		// Set mandatory Fields for Contacts depending on their Contact Type.
-		if ( $contact_data['contact_type'] == 'Organization' ) {
+		if ( 'Organization' === $contact_data['contact_type'] ) {
 			$contact_data['organization_name'] = $contact_data['display_name'];
 		}
-		if ( $contact_data['contact_type'] == 'Household' ) {
+		if ( 'Household' === $contact_data['contact_type'] ) {
 			$contact_data['household_name'] = $contact_data['display_name'];
 		}
 
 		// Set a status for the Contact depending on the Post status.
-		if ( $post->post_status == 'trash' ) {
+		if ( 'trash' === $post->post_status ) {
 			$contact_data['is_deleted'] = 1;
 		} else {
 			/*
@@ -1288,8 +1304,8 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 	 *
 	 * @since 0.4
 	 *
-	 * @param integer $contact_id The numeric ID of the Contact.
-	 * @param array $fields The ACF Field data.
+	 * @param integer        $contact_id The numeric ID of the Contact.
+	 * @param array          $fields The ACF Field data.
 	 * @param integer|string $post_id The ACF "Post ID".
 	 * @return array $contact_data The CiviCRM Contact data.
 	 */
@@ -1313,7 +1329,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 			$settings = get_field_object( $selector, $post_id );
 
 			// Get the CiviCRM Custom Field and Contact Field.
-			$custom_field_id = $this->civicrm->custom_field->custom_field_id_get( $settings );
+			$custom_field_id    = $this->civicrm->custom_field->custom_field_id_get( $settings );
 			$contact_field_name = $this->contact_field_name_get( $settings );
 
 			// Do we have a synced Custom Field or Contact Field?
@@ -1331,7 +1347,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 					$code = $contact_field_name;
 
 					// Skip if it's a Field that requires special handling.
-					if ( in_array( $code, $fields_handled ) ) {
+					if ( in_array( $code, $fields_handled, true ) ) {
 						continue;
 					}
 
@@ -1339,12 +1355,12 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 
 				// Build args for value conversion.
 				$args = [
-					'identifier' => $this->identifier,
-					'entity_id' => $contact_id,
+					'identifier'      => $this->identifier,
+					'entity_id'       => $contact_id,
 					'custom_field_id' => $custom_field_id,
-					'field_name' => $contact_field_name,
-					'selector' => $selector,
-					'post_id' => $post_id,
+					'field_name'      => $contact_field_name,
+					'selector'        => $selector,
+					'post_id'         => $post_id,
 				];
 
 				// Parse value by Field Type.
@@ -1367,8 +1383,8 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 	 *
 	 * @since 0.4
 	 *
-	 * @param integer $contact_id The numeric ID of the Contact.
-	 * @param array $fields The ACF Field data.
+	 * @param integer        $contact_id The numeric ID of the Contact.
+	 * @param array          $fields The ACF Field data.
 	 * @param integer|string $post_id The ACF "Post ID".
 	 * @return array|bool $contact The CiviCRM Contact data, or false on failure.
 	 */
@@ -1430,20 +1446,20 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 
 		// Define Field.
 		$field = [
-			'key' => $this->civicrm->acf_field_key_get(),
-			'label' => __( 'CiviCRM Field', 'civicrm-wp-profile-sync' ),
-			'name' => $this->civicrm->acf_field_key_get(),
-			'type' => 'select',
-			'instructions' => __( 'Choose the CiviCRM Field that this ACF Field should sync with. (Optional)', 'civicrm-wp-profile-sync' ),
+			'key'           => $this->civicrm->acf_field_key_get(),
+			'label'         => __( 'CiviCRM Field', 'civicrm-wp-profile-sync' ),
+			'name'          => $this->civicrm->acf_field_key_get(),
+			'type'          => 'select',
+			'instructions'  => __( 'Choose the CiviCRM Field that this ACF Field should sync with. (Optional)', 'civicrm-wp-profile-sync' ),
 			'default_value' => '',
-			'placeholder' => '',
-			'allow_null' => 1,
-			'multiple' => 0,
-			'ui' => 0,
-			'required' => 0,
+			'placeholder'   => '',
+			'allow_null'    => 1,
+			'multiple'      => 0,
+			'ui'            => 0,
+			'required'      => 0,
 			'return_format' => 'value',
-			'parent' => $this->acf_loader->acf->field_group->placeholder_group_get(),
-			'choices' => $choices,
+			'parent'        => $this->acf_loader->acf->field_group->placeholder_group_get(),
+			'choices'       => $choices,
 		];
 
 		// --<
@@ -1536,7 +1552,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 	 * @param array $choices The existing array of choices for the Setting Field.
 	 * @param array $field The ACF Field data array.
 	 * @param array $field_group The ACF Field Group data array.
-	 * @param bool $skip_check True if the check for Field Group should be skipped. Default false.
+	 * @param bool  $skip_check True if the check for Field Group should be skipped. Default false.
 	 * @return array $choices The modified array of choices for the Setting Field.
 	 */
 	public function query_setting_choices( $choices, $field, $field_group, $skip_check = false ) {
@@ -1822,7 +1838,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 		}
 
 		// Add Option Group.
-		$contact_types_title = esc_attr( __( 'Contact Types', 'civicrm-wp-profile-sync' ) );
+		$contact_types_title              = esc_attr( __( 'Contact Types', 'civicrm-wp-profile-sync' ) );
 		$entities[ $contact_types_title ] = [];
 
 		// Add entries for each CiviCRM Contact Type.
@@ -1856,20 +1872,20 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 	 *
 	 * @since 0.4
 	 *
-	 * @param bool $mapped The existing mapping flag.
+	 * @param bool  $mapped The existing mapping flag.
 	 * @param array $field_group The array of ACF Field Group data.
 	 * @return bool $mapped True if the Field Group is mapped, or pass through if not mapped.
 	 */
 	public function query_field_group_mapped( $mapped, $field_group ) {
 
 		// Bail if a Mapping has already been found.
-		if ( $mapped !== false ) {
+		if ( false !== $mapped ) {
 			return $mapped;
 		}
 
 		// Bail if this is not a Contact Field Group.
 		$is_contact_field_group = $this->is_contact_field_group( $field_group );
-		if ( $is_contact_field_group === false ) {
+		if ( false === $is_contact_field_group ) {
 			return $mapped;
 		}
 
@@ -1891,7 +1907,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 
 		// Bail if this is not a Contact Field Group.
 		$is_contact_field_group = $this->is_contact_field_group( $field_group );
-		if ( $is_contact_field_group === false || empty( $is_contact_field_group ) ) {
+		if ( false === $is_contact_field_group || empty( $is_contact_field_group ) ) {
 			return $custom_fields;
 		}
 
@@ -1937,7 +1953,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 	 * @since 0.4
 	 *
 	 * @param array|bool $post_ids The existing "Post IDs".
-	 * @param array $args The array of CiviCRM Custom Fields params.
+	 * @param array      $args The array of CiviCRM Custom Fields params.
 	 * @return array|bool $post_id The mapped "Post IDs", or false if not mapped.
 	 */
 	public function query_post_id( $post_ids, $args ) {
@@ -1949,7 +1965,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 		foreach ( $args['custom_fields'] as $field ) {
 
 			// Skip if it is not attached to a Contact.
-			if ( $field['entity_table'] != 'civicrm_contact' ) {
+			if ( 'civicrm_contact' !== $field['entity_table'] ) {
 				continue;
 			}
 
@@ -1962,19 +1978,19 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 		}
 
 		// Bail if there's no Contact ID.
-		if ( $contact_id === false ) {
+		if ( false === $contact_id ) {
 			return $post_ids;
 		}
 
 		// Grab Contact.
 		$contact = $this->get_by_id( $contact_id );
-		if ( $contact === false ) {
+		if ( false === $contact ) {
 			return $post_ids;
 		}
 
 		// Bail if none of this Contact's Contact Types is mapped.
 		$post_types = $this->is_mapped( $contact, 'create' );
-		if ( $post_types === false ) {
+		if ( false === $post_types ) {
 			return $post_ids;
 		}
 
@@ -1991,7 +2007,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 			$ids = $this->acf_loader->post->get_by_contact_id( $contact_id, $post_type );
 
 			// Skip if not mapped.
-			if ( $ids === false ) {
+			if ( false === $ids ) {
 				continue;
 			}
 
@@ -1999,7 +2015,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 			foreach ( $ids as $id ) {
 
 				// Exclude "reverse" edits when a Post is the originator.
-				if ( $entity['entity'] !== 'post' || $id != $entity['id'] ) {
+				if ( 'post' !== $entity['entity'] || (int) $id !== (int) $entity['id'] ) {
 					$contact_post_ids[] = $id;
 				}
 
@@ -2040,7 +2056,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 
 		// Bail if this is not a Contact Field Group.
 		$is_visible = $this->is_contact_field_group( $field_group );
-		if ( $is_visible === false ) {
+		if ( false === $is_visible ) {
 			return $entity_tables;
 		}
 
@@ -2077,8 +2093,8 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 			return $pseudocache[ $field_group['ID'] ];
 		}
 
-		// Assume not a Contact Field Group.
-		$is_contact_field_group = false;
+		// Init return.
+		$is_contact_field_group = [];
 
 		// If Location Rules exist.
 		if ( ! empty( $field_group['location'] ) ) {
@@ -2109,6 +2125,11 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 
 			}
 
+		}
+
+		// Cast as boolean on failure.
+		if ( empty( $is_contact_field_group ) ) {
+			$is_contact_field_group = false;
 		}
 
 		// Maybe add to pseudo-cache.

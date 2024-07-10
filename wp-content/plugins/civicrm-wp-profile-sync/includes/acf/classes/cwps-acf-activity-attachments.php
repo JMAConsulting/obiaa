@@ -95,9 +95,9 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Attachments {
 	public function __construct( $parent ) {
 
 		// Store references to objects.
-		$this->plugin = $parent->acf_loader->plugin;
+		$this->plugin     = $parent->acf_loader->plugin;
 		$this->acf_loader = $parent->acf_loader;
-		$this->civicrm = $parent;
+		$this->civicrm    = $parent;
 
 		// Init when the ACF CiviCRM object is loaded.
 		add_action( 'cwps/acf/civicrm/loaded', [ $this, 'initialise' ] );
@@ -138,7 +138,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Attachments {
 
 		// Include Shortcode class files.
 		// phpcs:ignore Squiz.Commenting.InlineComment.InvalidEndChar
-		//include CIVICRM_WP_PROFILE_SYNC_PATH . 'includes/acf/shortcodes/cwps-shortcode-attachment.php';
+		// include CIVICRM_WP_PROFILE_SYNC_PATH . 'includes/acf/shortcodes/cwps-shortcode-attachment.php';
 
 	}
 
@@ -151,7 +151,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Attachments {
 
 		// Init Shortcode objects.
 		// phpcs:ignore Squiz.Commenting.InlineComment.InvalidEndChar
-		//$this->shortcode_attachment = new CiviCRM_Profile_Sync_ACF_Shortcode_Attachment( $this );
+		// $this->shortcode_attachment = new CiviCRM_Profile_Sync_ACF_Shortcode_Attachment( $this );
 
 	}
 
@@ -170,7 +170,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Attachments {
 
 		// Intercept Post created from Activity events.
 		// phpcs:ignore Squiz.Commenting.InlineComment.InvalidEndChar
-		//add_action( 'cwps/acf/post/activity/sync', [ $this, 'fields_handled_update' ], 10 );
+		// add_action( 'cwps/acf/post/activity/sync', [ $this, 'fields_handled_update' ], 10 );
 
 		/*
 		 * Intercept events that require CiviCRM Attachment updates.
@@ -201,7 +201,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Attachments {
 	public function register_mapper_hooks() {
 
 		// Bail if already registered.
-		if ( $this->mapper_hooks === true ) {
+		if ( true === $this->mapper_hooks ) {
 			return;
 		}
 
@@ -223,7 +223,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Attachments {
 	public function unregister_mapper_hooks() {
 
 		// Bail if already unregistered.
-		if ( $this->mapper_hooks === false ) {
+		if ( false === $this->mapper_hooks ) {
 			return;
 		}
 
@@ -284,17 +284,17 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Attachments {
 	 *
 	 * @since 0.5.4
 	 *
-	 * @param string $field The ACF Field selector.
-	 * @param mixed $value The ACF Field value.
+	 * @param string  $field The ACF Field selector.
+	 * @param mixed   $value The ACF Field value.
 	 * @param integer $activity_id The numeric ID of the Activity.
-	 * @param array $settings The ACF Field settings.
-	 * @param array $args The array of WordPress params.
+	 * @param array   $settings The ACF Field settings.
+	 * @param array   $args The array of WordPress params.
 	 * @return bool True if updates were successful, or false on failure.
 	 */
 	public function field_handled_update( $field, $value, $activity_id, $settings, $args ) {
 
 		// Skip if it's not an ACF Field Type that this class handles.
-		if ( ! in_array( $settings['type'], $this->fields_handled ) ) {
+		if ( ! in_array( $settings['type'], $this->fields_handled, true ) ) {
 			return true;
 		}
 
@@ -362,7 +362,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Attachments {
 	 *
 	 * @since 0.5.4
 	 *
-	 * @param array $value The array of Attachment Record data in the ACF Field.
+	 * @param array   $value The array of Attachment Record data in the ACF Field.
 	 * @param integer $attachment_id The numeric ID of the Attachment Record (or null if new).
 	 * @return array $attachment_data The CiviCRM Attachment Record data.
 	 */
@@ -377,7 +377,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Attachments {
 		}
 
 		// Convert ACF data to CiviCRM data.
-		$attachment_data['file'] = (int) trim( $value['field_attachment_file'] );
+		$attachment_data['file']        = (int) trim( $value['field_attachment_file'] );
 		$attachment_data['description'] = trim( $value['field_attachment_description'] );
 
 		// --<
@@ -405,10 +405,10 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Attachments {
 
 		// Convert CiviCRM data to ACF data.
 		$attachment_data['field_attachment_description'] = empty( $value->description ) ? '' : trim( $value->description );
-		$attachment_data['field_attachment_id'] = (int) $value->id;
+		$attachment_data['field_attachment_id']          = (int) $value->id;
 
 		// Add existing Attachment ID if we find one.
-		$filename = pathinfo( $value->path, PATHINFO_BASENAME );
+		$filename    = pathinfo( $value->path, PATHINFO_BASENAME );
 		$possible_id = $this->civicrm->attachment->query_by_file( $filename, 'civicrm' );
 		if ( ! empty( $possible_id ) ) {
 			$attachment_data['field_attachment_file'] = (int) $possible_id;
@@ -464,11 +464,11 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Attachments {
 
 		// Create an array that mimics $_FILES.
 		$files = [
-			'name' => $name,
-			'type' => $mime_type,
+			'name'     => $name,
+			'type'     => $mime_type,
 			'tmp_name' => $tmp_name,
-			'error' => $error,
-			'size' => $size,
+			'error'    => $error,
+			'size'     => $size,
 		];
 
 		// Only assign to a Post if the ACF "Post ID" is numeric.
@@ -496,7 +496,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Attachments {
 		$data = [
 			'wordpress_file' => get_attached_file( $attachment_id, true ),
 			// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-			'civicrm_file' => $config->customFileUploadDir . $value,
+			'civicrm_file'   => $config->customFileUploadDir . $value,
 		];
 
 		// Store some Attachment metadata.
@@ -514,10 +514,10 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Attachments {
 	 *
 	 * @since 0.5.4
 	 *
-	 * @param array $values The array of Attachment Record arrays.
+	 * @param array   $values The array of Attachment Record arrays.
 	 * @param integer $activity_id The numeric ID of the Activity.
-	 * @param string $selector The ACF Field selector.
-	 * @param array $args The array of WordPress params.
+	 * @param string  $selector The ACF Field selector.
+	 * @param array   $args The array of WordPress params.
 	 * @return array|bool $attachments The array of Attachment Record data, or false on failure.
 	 */
 	public function attachments_update( $values, $activity_id, $selector, $args = [] ) {
@@ -544,16 +544,16 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Attachments {
 
 				// Build params for internal method.
 				$params = [
-					'key' => $key,
-					'value' => $value,
+					'key'             => $key,
+					'value'           => $value,
 					'attachment_data' => $attachment_data,
-					'activity_id' => $activity_id,
-					'selector' => $selector,
+					'activity_id'     => $activity_id,
+					'selector'        => $selector,
 				];
 
 				// Hand off to internal method.
 				$attachment = $this->attachment_create( $params, $args );
-				if ( $attachment === false ) {
+				if ( false === $attachment ) {
 					continue;
 				}
 
@@ -595,13 +595,16 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Attachments {
 		$acf_attachment_ids = wp_list_pluck( $values, 'field_attachment_id' );
 
 		// Sanitise array contents.
-		array_walk( $acf_attachment_ids, function( &$item ) {
-			$item = (int) trim( $item );
-		} );
+		array_walk(
+			$acf_attachment_ids,
+			function( &$item ) {
+				$item = (int) trim( $item );
+			}
+		);
 
 		// Records to delete are missing from the ACF data.
 		foreach ( $current as $current_attachment ) {
-			if ( ! in_array( $current_attachment['id'], $acf_attachment_ids ) ) {
+			if ( ! in_array( (int) $current_attachment['id'], $acf_attachment_ids, true ) ) {
 				$actions['delete'][] = $current_attachment['id'];
 				continue;
 			}
@@ -615,16 +618,16 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Attachments {
 
 			// Build params for internal method.
 			$params = [
-				'key' => $key,
-				'value' => $value,
+				'key'             => $key,
+				'value'           => $value,
 				'attachment_data' => $attachment_data,
-				'activity_id' => $activity_id,
-				'selector' => $selector,
+				'activity_id'     => $activity_id,
+				'selector'        => $selector,
 			];
 
 			// Hand off to internal method.
 			$attachment = $this->attachment_create( $params, $args );
-			if ( $attachment === false ) {
+			if ( false === $attachment ) {
 				continue;
 			}
 
@@ -661,14 +664,14 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Attachments {
 
 			// Has the WordPress File changed?
 			$wordpress_file_changed = false;
-			$file = get_attached_file( $attachment_id, true );
+			$file                   = get_attached_file( $attachment_id, true );
 			if ( $meta['wordpress_file'] !== $file ) {
 				$wordpress_file_changed = true;
 			}
 
 			// Has the File Description changed?
 			$description_changed = false;
-			$file = get_attached_file( $attachment_id, true );
+			$file                = get_attached_file( $attachment_id, true );
 			if ( $attachment_data['description'] !== $civicrm_attachment['description'] ) {
 				$description_changed = true;
 			}
@@ -683,7 +686,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Attachments {
 
 				// Build the API params.
 				$params = [
-					'id' => $civicrm_attachment['id'],
+					'id'          => $civicrm_attachment['id'],
 					'description' => $attachment_data['description'],
 				];
 
@@ -692,11 +695,11 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Attachments {
 
 				// Make an array of our params.
 				$params = [
-					'key' => $key,
-					'value' => $value,
-					'attachment' => $attachment,
+					'key'         => $key,
+					'value'       => $value,
+					'attachment'  => $attachment,
 					'activity_id' => $activity_id,
-					'selector' => $selector,
+					'selector'    => $selector,
 				];
 
 				/**
@@ -732,16 +735,16 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Attachments {
 
 			// Build params for internal method.
 			$params = [
-				'key' => $key,
-				'value' => $value,
+				'key'             => $key,
+				'value'           => $value,
 				'attachment_data' => $attachment_data,
-				'activity_id' => $activity_id,
-				'selector' => $selector,
+				'activity_id'     => $activity_id,
+				'selector'        => $selector,
 			];
 
 			// Hand off to internal method.
 			$attachment = $this->attachment_create( $params, $args );
-			if ( $attachment === false ) {
+			if ( false === $attachment ) {
 				continue;
 			}
 
@@ -772,8 +775,8 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Attachments {
 		$attachment_id = (int) $data['attachment_data']['file'];
 
 		// Get the WordPress File, Filename and Mime Type.
-		$file = get_attached_file( $attachment_id, true );
-		$filename = pathinfo( $file, PATHINFO_BASENAME );
+		$file      = get_attached_file( $attachment_id, true );
+		$filename  = pathinfo( $file, PATHINFO_BASENAME );
 		$mime_type = get_post_mime_type( $attachment_id );
 
 		// Make a backup of the File.
@@ -781,12 +784,12 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Attachments {
 
 		// Build the API params.
 		$params = [
-			'entity_id' => $data['activity_id'],
+			'entity_id'    => $data['activity_id'],
 			'entity_table' => 'civicrm_activity',
-			'name' => $filename,
-			'description' => $data['attachment_data']['description'],
-			'mime_type' => $mime_type,
-			'options' => [
+			'name'         => $filename,
+			'description'  => $data['attachment_data']['description'],
+			'mime_type'    => $mime_type,
+			'options'      => [
 				'move-file' => $file,
 			],
 		];
@@ -799,14 +802,14 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Attachments {
 		@unlink( $backup );
 
 		// Skip if we failed to create the Attachment.
-		if ( $attachment === false ) {
+		if ( false === $attachment ) {
 			return false;
 		}
 
 		// Save metadata.
 		$meta = [
 			'wordpress_file' => $file,
-			'civicrm_file' => $attachment['path'],
+			'civicrm_file'   => $attachment['path'],
 		];
 
 		// Store some Attachment metadata.
@@ -814,11 +817,11 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Attachments {
 
 		// Make an array of our params.
 		$params = [
-			'key' => $data['key'],
-			'value' => $data['value'],
-			'attachment' => $attachment,
+			'key'         => $data['key'],
+			'value'       => $data['value'],
+			'attachment'  => $attachment,
 			'activity_id' => $data['activity_id'],
-			'selector' => $data['selector'],
+			'selector'    => $data['selector'],
 		];
 
 		/**
@@ -845,8 +848,8 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Attachments {
 	 *
 	 * @param integer $attachment_id The numeric ID of the CiviCRM Attachment.
 	 * @param integer $activity_id The numeric ID of the Activity.
-	 * @param string $selector The ACF Field selector.
-	 * @param array $args The array of WordPress params.
+	 * @param string  $selector The ACF Field selector.
+	 * @param array   $args The array of WordPress params.
 	 */
 	public function attachment_delete( $attachment_id, $activity_id, $selector, $args = [] ) {
 
@@ -856,9 +859,9 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Attachments {
 		// Make an array of our params.
 		$params = [
 			'attachment_id' => $attachment_id,
-			'attachment' => $attachment,
-			'activity_id' => $activity_id,
-			'selector' => $selector,
+			'attachment'    => $attachment,
+			'activity_id'   => $activity_id,
+			'selector'      => $selector,
 		];
 
 		/**
@@ -893,7 +896,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Attachments {
 		}
 
 		// Bail if this is not an Activity Attachment.
-		if ( $attachment->entity_table !== 'civicrm_activity' ) {
+		if ( 'civicrm_activity' !== $attachment->entity_table ) {
 			return;
 		}
 
@@ -920,7 +923,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Attachments {
 		}
 
 		// Bail if this is not an Activity Attachment.
-		if ( $attachment->entity_table !== 'civicrm_activity' ) {
+		if ( 'civicrm_activity' !== $attachment->entity_table ) {
 			return;
 		}
 
@@ -935,7 +938,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Attachments {
 	 * @since 0.5.4
 	 *
 	 * @param object $attachment The CiviCRM Attachment Record object.
-	 * @param array $args The array of CiviCRM params.
+	 * @param array  $args The array of CiviCRM params.
 	 */
 	public function attachment_process( $attachment, $args ) {
 
@@ -950,16 +953,16 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Attachments {
 
 		// Bail if this Activity's Activity Type is not mapped.
 		$post_type = $this->civicrm->activity->is_mapped( $activity, 'create' );
-		if ( $post_type === false ) {
+		if ( false === $post_type ) {
 			return;
 		}
 
 		// Get the Post ID for this Activity.
 		$post_id = $this->civicrm->activity->is_mapped_to_post( $activity, $post_type );
-		if ( $post_id !== false ) {
+		if ( false !== $post_id ) {
 
 			// Exclude "reverse" edits when a Post is the originator.
-			if ( $entity['entity'] === 'post' && $post_id == $entity['id'] ) {
+			if ( 'post' === $entity['entity'] && $post_id == $entity['id'] ) {
 				return;
 			}
 
@@ -987,8 +990,8 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Attachments {
 	 * @since 0.5.4
 	 *
 	 * @param integer|string $post_id The ACF "Post ID".
-	 * @param object $attachment The CiviCRM Attachment Record object.
-	 * @param array $args The array of CiviCRM params.
+	 * @param object         $attachment The CiviCRM Attachment Record object.
+	 * @param array          $args The array of CiviCRM params.
 	 */
 	public function fields_update( $post_id, $attachment, $args ) {
 
@@ -1007,7 +1010,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Attachments {
 			$existing = get_field( $selector, $post_id );
 
 			// Before applying edit, make some checks.
-			if ( $args['op'] == 'edit' ) {
+			if ( 'edit' === $args['op'] ) {
 
 				// If there is no existing Field value, treat as a 'create' op.
 				if ( empty( $existing ) ) {
@@ -1018,12 +1021,15 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Attachments {
 					$acf_attachment_ids = wp_list_pluck( $existing, 'field_attachment_id' );
 
 					// Sanitise array contents.
-					array_walk( $acf_attachment_ids, function( &$item ) {
-						$item = (int) trim( $item );
-					} );
+					array_walk(
+						$acf_attachment_ids,
+						function( &$item ) {
+							$item = (int) trim( $item );
+						}
+					);
 
 					// If the ID is missing, treat as a 'create' op.
-					if ( ! in_array( $attachment->id, $acf_attachment_ids ) ) {
+					if ( ! in_array( (int) $attachment->id, $acf_attachment_ids, true ) ) {
 						$args['op'] = 'create';
 					}
 
@@ -1038,10 +1044,9 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Attachments {
 			switch ( $args['op'] ) {
 
 				case 'create':
-
 					// If the WordPress Attachment ID is empty, create one.
 					if ( empty( $acf_attachment['field_attachment_file'] ) ) {
-						$filename = pathinfo( $attachment->path, PATHINFO_BASENAME );
+						$filename      = pathinfo( $attachment->path, PATHINFO_BASENAME );
 						$attachment_id = $this->attachment_wp_create( $filename, $post_id );
 						if ( ! empty( $attachment_id ) ) {
 							$acf_attachment['field_attachment_file'] = $attachment_id;
@@ -1050,14 +1055,12 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Attachments {
 
 					// Add array record.
 					$existing[] = $acf_attachment;
-
 					break;
 
 				case 'edit':
-
 					// If the WordPress Attachment ID is empty, create one.
 					if ( empty( $acf_attachment['field_attachment_file'] ) ) {
-						$filename = pathinfo( $attachment->path, PATHINFO_BASENAME );
+						$filename      = pathinfo( $attachment->path, PATHINFO_BASENAME );
 						$attachment_id = $this->attachment_wp_create( $filename, $post_id );
 						if ( ! empty( $attachment_id ) ) {
 							$acf_attachment['field_attachment_file'] = $attachment_id;
@@ -1071,11 +1074,9 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Attachments {
 							break;
 						}
 					}
-
 					break;
 
 				case 'delete':
-
 					// If the WordPress Attachment ID is not empty, delete it.
 					if ( ! empty( $acf_attachment['field_attachment_file'] ) ) {
 						wp_delete_attachment( $acf_attachment['field_attachment_file'], true );
@@ -1088,7 +1089,6 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Attachments {
 							break;
 						}
 					}
-
 					break;
 
 			}
@@ -1121,15 +1121,15 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Attachments {
 	 *
 	 * @since 0.5.4
 	 *
-	 * @param array $acf_fields The existing ACF Fields array.
-	 * @param array $field The ACF Field.
+	 * @param array   $acf_fields The existing ACF Fields array.
+	 * @param array   $field The ACF Field.
 	 * @param integer $post_id The numeric ID of the WordPress Post.
 	 * @return array $acf_fields The modified ACF Fields array.
 	 */
 	public function acf_fields_get_for_post( $acf_fields, $field, $post_id ) {
 
 		// Add if it has a reference to an Attachments Field.
-		if ( ! empty( $field['type'] ) && $field['type'] == 'civicrm_attachment' ) {
+		if ( ! empty( $field['type'] ) && 'civicrm_attachment' === $field['type'] ) {
 			$acf_fields['attachments'][ $field['name'] ] = $field['type'];
 		}
 
@@ -1165,7 +1165,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Attachments {
 		}
 
 		// Skip filter if using WordPress File.
-		if ( (int) $field['file_link'] === 1 ) {
+		if ( (int) 1 === $field['file_link'] ) {
 			return $value;
 		}
 
@@ -1192,7 +1192,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Attachments {
 			}
 
 			// Try and find the CiviCRM File data.
-			$filename = pathinfo( $meta['civicrm_file'], PATHINFO_BASENAME );
+			$filename     = pathinfo( $meta['civicrm_file'], PATHINFO_BASENAME );
 			$civicrm_file = $this->civicrm->attachment->file_get_by_name( $filename );
 			if ( empty( $civicrm_file ) ) {
 				continue;
@@ -1231,7 +1231,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Attachments {
 		}
 
 		// Skip filter if using WordPress File.
-		if ( (int) $field['file_link'] === 1 ) {
+		if ( (int) 1 === $field['file_link'] ) {
 			return;
 		}
 
@@ -1263,7 +1263,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Attachments {
 			}
 
 			// Try and find the CiviCRM File data.
-			$filename = pathinfo( $meta['civicrm_file'], PATHINFO_BASENAME );
+			$filename     = pathinfo( $meta['civicrm_file'], PATHINFO_BASENAME );
 			$civicrm_file = $this->civicrm->attachment->file_get_by_name( $filename );
 			if ( empty( $civicrm_file ) ) {
 				continue;
@@ -1287,8 +1287,8 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Attachments {
 	 *
 	 * @since 0.5.4
 	 *
-	 * @param array $response The array of loaded Attachment data.
-	 * @param WP_Post $attachment The Attachment object.
+	 * @param array       $response The array of loaded Attachment data.
+	 * @param WP_Post     $attachment The Attachment object.
 	 * @param array|false $meta The array of Attachment metadata, or false if there is none.
 	 * @return mixed $response The modified array of Attachment data.
 	 */
@@ -1326,7 +1326,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Attachments {
 		$entity = $this->acf_loader->acf->field->entity_type_get( $args['post_id'] );
 
 		// Check permissions if it's a Post.
-		if ( $entity === 'post' ) {
+		if ( 'post' === $entity ) {
 			if ( ! current_user_can( 'edit_post', $args['post_id'] ) ) {
 				return;
 			}

@@ -45,8 +45,10 @@ class LoginPress_Presets extends WP_Customize_Control {
 	/**
 	* Displays the control content.
 	*
-	* @since  1.0.9
 	* @access public
+	*
+	* @since  1.0.9
+	* @version 3.0.8
 	* @return void
 	*/
 	public function render_content() {
@@ -80,7 +82,8 @@ class LoginPress_Presets extends WP_Customize_Control {
 						<h3><?php echo $val['name'] ?></h3>
 					</label>
 					<?php if ( isset( $val['pro'] ) ) : ?>
-						<a href="https://loginpress.pro/pricing/?utm_source=loginpress-lite&utm_medium=themes&utm_campaign=pro-upgrade" target="_blank" class="no-available">
+						<?php $utm_content = str_replace( ' ', '+', str_replace( ' #2', '#2', $val['name'] ) ) . '+Template'; ?>
+						<a href="https://loginpress.pro/pricing/?utm_source=loginpress-lite&utm_medium=customizer-themes&utm_campaign=pro-upgrade&utm_content=<?php echo esc_html( $utm_content ); ?>" target="_blank" class="no-available">
 							<span><?php _e( 'Unlock Premium Feature', 'loginpress' ); ?></span>
 						</a>
 					<?php elseif ( isset( $val['link'] ) ) : ?>

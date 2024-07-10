@@ -1,11 +1,11 @@
 <?php
 /**
 * Plugin Name: LoginPress
-* Plugin URI: https://loginpress.pro/?utm_source=loginpress-lite&utm_medium=plugin-inside&utm_campaign=pro-upgrade&utm_content=plugin_uri
-* Description: LoginPress is the best <code>wp-login</code> Login Page Customizer plugin by <a href="https://wpbrigade.com/?utm_source=loginpress-lite">WPBrigade</a> which allows you to completely change the layout of login, register and forgot password forms.
-* Version: 3.0.5
+* Plugin URI: https://loginpress.pro?utm_source=loginpress-lite&utm_medium=plugin-header&utm_campaign=pro-upgrade&utm_content=plugin-uri
+* Description: LoginPress is the best <code>wp-login</code> Login Page Customizer plugin by <a href="https://wpbrigade.com/?utm_source=loginpress-lite&utm_medium=plugins&utm_campaign=wpbrigade-home&utm_content=WPBrigade-text-link">WPBrigade</a> which allows you to completely change the layout of login, register and forgot password forms.
+* Version: 3.1.0
 * Author: LoginPress
-* Author URI: https://loginpress.pro/?utm_source=loginpress-lite
+* Author URI: https://loginpress.pro?utm_source=loginpress-lite&utm_medium=plugin-header&utm_campaign=pro-upgrade&utm_content=author-uri
 * Text Domain: loginpress
 * Domain Path: /languages
 *
@@ -22,7 +22,7 @@ if ( ! class_exists( 'LoginPress' ) ) :
 		/**
 		* @var string
 		*/
-		public $version = '3.0.5';
+		public $version = '3.1.0';
 
 		/**
 		* @var The single instance of the class
@@ -95,7 +95,7 @@ if ( ! class_exists( 'LoginPress' ) ) :
 				include_once( LOGINPRESS_DIR_PATH . 'include/privacy-policy.php' );
 			}
 
-			$login_with_email = isset( $loginpress_setting['login_order'] ) ?  $loginpress_setting['login_order'] : '';
+			$login_with_email = isset( $loginpress_setting['login_order'] ) ?  $loginpress_setting['login_order'] : 'default';
 			if ( 'default' != $login_with_email ) {
 				include_once( LOGINPRESS_DIR_PATH . 'classes/class-loginpress-login-order.php' );
 				new LoginPress_Login_Order();
@@ -105,7 +105,7 @@ if ( ! class_exists( 'LoginPress' ) ) :
 			if ( 'off' != $enable_reg_pass_field ) {
 				include_once( LOGINPRESS_DIR_PATH . 'classes/class-loginpress-custom-password.php' );
 				new LoginPress_Custom_Password();
-			}
+			}	
 			$loginpress_password_reset_time_limit = isset( $loginpress_setting['loginpress_password_reset_time_limit'] ) ?  $loginpress_setting['loginpress_password_reset_time_limit'] : 'off';
 			if ( 'off' != $loginpress_password_reset_time_limit ) {
 				include_once( LOGINPRESS_DIR_PATH . 'classes/class-loginpress-force-reset-pass.php' );
@@ -572,7 +572,7 @@ if ( ! class_exists( 'LoginPress' ) ) :
 		 * Add a link to the settings page to the plugins list
 		 *
 		 * @since  1.0.11
-		 * @version 3.0.0
+		 * @version 3.0.8
 		 */
 		public function loginpress_action_links( $links, $file ) {
 
@@ -595,7 +595,7 @@ if ( ! class_exists( 'LoginPress' ) ) :
 				array_unshift( $links, $settings_link );
 
 				if ( ! has_action( 'loginpress_pro_add_template' ) ) {
-					$pro_link = sprintf( esc_html__( '%1$s %3$s Upgrade Pro %4$s %2$s', 'loginpress' ),  '<a href="https://loginpress.pro/pricing/?utm_source=loginpress-lite&utm_medium=plugin-action-link&utm_campaign=pro-upgrade" target="_blank">', '</a>', '<span class="loginpress-dashboard-pro-link">', '</span>' );
+					$pro_link = sprintf( esc_html__( '%1$s %3$s Upgrade Pro %4$s %2$s', 'loginpress' ),  '<a href="https://loginpress.pro/lite/?utm_source=loginpress-lite&utm_medium=plugins&utm_campaign=pro-upgrade&utm_content=Upgrade+Pro" target="_blank">', '</a>', '<span class="loginpress-dashboard-pro-link">', '</span>' );
 					array_push( $links, $pro_link );
 				}
 			}

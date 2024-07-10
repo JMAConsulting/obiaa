@@ -84,10 +84,10 @@ class CiviCRM_Profile_Sync_ACF_Shortcode_City {
 	public function __construct( $parent ) {
 
 		// Store references to objects.
-		$this->plugin = $parent->plugin;
+		$this->plugin     = $parent->plugin;
 		$this->acf_loader = $parent->acf_loader;
-		$this->civicrm = $parent->civicrm;
-		$this->addresses = $parent;
+		$this->civicrm    = $parent->civicrm;
+		$this->addresses  = $parent;
 
 		// Init when the CiviCRM Address object is loaded.
 		add_action( 'cwps/acf/civicrm/addresses/loaded', [ $this, 'initialise' ] );
@@ -143,7 +143,7 @@ class CiviCRM_Profile_Sync_ACF_Shortcode_City {
 	 *
 	 * @since 0.4
 	 *
-	 * @param array $attr The saved Shortcode attributes.
+	 * @param array  $attr The saved Shortcode attributes.
 	 * @param string $content The enclosed content of the Shortcode.
 	 * @param string $tag The Shortcode which invoked the callback.
 	 * @return string $content The HTML-formatted Shortcode content.
@@ -157,10 +157,10 @@ class CiviCRM_Profile_Sync_ACF_Shortcode_City {
 
 		// Default Shortcode attributes.
 		$defaults = [
-			'field' => '',
+			'field'         => '',
 			'location_type' => null,
-			'style' => 'list',
-			'post_id' => null,
+			'style'         => 'list',
+			'post_id'       => null,
 		];
 
 		// Get parsed attributes.
@@ -172,9 +172,7 @@ class CiviCRM_Profile_Sync_ACF_Shortcode_City {
 		}
 
 		// Get content from theme function.
-		$content = cacf_get_city_by_type_id(
-			$atts['field'], $atts['location_type'], $atts['style'], $atts['post_id']
-		);
+		$content = cacf_get_city_by_type_id( $atts['field'], $atts['location_type'], $atts['style'], $atts['post_id'] );
 
 		// --<
 		return $content;
@@ -202,28 +200,28 @@ class CiviCRM_Profile_Sync_ACF_Shortcode_City {
 
 		// ACF Field selector.
 		$field = [
-			'label' => __( 'ACF Field', 'civicrm-wp-profile-sync' ),
-			'attr'  => 'field',
-			'type'  => 'text',
+			'label'       => __( 'ACF Field', 'civicrm-wp-profile-sync' ),
+			'attr'        => 'field',
+			'type'        => 'text',
 			'description' => __( 'Please enter an ACF Field selector.', 'civicrm-wp-profile-sync' ),
 		];
 
 		// Location Types select.
 		$location_types = [
-			'label' => __( 'Location Type', 'civicrm-wp-profile-sync' ),
-			'attr'  => 'location_type',
-			'type'  => 'select',
-			'options' => $this->shortcake_select_location_types_get(),
+			'label'       => __( 'Location Type', 'civicrm-wp-profile-sync' ),
+			'attr'        => 'location_type',
+			'type'        => 'select',
+			'options'     => $this->shortcake_select_location_types_get(),
 			'description' => __( 'Please select a Location Type.', 'civicrm-wp-profile-sync' ),
 		];
 
 		// Render style select.
 		$style = [
-			'label' => __( 'Style', 'civicrm-wp-profile-sync' ),
-			'attr'  => 'style',
-			'type'  => 'select',
-			'options' => [
-				'list' => __( 'List', 'civicrm-wp-profile-sync' ),
+			'label'       => __( 'Style', 'civicrm-wp-profile-sync' ),
+			'attr'        => 'style',
+			'type'        => 'select',
+			'options'     => [
+				'list'   => __( 'List', 'civicrm-wp-profile-sync' ),
 				'commas' => __( 'Comma-separated', 'civicrm-wp-profile-sync' ),
 			],
 			'description' => __( 'Please choose list or comma-separated output.', 'civicrm-wp-profile-sync' ),
@@ -234,10 +232,10 @@ class CiviCRM_Profile_Sync_ACF_Shortcode_City {
 
 		// WordPress Post ID.
 		$post_id = [
-			'label' => __( 'Post (optional)', 'civicrm-wp-profile-sync' ),
-			'attr'  => 'post_id',
-			'type'  => 'post_select',
-			'query'  => [ 'post_type' => array_values( $mapped_post_types ) ],
+			'label'       => __( 'Post (optional)', 'civicrm-wp-profile-sync' ),
+			'attr'        => 'post_id',
+			'type'        => 'post_select',
+			'query'       => [ 'post_type' => array_values( $mapped_post_types ) ],
 			'description' => __( 'Please select a Post.', 'civicrm-wp-profile-sync' ),
 		];
 
@@ -245,17 +243,17 @@ class CiviCRM_Profile_Sync_ACF_Shortcode_City {
 		$settings = [
 
 			// Window title.
-			'label' => esc_html__( 'CiviCRM City', 'civicrm-wp-profile-sync' ),
+			'label'         => esc_html__( 'CiviCRM City', 'civicrm-wp-profile-sync' ),
 
 			// Icon.
 			'listItemImage' => 'dashicons-building',
 
 			// Limit to synced CPTs only?
 			// phpcs:ignore Squiz.Commenting.InlineComment.InvalidEndChar
-			//'post_type' => array_values( $mapped_post_types ),
+			// 'post_type' => array_values( $mapped_post_types ),
 
 			// Window elements.
-			'attrs' => [
+			'attrs'         => [
 				$field,
 				$location_types,
 				$style,

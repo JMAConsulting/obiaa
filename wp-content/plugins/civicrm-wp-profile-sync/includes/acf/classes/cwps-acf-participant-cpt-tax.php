@@ -113,6 +113,32 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax {
 	public $term_counted_meta_key = '_cwps_participant_role_counted';
 
 	/**
+	 * An array of Term objects prior to edit.
+	 *
+	 * There are situations where nested updates take place (e.g. via CiviRules)
+	 * so we keep copies of the Terms in an array and try and match them up in
+	 * the post edit hook.
+	 *
+	 * @since 0.5
+	 * @access private
+	 * @var array
+	 */
+	private $term_edited = [];
+
+	/**
+	 * An array of Participant Roles prior to delete.
+	 *
+	 * There are situations where nested updates take place (e.g. via CiviRules)
+	 * so we keep copies of the Participant Roles in an array and try and match
+	 * them up in the post delete hook.
+	 *
+	 * @since 0.5
+	 * @access private
+	 * @var array
+	 */
+	private $bridging_array = [];
+
+	/**
 	 * Constructor.
 	 *
 	 * @since 0.5
@@ -122,11 +148,11 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax {
 	public function __construct( $parent ) {
 
 		// Store references to objects.
-		$this->plugin = $parent->acf_loader->plugin;
-		$this->acf_loader = $parent->acf_loader;
-		$this->civicrm = $parent->civicrm;
+		$this->plugin      = $parent->acf_loader->plugin;
+		$this->acf_loader  = $parent->acf_loader;
+		$this->civicrm     = $parent->civicrm;
 		$this->participant = $parent->participant;
-		$this->cpt = $parent;
+		$this->cpt         = $parent;
 
 		// Store Taxonomy name.
 		$this->taxonomy_name = $parent->taxonomy_name;
@@ -144,7 +170,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax {
 	public function initialise() {
 
 		// Bail if CPT not enabled.
-		if ( $this->cpt->enabled === false ) {
+		if ( false === $this->cpt->enabled ) {
 			return;
 		}
 
@@ -200,7 +226,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax {
 	public function register_mapper_hooks() {
 
 		// Bail if already registered.
-		if ( $this->mapper_hooks === true ) {
+		if ( true === $this->mapper_hooks ) {
 			return;
 		}
 
@@ -228,7 +254,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax {
 	public function unregister_mapper_hooks() {
 
 		// Bail if already unregistered.
-		if ( $this->mapper_hooks === false ) {
+		if ( false === $this->mapper_hooks ) {
 			return;
 		}
 
@@ -386,13 +412,13 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax {
 
 			// The "Role ID" is actually the "Role Value", so get the Role.
 			$participant_role = $this->civicrm->participant_role->get_by_value( $role_id );
-			if ( $participant_role === false ) {
+			if ( false === $participant_role ) {
 				continue;
 			}
 
 			// Now get the corresponding Term.
 			$term = $this->term_get_by_meta( $participant_role['id'] );
-			if ( $term !== false ) {
+			if ( false !== $term ) {
 				$terms[] = $term->term_id;
 			}
 
@@ -421,12 +447,12 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax {
 	public function terms_get( $post_id = false ) {
 
 		// If ID is false, get all Terms.
-		if ( $post_id === false ) {
+		if ( false === $post_id ) {
 
 			// Since WordPress 4.5.0, the category is specified in the arguments.
 			$args = [
-				'taxonomy' => $this->taxonomy_name,
-				'orderby' => 'count',
+				'taxonomy'   => $this->taxonomy_name,
+				'orderby'    => 'count',
 				'hide_empty' => 0,
 			];
 
@@ -523,7 +549,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax {
 		}
 
 		// Store for reference in term_edited().
-		$this->term_edited = clone $term;
+		$this->term_edited[ $term->term_id ] = clone $term;
 
 	}
 
@@ -541,18 +567,19 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax {
 			return;
 		}
 
-		// Use it if we have the Term stored.
-		$old_term = null;
-		if ( isset( $this->term_edited ) ) {
-			$old_term = $this->term_edited;
-		}
-
 		// Get current Term object.
 		$new_term = get_term_by( 'id', $args['term_id'], $this->taxonomy_name );
 
+		// Populate "Old Term" if we have it stored.
+		$old_term = null;
+		if ( ! empty( $this->term_edited[ $new_term->term_id ] ) ) {
+			$old_term = $this->term_edited[ $new_term->term_id ];
+			unset( $this->term_edited[ $new_term->term_id ] );
+		}
+
 		// Is this an Inline Edit?
 		// phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedIf
-		if ( ! empty( $_POST['action'] ) && $_POST['action'] == 'inline-save-tax' ) {
+		if ( ! empty( $_POST['action'] ) && 'inline-save-tax' === $_POST['action'] ) {
 
 			// There will be no change to "Is Active" or "Counted".
 
@@ -622,9 +649,9 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax {
 		$this->term_deleted = clone $term;
 
 		// Add the additional Term meta.
-		$this->term_deleted->role_id = $this->term_meta_get( $term->term_id );
+		$this->term_deleted->role_id   = $this->term_meta_get( $term->term_id );
 		$this->term_deleted->is_active = $this->term_active_get( $term->term_id );
-		$this->term_deleted->filter = $this->term_counted_get( $term->term_id );
+		$this->term_deleted->filter    = $this->term_counted_get( $term->term_id );
 
 	}
 
@@ -654,7 +681,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax {
 
 		// Check that the CiviCRM Participant Role exists.
 		$existing = $this->civicrm->participant_role->get_by_id( $this->term_deleted->role_id );
-		if ( $existing === false ) {
+		if ( false === $existing ) {
 			return;
 		}
 
@@ -692,7 +719,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax {
 
 		// Construct args.
 		$args = [
-			'slug' => sanitize_title( $participant_role['name'] ),
+			'slug'        => sanitize_title( $participant_role['name'] ),
 			'description' => $description,
 		];
 
@@ -764,7 +791,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax {
 			$result = $this->term_create( $new_role );
 
 			// How did we do?
-			if ( $result === false ) {
+			if ( false === $result ) {
 				return $result;
 			}
 
@@ -778,8 +805,8 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax {
 
 		// Construct Term.
 		$args = [
-			'name' => $new_role['label'],
-			'slug' => sanitize_title( $new_role['name'] ),
+			'name'        => $new_role['label'],
+			'slug'        => sanitize_title( $new_role['name'] ),
 			'description' => $description,
 		];
 
@@ -876,7 +903,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax {
 	 * @since 0.5
 	 *
 	 * @param string $output The existing output.
-	 * @param array $parsed_args The arguments used to build the drop-down.
+	 * @param array  $parsed_args The arguments used to build the drop-down.
 	 * @return string $output The modified output.
 	 */
 	public function terms_dropdown_clear( $output, $parsed_args ) {
@@ -900,7 +927,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax {
 	 *
 	 * @since 0.5
 	 *
-	 * @param array $args An array of arguments.
+	 * @param array   $args An array of arguments.
 	 * @param integer $post_id The Post ID.
 	 */
 	public function term_default_checked( $args, $post_id ) {
@@ -931,7 +958,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax {
 		$participant_role_value = $this->participant_role_default_value_get();
 
 		// Bail if something went wrong.
-		if ( $participant_role_value === false ) {
+		if ( false === $participant_role_value ) {
 			return $args;
 		}
 
@@ -939,13 +966,13 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax {
 		$participant_role = $this->civicrm->participant_role->get_by_value( $participant_role_value );
 
 		// Bail if something went wrong.
-		if ( $participant_role === false ) {
+		if ( false === $participant_role ) {
 			return $args;
 		}
 
 		// Get corresponding Term ID.
 		$term = $this->term_get_by_meta( $participant_role['id'] );
-		if ( $term === false ) {
+		if ( false === $term ) {
 			return $args;
 		}
 
@@ -971,34 +998,36 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax {
 
 		// Query Terms for the Term with the ID of the CiviCRM Participant Role in meta data.
 		$args = [
+			'taxonomy'   => $this->taxonomy_name,
 			'hide_empty' => false,
 			// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
 			'meta_query' => [
 				[
-					'key' => $this->term_meta_key,
-					'value' => $participant_role_id,
+					'key'     => $this->term_meta_key,
+					'value'   => $participant_role_id,
 					'compare' => '=',
 				],
 			],
 		];
 
 		// Get what should only be a single Term.
-		$terms = get_terms( $this->taxonomy_name, $args );
+		$terms = get_terms( $args );
 		if ( empty( $terms ) ) {
 			return false;
 		}
 
 		// Log a message and bail if there's an error.
 		if ( is_wp_error( $terms ) ) {
-			$e = new \Exception();
+			$e     = new \Exception();
 			$trace = $e->getTraceAsString();
-			error_log( print_r( [
-				'method' => __METHOD__,
-				'message' => $terms->get_error_message(),
-				'terms' => $terms,
+			$log   = [
+				'method'              => __METHOD__,
+				'message'             => $terms->get_error_message(),
+				'terms'               => $terms,
 				'participant_role_id' => $participant_role_id,
-				'backtrace' => $trace,
-			], true ) );
+				'backtrace'           => $trace,
+			];
+			$this->plugin->log_error( $log );
 			return false;
 		}
 
@@ -1059,7 +1088,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax {
 
 		// Log something if there's an error.
 		// phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedIf
-		if ( $meta_id === false ) {
+		if ( false === $meta_id ) {
 
 			/*
 			 * This probably means that the Term already has its Term meta set.
@@ -1069,28 +1098,30 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax {
 			/*
 			$e = new \Exception();
 			$trace = $e->getTraceAsString();
-			error_log( print_r( [
+			$log = [
 				'method' => __METHOD__,
 				'message' => __( 'Could not add Term meta', 'civicrm-wp-profile-sync' ),
 				'term_id' => $term_id,
 				'participant_role_id' => $participant_role_id,
 				'backtrace' => $trace,
-			], true ) );
+			];
+			$this->plugin->log_error( $log );
 			*/
 
 		}
 
 		// Log a message if the Term ID is ambiguous between Taxonomies.
 		if ( is_wp_error( $meta_id ) ) {
-			$e = new \Exception();
+			$e     = new \Exception();
 			$trace = $e->getTraceAsString();
-			error_log( print_r( [
-				'method' => __METHOD__,
-				'message' => $meta_id->get_error_message(),
-				'term_id' => $term_id,
+			$log   = [
+				'method'              => __METHOD__,
+				'message'             => $meta_id->get_error_message(),
+				'term_id'             => $term_id,
 				'participant_role_id' => $participant_role_id,
-				'backtrace' => $trace,
-			], true ) );
+				'backtrace'           => $trace,
+			];
+			$this->plugin->log_error( $log );
 			return false;
 		}
 
@@ -1129,7 +1160,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax {
 	 *
 	 * @since 0.5
 	 *
-	 * @param integer $term_id The numeric ID of the Term.
+	 * @param integer      $term_id The numeric ID of the Term.
 	 * @param integer|bool $active True if the Term is active, false otherwise.
 	 * @return integer|bool $meta_id The ID of the meta, or false on failure.
 	 */
@@ -1140,7 +1171,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax {
 
 		// Log something if there's an error.
 		// phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedIf
-		if ( $meta_id === false ) {
+		if ( false === $meta_id ) {
 
 			/*
 			 * This probably means that the Term already has its Term meta set.
@@ -1150,28 +1181,30 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax {
 			/*
 			$e = new \Exception();
 			$trace = $e->getTraceAsString();
-			error_log( print_r( [
+			$log = [
 				'method' => __METHOD__,
 				'message' => __( 'Could not add Term meta', 'civicrm-wp-profile-sync' ),
 				'term_id' => $term_id,
 				'active' => $active,
 				'backtrace' => $trace,
-			], true ) );
+			];
+			$this->plugin->log_error( $log );
 			*/
 
 		}
 
 		// Log a message if the Term ID is ambiguous between Taxonomies.
 		if ( is_wp_error( $meta_id ) ) {
-			$e = new \Exception();
+			$e     = new \Exception();
 			$trace = $e->getTraceAsString();
-			error_log( print_r( [
-				'method' => __METHOD__,
-				'message' => $meta_id->get_error_message(),
-				'term_id' => $term_id,
-				'active' => $active,
+			$log   = [
+				'method'    => __METHOD__,
+				'message'   => $meta_id->get_error_message(),
+				'term_id'   => $term_id,
+				'active'    => $active,
 				'backtrace' => $trace,
-			], true ) );
+			];
+			$this->plugin->log_error( $log );
 			return false;
 		}
 
@@ -1208,7 +1241,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax {
 	 *
 	 * @since 0.5
 	 *
-	 * @param integer $term_id The numeric ID of the Term.
+	 * @param integer      $term_id The numeric ID of the Term.
 	 * @param integer|bool $counted True if the Term is counted, false otherwise.
 	 * @return integer|bool $meta_id The ID of the meta, or false on failure.
 	 */
@@ -1219,7 +1252,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax {
 
 		// Log something if there's an error.
 		// phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedIf
-		if ( $meta_id === false ) {
+		if ( false === $meta_id ) {
 
 			/*
 			 * This probably means that the Term already has its Term meta set.
@@ -1229,28 +1262,30 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax {
 			/*
 			$e = new \Exception();
 			$trace = $e->getTraceAsString();
-			error_log( print_r( [
+			$log = [
 				'method' => __METHOD__,
 				'message' => __( 'Could not add Term meta', 'civicrm-wp-profile-sync' ),
 				'term_id' => $term_id,
 				'counted' => $counted,
 				'backtrace' => $trace,
-			], true ) );
+			];
+			$this->plugin->log_error( $log );
 			*/
 
 		}
 
 		// Log a message if the Term ID is ambiguous between Taxonomies.
 		if ( is_wp_error( $meta_id ) ) {
-			$e = new \Exception();
+			$e     = new \Exception();
 			$trace = $e->getTraceAsString();
-			error_log( print_r( [
-				'method' => __METHOD__,
-				'message' => $meta_id->get_error_message(),
-				'term_id' => $term_id,
-				'counted' => $counted,
+			$log   = [
+				'method'    => __METHOD__,
+				'message'   => $meta_id->get_error_message(),
+				'term_id'   => $term_id,
+				'counted'   => $counted,
 				'backtrace' => $trace,
-			], true ) );
+			];
+			$this->plugin->log_error( $log );
 			return false;
 		}
 
@@ -1281,7 +1316,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax {
 
 		// Bail if it's not a CiviCRM Participant Role.
 		$opt_group_id = $this->civicrm->participant_role->option_group_id_get();
-		if ( $opt_group_id === false || $opt_group_id != $participant_role->option_group_id ) {
+		if ( false === $opt_group_id || $opt_group_id != $participant_role->option_group_id ) {
 			return;
 		}
 
@@ -1294,12 +1329,12 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax {
 
 		// Construct Term data.
 		$term_data = [
-			'id' => $participant_role->id,
-			'label' => $participant_role->label,
-			'name' => $participant_role->label,
+			'id'          => $participant_role->id,
+			'label'       => $participant_role->label,
+			'name'        => $participant_role->label,
 			'description' => $description,
-			'is_active' => $participant_role->is_active,
-			'filter' => $participant_role->filter,
+			'is_active'   => $participant_role->is_active,
+			'filter'      => $participant_role->filter,
 		];
 
 		// Unhook listeners.
@@ -1331,8 +1366,19 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax {
 			return;
 		}
 
+		// Cast ID as integer for array key.
+		$participant_role_id = (int) $participant_role->id;
+
 		// Get the full CiviCRM Participant Role before it is updated.
-		$this->participant_role_pre = $this->civicrm->participant_role->get_by_id( $participant_role->id );
+		$participant_role_pre = $this->civicrm->participant_role->get_by_id( $participant_role_id );
+
+		// Maybe cast previous Participant Role data as object.
+		if ( ! is_object( $participant_role_pre ) ) {
+			$participant_role_pre = (object) $participant_role_pre;
+		}
+
+		// Stash in property array.
+		$this->bridging_array[ $participant_role_id ] = $participant_role_pre;
 
 	}
 
@@ -1356,13 +1402,13 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax {
 
 		// Bail if it's not a CiviCRM Participant Role.
 		$opt_group_id = $this->civicrm->participant_role->option_group_id_get();
-		if ( $opt_group_id === false || $opt_group_id != $participant_role->option_group_id ) {
+		if ( false === $opt_group_id || (int) $opt_group_id !== (int) $participant_role->option_group_id ) {
 			return;
 		}
 
 		// Get the full data for the updated CiviCRM Participant Role.
 		$role_full = $this->civicrm->participant_role->get_by_id( $participant_role->id );
-		if ( $role_full === false ) {
+		if ( false === $role_full ) {
 			return;
 		}
 
@@ -1404,13 +1450,13 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax {
 
 		// Get the actual CiviCRM Participant Role being deleted.
 		$participant_role = $this->civicrm->participant_role->get_by_id( $participant_role->id );
-		if ( $participant_role === false ) {
+		if ( false === $participant_role ) {
 			return;
 		}
 
 		// Bail if there's no corresponding Term.
 		$term = $this->term_get_by_meta( $participant_role['id'] );
-		if ( $term === false ) {
+		if ( false === $term ) {
 			return;
 		}
 
@@ -1450,16 +1496,16 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax {
 
 		// Get Option Group ID.
 		$opt_group_id = $this->civicrm->participant_role->option_group_id_get();
-		if ( $opt_group_id === false ) {
+		if ( false === $opt_group_id ) {
 			return false;
 		}
 
 		// Define CiviCRM Participant Role.
 		$params = [
-			'version' => 3,
+			'version'         => 3,
 			'option_group_id' => $opt_group_id,
-			'label' => $new_term->name,
-			//'name' => $new_term->name,
+			'label'           => $new_term->name,
+			// 'name' => $new_term->name,
 		];
 
 		// If there is a description, apply content filters and add to params.
@@ -1471,7 +1517,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax {
 
 		// Grab the additional Term meta.
 		$params['is_active'] = $this->term_active_get( $new_term->term_id );
-		$params['filter'] = $this->term_counted_get( $new_term->term_id );
+		$params['filter']    = $this->term_counted_get( $new_term->term_id );
 
 		// Trigger update if we find a synced CiviCRM Participant Role ID.
 		$participant_role_id = $this->term_meta_get( $new_term->term_id );
@@ -1483,15 +1529,16 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax {
 		$result = civicrm_api( 'OptionValue', 'create', $params );
 
 		// Bail if there is an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == '1' ) {
-			$e = new \Exception();
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
+			$e     = new \Exception();
 			$trace = $e->getTraceAsString();
-			error_log( print_r( [
-				'method' => __METHOD__,
-				'message' => $result['error_message'],
-				'params' => $params,
+			$log   = [
+				'method'    => __METHOD__,
+				'message'   => $result['error_message'],
+				'params'    => $params,
 				'backtrace' => $trace,
-			], true ) );
+			];
+			$this->plugin->log_error( $log );
 			return false;
 		}
 
@@ -1533,22 +1580,23 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax {
 		// Define CiviCRM Participant Role.
 		$params = [
 			'version' => 3,
-			'id' => $term->role_id,
+			'id'      => $term->role_id,
 		];
 
 		// Delete the CiviCRM Participant Role.
 		$result = civicrm_api( 'OptionValue', 'delete', $params );
 
 		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == '1' ) {
-			$e = new \Exception();
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
+			$e     = new \Exception();
 			$trace = $e->getTraceAsString();
-			error_log( print_r( [
-				'method' => __METHOD__,
-				'message' => $result['error_message'],
-				'params' => $params,
+			$log   = [
+				'method'    => __METHOD__,
+				'message'   => $result['error_message'],
+				'params'    => $params,
 				'backtrace' => $trace,
-			], true ) );
+			];
+			$this->plugin->log_error( $log );
 			return false;
 		}
 
@@ -1574,16 +1622,16 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax {
 
 		// Get Option Group ID.
 		$opt_group_id = $this->civicrm->participant_role->option_group_id_get();
-		if ( $opt_group_id === false ) {
+		if ( false === $opt_group_id ) {
 			return false;
 		}
 
 		// Define params to get item.
 		$params = [
-			'version' => 3,
+			'version'         => 3,
 			'option_group_id' => $opt_group_id,
-			'id' => $participant_role_id,
-			'options' => [
+			'id'              => $participant_role_id,
+			'options'         => [
 				'limit' => 1,
 			],
 		];
@@ -1592,7 +1640,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax {
 		$result = civicrm_api( 'OptionValue', 'get', $params );
 
 		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
 			return false;
 		}
 
@@ -1707,7 +1755,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax {
 		}
 
 		// Grab the first item.
-		$first_role = array_shift( $participant_roles );
+		$first_role  = array_shift( $participant_roles );
 		$first_value = $first_role['value'];
 
 		// --<
@@ -1737,25 +1785,19 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax {
 	 * @since 0.4
 	 *
 	 * @param WP_Term $tag The current taxonomy term object.
-	 * @param string $taxonomy The current taxonomy slug.
+	 * @param string  $taxonomy The current taxonomy slug.
 	 */
 	public function form_element_edit_term_add( $tag, $taxonomy ) {
 
 		// Get the meta values for the form elements.
-		$active = $this->term_active_get( $tag->term_id );
+		$active  = $this->term_active_get( $tag->term_id );
 		$counted = $this->term_counted_get( $tag->term_id );
 
-		// Assign value to "Is Active" checkbox.
-		$is_active = '';
-		if ( ! empty( $active ) ) {
-			$is_active = ' checked="checked"';
-		}
+		// Assign value for "Is Active" checkbox.
+		$is_active = ! empty( $active ) ? 1 : 0;
 
-		// Assign value to "Counted" checkbox.
-		$is_counted = '';
-		if ( ! empty( $counted ) ) {
-			$is_counted = ' checked="checked"';
-		}
+		// Assign value for "Counted" checkbox.
+		$is_counted = ! empty( $counted ) ? 1 : 0;
 
 		// Include template file.
 		include CIVICRM_WP_PROFILE_SYNC_PATH . 'assets/templates/wordpress/taxonomies/term-participant-role-edit.php';
@@ -1770,7 +1812,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax {
 	 * @since 0.4
 	 *
 	 * @param string $id The menu parent ID.
-	 * @param array $components The active CiviCRM Conponents.
+	 * @param array  $components The active CiviCRM Conponents.
 	 */
 	public function menu_item_add_to_cau( $id, $components ) {
 
@@ -1784,7 +1826,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax {
 
 		// Bail if the current screen is not an Edit Taxonomy screen.
 		$screen = get_current_screen();
-		if ( $screen instanceof WP_Screen && $screen->base != 'edit-tags' ) {
+		if ( $screen instanceof WP_Screen && 'edit-tags' !== $screen->base ) {
 			return;
 		}
 
@@ -1799,12 +1841,13 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax {
 		$url = $this->plugin->civicrm->get_link( 'civicrm/admin/options/participant_role', 'reset=1' );
 
 		// Add item to CAU menu.
-		$wp_admin_bar->add_node( [
-			'id' => 'cau-0',
+		$args = [
+			'id'     => 'cau-0',
 			'parent' => $id,
-			'title' => __( 'View in CiviCRM', 'civicrm-wp-profile-sync' ),
-			'href' => $url,
-		] );
+			'title'  => __( 'View in CiviCRM', 'civicrm-wp-profile-sync' ),
+			'href'   => $url,
+		];
+		$wp_admin_bar->add_node( $args );
 
 	}
 

@@ -107,8 +107,8 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Contact_ID_Field extends acf_field {
 	 */
 	public $settings = [
 		'version' => CIVICRM_WP_PROFILE_SYNC_VERSION,
-		'url' => CIVICRM_WP_PROFILE_SYNC_URL,
-		'path' => CIVICRM_WP_PROFILE_SYNC_PATH,
+		'url'     => CIVICRM_WP_PROFILE_SYNC_URL,
+		'path'    => CIVICRM_WP_PROFILE_SYNC_PATH,
 	];
 
 	/**
@@ -137,9 +137,9 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Contact_ID_Field extends acf_field {
 	public function __construct( $parent ) {
 
 		// Store references to objects.
-		$this->plugin = $parent->acf_loader->plugin;
+		$this->plugin     = $parent->acf_loader->plugin;
 		$this->acf_loader = $parent->acf_loader;
-		$this->acf = $parent->acf;
+		$this->acf        = $parent->acf;
 
 		// Define label.
 		$this->label = __( 'CiviCRM Contact: Contact ID (Read Only)', 'civicrm-wp-profile-sync' );
@@ -169,12 +169,12 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Contact_ID_Field extends acf_field {
 	public function render_field( $field ) {
 
 		// Change Field into a simple "number" Field.
-		$field['type'] = 'number';
-		$field['readonly'] = 1;
+		$field['type']       = 'number';
+		$field['readonly']   = 1;
 		$field['allow_null'] = 0;
-		$field['prepend'] = '';
-		$field['append'] = '';
-		$field['step'] = '';
+		$field['prepend']    = '';
+		$field['append']     = '';
+		$field['step']       = '';
 
 		// Populate Field.
 		if ( ! empty( $field['value'] ) ) {
@@ -197,9 +197,9 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Contact_ID_Field extends acf_field {
 	 *
 	 * @since 0.4
 	 *
-	 * @param mixed $value The value found in the database.
+	 * @param mixed          $value The value found in the database.
 	 * @param integer|string $post_id The ACF "Post ID" from which the value was loaded.
-	 * @param array $field The Field array holding all the Field options.
+	 * @param array          $field The Field array holding all the Field options.
 	 * @return mixed $value The modified value.
 	 */
 	public function load_value( $value, $post_id, $field ) {
@@ -211,7 +211,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Contact_ID_Field extends acf_field {
 			$contact_id = $this->acf->field->query_contact_id( $post_id );
 
 			// Overwrite if we get a value.
-			if ( $contact_id !== false ) {
+			if ( false !== $contact_id ) {
 				$value = $contact_id;
 			}
 
@@ -227,9 +227,9 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Contact_ID_Field extends acf_field {
 	 *
 	 * @since 0.4
 	 *
-	 * @param mixed $value The value found in the database.
+	 * @param mixed   $value The value found in the database.
 	 * @param integer $post_id The Post ID from which the value was loaded.
-	 * @param array $field The Field array holding all the Field options.
+	 * @param array   $field The Field array holding all the Field options.
 	 * @return mixed $value The modified value.
 	 */
 	public function update_value( $value, $post_id, $field ) {
@@ -241,7 +241,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Contact_ID_Field extends acf_field {
 			$contact_id = $this->acf->field->query_contact_id( $post_id );
 
 			// Overwrite if we get a value.
-			if ( $contact_id !== false ) {
+			if ( false !== $contact_id ) {
 				$value = $contact_id;
 			}
 

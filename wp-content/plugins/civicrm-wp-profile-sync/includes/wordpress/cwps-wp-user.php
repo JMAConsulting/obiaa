@@ -127,7 +127,7 @@ class CiviCRM_WP_Profile_Sync_WordPress_User {
 	public function register_mapper_hooks() {
 
 		// Bail if already registered.
-		if ( $this->mapper_hooks === true ) {
+		if ( true === $this->mapper_hooks ) {
 			return;
 		}
 
@@ -148,7 +148,7 @@ class CiviCRM_WP_Profile_Sync_WordPress_User {
 	public function unregister_mapper_hooks() {
 
 		// Bail if already unregistered.
-		if ( $this->mapper_hooks === false ) {
+		if ( false === $this->mapper_hooks ) {
 			return;
 		}
 
@@ -348,7 +348,7 @@ class CiviCRM_WP_Profile_Sync_WordPress_User {
 
 		// Check if our setting allows Nickname sync.
 		$nickname_sync = $this->plugin->admin->setting_get( 'user_profile_nickname_sync', 1 );
-		if ( $nickname_sync !== 1 ) {
+		if ( 1 !== (int) $nickname_sync ) {
 			return;
 		}
 
@@ -368,7 +368,7 @@ class CiviCRM_WP_Profile_Sync_WordPress_User {
 
 		// Grab User ID and Email.
 		$user_id = $args['user_id'];
-		$email = $args['objectRef'];
+		$email   = $args['objectRef'];
 
 		// Never overwrite with an empty Email address.
 		if ( empty( $email->email ) ) {
@@ -381,7 +381,7 @@ class CiviCRM_WP_Profile_Sync_WordPress_User {
 
 		// Build params.
 		$params = [
-			'ID' => $user_id,
+			'ID'         => $user_id,
 			'user_email' => $email->email,
 		];
 
@@ -403,16 +403,6 @@ class CiviCRM_WP_Profile_Sync_WordPress_User {
 	 */
 	public function website_update( $args ) {
 
-		/*
-		$e = new \Exception();
-		$trace = $e->getTraceAsString();
-		error_log( print_r( [
-			'method' => __METHOD__,
-			'args' => $args,
-			//'backtrace' => $trace,
-		], true ) );
-		*/
-
 		// Grab User ID and Email.
 		$user_id = $args['user_id'];
 		$website = $args['objectRef'];
@@ -420,24 +410,13 @@ class CiviCRM_WP_Profile_Sync_WordPress_User {
 		// Sometimes CiviCRM uses the string 'null' when the URL is empty.
 		$website->url = $this->plugin->civicrm->denullify( $website->url );
 
-		/*
-		$e = new \Exception();
-		$trace = $e->getTraceAsString();
-		error_log( print_r( [
-			'method' => __METHOD__,
-			'website' => $website,
-			'user_id' => $user_id,
-			//'backtrace' => $trace,
-		], true ) );
-		*/
-
 		// Remove WordPress and BuddyPress callbacks to prevent recursion.
 		$this->plugin->hooks_wp_remove();
 		$this->plugin->hooks_bp_remove();
 
 		// Build params.
 		$params = [
-			'ID' => $user_id,
+			'ID'       => $user_id,
 			'user_url' => $website->url,
 		];
 

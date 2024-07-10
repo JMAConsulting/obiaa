@@ -86,21 +86,21 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Address {
 	 * @var array
 	 */
 	public $address_fields = [
-		'is_primary' => 'true_false',
-		'is_billing' => 'true_false',
-		'address_name' => 'textbox',
-		'street_address' => 'textbox',
+		'is_primary'             => 'true_false',
+		'is_billing'             => 'true_false',
+		'address_name'           => 'textbox',
+		'street_address'         => 'textbox',
 		'supplemental_address_1' => 'textbox',
 		'supplemental_address_2' => 'textbox',
 		'supplemental_address_3' => 'textbox',
-		'city' => 'textbox',
-		'county_id' => 'selectbox',
-		'state_province_id' => 'selectbox',
-		'country_id' => 'selectbox',
-		'postal_code' => 'textbox',
-		'geo_code_1' => 'textbox',
-		'geo_code_2' => 'textbox',
-		//'name' => 'textbox',
+		'city'                   => 'textbox',
+		'county_id'              => 'selectbox',
+		'state_province_id'      => 'selectbox',
+		'country_id'             => 'selectbox',
+		'postal_code'            => 'textbox',
+		'geo_code_1'             => 'textbox',
+		'geo_code_2'             => 'textbox',
+		// 'name' => 'textbox',
 	];
 
 	/**
@@ -113,10 +113,10 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Address {
 	public function __construct( $xprofile ) {
 
 		// Store references to objects.
-		$this->plugin = $xprofile->bp_loader->plugin;
+		$this->plugin    = $xprofile->bp_loader->plugin;
 		$this->bp_loader = $xprofile->bp_loader;
-		$this->civicrm = $this->plugin->civicrm;
-		$this->xprofile = $xprofile;
+		$this->civicrm   = $this->plugin->civicrm;
+		$this->xprofile  = $xprofile;
 
 		// Init when the BuddyPress Field object is loaded.
 		add_action( 'cwps/buddypress/field/loaded', [ $this, 'initialise' ] );
@@ -179,7 +179,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Address {
 	public function register_mapper_hooks() {
 
 		// Bail if already registered.
-		if ( $this->mapper_hooks === true ) {
+		if ( true === $this->mapper_hooks ) {
 			return;
 		}
 
@@ -187,9 +187,9 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Address {
 		add_action( 'cwps/mapper/address/created', [ $this, 'address_edited' ], 10 );
 		add_action( 'cwps/mapper/address/edited', [ $this, 'address_edited' ], 10 );
 		// phpcs:ignore Squiz.Commenting.InlineComment.InvalidEndChar
-		//add_action( 'cwps/mapper/address/delete/pre', [ $this, 'address_pre_delete' ], 10 );
+		// add_action( 'cwps/mapper/address/delete/pre', [ $this, 'address_pre_delete' ], 10 );
 		// phpcs:ignore Squiz.Commenting.InlineComment.InvalidEndChar
-		//add_action( 'cwps/mapper/address/deleted', [ $this, 'address_deleted' ], 10 );
+		// add_action( 'cwps/mapper/address/deleted', [ $this, 'address_deleted' ], 10 );
 
 		// Declare registered.
 		$this->mapper_hooks = true;
@@ -204,7 +204,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Address {
 	public function unregister_mapper_hooks() {
 
 		// Bail if already unregistered.
-		if ( $this->mapper_hooks === false ) {
+		if ( false === $this->mapper_hooks ) {
 			return;
 		}
 
@@ -212,9 +212,9 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Address {
 		remove_action( 'cwps/mapper/address/created', [ $this, 'address_edited' ], 10 );
 		remove_action( 'cwps/mapper/address/edited', [ $this, 'address_edited' ], 10 );
 		// phpcs:ignore Squiz.Commenting.InlineComment.InvalidEndChar
-		//remove_action( 'cwps/mapper/address/delete/pre', [ $this, 'address_pre_delete' ], 10 );
+		// remove_action( 'cwps/mapper/address/delete/pre', [ $this, 'address_pre_delete' ], 10 );
 		// phpcs:ignore Squiz.Commenting.InlineComment.InvalidEndChar
-		//remove_action( 'cwps/mapper/address/deleted', [ $this, 'address_deleted' ], 10 );
+		// remove_action( 'cwps/mapper/address/deleted', [ $this, 'address_deleted' ], 10 );
 
 		// Declare unregistered.
 		$this->mapper_hooks = false;
@@ -274,13 +274,13 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Address {
 	 * @since 0.5
 	 *
 	 * @param object $address The CiviCRM Address Record object.
-	 * @param array $args The array of CiviCRM params.
+	 * @param array  $args The array of CiviCRM params.
 	 */
 	public function address_process( $address, $args ) {
 
 		// Bail if we can't find a User ID.
 		$user_id = $this->plugin->mapper->ufmatch->user_id_get_by_contact_id( $address->contact_id );
-		if ( $user_id === false ) {
+		if ( false === $user_id ) {
 			return $user_id;
 		}
 
@@ -292,7 +292,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Address {
 		foreach ( $bp_fields as $bp_field ) {
 
 			// Only Fields for this Entity please.
-			if ( $bp_field['field_meta']['entity_type'] !== 'Address' ) {
+			if ( 'Address' !== $bp_field['field_meta']['entity_type'] ) {
 				continue;
 			}
 
@@ -304,7 +304,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Address {
 
 			// Only "Address" Fields please.
 			$bp_field_mapping = $bp_field['field_meta']['value'];
-			$field_name = $this->name_get( $bp_field_mapping );
+			$field_name       = $this->name_get( $bp_field_mapping );
 			if ( empty( $field_name ) ) {
 				continue;
 			}
@@ -369,7 +369,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Address {
 	public function value_get_for_bp( $value, $name, $params ) {
 
 		// Bail if value is (string) 'null' which CiviCRM uses for some reason.
-		if ( $value == 'null' || $value == 'NULL' ) {
+		if ( 'null' === $value || 'NULL' === $value ) {
 			return '';
 		}
 
@@ -381,26 +381,22 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Address {
 
 			// Used by "Primary" etc.
 			case 'true_false':
-
 				// Clear the value when empty.
 				if ( empty( $value ) ) {
 					$value = null;
 				} else {
 					$value = 1;
 				}
-
 				break;
 
 			// Used by "Country", "State/Province" and "County".
 			case 'selectbox':
-
 				// Convert if the value has the special CiviCRM array-like format.
 				if ( is_string( $value ) ) {
 					if ( false !== strpos( $value, CRM_Core_DAO::VALUE_SEPARATOR ) ) {
 						$value = CRM_Utils_Array::explodePadded( $value );
 					}
 				}
-
 				break;
 
 		}
@@ -429,7 +425,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Address {
 		// Filter the Fields to include only Address data.
 		$address_fields = [];
 		foreach ( $args['field_data'] as $field ) {
-			if ( empty( $field['meta']['entity_type'] ) || $field['meta']['entity_type'] !== 'Address' ) {
+			if ( empty( $field['meta']['entity_type'] ) || 'Address' !== $field['meta']['entity_type'] ) {
 				continue;
 			}
 			$address_fields[] = $field;
@@ -446,7 +442,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Address {
 			if ( empty( $field['meta']['entity_data']['location_type_id'] ) ) {
 				continue;
 			}
-			$location_type_id = $field['meta']['entity_data']['location_type_id'];
+			$location_type_id                      = $field['meta']['entity_data']['location_type_id'];
 			$address_groups[ $location_type_id ][] = $field;
 		}
 
@@ -509,7 +505,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Address {
 			}
 
 			// Get the CiviCRM Custom Field and Address Field.
-			$custom_field_id = $this->xprofile->custom_field->id_get( $meta['value'] );
+			$custom_field_id    = $this->xprofile->custom_field->id_get( $meta['value'] );
 			$address_field_name = $this->name_get( $meta['value'] );
 
 			// Do we have a synced Custom Field or Address Field?
@@ -530,8 +526,8 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Address {
 
 				// Build args for value conversion.
 				$args = [
-					'entity_type' => $meta['entity_type'],
-					'custom_field_id' => $custom_field_id,
+					'entity_type'        => $meta['entity_type'],
+					'custom_field_id'    => $custom_field_id,
 					'address_field_name' => $address_field_name,
 				];
 
@@ -557,10 +553,10 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Address {
 	 *
 	 * @since 0.5
 	 *
-	 * @param array $choices The existing array of choices for the Setting Field.
+	 * @param array  $choices The existing array of choices for the Setting Field.
 	 * @param string $field_type The BuddyPress Field Type.
 	 * @param string $entity_type The CiviCRM Entity Type.
-	 * @param array $entity_type_data The array of Entity Type data.
+	 * @param array  $entity_type_data The array of Entity Type data.
 	 * @return array $choices The modified array of choices for the Setting Field.
 	 */
 	public function query_setting_choices( $choices, $field_type, $entity_type, $entity_type_data ) {
@@ -571,7 +567,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Address {
 		}
 
 		// Bail if not the "Address" Entity Type.
-		if ( $entity_type !== 'Address' ) {
+		if ( 'Address' !== $entity_type ) {
 			return $choices;
 		}
 
@@ -670,16 +666,14 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Address {
 		$result = civicrm_api( 'Address', 'getfields', $params );
 
 		// Override return if we get some.
-		if ( $result['is_error'] == 0 && ! empty( $result['values'] ) ) {
+		if ( empty( $result['is_error'] ) && ! empty( $result['values'] ) ) {
 
-			// Check for no filter.
-			if ( $filter == 'none' ) {
+			if ( 'none' === $filter ) {
 
-				// Grab all of them.
+				// Grab all Fields.
 				$fields = $result['values'];
 
-			// Check public filter.
-			} elseif ( $filter == 'public' ) {
+			} elseif ( 'public' === $filter ) {
 
 				// Skip all but those defined in our Address Fields array.
 				$public_fields = [];
@@ -784,12 +778,12 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Address {
 		// We only have a few to account for.
 
 		// Counties.
-		if ( $name == 'county_id' ) {
+		if ( 'county_id' === $name ) {
 			$options = $this->plugin->civicrm->address->counties_get();
 		}
 
 		// States/Provinces.
-		if ( $name == 'state_province_id' ) {
+		if ( 'state_province_id' === $name ) {
 			$config = CRM_Core_Config::singleton();
 			// Only get the list of States/Provinces if some are chosen.
 			// BuddyPress becomes unresponsive when all are returned.
@@ -800,7 +794,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Address {
 		}
 
 		// Countries.
-		if ( $name == 'country_id' ) {
+		if ( 'country_id' === $name ) {
 			// Only get the list of Countries if some are chosen?
 			$options = CRM_Core_PseudoConstant::country();
 		}
@@ -821,7 +815,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Address {
 	 * @since 0.5
 	 *
 	 * @param array|bool $user_id The existing User ID.
-	 * @param array $args The array of CiviCRM Custom Fields params.
+	 * @param array      $args The array of CiviCRM Custom Fields params.
 	 * @return array|bool $user_id The User ID, or false if not mapped.
 	 */
 	public function query_user_id( $user_id, $args ) {
@@ -833,7 +827,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Address {
 		foreach ( $args['custom_fields'] as $field ) {
 
 			// Skip if it is not attached to an Address.
-			if ( $field['entity_table'] != 'civicrm_address' ) {
+			if ( 'civicrm_address' !== $field['entity_table'] ) {
 				continue;
 			}
 
@@ -846,13 +840,13 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Address {
 		}
 
 		// Bail if there's no Address ID.
-		if ( $address_id === false ) {
+		if ( false === $address_id ) {
 			return $user_id;
 		}
 
 		// Grab Address.
 		$address = $this->plugin->civicrm->address->address_get_by_id( $address_id );
-		if ( $address === false ) {
+		if ( false === $address ) {
 			return $user_id;
 		}
 
@@ -863,7 +857,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Address {
 
 		// Bail if this Contact doesn't have a User ID.
 		$user_id = $this->plugin->mapper->ufmatch->user_id_get_by_contact_id( $address->contact_id );
-		if ( $user_id === false ) {
+		if ( false === $user_id ) {
 			return $user_id;
 		}
 
@@ -967,7 +961,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Address {
 		// Bail if not a "True/False" Field Type.
 		$civicrm_field_type = $this->get_bp_type( $field_name );
 
-		if ( $civicrm_field_type !== 'true_false' ) {
+		if ( 'true_false' !== $civicrm_field_type ) {
 			return $options;
 		}
 
@@ -990,7 +984,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Address {
 	 *
 	 * @since 0.5
 	 *
-	 * @param array $address_fields The existing array of Address Fields.
+	 * @param array  $address_fields The existing array of Address Fields.
 	 * @param string $field_type The BuddyPress Field Type.
 	 * @return array $address_fields The modified array of Address Fields.
 	 */
@@ -1020,7 +1014,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Address {
 	 *
 	 * @since 0.5
 	 *
-	 * @param bool $is_true_false True if "Checkbox" is a "True/False" Field. False by default.
+	 * @param bool  $is_true_false True if "Checkbox" is a "True/False" Field. False by default.
 	 * @param array $args The array of arguments.
 	 * @return bool $is_true_false True if "Checkbox" is a "True/False" Field. False by default.
 	 */
@@ -1038,7 +1032,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Address {
 
 		// Check if this is a "True/False" Field Type.
 		$civicrm_field_type = $this->get_bp_type( $args['address_field_name'] );
-		if ( $civicrm_field_type === 'true_false' ) {
+		if ( 'true_false' === $civicrm_field_type ) {
 			$is_true_false = true;
 		}
 

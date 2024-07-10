@@ -57,15 +57,15 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Case_Field {
 	 * @var array
 	 */
 	public $case_fields = [
-		'id' => 'number',
-		'details' => 'wysiwyg',
-		'subject' => 'text',
-		'start_date' => 'date_picker',
-		'end_date' => 'date_picker',
-		'created_date' => 'date_time_picker',
+		'id'            => 'number',
+		'details'       => 'wysiwyg',
+		'subject'       => 'text',
+		'start_date'    => 'date_picker',
+		'end_date'      => 'date_picker',
+		'created_date'  => 'date_time_picker',
 		'modified_date' => 'date_time_picker',
-		'status_id' => 'select',
-		'medium_id' => 'select',
+		'status_id'     => 'select',
+		'medium_id'     => 'select',
 	];
 
 	/**
@@ -93,9 +93,9 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Case_Field {
 	public function __construct( $parent ) {
 
 		// Store references to objects.
-		$this->plugin = $parent->acf_loader->plugin;
+		$this->plugin     = $parent->acf_loader->plugin;
 		$this->acf_loader = $parent->acf_loader;
-		$this->civicrm = $parent;
+		$this->civicrm    = $parent;
 
 		// Init when the ACF CiviCRM object is loaded.
 		add_action( 'cwps/acf/civicrm/loaded', [ $this, 'initialise' ] );
@@ -149,22 +149,22 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Case_Field {
 	 *
 	 * @since 0.5
 	 *
-	 * @param bool $valid The existing valid status.
-	 * @param mixed $value The value of the Field.
-	 * @param array $field The Field data array.
+	 * @param bool   $valid The existing valid status.
+	 * @param mixed  $value The value of the Field.
+	 * @param array  $field The Field data array.
 	 * @param string $input The input element's name attribute.
 	 * @return string|bool $valid A string to display a custom error message, boolean otherwise.
 	 */
 	public function value_validate( $valid, $value, $field, $input ) {
 
 		// Bail if it's not required and is empty.
-		if ( $field['required'] == '0' && empty( $value ) ) {
+		if ( 0 === (int) $field['required'] && empty( $value ) ) {
 			return $valid;
 		}
 
 		// Get the mapped Case Field name if present.
 		$case_field_name = $this->civicrm->case->case_field_name_get( $field );
-		if ( $case_field_name === false ) {
+		if ( false === $case_field_name ) {
 			return $valid;
 		}
 
@@ -257,9 +257,9 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Case_Field {
 	 *
 	 * @since 0.5
 	 *
-	 * @param mixed $value The Case Field value.
-	 * @param array $name The Case Field name.
-	 * @param string $selector The ACF Field selector.
+	 * @param mixed          $value The Case Field value.
+	 * @param array          $name The Case Field name.
+	 * @param string         $selector The ACF Field selector.
 	 * @param integer|string $post_id The ACF "Post ID".
 	 * @return mixed $value The formatted Field value.
 	 */
@@ -271,7 +271,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Case_Field {
 		}
 
 		// Bail if value is (string) 'null' which CiviCRM uses for some reason.
-		if ( $value == 'null' ) {
+		if ( 'null' === $value ) {
 			return '';
 		}
 
@@ -284,43 +284,39 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Case_Field {
 			// Unused at present.
 			case 'select':
 			case 'checkbox':
-
 				// Convert if the value has the special CiviCRM array-like format.
 				if ( is_string( $value ) && false !== strpos( $value, CRM_Core_DAO::VALUE_SEPARATOR ) ) {
 					$value = CRM_Utils_Array::explodePadded( $value );
 				}
-
 				break;
 
 			// Used by "Birth Date" and "Deceased Date".
 			case 'date_picker':
 			case 'date_time_picker':
-
 				// Get Field setting.
 				$acf_setting = get_field_object( $selector, $post_id );
 
-				// Date Picker test.
-				if ( $acf_setting['type'] == 'date_picker' ) {
+				// Test for Date Picker or Date & Time Picker.
+				if ( 'date_picker' === $acf_setting['type'] ) {
 
 					// Case edit passes a Y-m-d format, so test for that.
 					$datetime = DateTime::createFromFormat( 'Y-m-d', $value );
 
 					// Case create passes a different format, so test for that.
-					if ( $datetime === false ) {
+					if ( false === $datetime ) {
 						$datetime = DateTime::createFromFormat( 'YmdHis', $value );
 					}
 
 					// Convert to ACF format.
 					$value = $datetime->format( 'Ymd' );
 
-				// Date & Time Picker test.
-				} elseif ( $acf_setting['type'] == 'date_time_picker' ) {
+				} elseif ( 'date_time_picker' === $acf_setting['type'] ) {
 
 					// Case edit passes a YmdHis format, so test for that.
 					$datetime = DateTime::createFromFormat( 'YmdHis', $value );
 
 					// Case API passes a different format, so test for that.
-					if ( $datetime === false ) {
+					if ( false === $datetime ) {
 						$datetime = DateTime::createFromFormat( 'Y-m-d H:i:s', $value );
 					}
 
@@ -328,7 +324,6 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Case_Field {
 					$value = $datetime->format( 'Y-m-d H:i:s' );
 
 				}
-
 				break;
 
 		}
@@ -358,12 +353,12 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Case_Field {
 		// We only have a few to account for.
 
 		// Case Type ID.
-		if ( $name == 'case_type_id' ) {
+		if ( 'case_type_id' === $name ) {
 			$options = $this->civicrm->case_type->choices_get();
 		}
 
 		// Case Status ID.
-		if ( $name == 'case_status_id' || $name == 'status_id' ) {
+		if ( 'case_status_id' === $name || 'status_id' === $name ) {
 			$option_group = $this->plugin->civicrm->option_group_get( 'case_status' );
 			if ( ! empty( $option_group ) ) {
 				$options = CRM_Core_OptionGroup::valuesByID( $option_group['id'] );
@@ -371,7 +366,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Case_Field {
 		}
 
 		// Medium ID.
-		if ( $name == 'case_medium_id' || $name == 'medium_id' ) {
+		if ( 'case_medium_id' === $name || 'medium_id' === $name ) {
 			$options = CRM_Case_PseudoConstant::encounterMedium();
 		}
 
@@ -405,7 +400,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Case_Field {
 
 		// Bail if this is not a Case Field Group.
 		$is_case_field_group = $this->civicrm->case->is_case_field_group( $field_group );
-		if ( $is_case_field_group === false ) {
+		if ( false === $is_case_field_group ) {
 			return $case_fields;
 		}
 
@@ -451,8 +446,8 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Case_Field {
 		// Construct params.
 		$params = [
 			'version' => 3,
-			'name' => $name,
-			'action' => 'get',
+			'name'    => $name,
+			'action'  => 'get',
 		];
 
 		// Add action.
@@ -462,7 +457,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Case_Field {
 		$result = civicrm_api( 'Case', 'getfield', $params );
 
 		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
 			return $field;
 		}
 
@@ -506,9 +501,9 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Case_Field {
 
 		// Construct params.
 		$params = [
-			'version' => 3,
+			'version'    => 3,
 			'api_action' => 'create',
-			'options' => [
+			'options'    => [
 				'limit' => 0, // No limit.
 			],
 		];
@@ -517,16 +512,14 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Case_Field {
 		$result = civicrm_api( 'Case', 'getfields', $params );
 
 		// Override return if we get some.
-		if ( $result['is_error'] == 0 && ! empty( $result['values'] ) ) {
+		if ( empty( $result['is_error'] ) && ! empty( $result['values'] ) ) {
 
-			// Check for no filter.
-			if ( $filter == 'none' ) {
+			if ( 'none' === $filter ) {
 
-				// Grab all of them.
+				// Grab all Fields.
 				$fields = $result['values'];
 
-			// Check public filter.
-			} elseif ( $filter == 'public' ) {
+			} elseif ( 'public' === $filter ) {
 
 				// Skip all but those defined in our Case Fields array.
 				$public_fields = [];
@@ -605,16 +598,14 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Case_Field {
 		$result = civicrm_api( 'Case', 'getfields', $params );
 
 		// Override return if we get some.
-		if ( $result['is_error'] == 0 && ! empty( $result['values'] ) ) {
+		if ( empty( $result['is_error'] ) && ! empty( $result['values'] ) ) {
 
-			// Check for no filter.
-			if ( $filter == 'none' ) {
+			if ( 'none' === $filter ) {
 
-				// Grab all of them.
+				// Grab all Fields.
 				$fields = $result['values'];
 
-			// Check public filter.
-			} elseif ( $filter == 'public' ) {
+			} elseif ( 'public' === $filter ) {
 
 				// Skip all but those defined in our Case Fields array.
 				foreach ( $result['values'] as $key => $value ) {
@@ -732,7 +723,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Case_Field {
 
 		// Get the mapped Case Field name if present.
 		$case_field_name = $this->civicrm->case->case_field_name_get( $field );
-		if ( $case_field_name === false ) {
+		if ( false === $case_field_name ) {
 			return $field;
 		}
 
@@ -740,17 +731,17 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Case_Field {
 		$field['choices'] = $this->options_get( $case_field_name );
 
 		// Set a default for "Case Status".
-		if ( $case_field_name == 'status_id' || $case_field_name == 'case_status_id' ) {
+		if ( 'status_id' === $case_field_name || 'case_status_id' === $case_field_name ) {
 			$status_id_default = $this->civicrm->option_value_default_get( 'case_status' );
-			if ( $status_id_default !== false ) {
+			if ( false !== $status_id_default ) {
 				$field['default_value'] = $status_id_default;
 			}
 		}
 
 		// Set a default for "Activity Medium".
-		if ( $case_field_name == 'medium_id' || $case_field_name == 'case_medium_id' ) {
+		if ( 'medium_id' === $case_field_name || 'case_medium_id' === $case_field_name ) {
 			$medium_id_default = $this->civicrm->option_value_default_get( 'encounter_medium' );
-			if ( $medium_id_default !== false ) {
+			if ( false !== $medium_id_default ) {
 				$field['default_value'] = $medium_id_default;
 			}
 		}
@@ -784,7 +775,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Case_Field {
 
 		// Get the mapped Case Field name if present.
 		$case_field_name = $this->civicrm->case->case_field_name_get( $field );
-		if ( $case_field_name === false ) {
+		if ( false === $case_field_name ) {
 			return $field;
 		}
 
@@ -821,7 +812,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Case_Field {
 		$date_fields = [ 'created_date', 'modified_date', 'case_date_time' ];
 
 		// If it's one of our Fields.
-		if ( in_array( $name, $date_fields ) ) {
+		if ( in_array( $name, $date_fields, true ) ) {
 
 			// Get the "Case Date Time" preference.
 			$format = CRM_Utils_Date::getDateFormat( 'caseDateTime' );
@@ -878,10 +869,10 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Case_Field {
 
 		// Let's make an array of params.
 		$params = [
-			'op' => 'edit',
+			'op'         => 'edit',
 			'objectName' => 'Case',
-			'objectId' => $args['case_id'],
-			'objectRef' => (object) $case,
+			'objectId'   => $args['case_id'],
+			'objectRef'  => (object) $case,
 		];
 
 		// Remove WordPress callbacks to prevent recursion.

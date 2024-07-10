@@ -139,7 +139,7 @@
 			} );
 		} );
 	} // finish loginpress_css_property();
-
+var wp_logo_height = '84';
 	// function for change LoginPress CSS in real time...
 	function loginpress_new_css_property( setting, target, property, suffix ) {
 		// Update the login logo width in real time...
@@ -154,6 +154,9 @@
 					loginpress_find( target ).css( property, '' );
 				} else {
 					loginpress_find( target )[0].style.setProperty(property , loginPressVal + suffix , 'important' );
+					if( property == 'height' ){
+						wp_logo_height = loginPressVal;
+					}
 				}
 			} );
 		} );
@@ -1105,11 +1108,14 @@
 	// Update the WordPress login logo in real time...
 	wp.customize( 'loginpress_customization[setting_logo]', function(value) {	
 		value.bind( function(loginPressVal) {	
-
 			if ( loginPressVal == '' ) {
 				loginpress_find('#login h1 a').css( 'background-image', 'url(' + loginpress_script.admin_url + '/images/wordpress-logo.svg)' );
 			} else {
 				loginpress_find('#login h1 a').css( 'background-image', 'url(' + loginPressVal + ')' );
+				loginpress_find('.login h1 a.bb-login-title:has(.bs-cs-login-title)').css('text-indent', '-10000px');
+				if(wp_logo_height == 84){
+					loginpress_find('.login h1 a.bb-login-title:has(.bs-cs-login-title)').css('height', wp_logo_height + 'px');
+				}
 			}
 		});
 	});
@@ -2091,8 +2097,8 @@
 		$("<style type='text/css' id='loginpress-scbg-position'></style>").appendTo(loginpress_find('head'));
 		$("<style type='text/css' id='loginpress-scbg-size'></style>").appendTo(loginpress_find('head'));
 		$("<style type='text/css' id='loginpress-scbg-repeat'></style>").appendTo(loginpress_find('head'));
-
-		if ( loginpress_script.autoFocusPanel ) { // Auto Focus on LoginPress Panel // 1.2.0
+		// Fix Firefox focus issue.
+		if (loginpress_script.autoFocusPanel && !(navigator.userAgent.toLowerCase().indexOf('firefox') > -1 )  ) { // Auto Focus on LoginPress Panel // 1.2.0
 			wp.customize.panel("loginpress_panel").focus();
 		}
 

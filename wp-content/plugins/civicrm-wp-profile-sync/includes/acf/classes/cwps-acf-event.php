@@ -79,9 +79,9 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event {
 	public function __construct( $parent ) {
 
 		// Store references to objects.
-		$this->plugin = $parent->acf_loader->plugin;
+		$this->plugin     = $parent->acf_loader->plugin;
 		$this->acf_loader = $parent->acf_loader;
-		$this->civicrm = $parent;
+		$this->civicrm    = $parent;
 
 		// Init when the ACF CiviCRM object is loaded.
 		add_action( 'cwps/acf/civicrm/loaded', [ $this, 'register_hooks' ] );
@@ -100,7 +100,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event {
 
 		// Listen for queries from the ACF Bypass class.
 		// phpcs:ignore Squiz.Commenting.InlineComment.InvalidEndChar
-		//add_filter( 'cwps/acf/bypass/query_settings_field', [ $this, 'query_bypass_settings_field' ], 20, 4 );
+		// add_filter( 'cwps/acf/bypass/query_settings_field', [ $this, 'query_bypass_settings_field' ], 20, 4 );
 		add_filter( 'cwps/acf/bypass/query_settings_choices', [ $this, 'query_bypass_settings_choices' ], 20, 4 );
 
 		// Listen for queries from the ACF Bypass Location Rule class.
@@ -135,10 +135,10 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event {
 
 		// Define params to get queried Events.
 		$params = [
-			'version' => 3,
+			'version'    => 3,
 			'sequential' => 1,
-			'id' => [ 'IN' => $event_ids ],
-			'options' => [
+			'id'         => [ 'IN' => $event_ids ],
+			'options'    => [
 				'limit' => 0, // No limit.
 			],
 		];
@@ -147,7 +147,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event {
 		$result = civicrm_api( 'Event', 'get', $params );
 
 		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
 			return $event_data;
 		}
 
@@ -186,10 +186,10 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event {
 
 		// Define params to get queried Event.
 		$params = [
-			'version' => 3,
+			'version'    => 3,
 			'sequential' => 1,
-			'id' => $event_id,
-			'options' => [
+			'id'         => $event_id,
+			'options'    => [
 				'limit' => 0, // No limit.
 			],
 		];
@@ -198,7 +198,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event {
 		$result = civicrm_api( 'Event', 'get', $params );
 
 		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
 			return $event_data;
 		}
 
@@ -276,15 +276,16 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event {
 		$result = civicrm_api( 'Event', 'create', $params );
 
 		// Log and bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
-			$e = new Exception();
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
+			$e     = new Exception();
 			$trace = $e->getTraceAsString();
-			error_log( print_r( [
-				'method' => __METHOD__,
-				'params' => $params,
-				'result' => $result,
+			$log   = [
+				'method'    => __METHOD__,
+				'params'    => $params,
+				'result'    => $result,
 				'backtrace' => $trace,
-			], true ) );
+			];
+			$this->plugin->log_error( $log );
 			return $event_data;
 		}
 
@@ -313,14 +314,15 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event {
 
 		// Log and bail if there's no Event ID.
 		if ( empty( $event['id'] ) ) {
-			$e = new \Exception();
+			$e     = new \Exception();
 			$trace = $e->getTraceAsString();
-			error_log( print_r( [
-				'method' => __METHOD__,
-				'message' => __( 'A numeric ID must be present to update an Event.', 'civicrm-wp-profile-sync' ),
-				'event' => $event,
+			$log   = [
+				'method'    => __METHOD__,
+				'message'   => __( 'A numeric ID must be present to update an Event.', 'civicrm-wp-profile-sync' ),
+				'event'     => $event,
 				'backtrace' => $trace,
-			], true ) );
+			];
+			$this->plugin->log_error( $log );
 			return $event_data;
 		}
 
@@ -354,13 +356,13 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event {
 
 		// Define params to get queried Event.
 		$params = [
-			'version' => 3,
+			'version'    => 3,
 			'sequential' => 1,
-			'id' => $event_id,
-			'return' => [
+			'id'         => $event_id,
+			'return'     => [
 				'is_full',
 			],
-			'options' => [
+			'options'    => [
 				'limit' => 1,
 			],
 		];
@@ -369,7 +371,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event {
 		$result = civicrm_api( 'Event', 'get', $params );
 
 		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
 			return $is_full;
 		}
 
@@ -418,13 +420,13 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event {
 
 		// Define params to get queried Event.
 		$params = [
-			'version' => 3,
-			'sequential' => 1,
-			'input' => $search,
-			'title' => 'label',
+			'version'      => 3,
+			'sequential'   => 1,
+			'input'        => $search,
+			'title'        => 'label',
 			'search_field' => 'title',
-			'label_field' => 'title',
-			'options' => [
+			'label_field'  => 'title',
+			'options'      => [
 				'limit' => 25, // No limit.
 			],
 		];
@@ -433,7 +435,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event {
 		$result = civicrm_api( 'Event', 'getlist', $params );
 
 		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
 			return $event_data;
 		}
 
@@ -465,15 +467,15 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event {
 
 		// Get Option Group ID.
 		$option_group_id = $this->type_option_group_id_get();
-		if ( $option_group_id === false ) {
+		if ( false === $option_group_id ) {
 			return false;
 		}
 
 		// Define params to get items sorted by weight.
 		$params = [
 			'option_group_id' => $option_group_id,
-			'version' => 3,
-			'options' => [
+			'version'         => 3,
+			'options'         => [
 				'sort' => 'weight ASC',
 			],
 		];
@@ -482,16 +484,17 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event {
 		$result = civicrm_api( 'OptionValue', 'get', $params );
 
 		// Bail if we get an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == '1' ) {
-			$e = new \Exception();
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
+			$e     = new \Exception();
 			$trace = $e->getTraceAsString();
-			error_log( print_r( [
-				'method' => __METHOD__,
-				'message' => $result['error_message'],
-				'result' => $result,
-				'params' => $params,
+			$log   = [
+				'method'    => __METHOD__,
+				'message'   => $result['error_message'],
+				'result'    => $result,
+				'params'    => $params,
 				'backtrace' => $trace,
-			], true ) );
+			];
+			$this->plugin->log_error( $log );
 			return false;
 		}
 
@@ -519,7 +522,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event {
 
 		// Get all the Event Types.
 		$event_types = $this->types_get();
-		if ( $event_types === false ) {
+		if ( false === $event_types ) {
 			return [];
 		}
 
@@ -561,16 +564,16 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event {
 
 		// Define params to get Event Types Option Group.
 		$params = [
-			'version' => 3,
+			'version'    => 3,
 			'sequential' => 1,
-			'name' => 'event_type',
+			'name'       => 'event_type',
 		];
 
 		// Call API.
 		$result = civicrm_api( 'OptionGroup', 'get', $params );
 
 		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
 			return $option_group_id;
 		}
 
@@ -617,10 +620,10 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event {
 
 		// Define params to get queried Participant.
 		$params = [
-			'version' => 3,
+			'version'    => 3,
 			'sequential' => 1,
-			'id' => $event_type_id,
-			'options' => [
+			'id'         => $event_type_id,
+			'options'    => [
 				'limit' => 0, // No limit.
 			],
 		];
@@ -629,7 +632,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event {
 		$result = civicrm_api( 'OptionValue', 'get', $params );
 
 		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
 			return $event_type;
 		}
 
@@ -671,11 +674,11 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event {
 
 		// Define params to get queried Participant.
 		$params = [
-			'version' => 3,
-			'sequential' => 1,
-			'value' => $event_type_value,
+			'version'         => 3,
+			'sequential'      => 1,
+			'value'           => $event_type_value,
 			'option_group_id' => $this->type_option_group_id_get(),
-			'options' => [
+			'options'         => [
 				'limit' => 0, // No limit.
 			],
 		];
@@ -684,7 +687,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event {
 		$result = civicrm_api( 'OptionValue', 'get', $params );
 
 		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
 			return $event_type;
 		}
 
@@ -813,21 +816,21 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event {
 		$core_fields = $this->civicrm->event_field->data_get( $field['type'], 'public' );
 
 		// Get the Location Fields on the Entity for this Field Type.
-		$location_fields = $this->civicrm->event_location->data_get( $field['type'], 'settings' );
+		$location_fields         = $this->civicrm->event_location->data_get( $field['type'], 'settings' );
 		$location_address_fields = $this->civicrm->event_location->data_address_get( $field['type'], 'public' );
-		$location_email_fields = $this->civicrm->event_location->data_email_get( $field['type'], 'public' );
-		$location_phone_fields = $this->civicrm->event_location->data_phone_get( $field['type'], 'public' );
+		$location_email_fields   = $this->civicrm->event_location->data_email_get( $field['type'], 'public' );
+		$location_phone_fields   = $this->civicrm->event_location->data_phone_get( $field['type'], 'public' );
 
 		// Get the Registration Fields on the Entity for this Field Type.
-		$registration_fields = $this->civicrm->event_registration->data_get( $field['type'], 'settings' );
+		$registration_fields        = $this->civicrm->event_registration->data_get( $field['type'], 'settings' );
 		$registration_screen_fields = $this->civicrm->event_registration->data_get( $field['type'], 'register' );
 		$confirmation_screen_fields = $this->civicrm->event_registration->data_get( $field['type'], 'confirm' );
-		$thankyou_screen_fields = $this->civicrm->event_registration->data_get( $field['type'], 'thankyou' );
-		$email_screen_fields = $this->civicrm->event_registration->data_get( $field['type'], 'email' );
+		$thankyou_screen_fields     = $this->civicrm->event_registration->data_get( $field['type'], 'thankyou' );
+		$email_screen_fields        = $this->civicrm->event_registration->data_get( $field['type'], 'email' );
 
 		// Parse the Event Type.
 		$event_type = reset( $entity_array[ $this->identifier ] );
-		if ( $event_type == '0' ) {
+		if ( empty( $event_type ) ) {
 			$event_type = '';
 		} else {
 			$event_type = (int) $event_type;
@@ -929,7 +932,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event {
 		}
 
 		// Maybe add Profile Fields to Event Registration Screen Field choices array.
-		if ( $field['type'] === 'select' ) {
+		if ( 'select' === $field['type'] ) {
 			$label = esc_attr__( 'Event Registration Screen Fields', 'civicrm-wp-profile-sync' );
 			$title = __( 'Include Profile (top of page)', 'civicrm-wp-profile-sync' );
 			$choices[ $label ][ $this->event_field_prefix . 'custom_pre_id' ] = $title;
@@ -996,7 +999,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event {
 		}
 
 		// Add an Option Group.
-		$event_types_title = esc_attr( __( 'Event Types', 'civicrm-wp-profile-sync' ) );
+		$event_types_title              = esc_attr( __( 'Event Types', 'civicrm-wp-profile-sync' ) );
 		$entities[ $event_types_title ] = [];
 
 		// Prepend "All" option.
@@ -1024,22 +1027,27 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event {
 		// Data response.
 		$data = [ 'success' => false ];
 
+		// Since this is an AJAX request, check security.
+		$result = check_ajax_referer( 'cwps_acf_field_civicrm_event_group', false, false );
+		if ( false === $result ) {
+			wp_send_json( $data );
+		}
+
 		// Get Event ID from POST.
-		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-		$event_id = empty( $_POST['value'] ) ? false : (int) trim( wp_unslash( $_POST['value'] ) );
-		if ( $event_id === false ) {
+		$event_id = empty( $_POST['value'] ) ? false : (int) sanitize_text_field( wp_unslash( $_POST['value'] ) );
+		if ( false === $event_id ) {
 			wp_send_json( $data );
 		}
 
 		// Get the Event data.
 		$event = $this->get_by_id( $event_id );
-		if ( $event === false ) {
+		if ( false === $event ) {
 			wp_send_json( $data );
 		}
 
 		// Data response.
 		$data = [
-			'result' => $event['event_type_id'],
+			'result'  => $event['event_type_id'],
 			'success' => true,
 		];
 

@@ -786,8 +786,8 @@ if ( ! class_exists( 'Remote_Dashboard_Notifications_Client' ) ) {
 		 */
 		protected function get_payload( $notification ) {
 			return base64_encode( json_encode( array(
-				'channel' => is_array( $notification ) && isset( $notification['channel_id'] ) ? $notification['channel_id'] : '',
-				'key'     => is_array( $notification ) && isset( $notification['channel_key'] ) ? $notification['channel_key'] : ''
+				'channel' => isset( $notification['channel_id'] ) && ! empty( $notification['channel_id'] ) ? $notification['channel_id'] : '',
+				'key'     => isset( $notification['channel_key'] ) && ! empty( $notification['channel_key'] ) ? $notification['channel_key'] : ''
 			) ) );
 		}
 

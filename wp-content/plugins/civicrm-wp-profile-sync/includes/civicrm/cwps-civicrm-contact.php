@@ -57,7 +57,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Contact {
 	public function __construct( $parent ) {
 
 		// Store references to objects.
-		$this->plugin = $parent->plugin;
+		$this->plugin  = $parent->plugin;
 		$this->civicrm = $parent;
 
 		// Init when the CiviCRM object is loaded.
@@ -128,13 +128,13 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Contact {
 	public function register_mapper_hooks() {
 
 		// Bail if already registered.
-		if ( $this->mapper_hooks === true ) {
+		if ( true === $this->mapper_hooks ) {
 			return;
 		}
 
 		// Intercept Contact updates in CiviCRM.
 		// phpcs:ignore Squiz.Commenting.InlineComment.InvalidEndChar
-		//add_action( 'cwps/mapper/contact/edit/pre', [ $this, 'contact_pre' ], 10, 4 );
+		// add_action( 'cwps/mapper/contact/edit/pre', [ $this, 'contact_pre' ], 10, 4 );
 		add_action( 'cwps/mapper/contact/edited', [ $this, 'contact_edited' ], 10 );
 
 		// Declare registered.
@@ -150,13 +150,13 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Contact {
 	public function unregister_mapper_hooks() {
 
 		// Bail if already unregistered.
-		if ( $this->mapper_hooks === false ) {
+		if ( false === $this->mapper_hooks ) {
 			return;
 		}
 
 		// Remove all CiviCRM callbacks.
 		// phpcs:ignore Squiz.Commenting.InlineComment.InvalidEndChar
-		//remove_action( 'cwps/mapper/contact/edit/pre', [ $this, 'contact_pre' ], 10 );
+		// remove_action( 'cwps/mapper/contact/edit/pre', [ $this, 'contact_pre' ], 10 );
 		remove_action( 'cwps/mapper/contact/edited', [ $this, 'contact_edited' ], 10 );
 
 		// Declare unregistered.
@@ -256,20 +256,20 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Contact {
 	 *
 	 * @since 0.1
 	 *
-	 * @param string $op The type of database operation.
-	 * @param string $objectName The type of object.
-	 * @param integer $objectId The ID of the object.
-	 * @param object $objectRef The object.
+	 * @param string  $op The type of database operation.
+	 * @param string  $object_name The type of object.
+	 * @param integer $object_id The ID of the object.
+	 * @param object  $object_ref The object.
 	 */
-	public function contact_pre( $op, $objectName, $objectId, $objectRef ) {
+	public function contact_pre( $op, $object_name, $object_id, $object_ref ) {
 
 		// Target our operation.
-		if ( $op != 'edit' ) {
+		if ( 'edit' !== $op ) {
 			return;
 		}
 
 		// Target our object type.
-		if ( $objectName != 'Individual' ) {
+		if ( 'Individual' !== $object_name ) {
 			return;
 		}
 
@@ -295,7 +295,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Contact {
 		$user_id = $this->plugin->mapper->ufmatch->user_id_get_by_contact_id( $args['objectId'] );
 
 		// Bail if we didn't get one.
-		if ( $user_id === false ) {
+		if ( false === $user_id ) {
 			return;
 		}
 
@@ -332,7 +332,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Contact {
 		 *
 		 * @since 0.2.4
 		 *
-		 * @param integer $objectId The ID of the CiviCRM Contact.
+		 * @param integer $object_id The ID of the CiviCRM Contact.
 		 * @param object $contact The CiviCRM Contact object.
 		 * @param integer $user_id The ID of the WordPress User.
 		 */
@@ -420,7 +420,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Contact {
 	 *
 	 * @since 0.3
 	 *
-	 * @param object $contact The CiviCRM Contact object.
+	 * @param object  $contact The CiviCRM Contact object.
 	 * @param integer $user_id The numeric ID of the WordPress User.
 	 * @return bool $should_be_synced Whether or not the Contact should be synced.
 	 */
@@ -468,7 +468,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Contact {
 	public function name_update( $args ) {
 
 		// Grab User and Contact.
-		$user = $args['user'];
+		$user    = $args['user'];
 		$contact = $args['ufmatch'];
 
 		// Should this Contact name be synced?
@@ -490,25 +490,26 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Contact {
 
 		// Update the CiviCRM Contact "First Name" and "Last Name".
 		$params = [
-			'version' => 3,
-			'id' => $contact->contact_id,
+			'version'    => 3,
+			'id'         => $contact->contact_id,
 			'first_name' => $user->first_name,
-			'last_name' => $user->last_name,
+			'last_name'  => $user->last_name,
 		];
 
 		// Call the CiviCRM API.
 		$result = civicrm_api( 'Contact', 'create', $params );
 
 		// Log something on failure.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
-			$e = new \Exception();
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
+			$e     = new \Exception();
 			$trace = $e->getTraceAsString();
-			error_log( print_r( [
-				'method' => __METHOD__,
-				'message' => __( 'Could not update the name of the CiviCRM Contact.', 'civicrm-wp-profile-sync' ),
-				'result' => $result,
+			$log   = [
+				'method'    => __METHOD__,
+				'message'   => __( 'Could not update the name of the CiviCRM Contact.', 'civicrm-wp-profile-sync' ),
+				'result'    => $result,
 				'backtrace' => $trace,
-			], true ) );
+			];
+			$this->plugin->log_error( $log );
 		}
 
 	}
@@ -566,7 +567,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Contact {
 	public function nickname_update( $args ) {
 
 		// Grab User and Contact.
-		$user = $args['user'];
+		$user    = $args['user'];
 		$contact = $args['ufmatch'];
 
 		// Should this Contact nickname be synced?
@@ -581,8 +582,8 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Contact {
 
 		// Update the CiviCRM Contact "First Name" and "Last Name".
 		$params = [
-			'version' => 3,
-			'id' => $contact->contact_id,
+			'version'   => 3,
+			'id'        => $contact->contact_id,
 			'nick_name' => $user->nickname,
 		];
 
@@ -590,15 +591,16 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Contact {
 		$result = civicrm_api( 'Contact', 'create', $params );
 
 		// Log something on failure.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
-			$e = new \Exception();
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
+			$e     = new \Exception();
 			$trace = $e->getTraceAsString();
-			error_log( print_r( [
-				'method' => __METHOD__,
-				'message' => __( 'Could not update the nickname of the CiviCRM Contact.', 'civicrm-wp-profile-sync' ),
-				'result' => $result,
+			$log   = [
+				'method'    => __METHOD__,
+				'message'   => __( 'Could not update the nickname of the CiviCRM Contact.', 'civicrm-wp-profile-sync' ),
+				'result'    => $result,
 				'backtrace' => $trace,
-			], true ) );
+			];
+			$this->plugin->log_error( $log );
 		}
 
 	}
@@ -619,7 +621,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Contact {
 
 		// Check if our setting allows Nickname sync.
 		$nickname_sync = $this->plugin->admin->setting_get( 'user_profile_nickname_sync', 1 );
-		if ( $nickname_sync !== 1 ) {
+		if ( 1 !== (int) $nickname_sync ) {
 			$should_be_synced = false;
 		}
 
@@ -660,7 +662,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Contact {
 		// Build params to create Contact.
 		$params = [
 			'version' => 3,
-			'debug' => 1,
+			'debug'   => 1,
 		] + $contact;
 
 		/*
@@ -699,15 +701,16 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Contact {
 		$result = civicrm_api( 'Contact', 'create', $params );
 
 		// Log and bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
-			$e = new Exception();
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
+			$e     = new Exception();
 			$trace = $e->getTraceAsString();
-			error_log( print_r( [
-				'method' => __METHOD__,
-				'params' => $params,
-				'result' => $result,
+			$log   = [
+				'method'    => __METHOD__,
+				'params'    => $params,
+				'result'    => $result,
 				'backtrace' => $trace,
-			], true ) );
+			];
+			$this->plugin->log_error( $log );
 			return $contact_data;
 		}
 
@@ -740,14 +743,15 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Contact {
 
 		// Log and bail if there's no Contact ID.
 		if ( empty( $contact['id'] ) ) {
-			$e = new \Exception();
+			$e     = new \Exception();
 			$trace = $e->getTraceAsString();
-			error_log( print_r( [
-				'method' => __METHOD__,
-				'message' => __( 'A numeric ID must be present to update a Contact.', 'civicrm-wp-profile-sync' ),
-				'contact' => $contact,
+			$log   = [
+				'method'    => __METHOD__,
+				'message'   => __( 'A numeric ID must be present to update a Contact.', 'civicrm-wp-profile-sync' ),
+				'contact'   => $contact,
 				'backtrace' => $trace,
-			], true ) );
+			];
+			$this->plugin->log_error( $log );
 			return false;
 		}
 
@@ -777,14 +781,15 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Contact {
 
 		// Log and bail if there's no Contact ID.
 		if ( empty( $contact['id'] ) ) {
-			$e = new \Exception();
+			$e     = new \Exception();
 			$trace = $e->getTraceAsString();
-			error_log( print_r( [
-				'method' => __METHOD__,
-				'message' => __( 'A numeric ID must be present to delete a Contact.', 'civicrm-wp-profile-sync' ),
-				'contact' => $contact,
+			$log   = [
+				'method'    => __METHOD__,
+				'message'   => __( 'A numeric ID must be present to delete a Contact.', 'civicrm-wp-profile-sync' ),
+				'contact'   => $contact,
 				'backtrace' => $trace,
-			], true ) );
+			];
+			$this->plugin->log_error( $log );
 			return false;
 		}
 
@@ -797,7 +802,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Contact {
 		$result = civicrm_api( 'Contact', 'delete', $params );
 
 		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
 			return $contact_data;
 		}
 
@@ -842,10 +847,10 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Contact {
 
 		// Define params to get queried Contact.
 		$params = [
-			'version' => 3,
+			'version'    => 3,
 			'sequential' => 1,
-			'id' => $contact_id,
-			'options' => [
+			'id'         => $contact_id,
+			'options'    => [
 				'limit' => 0, // No limit.
 			],
 		];
@@ -854,7 +859,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Contact {
 		$result = civicrm_api( 'Contact', 'get', $params );
 
 		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
 			return $contact_data;
 		}
 
@@ -897,10 +902,10 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Contact {
 
 		// Define params to get queried Contacts.
 		$params = [
-			'version' => 3,
+			'version'    => 3,
 			'sequential' => 1,
-			'id' => [ 'IN' => $contact_ids ],
-			'options' => [
+			'id'         => [ 'IN' => $contact_ids ],
+			'options'    => [
 				'limit' => 0, // No limit.
 			],
 		];
@@ -909,7 +914,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Contact {
 		$result = civicrm_api( 'Contact', 'get', $params );
 
 		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
 			return $contact_data;
 		}
 
@@ -950,10 +955,10 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Contact {
 
 		// Define params to get all Contact Types.
 		$params = [
-			'version' => 3,
+			'version'    => 3,
 			'sequential' => 1,
-			'is_active' => 1,
-			'options' => [
+			'is_active'  => 1,
+			'options'    => [
 				'limit' => 0, // No limit.
 			],
 		];
@@ -962,7 +967,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Contact {
 		$result = civicrm_api( 'ContactType', 'get', $params );
 
 		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
 			return $all;
 		}
 
@@ -996,11 +1001,11 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Contact {
 
 		// Define params to get all Contact Types.
 		$params = [
-			'version' => 3,
+			'version'    => 3,
 			'sequential' => 1,
-			'id' => $contact_type_id,
-			'is_active' => 1,
-			'options' => [
+			'id'         => $contact_type_id,
+			'is_active'  => 1,
+			'options'    => [
 				'limit' => 0, // No limit.
 			],
 		];
@@ -1009,7 +1014,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Contact {
 		$result = civicrm_api( 'ContactType', 'get', $params );
 
 		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
 			return $contact_type;
 		}
 
@@ -1050,7 +1055,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Contact {
 		$contact = $this->plugin->mapper->ufmatch->contact_get_by_user_id( $user->ID );
 
 		// Bail if there isn't one.
-		if ( $contact === false ) {
+		if ( false === $contact ) {
 			return;
 		}
 
@@ -1063,12 +1068,13 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Contact {
 		$link = $this->plugin->civicrm->get_link( 'civicrm/contact/view', 'reset=1&cid=' . $contact['id'] );
 
 		// Add menu item.
-		$wp_admin_bar->add_node( [
+		$args = [
 			'parent' => 'user-actions',
 			'id'     => 'civicrm-profile',
 			'title'  => __( 'CiviCRM Profile', 'civicrm-wp-profile-sync' ),
 			'href'   => $link,
-		] );
+		];
+		$wp_admin_bar->add_node( $args );
 
 	}
 

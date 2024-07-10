@@ -92,10 +92,10 @@ class CiviCRM_Profile_Sync_ACF_Field {
 	public function __construct( $parent ) {
 
 		// Store references to objects.
-		$this->plugin = $parent->acf_loader->plugin;
+		$this->plugin     = $parent->acf_loader->plugin;
 		$this->acf_loader = $parent->acf_loader;
-		$this->acf = $parent;
-		$this->civicrm = $this->acf_loader->civicrm;
+		$this->acf        = $parent;
+		$this->civicrm    = $this->acf_loader->civicrm;
 
 		// Init when the parent class is loaded.
 		add_action( 'cwps/acf/acf/loaded', [ $this, 'register_hooks' ] );
@@ -116,7 +116,7 @@ class CiviCRM_Profile_Sync_ACF_Field {
 
 		// Add Setting Field to Fields.
 		// phpcs:ignore Squiz.Commenting.InlineComment.InvalidEndChar
-		//add_action( 'acf/render_field_settings', [ $this, 'field_setting_add' ] );
+		// add_action( 'acf/render_field_settings', [ $this, 'field_setting_add' ] );
 
 		// For newly-added Fields, we need to specify our supported Fields.
 		foreach ( $this->field_types as $field_type ) {
@@ -166,12 +166,12 @@ class CiviCRM_Profile_Sync_ACF_Field {
 		}
 
 		// Does it refer to an ACF Options Page?
-		if ( $post_id === 'options' ) {
+		if ( 'options' === $post_id ) {
 			return 'options';
 		}
 
 		// Does it refer to an ACF Option?
-		if ( $post_id === 'option' ) {
+		if ( 'option' === $post_id ) {
 			return 'option';
 		}
 
@@ -262,17 +262,17 @@ class CiviCRM_Profile_Sync_ACF_Field {
 		// TODO: Make this a filter...
 
 		// Easy if it's a Post.
-		if ( $entity === 'post' ) {
+		if ( 'post' === $entity ) {
 			$params = [
 				'post_id' => $post_id,
 			];
 		}
 
 		// If it's a User, we support the Edit Form.
-		if ( $entity === 'user' ) {
-			//$tmp = explode( '_', $post_id );
+		if ( 'user' === $entity ) {
+			// $tmp = explode( '_', $post_id );
 			$params = [
-				//'user_id' => $tmp[1],
+				// 'user_id' => $tmp[1],
 				'user_form' => 'edit',
 			];
 		}
@@ -354,14 +354,14 @@ class CiviCRM_Profile_Sync_ACF_Field {
 	 *
 	 * @since 0.4
 	 *
-	 * @param string $selector The Field name or key.
-	 * @param mixed $value The value to save in the database.
+	 * @param string         $selector The Field name or key.
+	 * @param mixed          $value The value to save in the database.
 	 * @param integer|string $post_id The ACF "Post ID".
 	 */
 	public function value_update( $selector, $value, $post_id ) {
 
 		// Protect against (string) 'null' which CiviCRM uses for some reason.
-		if ( $value === 'null' || $value === 'NULL' ) {
+		if ( 'null' === $value || 'NULL' === $value ) {
 			$value = '';
 		}
 
@@ -379,9 +379,9 @@ class CiviCRM_Profile_Sync_ACF_Field {
 	 *
 	 * @since 0.4
 	 *
-	 * @param bool $valid The existing valid status.
-	 * @param mixed $value The value of the Field.
-	 * @param array $field The Field data array.
+	 * @param bool   $valid The existing valid status.
+	 * @param mixed  $value The value of the Field.
+	 * @param array  $field The Field data array.
 	 * @param string $input The input element's name attribute.
 	 * @return string|bool $valid A string to display a custom error message, boolean otherwise.
 	 */
@@ -393,19 +393,19 @@ class CiviCRM_Profile_Sync_ACF_Field {
 		}
 
 		// Bail if it's not required and is empty.
-		if ( $field['required'] == '0' && empty( $value ) ) {
+		if ( 0 === (int) $field['required'] && empty( $value ) ) {
 			return $valid;
 		}
 
 		// Get the mapped Custom Field ID if present.
 		$custom_field_id = $this->civicrm->custom_field->custom_field_id_get( $field );
-		if ( $custom_field_id === false ) {
+		if ( false === $custom_field_id ) {
 			return $valid;
 		}
 
 		// Get Custom Field data.
 		$field_data = $this->plugin->civicrm->custom_field->get_by_id( $custom_field_id );
-		if ( $field_data === false ) {
+		if ( false === $field_data ) {
 			return $valid;
 		}
 
@@ -413,9 +413,8 @@ class CiviCRM_Profile_Sync_ACF_Field {
 		switch ( $field_data['data_type'] ) {
 
 			case 'String':
-
 				// If it's a Multi-select.
-				if ( $field_data['html_type'] == 'Multi-Select' && is_array( $value ) ) {
+				if ( 'Multi-Select' === $field_data['html_type'] && is_array( $value ) ) {
 
 					// Make sure values are all are varchar(255) or varchar(260).
 					foreach ( $value as $item ) {
@@ -446,13 +445,11 @@ class CiviCRM_Profile_Sync_ACF_Field {
 					}
 
 				}
-
 				break;
 
 			case 'Int':
-
 				// If it's a Multi-select.
-				if ( $field_data['html_type'] == 'Multi-Select' && is_array( $value ) ) {
+				if ( 'Multi-Select' === $field_data['html_type'] && is_array( $value ) ) {
 
 					// Make sure values are all integers.
 					foreach ( $value as $item ) {
@@ -481,13 +478,11 @@ class CiviCRM_Profile_Sync_ACF_Field {
 					}
 
 				}
-
 				break;
 
 			case 'Float':
-
 				// If it's a Multi-select.
-				if ( $field_data['html_type'] == 'Multi-Select' && is_array( $value ) ) {
+				if ( 'Multi-Select' === $field_data['html_type'] && is_array( $value ) ) {
 
 					// Make sure values are all numeric.
 					foreach ( $value as $item ) {
@@ -507,9 +502,8 @@ class CiviCRM_Profile_Sync_ACF_Field {
 				break;
 
 			case 'Money':
-
 				// If it's a Multi-select.
-				if ( $field_data['html_type'] == 'Multi-Select' && is_array( $value ) ) {
+				if ( 'Multi-Select' === $field_data['html_type'] && is_array( $value ) ) {
 
 					// Make sure values are all numeric.
 					foreach ( $value as $item ) {
@@ -545,7 +539,6 @@ class CiviCRM_Profile_Sync_ACF_Field {
 					}
 
 				}
-
 				break;
 
 		}
@@ -562,10 +555,10 @@ class CiviCRM_Profile_Sync_ACF_Field {
 	 *
 	 * @since 0.4
 	 *
-	 * @param mixed $value The ACF Field value.
+	 * @param mixed  $value The ACF Field value.
 	 * @param string $type The ACF Field Type.
-	 * @param array $settings The ACF Field settings.
-	 * @param array $args Any additional arguments.
+	 * @param array  $settings The ACF Field settings.
+	 * @param array  $args Any additional arguments.
 	 * @return mixed $value The Field value formatted for CiviCRM.
 	 */
 	public function value_get_for_civicrm( $value, $type, $settings, $args = [] ) {
@@ -627,13 +620,13 @@ class CiviCRM_Profile_Sync_ACF_Field {
 	 */
 	public function true_false_value_get( $value = '0' ) {
 
-		// Convert 1 to string.
-		if ( $value == 1 ) {
+		// Convert numeric 1 to string.
+		if ( '1' === (string) $value ) {
 			$value = '1';
 		}
 
 		// Convert empty value.
-		if ( empty( $value ) || $value === 0 ) {
+		if ( empty( $value ) || 0 === $value ) {
 			$value = '0';
 		}
 
@@ -664,21 +657,17 @@ class CiviCRM_Profile_Sync_ACF_Field {
 			return '';
 		}
 
-		// If it's an array, extract full image URL.
 		if ( is_array( $value ) ) {
 
-			// Discard all but the URL.
+			// If it's an array, discard all but the URL.
 			if ( ! empty( $value['url'] ) ) {
 				$value = $value['url'];
 			}
 
-		// When it's numeric, get full image URL from Attachment.
 		} elseif ( is_numeric( $value ) ) {
 
-			// Grab the the full size Image URL.
+			// When it's numeric, use full size Image URL from Attachment.
 			$url = wp_get_attachment_image_url( (int) $value, 'full' );
-
-			// Overwrite with the URL.
 			if ( ! empty( $url ) ) {
 				$value = $url;
 			}
@@ -698,7 +687,7 @@ class CiviCRM_Profile_Sync_ACF_Field {
 	 * @since 0.4
 	 *
 	 * @param string $value The existing Field value.
-	 * @param array $settings The ACF Field settings.
+	 * @param array  $settings The ACF Field settings.
 	 * @return string $value The modified value for CiviCRM.
 	 */
 	public function date_picker_value_get( $value, $settings ) {
@@ -719,7 +708,7 @@ class CiviCRM_Profile_Sync_ACF_Field {
 	 * @since 0.4
 	 *
 	 * @param string $value The existing Field value.
-	 * @param array $settings The ACF Field settings.
+	 * @param array  $settings The ACF Field settings.
 	 * @return string $value The modified value for CiviCRM.
 	 */
 	public function date_time_picker_value_get( $value, $settings ) {
@@ -740,15 +729,15 @@ class CiviCRM_Profile_Sync_ACF_Field {
 	 * @since 0.4
 	 *
 	 * @param string $value The existing Field value.
-	 * @param array $settings The ACF Field settings.
+	 * @param array  $settings The ACF Field settings.
 	 * @return string $value The modified value for CiviCRM.
 	 */
 	public function textarea_value_get( $value, $settings ) {
 
 		// Undo ACF new lines.
-		if ( $settings['new_lines'] === 'wpautop' ) {
+		if ( 'wpautop' === $settings['new_lines'] ) {
 			$value = $this->plugin->wp->unautop( $value );
-		} elseif ( $settings['new_lines'] === 'br' ) {
+		} elseif ( 'br' === $settings['new_lines'] ) {
 			// @see https://stackoverflow.com/a/2494762
 			$value = str_replace( "\r\n", '', $value );
 			$value = preg_replace( '/<br[^>]*>/i', "\n", $value );
@@ -771,7 +760,7 @@ class CiviCRM_Profile_Sync_ACF_Field {
 	public function field_setting_add( $field ) {
 
 		// Bail if this is the "clone" ACF Field.
-		if ( $field['key'] == 'acfcloneindex' ) {
+		if ( 'acfcloneindex' === $field['key'] ) {
 			return;
 		}
 
@@ -847,20 +836,20 @@ class CiviCRM_Profile_Sync_ACF_Field {
 
 		// Define Setting Field.
 		$setting_field = [
-			'key' => $this->civicrm->acf_field_key_get(),
-			'label' => __( 'CiviCRM Field', 'civicrm-wp-profile-sync' ),
-			'name' => $this->civicrm->acf_field_key_get(),
-			'type' => 'select',
-			'instructions' => __( 'Choose the CiviCRM Field that this ACF Field should sync with. (Optional)', 'civicrm-wp-profile-sync' ),
+			'key'           => $this->civicrm->acf_field_key_get(),
+			'label'         => __( 'CiviCRM Field', 'civicrm-wp-profile-sync' ),
+			'name'          => $this->civicrm->acf_field_key_get(),
+			'type'          => 'select',
+			'instructions'  => __( 'Choose the CiviCRM Field that this ACF Field should sync with. (Optional)', 'civicrm-wp-profile-sync' ),
 			'default_value' => '',
-			'placeholder' => '',
-			'allow_null' => 1,
-			'multiple' => 0,
-			'ui' => 0,
-			'required' => 0,
+			'placeholder'   => '',
+			'allow_null'    => 1,
+			'multiple'      => 0,
+			'ui'            => 0,
+			'required'      => 0,
 			'return_format' => 'value',
-			'parent' => $this->acf->field_group->placeholder_group_get(),
-			'choices' => $choices,
+			'parent'        => $this->acf->field_group->placeholder_group_get(),
+			'choices'       => $choices,
 		];
 
 		// Now add it.
@@ -883,6 +872,35 @@ class CiviCRM_Profile_Sync_ACF_Field {
 		 * @param array $field_group The ACF Field Group data array.
 		 */
 		do_action( 'cwps/acf/field/generic_field_setting/added', $field, $setting_field, $field_group );
+
+	}
+
+	/**
+	 * Returns a default Placeholder Settings Field.
+	 *
+	 * @since 0.6.6
+	 *
+	 * @return array $field The Placeholder Settings Field data array.
+	 */
+	public function field_setting_placeholder_get() {
+
+		// Get Placeholder Setting Field.
+		$field = [
+			'label'        => __( 'Placeholder Text', 'civicrm-wp-profile-sync' ),
+			'instructions' => __( 'Appears within the input', 'civicrm-wp-profile-sync' ),
+			'type'         => 'text',
+			'name'         => 'placeholder',
+			'placeholder'  => _x( 'Select', 'verb', 'civicrm-wp-profile-sync' ),
+		];
+
+		/**
+		 * Filter the default Placeholder Settings Field.
+		 *
+		 * @since 0.6.6
+		 *
+		 * @param array $field The default Placeholder Settings Field array.
+		 */
+		return apply_filters( 'cwps/acf/field/setting/placeholder', $field );
 
 	}
 

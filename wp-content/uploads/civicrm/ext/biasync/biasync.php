@@ -7,7 +7,7 @@ use CRM_Biasync_ExtensionUtil as E;
 Use Civi\Api4\Contact;
 use Civi\Api4\Property;
 use Civi\Api4\Unit;
-use Civi\APi4\PropertyLog;
+use Civi\Api4\PropertyLog;
 
 /**
  * Implements hook_civicrm_config().
@@ -88,7 +88,7 @@ function biasync_civicrm_post(string $op, string $objectName, int $objectId, &$o
     if ($objectName === 'UnitBusiness') {
       /* @var CRM_Biaproperty_DAO_UnitBusiness $objectRef */
       $objectRef->find(TRUE);
-      $propertyId = Proprety::get(FALSE)
+      $propertyId = Property::get(FALSE)
         ->addSelect('id')
         ->addJoin('Unit AS unit', 'INNER', ['id', '=', 'unit.property_id'])
         ->addWhere('unit.id', '=', $objectRef->unit_id)

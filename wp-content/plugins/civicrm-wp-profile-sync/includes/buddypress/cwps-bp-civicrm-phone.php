@@ -88,11 +88,11 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Phone {
 	public $phone_fields = [
 		'is_primary' => 'true_false',
 		'is_billing' => 'true_false',
-		'phone' => [
+		'phone'      => [
 			'textbox',
 			'telephone',
 		],
-		'phone_ext' => 'textbox',
+		'phone_ext'  => 'textbox',
 	];
 
 	/**
@@ -105,10 +105,10 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Phone {
 	public function __construct( $xprofile ) {
 
 		// Store references to objects.
-		$this->plugin = $xprofile->bp_loader->plugin;
+		$this->plugin    = $xprofile->bp_loader->plugin;
 		$this->bp_loader = $xprofile->bp_loader;
-		$this->civicrm = $this->plugin->civicrm;
-		$this->xprofile = $xprofile;
+		$this->civicrm   = $this->plugin->civicrm;
+		$this->xprofile  = $xprofile;
 
 		// Init when the BuddyPress Field object is loaded.
 		add_action( 'cwps/buddypress/field/loaded', [ $this, 'initialise' ] );
@@ -166,7 +166,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Phone {
 	public function register_mapper_hooks() {
 
 		// Bail if already registered.
-		if ( $this->mapper_hooks === true ) {
+		if ( true === $this->mapper_hooks ) {
 			return;
 		}
 
@@ -174,9 +174,9 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Phone {
 		add_action( 'cwps/mapper/phone/created', [ $this, 'phone_edited' ], 10 );
 		add_action( 'cwps/mapper/phone/edited', [ $this, 'phone_edited' ], 10 );
 		// phpcs:ignore Squiz.Commenting.InlineComment.InvalidEndChar
-		//add_action( 'cwps/mapper/phone/delete/pre', [ $this, 'phone_pre_delete' ], 10 );
+		// add_action( 'cwps/mapper/phone/delete/pre', [ $this, 'phone_pre_delete' ], 10 );
 		// phpcs:ignore Squiz.Commenting.InlineComment.InvalidEndChar
-		//add_action( 'cwps/mapper/phone/deleted', [ $this, 'phone_deleted' ], 10 );
+		// add_action( 'cwps/mapper/phone/deleted', [ $this, 'phone_deleted' ], 10 );
 
 		// Declare registered.
 		$this->mapper_hooks = true;
@@ -191,7 +191,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Phone {
 	public function unregister_mapper_hooks() {
 
 		// Bail if already unregistered.
-		if ( $this->mapper_hooks === false ) {
+		if ( false === $this->mapper_hooks ) {
 			return;
 		}
 
@@ -199,9 +199,9 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Phone {
 		remove_action( 'cwps/mapper/phone/created', [ $this, 'phone_edited' ], 10 );
 		remove_action( 'cwps/mapper/phone/edited', [ $this, 'phone_edited' ], 10 );
 		// phpcs:ignore Squiz.Commenting.InlineComment.InvalidEndChar
-		//remove_action( 'cwps/mapper/phone/delete/pre', [ $this, 'phone_pre_delete' ], 10 );
+		// remove_action( 'cwps/mapper/phone/delete/pre', [ $this, 'phone_pre_delete' ], 10 );
 		// phpcs:ignore Squiz.Commenting.InlineComment.InvalidEndChar
-		//remove_action( 'cwps/mapper/phone/deleted', [ $this, 'phone_deleted' ], 10 );
+		// remove_action( 'cwps/mapper/phone/deleted', [ $this, 'phone_deleted' ], 10 );
 
 		// Declare unregistered.
 		$this->mapper_hooks = false;
@@ -243,13 +243,13 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Phone {
 	 * @since 0.5
 	 *
 	 * @param object $phone The CiviCRM Phone Record object.
-	 * @param array $args The array of CiviCRM params.
+	 * @param array  $args The array of CiviCRM params.
 	 */
 	public function phone_process( $phone, $args ) {
 
 		// Bail if we can't find a User ID.
 		$user_id = $this->plugin->mapper->ufmatch->user_id_get_by_contact_id( $phone->contact_id );
-		if ( $user_id === false ) {
+		if ( false === $user_id ) {
 			return $user_id;
 		}
 
@@ -261,7 +261,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Phone {
 		foreach ( $bp_fields as $bp_field ) {
 
 			// Only Fields for this Entity please.
-			if ( $bp_field['field_meta']['entity_type'] !== 'Phone' ) {
+			if ( 'Phone' !== $bp_field['field_meta']['entity_type'] ) {
 				continue;
 			}
 
@@ -279,7 +279,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Phone {
 
 			// Only "Phone" Fields please.
 			$bp_field_mapping = $bp_field['field_meta']['value'];
-			$field_name = $this->name_get( $bp_field_mapping );
+			$field_name       = $this->name_get( $bp_field_mapping );
 			if ( empty( $field_name ) ) {
 				continue;
 			}
@@ -344,7 +344,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Phone {
 	public function value_get_for_bp( $value, $name, $params ) {
 
 		// Bail if value is (string) 'null' which CiviCRM uses for some reason.
-		if ( $value == 'null' || $value == 'NULL' ) {
+		if ( 'null' === $value || 'NULL' === $value ) {
 			return '';
 		}
 
@@ -361,14 +361,12 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Phone {
 
 			// Used by "Primary" etc.
 			case 'true_false':
-
 				// Clear the value when empty.
 				if ( empty( $value ) ) {
 					$value = null;
 				} else {
 					$value = 1;
 				}
-
 				break;
 
 		}
@@ -397,7 +395,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Phone {
 		// Filter the Fields to include only Phone data.
 		$phone_fields = [];
 		foreach ( $args['field_data'] as $field ) {
-			if ( empty( $field['meta']['entity_type'] ) || $field['meta']['entity_type'] !== 'Phone' ) {
+			if ( empty( $field['meta']['entity_type'] ) || 'Phone' !== $field['meta']['entity_type'] ) {
 				continue;
 			}
 			$phone_fields[] = $field;
@@ -418,7 +416,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Phone {
 				continue;
 			}
 			$location_type_id = $field['meta']['entity_data']['location_type_id'];
-			$phone_type_id = $field['meta']['entity_data']['phone_type_id'];
+			$phone_type_id    = $field['meta']['entity_data']['phone_type_id'];
 			$phone_groups[ $location_type_id ][ $phone_type_id ][] = $field;
 		}
 
@@ -452,7 +450,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Phone {
 
 				// Add the Location Type and Phone Type.
 				$phone_data['location_type_id'] = $location_type_id;
-				$phone_data['phone_type_id'] = $phone_type_id;
+				$phone_data['phone_type_id']    = $phone_type_id;
 
 				// Okay, write the data to CiviCRM.
 				$phone = $this->plugin->civicrm->phone->update( $args['contact_id'], $phone_data );
@@ -492,7 +490,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Phone {
 			}
 
 			// Get the CiviCRM Custom Field and Phone Field.
-			$custom_field_id = $this->xprofile->custom_field->id_get( $meta['value'] );
+			$custom_field_id  = $this->xprofile->custom_field->id_get( $meta['value'] );
 			$phone_field_name = $this->name_get( $meta['value'] );
 
 			// Do we have a synced Custom Field or Phone Field?
@@ -513,8 +511,8 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Phone {
 
 				// Build args for value conversion.
 				$args = [
-					'entity_type' => $meta['entity_type'],
-					'custom_field_id' => $custom_field_id,
+					'entity_type'      => $meta['entity_type'],
+					'custom_field_id'  => $custom_field_id,
 					'phone_field_name' => $phone_field_name,
 				];
 
@@ -540,10 +538,10 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Phone {
 	 *
 	 * @since 0.5
 	 *
-	 * @param array $choices The existing array of choices for the Setting Field.
+	 * @param array  $choices The existing array of choices for the Setting Field.
 	 * @param string $field_type The BuddyPress Field Type.
 	 * @param string $entity_type The CiviCRM Entity Type.
-	 * @param array $entity_type_data The array of Entity Type data.
+	 * @param array  $entity_type_data The array of Entity Type data.
 	 * @return array $choices The modified array of choices for the Setting Field.
 	 */
 	public function query_setting_choices( $choices, $field_type, $entity_type, $entity_type_data ) {
@@ -554,7 +552,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Phone {
 		}
 
 		// Bail if not the "Phone" Entity Type.
-		if ( $entity_type !== 'Phone' ) {
+		if ( 'Phone' !== $entity_type ) {
 			return $choices;
 		}
 
@@ -653,16 +651,14 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Phone {
 		$result = civicrm_api( 'Phone', 'getfields', $params );
 
 		// Override return if we get some.
-		if ( $result['is_error'] == 0 && ! empty( $result['values'] ) ) {
+		if ( empty( $result['is_error'] ) && ! empty( $result['values'] ) ) {
 
-			// Check for no filter.
-			if ( $filter == 'none' ) {
+			if ( 'none' === $filter ) {
 
-				// Grab all of them.
+				// Grab all Fields.
 				$fields = $result['values'];
 
-			// Check public filter.
-			} elseif ( $filter == 'public' ) {
+			} elseif ( 'public' === $filter ) {
 
 				// Skip all but those defined in our Phone Fields array.
 				$public_fields = [];
@@ -675,7 +671,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Phone {
 				// Skip all but those mapped to the type of xProfile Field.
 				foreach ( $public_fields as $key => $value ) {
 					if ( is_array( $this->phone_fields[ $value['name'] ] ) ) {
-						if ( in_array( $field_type, $this->phone_fields[ $value['name'] ] ) ) {
+						if ( in_array( $field_type, $this->phone_fields[ $value['name'] ], true ) ) {
 							$fields[] = $value;
 						}
 					} else {
@@ -780,7 +776,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Phone {
 
 		// Bail if not a "True/False" Field Type.
 		$civicrm_field_type = $this->get_bp_type( $field_name );
-		if ( $civicrm_field_type !== 'true_false' ) {
+		if ( 'true_false' !== $civicrm_field_type ) {
 			return $options;
 		}
 
@@ -803,7 +799,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Phone {
 	 *
 	 * @since 0.5
 	 *
-	 * @param array $phone_fields The existing array of Phone Fields.
+	 * @param array  $phone_fields The existing array of Phone Fields.
 	 * @param string $field_type The BuddyPress Field Type.
 	 * @return array $phone_fields The modified array of Phone Fields.
 	 */
@@ -833,7 +829,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Phone {
 	 *
 	 * @since 0.5
 	 *
-	 * @param bool $is_true_false True if "Checkbox" is a "True/False" Field. False by default.
+	 * @param bool  $is_true_false True if "Checkbox" is a "True/False" Field. False by default.
 	 * @param array $args The array of arguments.
 	 * @return bool $is_true_false True if "Checkbox" is a "True/False" Field. False by default.
 	 */
@@ -851,7 +847,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Phone {
 
 		// Check if this is a "True/False" Field Type.
 		$civicrm_field_type = $this->get_bp_type( $args['phone_field_name'] );
-		if ( $civicrm_field_type === 'true_false' ) {
+		if ( 'true_false' === $civicrm_field_type ) {
 			$is_true_false = true;
 		}
 

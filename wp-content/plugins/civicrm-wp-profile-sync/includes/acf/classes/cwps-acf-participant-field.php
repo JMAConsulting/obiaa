@@ -57,17 +57,17 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_Field {
 	 * @var array
 	 */
 	public $participant_fields = [
-		'contact_id' => [
+		'contact_id'    => [
 			'civicrm_contact',
 			'civicrm_contact_existing_new',
 		],
-		'event_id' => [
+		'event_id'      => [
 			'civicrm_event',
 			'civicrm_event_group',
 		],
-		'status_id' => 'select',
+		'status_id'     => 'select',
 		'register_date' => 'date_time_picker',
-		'source' => 'text',
+		'source'        => 'text',
 	];
 
 	/**
@@ -80,9 +80,9 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_Field {
 	public function __construct( $parent ) {
 
 		// Store references to objects.
-		$this->plugin = $parent->acf_loader->plugin;
+		$this->plugin     = $parent->acf_loader->plugin;
 		$this->acf_loader = $parent->acf_loader;
-		$this->civicrm = $parent;
+		$this->civicrm    = $parent;
 
 		// Init when the ACF CiviCRM object is loaded.
 		add_action( 'cwps/acf/civicrm/loaded', [ $this, 'initialise' ] );
@@ -134,22 +134,22 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_Field {
 	 *
 	 * @since 0.5
 	 *
-	 * @param bool $valid The existing valid status.
-	 * @param mixed $value The value of the Field.
-	 * @param array $field The Field data array.
+	 * @param bool   $valid The existing valid status.
+	 * @param mixed  $value The value of the Field.
+	 * @param array  $field The Field data array.
 	 * @param string $input The input element's name attribute.
 	 * @return string|bool $valid A string to display a custom error message, boolean otherwise.
 	 */
 	public function value_validate( $valid, $value, $field, $input ) {
 
 		// Bail if it's not required and is empty.
-		if ( $field['required'] == '0' && empty( $value ) ) {
+		if ( 0 === (int) $field['required'] && empty( $value ) ) {
 			return $valid;
 		}
 
 		// Get the mapped Participant Field name if present.
 		$participant_field_name = $this->civicrm->participant->participant_field_name_get( $field );
-		if ( $participant_field_name === false ) {
+		if ( false === $participant_field_name ) {
 			return $valid;
 		}
 
@@ -244,9 +244,9 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_Field {
 	 *
 	 * @since 0.5
 	 *
-	 * @param mixed $value The Participant Field value.
-	 * @param array $name The Participant Field name.
-	 * @param string $selector The ACF Field selector.
+	 * @param mixed          $value The Participant Field value.
+	 * @param array          $name The Participant Field name.
+	 * @param string         $selector The ACF Field selector.
 	 * @param integer|string $post_id The ACF "Post ID".
 	 * @return mixed $value The formatted Field value.
 	 */
@@ -258,7 +258,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_Field {
 		}
 
 		// Bail if value is (string) 'null' which CiviCRM uses for some reason.
-		if ( $value == 'null' ) {
+		if ( 'null' === $value ) {
 			return '';
 		}
 
@@ -294,43 +294,39 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_Field {
 			// Used by "Status ID".
 			case 'select':
 			case 'checkbox':
-
 				// Convert if the value has the special CiviCRM array-like format.
 				if ( is_string( $value ) && false !== strpos( $value, CRM_Core_DAO::VALUE_SEPARATOR ) ) {
 					$value = CRM_Utils_Array::explodePadded( $value );
 				}
-
 				break;
 
 			// Used by "Register Date".
 			case 'date_picker':
 			case 'date_time_picker':
-
 				// Get Field setting.
 				$acf_setting = get_field_object( $selector, $post_id );
 
-				// Date Picker test.
-				if ( $acf_setting['type'] == 'date_picker' ) {
+				// Test for Date Picker or Date & Time Picker.
+				if ( 'date_picker' === $acf_setting['type'] ) {
 
 					// Participant edit passes a Y-m-d format, so test for that.
 					$datetime = DateTime::createFromFormat( 'Y-m-d', $value );
 
 					// Participant create passes a different format, so test for that.
-					if ( $datetime === false ) {
+					if ( false === $datetime ) {
 						$datetime = DateTime::createFromFormat( 'YmdHis', $value );
 					}
 
 					// Convert to ACF format.
 					$value = $datetime->format( 'Ymd' );
 
-				// Date & Time Picker test.
-				} elseif ( $acf_setting['type'] == 'date_time_picker' ) {
+				} elseif ( 'date_time_picker' === $acf_setting['type'] ) {
 
 					// Participant edit passes a YmdHis format, so test for that.
 					$datetime = DateTime::createFromFormat( 'YmdHis', $value );
 
 					// Participant API passes a different format, so test for that.
-					if ( $datetime === false ) {
+					if ( false === $datetime ) {
 						$datetime = DateTime::createFromFormat( 'Y-m-d H:i:s', $value );
 					}
 
@@ -338,23 +334,18 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_Field {
 					$value = $datetime->format( 'Y-m-d H:i:s' );
 
 				}
-
 				break;
 
 			// Used by "Contact Existing/New".
 			case 'civicrm_contact_existing_new':
-
 				// Convert the value to the Field's array format.
 				$value = $this->acf_loader->acf->field_type->contact_group->prepare_input( $value );
-
 				break;
 
 			// Used by "Event Group".
 			case 'civicrm_event_group':
-
 				// Convert the value to the Field's array format.
 				$value = $this->acf_loader->acf->field_type->event_group->prepare_input( $value );
-
 				break;
 
 		}
@@ -384,7 +375,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_Field {
 		// We only have a few to account for.
 
 		// Status ID.
-		if ( $name == 'status_id' ) {
+		if ( 'status_id' === $name ) {
 			$statuses = $this->statuses_get();
 			if ( ! empty( $statuses ) ) {
 				$options = [];
@@ -395,7 +386,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_Field {
 		}
 
 		// Participant Role ID.
-		if ( $name == 'role_id' ) {
+		if ( 'role_id' === $name ) {
 			$option_group_id = $this->civicrm->participant_role->option_group_id_get();
 			if ( ! empty( $option_group ) ) {
 				$options = CRM_Core_OptionGroup::valuesByID( $option_group_id );
@@ -428,11 +419,11 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_Field {
 
 		// Define query params.
 		$params = [
-			'version' => 3,
+			'version'   => 3,
 			'is_active' => 1,
-			'options' => [
+			'options'   => [
 				'limit' => 0,
-				'sort' => 'weight ASC',
+				'sort'  => 'weight ASC',
 			],
 		];
 
@@ -440,7 +431,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_Field {
 		$result = civicrm_api( 'ParticipantStatusType', 'get', $params );
 
 		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
 			return $options;
 		}
 
@@ -478,7 +469,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_Field {
 		// Define query params.
 		$params = [
 			'version' => 3,
-			'id' => $status_id,
+			'id'      => $status_id,
 			'options' => [
 				'limit' => 0,
 			],
@@ -488,7 +479,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_Field {
 		$result = civicrm_api( 'ParticipantStatusType', 'get', $params );
 
 		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
 			return $options;
 		}
 
@@ -530,7 +521,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_Field {
 
 		// Bail if this is not a Participant Field Group.
 		$is_participant_field_group = $this->civicrm->participant->is_participant_field_group( $field_group );
-		if ( $is_participant_field_group === false ) {
+		if ( false === $is_participant_field_group ) {
 			return $participant_fields;
 		}
 
@@ -575,15 +566,15 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_Field {
 		// Construct params.
 		$params = [
 			'version' => 3,
-			'name' => $name,
-			'action' => 'get',
+			'name'    => $name,
+			'action'  => 'get',
 		];
 
 		// Call the API.
 		$result = civicrm_api( 'Participant', 'getfield', $params );
 
 		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
 			return $field;
 		}
 
@@ -637,16 +628,14 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_Field {
 		$result = civicrm_api( 'Participant', 'getfields', $params );
 
 		// Override return if we get some.
-		if ( $result['is_error'] == 0 && ! empty( $result['values'] ) ) {
+		if ( empty( $result['is_error'] ) && ! empty( $result['values'] ) ) {
 
-			// Check for no filter.
-			if ( $filter == 'none' ) {
+			if ( 'none' === $filter ) {
 
-				// Grab all of them.
+				// Grab all Fields.
 				$fields = $result['values'];
 
-			// Check public filter.
-			} elseif ( $filter == 'public' ) {
+			} elseif ( 'public' === $filter ) {
 
 				// Skip all but those defined in our Participant Fields array.
 				$public_fields = [];
@@ -659,7 +648,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_Field {
 				// Skip all but those mapped to the type of ACF Field.
 				foreach ( $public_fields as $key => $value ) {
 					if ( is_array( $this->participant_fields[ $value['name'] ] ) ) {
-						if ( in_array( $field_type, $this->participant_fields[ $value['name'] ] ) ) {
+						if ( in_array( $field_type, $this->participant_fields[ $value['name'] ], true ) ) {
 							$fields[] = $value;
 						}
 					} else {
@@ -719,16 +708,14 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_Field {
 		$result = civicrm_api( 'Participant', 'getfields', $params );
 
 		// Override return if we get some.
-		if ( $result['is_error'] == 0 && ! empty( $result['values'] ) ) {
+		if ( empty( $result['is_error'] ) && ! empty( $result['values'] ) ) {
 
-			// Check for no filter.
-			if ( $filter == 'none' ) {
+			if ( 'none' === $filter ) {
 
-				// Grab all of them.
+				// Grab all Fields.
 				$fields = $result['values'];
 
-			// Check public filter.
-			} elseif ( $filter == 'public' ) {
+			} elseif ( 'public' === $filter ) {
 
 				// Skip all but those defined in our Participant Fields array.
 				foreach ( $result['values'] as $key => $value ) {
@@ -847,7 +834,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_Field {
 
 		// Get the mapped Participant Field name if present.
 		$participant_field_name = $this->civicrm->participant->participant_field_name_get( $field );
-		if ( $participant_field_name === false ) {
+		if ( false === $participant_field_name ) {
 			return $field;
 		}
 
@@ -883,7 +870,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_Field {
 
 		// Get the mapped Participant Field name if present.
 		$participant_field_name = $this->civicrm->participant->participant_field_name_get( $field );
-		if ( $participant_field_name === false ) {
+		if ( false === $participant_field_name ) {
 			return $field;
 		}
 
@@ -920,7 +907,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_Field {
 		$date_fields = [ 'register_date' ];
 
 		// If it's one of our Fields.
-		if ( in_array( $name, $date_fields ) ) {
+		if ( in_array( $name, $date_fields, true ) ) {
 
 			// Get the "Participant Date Time" preference.
 			$format = CRM_Utils_Date::getDateFormat( 'activityDateTime' );
@@ -975,10 +962,10 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_Field {
 
 		// Let's make an array of params.
 		$params = [
-			'op' => 'edit',
+			'op'         => 'edit',
 			'objectName' => 'Participant',
-			'objectId' => $args['participant_id'],
-			'objectRef' => (object) $participant,
+			'objectId'   => $args['participant_id'],
+			'objectRef'  => (object) $participant,
 		];
 
 		// Remove WordPress callbacks to prevent recursion.

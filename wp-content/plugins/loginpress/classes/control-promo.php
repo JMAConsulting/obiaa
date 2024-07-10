@@ -13,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-// Exit if WP_Customize_Control does not exsist.
+// Exit if WP_Customize_Control does not exist.
 if ( ! class_exists( 'WP_Customize_Control' ) ) {
 	return null;
 }
@@ -39,7 +39,7 @@ class LoginPress_Promo extends WP_Customize_Control {
 	public $thumbnail;
 
 	/**
-	* Promotion text for <the>  Controler</the>.
+	* Promotion text for <the>  Controller</the>.
 	*
 	* @since  1.0.17
 	* @access public
@@ -48,7 +48,7 @@ class LoginPress_Promo extends WP_Customize_Control {
 	public $promo_text;
 
 	/**
-	* Promotion link for the Controler
+	* Promotion link for the Controller
 	*
 	* @since  1.0.17
 	* @access public

@@ -121,14 +121,14 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Website {
 	public function register_mapper_hooks() {
 
 		// Bail if already registered.
-		if ( $this->mapper_hooks === true ) {
+		if ( true === $this->mapper_hooks ) {
 			return;
 		}
 
 		// Intercept Website updates in CiviCRM.
 		add_action( 'cwps/mapper/website/edit/pre', [ $this, 'website_pre_edit' ], 10 );
 		// phpcs:ignore Squiz.Commenting.InlineComment.InvalidEndChar
-		//add_action( 'cwps/mapper/website/delete/pre', [ $this, 'website_pre_delete' ], 10 );
+		// add_action( 'cwps/mapper/website/delete/pre', [ $this, 'website_pre_delete' ], 10 );
 		add_action( 'cwps/mapper/website/created', [ $this, 'website_edited' ], 10 );
 		add_action( 'cwps/mapper/website/edited', [ $this, 'website_edited' ], 10 );
 		add_action( 'cwps/mapper/website/deleted', [ $this, 'website_deleted' ], 10 );
@@ -146,14 +146,14 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Website {
 	public function unregister_mapper_hooks() {
 
 		// Bail if already unregistered.
-		if ( $this->mapper_hooks === false ) {
+		if ( false === $this->mapper_hooks ) {
 			return;
 		}
 
 		// Remove all CiviCRM callbacks.
 		remove_action( 'cwps/mapper/website/edit/pre', [ $this, 'website_pre_edit' ], 10 );
 		// phpcs:ignore Squiz.Commenting.InlineComment.InvalidEndChar
-		//remove_action( 'cwps/mapper/website/delete/pre', [ $this, 'website_pre_delete' ], 10 );
+		// remove_action( 'cwps/mapper/website/delete/pre', [ $this, 'website_pre_delete' ], 10 );
 		remove_action( 'cwps/mapper/website/created', [ $this, 'website_edited' ], 10 );
 		remove_action( 'cwps/mapper/website/edited', [ $this, 'website_edited' ], 10 );
 		remove_action( 'cwps/mapper/website/deleted', [ $this, 'website_deleted' ], 10 );
@@ -226,7 +226,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Website {
 		}
 
 		// Assume unchanged.
-		$unchanged = true;
+		$unchanged     = true;
 		$was_user_type = false;
 		$now_user_type = false;
 
@@ -239,7 +239,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Website {
 				// Check if it no longer is.
 				if ( (int) $website_type_id !== (int) $website->website_type_id ) {
 					$was_user_type = true;
-					$unchanged = false;
+					$unchanged     = false;
 				}
 
 			} else {
@@ -247,7 +247,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Website {
 				// Check if it now is.
 				if ( (int) $website_type_id === (int) $website->website_type_id ) {
 					$now_user_type = true;
-					$unchanged = false;
+					$unchanged     = false;
 				}
 
 			}
@@ -276,25 +276,25 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Website {
 		 *
 		 * If it is no longer the synced Website Type, clear the URL.
 		 */
-		if ( $unchanged === false && $was_user_type === true ) {
+		if ( false === $unchanged && true === $was_user_type ) {
 
 			// Only apply "used to be" if an "is now" has not happened.
 			if ( empty( $this->skip_updates ) ) {
 
 				// Let's make a new object so we don't overwrite the Website object.
-				$changed = new stdClass();
-				$changed->id = $website->id;
-				$changed->contact_id = $website->contact_id;
+				$changed                  = new stdClass();
+				$changed->id              = $website->id;
+				$changed->contact_id      = $website->contact_id;
 				$changed->website_type_id = $website->website_type_id;
-				$changed->url = '';
+				$changed->url             = '';
 
 				// Build new args.
 				$changed_args = [
-					'op' => $args['op'],
+					'op'         => $args['op'],
 					'objectName' => $args['objectName'],
-					'objectId' => $args['objectId'],
-					'objectRef' => $changed,
-					'user_id' => $user_id,
+					'objectId'   => $args['objectId'],
+					'objectRef'  => $changed,
+					'user_id'    => $user_id,
 				];
 
 				// Now update the WordPress User's Website.
@@ -311,7 +311,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Website {
 			 * If this is an "is now" change, save it because we never want to
 			 * override with an empty "used to be" value.
 			 */
-			if ( $now_user_type === true ) {
+			if ( true === $now_user_type ) {
 				$this->skip_updates = true;
 			}
 
@@ -323,7 +323,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Website {
 		 * @since 0.2.4
 		 *
 		 * @param integer $user_id The ID of the WordPress User.
-		 * @param integer $objectId The ID of the CiviCRM Website.
+		 * @param integer $object_id The ID of the CiviCRM Website.
 		 * @param object $website The CiviCRM Website object.
 		 */
 		do_action( 'civicrm_wp_profile_sync_website_synced', $user_id, $args['objectId'], $website );
@@ -397,11 +397,11 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Website {
 
 		// Build new args.
 		$changed_args = [
-			'op' => $args['op'],
+			'op'         => $args['op'],
 			'objectName' => $args['objectName'],
-			'objectId' => $args['objectId'],
-			'objectRef' => $website,
-			'user_id' => $user_id,
+			'objectId'   => $args['objectId'],
+			'objectRef'  => $website,
+			'user_id'    => $user_id,
 		];
 
 		// Update the WordPress User's Website.
@@ -452,7 +452,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Website {
 	 *
 	 * @param integer $website_type_id The numeric ID of the Website Type.
 	 * @param integer $contact_id The numeric ID of the Contact.
-	 * @param string $value The Website URL to update the Contact with.
+	 * @param string  $value The Website URL to update the Contact with.
 	 * @return array|bool $website The array of Website data, or false on failure.
 	 */
 	public function update_for_contact( $website_type_id, $contact_id, $value ) {
@@ -479,8 +479,8 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Website {
 			// Define params to create new Website.
 			$params = [
 				'website_type_id' => $website_type_id,
-				'contact_id' => $contact_id,
-				'url' => $value,
+				'contact_id'      => $contact_id,
+				'url'             => $value,
 			];
 
 			// Create it.
@@ -498,10 +498,10 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Website {
 
 			// Define params to update this Website.
 			$params = [
-				'id' => $existing['id'],
+				'id'              => $existing['id'],
 				'website_type_id' => $website_type_id,
-				'contact_id' => $contact_id,
-				'url' => $value,
+				'contact_id'      => $contact_id,
+				'url'             => $value,
 			];
 
 			// Update it.
@@ -546,15 +546,16 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Website {
 		$result = civicrm_api( 'Website', 'create', $params );
 
 		// Log and bail if there's an error.
-		if ( ! empty( $result['is_error'] ) ) {
-			$e = new Exception();
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
+			$e     = new Exception();
 			$trace = $e->getTraceAsString();
-			error_log( print_r( [
-				'method' => __METHOD__,
-				'params' => $params,
-				'result' => $result,
+			$log   = [
+				'method'    => __METHOD__,
+				'params'    => $params,
+				'result'    => $result,
 				'backtrace' => $trace,
-			], true ) );
+			];
+			$this->plugin->log_error( $log );
 			return $website;
 		}
 
@@ -586,14 +587,15 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Website {
 
 		// Log and bail if there's no ID.
 		if ( empty( $website['id'] ) ) {
-			$e = new \Exception();
+			$e     = new \Exception();
 			$trace = $e->getTraceAsString();
-			error_log( print_r( [
-				'method' => __METHOD__,
-				'message' => __( 'An ID must be present to edit a Website.', 'civicrm-wp-profile-sync' ),
-				'website' => $website,
+			$log   = [
+				'method'    => __METHOD__,
+				'message'   => __( 'An ID must be present to edit a Website.', 'civicrm-wp-profile-sync' ),
+				'website'   => $website,
 				'backtrace' => $trace,
-			], true ) );
+			];
+			$this->plugin->log_error( $log );
 			return false;
 		}
 
@@ -622,35 +624,37 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Website {
 
 		// Log and bail if there's no Website ID.
 		if ( empty( $website_id ) ) {
-			$e = new \Exception();
+			$e     = new \Exception();
 			$trace = $e->getTraceAsString();
-			error_log( print_r( [
-				'method' => __METHOD__,
-				'message' => __( 'An ID must be present to delete a Website.', 'civicrm-wp-profile-sync' ),
+			$log   = [
+				'method'    => __METHOD__,
+				'message'   => __( 'An ID must be present to delete a Website.', 'civicrm-wp-profile-sync' ),
 				'backtrace' => $trace,
-			], true ) );
+			];
+			$this->plugin->log_error( $log );
 			return $success;
 		}
 
 		// Build params to delete Website.
 		$params = [
 			'version' => 3,
-			'id' => $website_id,
+			'id'      => $website_id,
 		];
 
 		// Call the CiviCRM API.
 		$result = civicrm_api( 'Website', 'delete', $params );
 
 		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) ) {
-			$e = new Exception();
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
+			$e     = new Exception();
 			$trace = $e->getTraceAsString();
-			error_log( print_r( [
-				'method' => __METHOD__,
-				'params' => $params,
-				'result' => $result,
+			$log   = [
+				'method'    => __METHOD__,
+				'params'    => $params,
+				'result'    => $result,
 				'backtrace' => $trace,
-			], true ) );
+			];
+			$this->plugin->log_error( $log );
 			return $success;
 		}
 
@@ -685,14 +689,14 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Website {
 		// Construct API query.
 		$params = [
 			'version' => 3,
-			'id' => $website_id,
+			'id'      => $website_id,
 		];
 
 		// Get Website details via API.
 		$result = civicrm_api( 'Website', 'get', $params );
 
 		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
 			return $website;
 		}
 
@@ -715,7 +719,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Website {
 	 * @since 0.4
 	 *
 	 * @param object|array|integer $contact The CiviCRM Contact reference.
-	 * @param integer $website_type_id The numeric ID of the Website Type.
+	 * @param integer              $website_type_id The numeric ID of the Website Type.
 	 * @return object|bool $website The CiviCRM Website data, or false on failure.
 	 */
 	public function get_by_type( $contact, $website_type_id ) {
@@ -740,8 +744,8 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Website {
 
 		// Get the current Website.
 		$params = [
-			'version' => 3,
-			'contact_id' => $contact_id,
+			'version'         => 3,
+			'contact_id'      => $contact_id,
 			'website_type_id' => $website_type_id,
 		];
 
@@ -749,7 +753,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Website {
 		$result = civicrm_api( 'Website', 'get', $params );
 
 		// Bail on failure.
-		if ( ! empty( $result['is_error'] ) ) {
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
 			return $website;
 		}
 
@@ -851,7 +855,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Website {
 
 		// Build CiviCRM "query" and get URL.
 		$query = 'gid=' . $option_group['id'] . 'reset=1';
-		$url = $this->plugin->civicrm->get_link( 'civicrm/admin/options', $query );
+		$url   = $this->plugin->civicrm->get_link( 'civicrm/admin/options', $query );
 
 		// --<
 		return $url;

@@ -67,7 +67,7 @@ class CiviCRM_WP_Profile_Sync_Admin_Multisite {
 
 		// Store references.
 		$this->plugin = $parent->plugin;
-		$this->admin = $parent;
+		$this->admin  = $parent;
 
 		// Boot when plugin is loaded.
 		add_action( 'cwps/admin/loaded', [ $this, 'initialise' ] );
@@ -139,15 +139,15 @@ class CiviCRM_WP_Profile_Sync_Admin_Multisite {
 	 *
 	 * @since 0.4
 	 *
-	 * @param bool $show_notice The existing value. False by default.
-	 * @param bool $is_settings_screen True if on our Settings Page, or false otherwise.
+	 * @param bool   $show_notice The existing value. False by default.
+	 * @param bool   $is_settings_screen True if on our Settings Page, or false otherwise.
 	 * @param string $screen_id The ID of the current screen.
 	 * @return bool $show_notice True if the Admin Notice should be shown, false otherwise.
 	 */
 	public function upgrade_warning_filter( $show_notice, $is_settings_screen, $screen_id ) {
 
 		// True if this is our Network Settings Page.
-		if ( $screen_id === 'settings_page_' . $this->network_page_slug . '-network' ) {
+		if ( 'settings_page_' . $this->network_page_slug . '-network' === $screen_id ) {
 			return false;
 		}
 
@@ -237,7 +237,7 @@ class CiviCRM_WP_Profile_Sync_Admin_Multisite {
 	public function meta_boxes_add( $screen_id ) {
 
 		// Bail if not the Screen ID we want.
-		if ( $screen_id != 'settings_page_' . $this->network_page_slug . '-network' ) {
+		if ( 'settings_page_' . $this->network_page_slug . '-network' !== $screen_id ) {
 			return;
 		}
 

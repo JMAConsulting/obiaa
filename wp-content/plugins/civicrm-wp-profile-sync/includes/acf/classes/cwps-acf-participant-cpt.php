@@ -120,6 +120,24 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 	public $acf_slug = 'cwps_participant';
 
 	/**
+	 * Enabled flag.
+	 *
+	 * @since 0.5
+	 * @access public
+	 * @var bool
+	 */
+	public $enabled = false;
+
+	/**
+	 * Post should not be synced flag.
+	 *
+	 * @since 0.5
+	 * @access public
+	 * @var bool
+	 */
+	public $do_not_sync;
+
+	/**
 	 * Constructor.
 	 *
 	 * @since 0.5
@@ -129,15 +147,15 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 	public function __construct( $parent ) {
 
 		// Store references to objects.
-		$this->plugin = $parent->acf_loader->plugin;
-		$this->acf_loader = $parent->acf_loader;
-		$this->civicrm = $parent->civicrm;
+		$this->plugin      = $parent->acf_loader->plugin;
+		$this->acf_loader  = $parent->acf_loader;
+		$this->civicrm     = $parent->civicrm;
 		$this->participant = $parent;
 
 		// Determine if the CPT is enabled.
-		$setting = $this->acf_loader->mapping->setting_get( $this->post_type_name );
+		$setting       = $this->acf_loader->mapping->setting_get( $this->post_type_name );
 		$this->enabled = false;
-		if ( $setting !== false ) {
+		if ( false !== $setting ) {
 			$this->enabled = empty( $setting['enabled'] ) ? false : true;
 		}
 
@@ -192,7 +210,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 	public function setup_objects() {
 
 		// Init objects.
-		$this->tax = new CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax( $this );
+		$this->tax       = new CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax( $this );
 		$this->term_html = new CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Term_HTML( $this );
 
 	}
@@ -209,7 +227,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 		add_action( 'cwps/acf/mapping/participant-cpt/disabled', 'flush_rewrite_rules' );
 
 		// Bail if CPT not enabled.
-		if ( $this->enabled === false ) {
+		if ( false === $this->enabled ) {
 			return;
 		}
 
@@ -263,7 +281,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 	public function register_mapper_hooks() {
 
 		// Bail if already registered.
-		if ( $this->mapper_hooks === true ) {
+		if ( true === $this->mapper_hooks ) {
 			return;
 		}
 
@@ -289,7 +307,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 	public function unregister_mapper_hooks() {
 
 		// Bail if already unregistered.
-		if ( $this->mapper_hooks === false ) {
+		if ( false === $this->mapper_hooks ) {
 			return;
 		}
 
@@ -333,7 +351,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 
 		// Add feature image size.
 		// phpcs:ignore Squiz.Commenting.InlineComment.InvalidEndChar
-		//add_action( 'after_setup_theme', [ $this, 'feature_image_create' ] );
+		// add_action( 'after_setup_theme', [ $this, 'feature_image_create' ] );
 
 	}
 
@@ -353,7 +371,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 		remove_filter( 'wp_terms_checklist_args', [ $this, 'taxonomy_fix_metabox' ] );
 		remove_action( 'restrict_manage_posts', [ $this, 'taxonomy_filter_post_type' ] );
 		// phpcs:ignore Squiz.Commenting.InlineComment.InvalidEndChar
-		//remove_action( 'after_setup_theme', [ $this, 'feature_image_create' ] );
+		// remove_action( 'after_setup_theme', [ $this, 'feature_image_create' ] );
 
 	}
 
@@ -448,7 +466,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 
 		// Bail if this Post should not be synced now.
 		$this->do_not_sync = false;
-		$post = $this->acf_loader->post->should_be_synced( $args['post'] );
+		$post              = $this->acf_loader->post->should_be_synced( $args['post'] );
 		if ( false === $post ) {
 			$this->do_not_sync = true;
 			return;
@@ -500,13 +518,13 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 		 * Bail early if this Post Type shouldn't be synced.
 		 * @see self::post_saved()
 		 */
-		if ( $this->do_not_sync === true ) {
+		if ( true === $this->do_not_sync ) {
 			return;
 		}
 
 		// Bail if it's not a Post.
 		$entity = $this->acf_loader->acf->field->entity_type_get( $args['post_id'] );
-		if ( $entity !== 'post' ) {
+		if ( 'post' !== $entity ) {
 			return;
 		}
 
@@ -514,7 +532,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 		$post = get_post( $args['post_id'] );
 
 		// Bail if this is a revision.
-		if ( $post->post_type == 'revision' ) {
+		if ( 'revision' === $post->post_type ) {
 			return;
 		}
 
@@ -529,19 +547,19 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 		// TODO: Decide if we should get the ACF Field data without formatting.
 		// This also applies to any calls to get_field_object().
 		// phpcs:ignore Squiz.Commenting.InlineComment.InvalidEndChar
-		//$fields = get_fields( $post->ID, false );
+		// $fields = get_fields( $post->ID, false );
 
 		// Get the Participant ID from Post meta.
 		$participant_id = $this->acf_loader->post->participant_id_get( $post->ID );
 
 		// Does this Post have a Participant ID?
-		if ( $participant_id === false ) {
+		if ( false === $participant_id ) {
 
 			// No - create a Participant.
 			$participant = $this->create_from_fields( $fields, $post, $post->ID );
 
 			// Store Participant ID if successful.
-			if ( $participant !== false ) {
+			if ( false !== $participant ) {
 				$this->acf_loader->post->participant_id_set( $post->ID, $participant['id'] );
 				$participant_id = $participant['id'];
 			}
@@ -555,9 +573,9 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 
 		// Add our data to the params.
 		$args['participant_id'] = $participant_id;
-		$args['participant'] = $participant;
-		$args['post'] = $post;
-		$args['fields'] = $fields;
+		$args['participant']    = $participant;
+		$args['post']           = $post;
+		$args['fields']         = $fields;
 
 		/**
 		 * Broadcast that a Participant has been updated when ACF Fields were saved.
@@ -591,7 +609,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 	 * @since 0.5
 	 *
 	 * @param integer $participant_id The numeric ID of the Participant.
-	 * @param array $fields The ACF Field data.
+	 * @param array   $fields The ACF Field data.
 	 * @param WP_Post $post The WordPress Post object.
 	 * @param integer $post_id The numeric ID of the WordPress Post.
 	 * @return array|bool $participant_data The CiviCRM Participant data.
@@ -612,7 +630,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 			foreach ( $terms as $term ) {
 				$role_id = $this->tax->term_meta_get( $term->term_id );
 				if ( ! empty( $role_id ) ) {
-					$role_value = $this->tax->participant_role_value_get( $role_id );
+					$role_value                    = $this->tax->participant_role_value_get( $role_id );
 					$participant_data['role_id'][] = $role_value;
 				}
 			}
@@ -625,7 +643,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 			$settings = get_field_object( $selector, $post_id );
 
 			// Get the CiviCRM Custom Field and Participant Field.
-			$custom_field_id = $this->civicrm->custom_field->custom_field_id_get( $settings );
+			$custom_field_id        = $this->civicrm->custom_field->custom_field_id_get( $settings );
 			$participant_field_name = $this->participant->participant_field_name_get( $settings );
 
 			// Do we have a synced Custom Field or Participant Field?
@@ -643,22 +661,22 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 					$code = $participant_field_name;
 
 					// "Contact Group" Field has to be handled differently.
-					if ( $code == 'contact_id' ) {
+					if ( 'contact_id' === $code ) {
 
 						// Maybe create a Contact.
 						$contact_id = $this->participant->prepare_contact_from_field( $selector, $value, $settings, $post_id );
-						if ( $contact_id === false ) {
+						if ( false === $contact_id ) {
 							continue;
 						}
 
 						// Overwrite code and value.
-						$code = 'contact_id';
+						$code  = 'contact_id';
 						$value = (int) $contact_id;
 
 					}
 
 					// "Event Group" Field has to be handled differently.
-					if ( $code == 'event_id' ) {
+					if ( 'event_id' === $code ) {
 
 						// Get Event ID from Field.
 						$event_id = $this->acf_loader->acf->field_type->event_group->prepare_output( $value );
@@ -667,7 +685,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 						}
 
 						// Overwrite code and value.
-						$code = 'event_id';
+						$code  = 'event_id';
 						$value = (int) $event_id;
 
 					}
@@ -676,12 +694,12 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 
 				// Build args for value conversion.
 				$args = [
-					'identifier' => $this->participant->identifier,
-					'entity_id' => $participant_id,
+					'identifier'      => $this->participant->identifier,
+					'entity_id'       => $participant_id,
 					'custom_field_id' => $custom_field_id,
-					'field_name' => $participant_field_name,
-					'selector' => $selector,
-					'post_id' => $post_id,
+					'field_name'      => $participant_field_name,
+					'selector'        => $selector,
+					'post_id'         => $post_id,
 				];
 
 				// Parse value by Field Type.
@@ -695,7 +713,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 
 				// Add it to the Field data.
 				// phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedIf
-				if ( in_array( $code, $cannot_be_empty ) && empty( $value ) ) {
+				if ( in_array( $code, $cannot_be_empty, true ) && empty( $value ) ) {
 					// Skip.
 				} else {
 					$participant_data[ $code ] = $value;
@@ -715,7 +733,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 	 *
 	 * @since 0.5
 	 *
-	 * @param array $fields The ACF Field data.
+	 * @param array   $fields The ACF Field data.
 	 * @param WP_Post $post The WordPress Post object.
 	 * @param integer $post_id The numeric ID of the WordPress Post.
 	 * @return array|bool $participant The CiviCRM Participant data, or false on failure.
@@ -739,7 +757,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 	 * @since 0.5
 	 *
 	 * @param integer $participant_id The numeric ID of the Participant.
-	 * @param array $fields The ACF Field data.
+	 * @param array   $fields The ACF Field data.
 	 * @param WP_Post $post The WordPress Post object.
 	 * @param integer $post_id The numeric ID of the WordPress Post.
 	 * @return array|bool $participant The CiviCRM Participant data, or false on failure.
@@ -772,7 +790,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 	public function participant_sync( $args ) {
 
 		// Bail if this is not a Participant.
-		if ( $args['objectName'] != 'Participant' ) {
+		if ( 'Participant' !== $args['objectName'] ) {
 			return;
 		}
 
@@ -780,14 +798,14 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 		$args['objectRef'] = $this->civicrm->participant->backfill( $args['objectRef'] );
 
 		// Find the Post ID of this Post Type that this Participant is synced with.
-		$post_id = false;
+		$post_id  = false;
 		$post_ids = $this->acf_loader->post->get_by_participant_id( $args['objectId'], $this->post_type_name );
 		if ( ! empty( $post_ids ) ) {
 			$post_id = array_pop( $post_ids );
 		}
 
 		// Create the WordPress Post if it doesn't exist, otherwise update.
-		if ( $post_id === false ) {
+		if ( false === $post_id ) {
 			$post_id = $this->acf_loader->post->create_from_participant( $args['objectRef'], $this->post_type_name );
 		} else {
 			$this->acf_loader->post->update_from_participant( $args['objectRef'], $post_id );
@@ -795,7 +813,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 
 		// Add our data to the params.
 		$args['post_type'] = $this->post_type_name;
-		$args['post_id'] = $post_id;
+		$args['post_id']   = $post_id;
 
 		/**
 		 * Broadcast that a WordPress Post has been synced from Participant details.
@@ -823,7 +841,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 	public function participant_created( $args ) {
 
 		// Bail if this is not a Participant.
-		if ( $args['objectName'] != 'Participant' ) {
+		if ( 'Participant' !== $args['objectName'] ) {
 			return;
 		}
 
@@ -842,7 +860,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 		 *
 		 * Instead, the Participant ID needs to be reverse synced to the Post.
 		 */
-		if ( $entity['entity'] === 'post' && $this->post_type_name == $entity['type'] ) {
+		if ( 'post' === $entity['entity'] && $this->post_type_name == $entity['type'] ) {
 
 			// Save correspondence and skip.
 			$this->acf_loader->post->participant_id_set( $entity['id'], $args['objectId'] );
@@ -851,7 +869,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 		}
 
 		// Find the Post ID of this Post Type that this Participant is synced with.
-		$post_id = false;
+		$post_id  = false;
 		$post_ids = $this->acf_loader->post->get_by_participant_id( $args['objectId'], $this->post_type_name );
 		if ( ! empty( $post_ids ) ) {
 			$post_id = array_pop( $post_ids );
@@ -861,7 +879,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 		$this->acf_loader->mapper->hooks_wordpress_post_remove();
 
 		// Create the WordPress Post.
-		if ( $post_id === false ) {
+		if ( false === $post_id ) {
 			$post_id = $this->acf_loader->post->create_from_participant( $args['objectRef'], $this->post_type_name );
 		}
 
@@ -870,7 +888,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 
 		// Add our data to the params.
 		$args['post_type'] = $this->post_type_name;
-		$args['post_id'] = $post_id;
+		$args['post_id']   = $post_id;
 
 		/**
 		 * Broadcast that a WordPress Post has been updated from Participant details.
@@ -897,7 +915,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 	public function participant_edited( $args ) {
 
 		// Bail if this is not a Participant.
-		if ( $args['objectName'] != 'Participant' ) {
+		if ( 'Participant' !== $args['objectName'] ) {
 			return;
 		}
 
@@ -905,7 +923,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 		$args['objectRef'] = $this->civicrm->participant->backfill( $args['objectRef'] );
 
 		// Find the Post ID of this Post Type that this Participant is synced with.
-		$post_id = false;
+		$post_id  = false;
 		$post_ids = $this->acf_loader->post->get_by_participant_id( $args['objectId'], $this->post_type_name );
 		if ( ! empty( $post_ids ) ) {
 			$post_id = array_pop( $post_ids );
@@ -915,7 +933,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 		$entity = $this->acf_loader->mapper->entity_get();
 
 		// Exclude "reverse" edits when a Post is the originator.
-		if ( $entity['entity'] === 'post' && $post_id == $entity['id'] ) {
+		if ( 'post' === $entity['entity'] && $post_id == $entity['id'] ) {
 			return;
 		}
 
@@ -923,7 +941,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 		$this->acf_loader->mapper->hooks_wordpress_post_remove();
 
 		// Create the WordPress Post if it doesn't exist, otherwise update.
-		if ( $post_id === false ) {
+		if ( false === $post_id ) {
 			$post_id = $this->acf_loader->post->create_from_participant( $args['objectRef'], $this->post_type_name );
 		} else {
 			$this->acf_loader->post->update_from_participant( $args['objectRef'], $post_id );
@@ -934,7 +952,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 
 		// Add our data to the params.
 		$args['post_type'] = $this->post_type_name;
-		$args['post_id'] = $post_id;
+		$args['post_id']   = $post_id;
 
 		/**
 		 * Broadcast that a WordPress Post has been updated from Participant details.
@@ -966,17 +984,17 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 	public function participant_deleted( $args ) {
 
 		// Bail if this is not a Participant.
-		if ( $args['objectName'] != 'Participant' ) {
+		if ( 'Participant' !== $args['objectName'] ) {
 			return;
 		}
 
 		// Find the Post ID of this Post Type that this Participant is synced with.
-		$post_id = false;
+		$post_id  = false;
 		$post_ids = $this->acf_loader->post->get_by_participant_id( $args['objectId'], $this->post_type_name );
 		if ( ! empty( $post_ids ) ) {
 			$post_id = array_pop( $post_ids );
 		}
-		if ( $post_id === false ) {
+		if ( false === $post_id ) {
 			return;
 		}
 
@@ -991,7 +1009,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 
 		// Add our data to the params.
 		$args['post_type'] = $this->post_type_name;
-		$args['post_id'] = $post_id;
+		$args['post_id']   = $post_id;
 
 		/**
 		 * Broadcast that a WordPress Post has been deleted from Participant details.
@@ -1014,20 +1032,20 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 	 *
 	 * @since 0.5
 	 *
-	 * @param bool $mapped The existing mapping flag.
+	 * @param bool  $mapped The existing mapping flag.
 	 * @param array $field_group The array of ACF Field Group data.
 	 * @return bool $mapped True if the Field Group is mapped, or pass through if not mapped.
 	 */
 	public function query_field_group_mapped( $mapped, $field_group ) {
 
 		// Bail if a Mapping has already been found.
-		if ( $mapped !== false ) {
+		if ( false !== $mapped ) {
 			return $mapped;
 		}
 
 		// Bail if this is not a Participant Field Group.
 		$is_participant_field_group = $this->is_participant_field_group( $field_group );
-		if ( $is_participant_field_group === false ) {
+		if ( false === $is_participant_field_group ) {
 			return $mapped;
 		}
 
@@ -1049,7 +1067,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 
 		// Bail if this is not a Participant Field Group.
 		$is_visible = $this->is_participant_field_group( $field_group );
-		if ( $is_visible === false ) {
+		if ( false === $is_visible ) {
 			return $custom_fields;
 		}
 
@@ -1075,7 +1093,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 	 * @since 0.5
 	 *
 	 * @param array|bool $post_ids The existing "Post IDs".
-	 * @param array $args The array of CiviCRM Custom Fields params.
+	 * @param array      $args The array of CiviCRM Custom Fields params.
 	 * @return array|bool $post_id The mapped "Post IDs", or false if not mapped.
 	 */
 	public function query_post_id( $post_ids, $args ) {
@@ -1087,7 +1105,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 		foreach ( $args['custom_fields'] as $field ) {
 
 			// Skip if it is not attached to a Participant.
-			if ( $field['entity_table'] != 'civicrm_participant' ) {
+			if ( 'civicrm_participant' !== $field['entity_table'] ) {
 				continue;
 			}
 
@@ -1100,13 +1118,13 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 		}
 
 		// Bail if there's no Participant ID.
-		if ( $participant_id === false ) {
+		if ( false === $participant_id ) {
 			return $post_ids;
 		}
 
 		// Grab Participant.
 		$participant = $this->participant->get_by_id( $participant_id );
-		if ( $participant === false ) {
+		if ( false === $participant ) {
 			return $post_ids;
 		}
 
@@ -1126,7 +1144,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 		foreach ( $ids as $id ) {
 
 			// Exclude "reverse" edits when a Post is the originator.
-			if ( $entity['entity'] !== 'post' || $id != $entity['id'] ) {
+			if ( 'post' !== $entity['entity'] || (int) $id !== (int) $entity['id'] ) {
 				$participant_post_ids[] = $id;
 			}
 
@@ -1165,7 +1183,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 
 		// Bail if this is not a Participant Field Group.
 		$is_visible = $this->is_participant_field_group( $field_group );
-		if ( $is_visible === false ) {
+		if ( false === $is_visible ) {
 			return $entity_tables;
 		}
 
@@ -1187,14 +1205,14 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 	 * @since 0.5
 	 *
 	 * @param array|bool $is_participant_field_group The array of Post Types, false otherwise.
-	 * @param array $field_group The ACF Field Group data array.
+	 * @param array      $field_group The ACF Field Group data array.
 	 * @return array|bool The array of Post Types if the Field Group has been mapped, or false otherwise.
 	 */
 	public function is_field_group( $is_participant_field_group, $field_group ) {
 
 		// Maybe add this Post Type.
 		$post_types = $this->is_participant_field_group( $field_group );
-		if ( $post_types !== false ) {
+		if ( false !== $post_types ) {
 			if ( empty( $is_participant_field_group ) ) {
 				$is_participant_field_group = $post_types;
 			} else {
@@ -1228,8 +1246,8 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 			return $pseudocache[ $field_group['ID'] ];
 		}
 
-		// Assume not a Participant Field Group.
-		$is_participant_field_group = false;
+		// Init return.
+		$is_participant_field_group = [];
 
 		// If Location Rules exist.
 		if ( ! empty( $field_group['location'] ) ) {
@@ -1249,6 +1267,11 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 
 		}
 
+		// Cast as boolean on failure.
+		if ( empty( $is_participant_field_group ) ) {
+			$is_participant_field_group = false;
+		}
+
 		// Maybe add to pseudo-cache.
 		if ( ! isset( $pseudocache[ $field_group['ID'] ] ) ) {
 			$pseudocache[ $field_group['ID'] ] = $is_participant_field_group;
@@ -1266,7 +1289,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 	 *
 	 * @since 0.5
 	 *
-	 * @param array $actions The array of row action links.
+	 * @param array   $actions The array of row action links.
 	 * @param WP_Post $post The WordPress Post object.
 	 */
 	public function menu_item_add_to_row_actions( $actions, $post ) {
@@ -1289,19 +1312,19 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 
 		// Get Participant ID.
 		$participant_id = $this->acf_loader->post->participant_id_get( $post->ID );
-		if ( $participant_id === false ) {
+		if ( false === $participant_id ) {
 			return $actions;
 		}
 
 		// Get Participant.
 		$participant = $this->participant->get_by_id( $participant_id );
-		if ( $participant === false ) {
+		if ( false === $participant ) {
 			return $actions;
 		}
 
 		// Get Contact ID.
 		$contact_id = $participant['contact_id'];
-		if ( $contact_id === false ) {
+		if ( false === $contact_id ) {
 			return $actions;
 		}
 
@@ -1313,7 +1336,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 		// Get the "View" URL for this Participant.
 		$query_base = 'reset=1&id=' . $participant_id . '&cid=' . $contact_id;
 		$view_query = $query_base . '&action=view&context=participant';
-		$view_url = $this->plugin->civicrm->get_link( 'civicrm/contact/view/participant', $view_query );
+		$view_url   = $this->plugin->civicrm->get_link( 'civicrm/contact/view/participant', $view_query );
 
 		// Add link to actions.
 		$actions['civicrm'] = sprintf(
@@ -1334,7 +1357,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 	 * @since 0.5
 	 *
 	 * @param string $id The menu parent ID.
-	 * @param array $components The active CiviCRM Conponents.
+	 * @param array  $components The active CiviCRM Conponents.
 	 */
 	public function menu_item_add_to_cau( $id, $components ) {
 
@@ -1344,13 +1367,13 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 		// Bail if the current screen is not an Edit Participant screen.
 		if ( is_admin() ) {
 			$screen = get_current_screen();
-			if ( $screen instanceof WP_Screen && $screen->base != 'post' ) {
+			if ( $screen instanceof WP_Screen && 'post' !== $screen->base ) {
 				return;
 			}
 			if ( $screen->id != $this->post_type_name ) {
 				return;
 			}
-			if ( $screen->id == 'add' ) {
+			if ( 'add' === $screen->id ) {
 				return;
 			}
 		}
@@ -1367,19 +1390,19 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 
 		// Get Participant ID.
 		$participant_id = $this->acf_loader->post->participant_id_get( $post->ID );
-		if ( $participant_id === false ) {
+		if ( false === $participant_id ) {
 			return;
 		}
 
 		// Get Participant.
 		$participant = $this->participant->get_by_id( $participant_id );
-		if ( $participant === false ) {
+		if ( false === $participant ) {
 			return;
 		}
 
 		// Get Contact ID.
 		$contact_id = $participant['contact_id'];
-		if ( $contact_id === false ) {
+		if ( false === $contact_id ) {
 			return;
 		}
 
@@ -1391,35 +1414,38 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 		// Get the "View" URL for this Participant.
 		$query_base = 'reset=1&id=' . $participant_id . '&cid=' . $contact_id;
 		$view_query = $query_base . '&action=view&context=participant';
-		$view_url = $this->plugin->civicrm->get_link( 'civicrm/contact/view/participant', $view_query );
+		$view_url   = $this->plugin->civicrm->get_link( 'civicrm/contact/view/participant', $view_query );
 
 		// Get the "Edit" URL for this Participant.
 		$edit_query = $query_base . '&action=update&context=participant&selectedChild=event';
-		$edit_url = $this->plugin->civicrm->get_link( 'civicrm/contact/view/participant', $edit_query );
+		$edit_url   = $this->plugin->civicrm->get_link( 'civicrm/contact/view/participant', $edit_query );
 
 		// Add item to Edit menu.
-		$wp_admin_bar->add_node( [
-			'id' => 'cau-edit',
+		$args = [
+			'id'     => 'cau-edit',
 			'parent' => 'edit',
-			'title' => __( 'Edit in CiviCRM', 'civicrm-wp-profile-sync' ),
-			'href' => $edit_url,
-		] );
+			'title'  => __( 'Edit in CiviCRM', 'civicrm-wp-profile-sync' ),
+			'href'   => $edit_url,
+		];
+		$wp_admin_bar->add_node( $args );
 
 		// Add item to View menu.
-		$wp_admin_bar->add_node( [
-			'id' => 'cau-view',
+		$args = [
+			'id'     => 'cau-view',
 			'parent' => 'view',
-			'title' => __( 'View in CiviCRM', 'civicrm-wp-profile-sync' ),
-			'href' => $view_url,
-		] );
+			'title'  => __( 'View in CiviCRM', 'civicrm-wp-profile-sync' ),
+			'href'   => $view_url,
+		];
+		$wp_admin_bar->add_node( $args );
 
 		// Add item to CAU menu.
-		$wp_admin_bar->add_node( [
-			'id' => 'cau-0',
+		$args = [
+			'id'     => 'cau-0',
 			'parent' => $id,
-			'title' => __( 'Edit in CiviCRM', 'civicrm-wp-profile-sync' ),
-			'href' => $edit_url,
-		] );
+			'title'  => __( 'Edit in CiviCRM', 'civicrm-wp-profile-sync' ),
+			'href'   => $edit_url,
+		];
+		$wp_admin_bar->add_node( $args );
 
 	}
 
@@ -1434,15 +1460,15 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 
 		// Only call this once.
 		static $registered;
-		if ( isset( $registered ) && $registered === true ) {
+		if ( isset( $registered ) && true === $registered ) {
 			return;
 		}
 
-		// Set up the Post Type called "Participant".
-		register_post_type( $this->post_type_name, [
+		// Build args.
+		$args = [
 
 			// Labels.
-			'labels' => [
+			'labels'              => [
 				'name'               => __( 'Participants', 'civicrm-wp-profile-sync' ),
 				'singular_name'      => __( 'Participant', 'civicrm-wp-profile-sync' ),
 				'add_new'            => __( 'Add New', 'civicrm-wp-profile-sync' ),
@@ -1458,42 +1484,45 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 			],
 
 			// Defaults.
-			'menu_icon'   => 'dashicons-nametag',
-			'description' => __( 'A Participant Post Type', 'civicrm-wp-profile-sync' ),
-			'public' => true,
-			'publicly_queryable' => true,
+			'menu_icon'           => 'dashicons-nametag',
+			'description'         => __( 'A Participant Post Type', 'civicrm-wp-profile-sync' ),
+			'public'              => true,
+			'publicly_queryable'  => true,
 			'exclude_from_search' => false,
-			'show_ui' => true,
-			'show_in_nav_menus' => true,
-			'show_in_menu' => true,
-			'show_in_admin_bar' => true,
-			'show_in_rest' => true,
-			'has_archive' => true,
-			'query_var' => true,
-			'capability_type' => 'post',
-			'hierarchical' => false,
-			'menu_position' => 25,
-			'map_meta_cap' => true,
+			'show_ui'             => true,
+			'show_in_nav_menus'   => true,
+			'show_in_menu'        => true,
+			'show_in_admin_bar'   => true,
+			'show_in_rest'        => true,
+			'has_archive'         => true,
+			'query_var'           => true,
+			'capability_type'     => 'post',
+			'hierarchical'        => false,
+			'menu_position'       => 25,
+			'map_meta_cap'        => true,
 
 			// Rewrite.
-			'rewrite' => [
-				'slug' => 'participants',
+			'rewrite'             => [
+				'slug'       => 'participants',
 				'with_front' => false,
 			],
 
 			// Supports.
-			'supports' => [
+			'supports'            => [
 				'title',
-				//'editor',
-				//'excerpt',
-				//'thumbnail',
-				//'revisions',
+				// 'editor',
+				// 'excerpt',
+				// 'thumbnail',
+				// 'revisions',
 			],
 
-		] );
+		];
+
+		// Set up the Post Type called "Participant".
+		register_post_type( $this->post_type_name, $args );
 
 		// phpcs:ignore Squiz.Commenting.InlineComment.InvalidEndChar
-		//flush_rewrite_rules();
+		// flush_rewrite_rules();
 
 		// Flag done.
 		$registered = true;
@@ -1529,23 +1558,23 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 		$messages[ $this->post_type_name ] = [
 
 			// Unused - messages start at index 1.
-			0 => '',
+			0  => '',
 
 			// Item updated.
-			1 => sprintf(
+			1  => sprintf(
 				/* translators: %s: The Link URL */
 				__( 'Participant updated. <a href="%s">View Participant</a>', 'civicrm-wp-profile-sync' ),
 				esc_url( get_permalink( $post_ID ) )
 			),
 
 			// Custom Fields.
-			2 => __( 'Custom field updated.', 'civicrm-wp-profile-sync' ),
-			3 => __( 'Custom field deleted.', 'civicrm-wp-profile-sync' ),
-			4 => __( 'Participant updated.', 'civicrm-wp-profile-sync' ),
+			2  => __( 'Custom field updated.', 'civicrm-wp-profile-sync' ),
+			3  => __( 'Custom field deleted.', 'civicrm-wp-profile-sync' ),
+			4  => __( 'Participant updated.', 'civicrm-wp-profile-sync' ),
 
 			// Item restored to a revision.
 			// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-			5 => isset( $_GET['revision'] ) ?
+			5  => isset( $_GET['revision'] ) ?
 
 				// Revision text.
 				sprintf(
@@ -1559,29 +1588,28 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 				false,
 
 			// Item published.
-			6 => sprintf(
+			6  => sprintf(
 				/* translators: %s: The Link URL */
 				__( 'Participant published. <a href="%s">View Participant</a>', 'civicrm-wp-profile-sync' ),
 				esc_url( get_permalink( $post_ID ) )
 			),
 
 			// Item saved.
-			7 => __( 'Participant saved.', 'civicrm-wp-profile-sync' ),
+			7  => __( 'Participant saved.', 'civicrm-wp-profile-sync' ),
 
 			// Item submitted.
-			8 => sprintf(
+			8  => sprintf(
 				/* translators: %s: The Link URL */
 				__( 'Participant submitted. <a target="_blank" href="%s">Preview Participant</a>', 'civicrm-wp-profile-sync' ),
 				esc_url( add_query_arg( 'preview', 'true', get_permalink( $post_ID ) ) )
 			),
 
 			// Item scheduled.
-			9 => sprintf(
+			9  => sprintf(
 				/* translators: 1: The Date string, 2: The Link URL */
 				__( 'Participant scheduled for: <strong>%1$s</strong>. <a target="_blank" href="%2$s">Preview Participant</a>', 'civicrm-wp-profile-sync' ),
 				/* translators: Publish box date format, see https://php.net/date */
-				date_i18n( __( 'M j, Y @ G:i', 'civicrm-wp-profile-sync' ),
-				strtotime( $post->post_date ) ),
+				date_i18n( __( 'M j, Y @ G:i', 'civicrm-wp-profile-sync' ), strtotime( $post->post_date ) ),
 				esc_url( get_permalink( $post_ID ) )
 			),
 
@@ -1610,7 +1638,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 	public function post_type_title( $title ) {
 
 		// Bail if not our Post Type.
-		if ( $this->post_type_name !== get_post_type() ) {
+		if ( get_post_type() !== $this->post_type_name ) {
 			return $title;
 		}
 
@@ -1633,7 +1661,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 
 		// Only call this once.
 		static $registered;
-		if ( isset( $registered ) && $registered === true ) {
+		if ( isset( $registered ) && true === $registered ) {
 			return;
 		}
 
@@ -1646,9 +1674,9 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 			// Arguments.
 			[
 				// Same as "category".
-				'hierarchical' => true,
+				'hierarchical'      => true,
 				// Labels.
-				'labels' => [
+				'labels'            => [
 					'name'              => _x( 'Participant Roles', 'taxonomy general name', 'civicrm-wp-profile-sync' ),
 					'singular_name'     => _x( 'Participant Role', 'taxonomy singular name', 'civicrm-wp-profile-sync' ),
 					'search_items'      => __( 'Search Participant Roles', 'civicrm-wp-profile-sync' ),
@@ -1660,16 +1688,16 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 					'add_new_item'      => __( 'Add New Participant Role', 'civicrm-wp-profile-sync' ),
 					'new_item_name'     => __( 'New Participant Role Name', 'civicrm-wp-profile-sync' ),
 					'not_found'         => __( 'No Participant Roles found.', 'civicrm-wp-profile-sync' ),
-					'no_terms'         => __( 'No Participant Roles', 'civicrm-wp-profile-sync' ),
+					'no_terms'          => __( 'No Participant Roles', 'civicrm-wp-profile-sync' ),
 					'menu_name'         => __( 'Participant Roles', 'civicrm-wp-profile-sync' ),
 				],
 				// Rewrite rules.
-				'rewrite' => [
+				'rewrite'           => [
 					'slug' => 'participant-roles',
 				],
 				// Show column in wp-admin.
 				'show_admin_column' => true,
-				'show_ui' => true,
+				'show_ui'           => true,
 			]
 		);
 
@@ -1684,7 +1712,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 				// Same as "tags".
 				'hierarchical' => false,
 				// Labels.
-				'labels' => [
+				'labels'       => [
 					'name'              => _x( 'Participant Tags', 'taxonomy general name', 'civicrm-wp-profile-sync' ),
 					'singular_name'     => _x( 'Participant Tag', 'taxonomy singular name', 'civicrm-wp-profile-sync' ),
 					'search_items'      => __( 'Search Participant Tags', 'civicrm-wp-profile-sync' ),
@@ -1699,19 +1727,19 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 					'menu_name'         => __( 'Participant Tags', 'civicrm-wp-profile-sync' ),
 				],
 				// Rewrite rules.
-				'rewrite' => [
+				'rewrite'      => [
 					'slug' => 'participant-tags',
 				],
 				// Show column in wp-admin.
 				// phpcs:ignore Squiz.Commenting.InlineComment.InvalidEndChar
-				//'show_admin_column' => true,
+				// 'show_admin_column' => true,
 				// phpcs:ignore Squiz.Commenting.InlineComment.InvalidEndChar
-				//'show_ui' => true,
+				// 'show_ui' => true,
 			]
 		);
 
 		// phpcs:ignore Squiz.Commenting.InlineComment.InvalidEndChar
-		//flush_rewrite_rules();
+		// flush_rewrite_rules();
 
 		// Flag done.
 		$registered = true;
@@ -1725,7 +1753,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 	 *
 	 * @since 0.5
 	 *
-	 * @param array $args The existing arguments.
+	 * @param array   $args The existing arguments.
 	 * @param integer $post_id The WordPress post ID.
 	 */
 	public function taxonomy_fix_metabox( $args, $post_id ) {
@@ -1779,19 +1807,20 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 		$taxonomy = get_taxonomy( $this->taxonomy_name );
 
 		// Show a dropdown.
-		wp_dropdown_categories( [
+		$args = [
 			/* translators: %s: The Taxonomy name */
 			'show_option_all' => sprintf( __( 'Show All %s', 'civicrm-wp-profile-sync' ), $taxonomy->label ),
-			'taxonomy' => $this->taxonomy_name,
-			'name' => $this->taxonomy_name,
-			'orderby' => 'name',
+			'taxonomy'        => $this->taxonomy_name,
+			'name'            => $this->taxonomy_name,
+			'orderby'         => 'name',
 			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.NonceVerification.Recommended
-			'selected' => isset( $_GET[ $this->taxonomy_name ] ) ? wp_unslash( $_GET[ $this->taxonomy_name ] ) : '',
-			'show_count' => true,
-			'hide_empty' => true,
-			'value_field' => 'slug',
-			'hierarchical' => 1,
-		] );
+			'selected'        => isset( $_GET[ $this->taxonomy_name ] ) ? wp_unslash( $_GET[ $this->taxonomy_name ] ) : '',
+			'show_count'      => true,
+			'hide_empty'      => true,
+			'value_field'     => 'slug',
+			'hierarchical'    => 1,
+		];
+		wp_dropdown_categories( $args );
 
 	}
 
@@ -1806,18 +1835,18 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 
 		// Get the ACF Field definitions.
 		$register_date = $this->field_register_date_get();
-		$event = $this->acf_loader->acf->field_type->event_group->get_field_definition();
-		$status = $this->field_status_get();
-		$contact = $this->acf_loader->acf->field_type->contact_group->get_field_definition();
-		$source = $this->field_source_get();
+		$event         = $this->acf_loader->acf->field_type->event_group->get_field_definition();
+		$status        = $this->field_status_get();
+		$contact       = $this->acf_loader->acf->field_type->contact_group->get_field_definition();
+		$source        = $this->field_source_get();
 
 		// Attach the Field Group to our CPT.
 		$field_group_location = [
 			[
 				[
-					'param' => 'post_type',
+					'param'    => 'post_type',
 					'operator' => '==',
-					'value' => $this->post_type_name,
+					'value'    => $this->post_type_name,
 				],
 			],
 		];
@@ -1838,21 +1867,21 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 
 		// Define Field Group.
 		$field_group = [
-			'key' => 'group_' . $this->acf_slug,
-			'title' => __( 'Participant Data', 'civicrm-wp-profile-sync' ),
-			'fields' => [
+			'key'                   => 'group_' . $this->acf_slug,
+			'title'                 => __( 'Participant Data', 'civicrm-wp-profile-sync' ),
+			'fields'                => [
 				$register_date,
 				$event,
 				$status,
 				$contact,
 				$source,
 			],
-			'location' => $field_group_location,
-			'hide_on_screen' => $field_group_hide_elements,
-			'position' => 'acf_after_title',
-			'label_placement' => 'left',
+			'location'              => $field_group_location,
+			'hide_on_screen'        => $field_group_hide_elements,
+			'position'              => 'acf_after_title',
+			'label_placement'       => 'left',
 			'instruction_placement' => 'field',
-			//'style' => 'seamless',
+			// 'style' => 'seamless',
 		];
 
 		// Now add the group.
@@ -1873,15 +1902,15 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 
 		// Define Field.
 		$field = [
-			'key' => 'field_' . $this->acf_slug . '_register_date',
-			'label' => __( 'Registration Date', 'civicrm-wp-profile-sync' ),
-			'name' => 'register_date',
-			'type' => 'date_time_picker',
-			'instructions' => __( 'Use the Date Picker to choose the Date and Time of the Registration.', 'civicrm-wp-profile-sync' ),
-			'required' => 1,
-			'display_format' => 'Y-m-d H:i:s',
-			'return_format' => 'd/m/Y g:i a',
-			'first_day' => 1,
+			'key'                             => 'field_' . $this->acf_slug . '_register_date',
+			'label'                           => __( 'Registration Date', 'civicrm-wp-profile-sync' ),
+			'name'                            => 'register_date',
+			'type'                            => 'date_time_picker',
+			'instructions'                    => __( 'Use the Date Picker to choose the Date and Time of the Registration.', 'civicrm-wp-profile-sync' ),
+			'required'                        => 1,
+			'display_format'                  => 'Y-m-d H:i:s',
+			'return_format'                   => 'd/m/Y g:i a',
+			'first_day'                       => 1,
 			'field_cacf_civicrm_custom_field' => 'caiparticipant_register_date',
 		];
 
@@ -1901,18 +1930,18 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 
 		// Define Field.
 		$field = [
-			'key' => 'field_' . $this->acf_slug . '_status_id',
-			'label' => __( 'Status', 'civicrm-wp-profile-sync' ),
-			'name' => 'status_id',
-			'type' => 'select',
-			'instructions' => '',
-			'required' => 1,
-			'choices' => $this->civicrm->participant_field->options_get( 'status_id' ),
-			'default_value' => false,
-			'allow_null' => 0,
-			'multiple' => 0,
-			'ui' => 0,
-			'return_format' => 'value',
+			'key'                             => 'field_' . $this->acf_slug . '_status_id',
+			'label'                           => __( 'Status', 'civicrm-wp-profile-sync' ),
+			'name'                            => 'status_id',
+			'type'                            => 'select',
+			'instructions'                    => '',
+			'required'                        => 1,
+			'choices'                         => $this->civicrm->participant_field->options_get( 'status_id' ),
+			'default_value'                   => false,
+			'allow_null'                      => 0,
+			'multiple'                        => 0,
+			'ui'                              => 0,
+			'return_format'                   => 'value',
 			'field_cacf_civicrm_custom_field' => 'caiparticipant_status_id',
 		];
 
@@ -1932,16 +1961,16 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 
 		// Define Field.
 		$field = [
-			'key' => 'field_' . $this->acf_slug . '_source',
-			'label' => __( 'Source', 'civicrm-wp-profile-sync' ),
-			'name' => 'source',
-			'type' => 'text',
-			'instructions' => __( 'The source of this event registration.', 'civicrm-wp-profile-sync' ),
-			'required' => 0,
-			'default_value' => '',
-			'prepend' => '',
-			'append' => '',
-			'maxlength' => '',
+			'key'                             => 'field_' . $this->acf_slug . '_source',
+			'label'                           => __( 'Source', 'civicrm-wp-profile-sync' ),
+			'name'                            => 'source',
+			'type'                            => 'text',
+			'instructions'                    => __( 'The source of this event registration.', 'civicrm-wp-profile-sync' ),
+			'required'                        => 0,
+			'default_value'                   => '',
+			'prepend'                         => '',
+			'append'                          => '',
+			'maxlength'                       => '',
 			'field_cacf_civicrm_custom_field' => 'caiparticipant_source',
 		];
 
@@ -1981,7 +2010,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 		}
 
 		// Only handle Participant Custom Groups at this stage.
-		if ( $custom_group['extends'] !== 'Participant' ) {
+		if ( 'Participant' !== $custom_group['extends'] ) {
 			return $field;
 		}
 
@@ -2009,14 +2038,14 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 		}
 
 		// Set a condition for Fields that only show on Events.
-		if ( $custom_group['extends_entity_column_id'] == 2 ) {
+		if ( 2 === (int) $custom_group['extends_entity_column_id'] ) {
 			$or = [];
 			foreach ( $custom_group['extends_entity_column_value'] as $value ) {
 				$or[] = [
 					[
-						'field' => 'field_' . $this->acf_slug . '_event_id',
+						'field'    => 'field_' . $this->acf_slug . '_event_id',
 						'operator' => '==',
-						'value' => $value,
+						'value'    => $value,
 					],
 				];
 			}
@@ -2026,14 +2055,14 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 		}
 
 		// Set a condition for Event Custom Groups.
-		if ( $custom_group['extends_entity_column_id'] == 3 ) {
+		if ( 3 === (int) $custom_group['extends_entity_column_id'] ) {
 			$or = [];
 			foreach ( $custom_group['extends_entity_column_value'] as $value ) {
 				$or[] = [
 					[
-						'field' => 'field_' . $this->acf_slug . '_event_type',
+						'field'    => 'field_' . $this->acf_slug . '_event_type',
 						'operator' => '==',
-						'value' => $value,
+						'value'    => $value,
 					],
 				];
 			}
