@@ -27,7 +27,7 @@ $wp_customize->add_control( new LoginPress_Promo( $wp_customize, 'loginpress_cus
   'section'    => 'lpcustomize_google_font',
   'thumbnail'  => plugins_url( 'img/promo/font_promo.png', LOGINPRESS_ROOT_FILE ),
   'promo_text' => __( 'Unlock Premium Feature', 'loginpress' ),
-  'link'       => 'https://loginpress.pro/pricing/?utm_source=loginpress-lite&amp;utm_medium=fonts&amp;utm_campaign=pro-upgrade'
+  'link'       => 'https://loginpress.pro/pricing/?utm_source=loginpress-lite&utm_medium=customizer-google-fonts&utm_campaign=pro-upgrade&utm_content=Unlock+Premium+Feature+CTA'
 ) ) );
 
 $wp_customize->add_section( 'customize_recaptcha', array(
@@ -47,7 +47,7 @@ $wp_customize->add_control( new LoginPress_Promo( $wp_customize, 'loginpress_cus
   'section'    => 'customize_recaptcha',
   'thumbnail'  => plugins_url( 'img/promo/recaptcha_option_promo.png', LOGINPRESS_ROOT_FILE ),
   'promo_text' => __( 'Unlock Premium Feature', 'loginpress' ),
-  'link'       => 'https://loginpress.pro/pricing/?utm_source=loginpress-lite&amp;utm_medium=recaptcha&amp;utm_campaign=pro-upgrade'
+  'link'       => 'https://loginpress.pro/pricing/?utm_source=loginpress-lite&utm_medium=customizer-recaptcha&utm_campaign=pro-upgrade&utm_content=Unlock+Premium+Feature+CTA'
 ) ) );
 
 // $wp_customize->add_setting( "loginpress_customization[reset_hint_text]", array(

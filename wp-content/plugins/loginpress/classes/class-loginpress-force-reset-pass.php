@@ -168,9 +168,9 @@ class LoginPress_Force_Password_Reset {
 
 		$years = ( $limit / 365 ) ; // days / 365 days
 		$years = floor( $years ); // Remove all decimals
-		$month = ( $limit % 365 ) / 30.5; // I choose 30.5 for Month (30,31) ;)
+		$month = ( $limit % 365 ) / 30;
 		$month = floor( $month ); // Remove all decimals
-		$days  = ( $limit % 365 ) % 30.5; // the rest of days
+		$days = fmod(fmod($limit, 365), 30); // the rest of days
 
 		if ( $years != 0 ) {
 			$year_string  = 1 === absint( $years ) ? __( 'Year', 'loginpress' ) : __( 'Years', 'loginpress' );

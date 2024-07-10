@@ -214,16 +214,17 @@ if ( ! class_exists( 'LoginPress_Addons' ) ) :
 		 *
 		 * @param array $addon
 		 * @since 1.0.19
-		 * @version 3.0.5
+		 * @version 3.0.8
 		 * @return void HTML
 		 */
 		function addon_card_free( $addon ) {
 			$addon_slug  = $addon['slug'];
 			$addon_thumb = LOGINPRESS_DIR_URL . 'img/addons/' . $addon_slug . '.png';
+			$utm_content = str_replace( ' ', '+', $this->addons_meta[ $addon_slug ]['title'] );
 			?>
 
 			<div class="loginpress-extension <?php echo true == $addon['is_free'] ? 'loginpress-free-add-ons' : ''; ?> ">
-				<a target="_blank" href="https://wpbrigade.com/wordpress/plugins/loginpress-pro/?utm_source=loginpress-lite&utm_medium=addons-coming-soon&utm_campaign=pro-upgrade" class="logoinpress_addons_links">
+				<a target="_blank" href="https://loginpress.pro/lite/?utm_source=loginpress-lite&utm_medium=addons&utm_campaign=pro-upgrade&utm_content=<?php echo esc_html( $utm_content ); ?>" class="logoinpress_addons_links">
 					<h3>
 						<img src=<?php echo esc_url( $addon_thumb ); ?> class="logoinpress_addons_thumbnails"/>
 						<span><?php echo esc_html( $this->addons_meta[ $addon_slug ]['title'] ); ?></span>
@@ -243,7 +244,7 @@ if ( ! class_exists( 'LoginPress_Addons' ) ) :
 		 *
 		 * @param array $categories
 		 * @since 1.0.19
-		 * @version 3.0.5
+		 * @version 3.0.9
 		 * @return boolean
 		 */
 		function is_addon_licensed( $categories ) {
@@ -252,7 +253,7 @@ if ( ! class_exists( 'LoginPress_Addons' ) ) :
 				return false;
 			}
 
-			if ( LoginPress_Pro::get_license_id() === '2' && in_array( 'loginpress-pro-small-business', $categories ) ) {
+			if ( LoginPress_Pro::get_license_id() === '2' && in_array( 'loginpress-pro-agency', $categories ) ) {
 				return true;
 			} elseif ( LoginPress_Pro::get_license_id() === '3' && in_array( 'loginpress-pro-agency', $categories ) ) {
 				return true;
@@ -269,6 +270,8 @@ if ( ! class_exists( 'LoginPress_Addons' ) ) :
 			} elseif ( LoginPress_Pro::get_license_id() === '9' && in_array( 'loginpress-pro-agency', $categories ) ) {
 				return true;
 			} elseif ( LoginPress_Pro::get_license_id() === '1' && in_array( 'loginpress-free-add-ons', $categories ) ) {
+				return true;
+			} elseif ( LoginPress_Pro::get_license_id() === '10' && in_array( 'loginpress-pro-agency', $categories ) ) {
 				return true;
 			} else {
 				return false;
@@ -398,7 +401,7 @@ if ( ! class_exists( 'LoginPress_Addons' ) ) :
 		 *
 		 * @param array $addon
 		 *
-		 * @since 3.0.5
+		 * @since 3.0.8
 		 */
 		function check_free_addon_status( $addon ) {
 			if ( true === $addon['is_free'] ) {
@@ -429,8 +432,9 @@ if ( ! class_exists( 'LoginPress_Addons' ) ) :
 					<?php
 				}
 			} else {
+				$utm_content = str_replace( ' ', '+', $addon['title'] );
 				?>
-				<p><a target="_blank" href="https://wpbrigade.com/wordpress/plugins/loginpress-pro/?utm_source=loginpress-lite&utm_medium=addons-coming-soon&utm_campaign=pro-upgrade" class="button-primary"><?php esc_html_e( 'UPGRADE NOW', 'loginpress' ); ?></a></p>
+				<p><a target="_blank" href="https://loginpress.pro/lite/?utm_source=loginpress-lite&utm_medium=addons&utm_campaign=pro-upgrade&utm_content=<?php echo esc_html( $utm_content ); ?>" class="button-primary"><?php esc_html_e( 'UPGRADE NOW', 'loginpress' ); ?></a></p>
 				<?php
 			}
 		}

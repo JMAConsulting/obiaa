@@ -4,7 +4,7 @@
  * This is a LoginPress Compatibility to make it compatible for older versions.
  *
  * @since 1.0.22
- * @version 3.0.0
+ * @version 3.0.9
  */
 
 
@@ -123,6 +123,23 @@ if ( ! class_exists( 'LoginPress_Compatibility' ) ) :
 			 * @since 1.4.0
 			 */
 			add_action( 'init', array( $this, 'aiowps_login_init_remove_action' ) );
+
+			/**
+			 * BuddyBoss theme Compatibility with login page Fix.
+			 *
+			 * @since 3.0.9
+			 * 
+			 */
+			add_action( 'login_head', array( $this, 'lp_remove_filter_buddyboss' ) );
+
+			/**
+			 * WPS Hide Login Fix.
+			 *
+			 * @version 3.0.8
+			 */
+			add_filter( 'whl_logged_in_redirect', array( $this, 'wps_hide_login_compatibility'), 10, 3 );
+			add_filter( 'wps_hide_login_before_redirect', array( $this,  'wps_hide_login_redirect' ) );
+
 		}
 
 		/**
@@ -199,11 +216,24 @@ if ( ! class_exists( 'LoginPress_Compatibility' ) ) :
 		}
 
 		/**
+		 * BuddyBoss theme Compatibility Fix for login page logo.
+		 *
+		 * @since 3.0.9
+		 */
+		public function lp_remove_filter_buddyboss() {
+			$active_theme = get_template();
+			if ( isset( $active_theme ) && 'buddyboss-theme' === $active_theme ) {
+				remove_filter( 'login_headerurl', 'change_wp_login_url' );
+				remove_filter( 'login_headertext', 'change_wp_login_title' );
+			}
+		}
+
+		/**
 		 * WebArx Compatibility Fix.
 		 *
 		 * @since 1.2.3
-		 * @param string $location The currrent location.
-		 * @return string $location Modified currrent location.
+		 * @param string $location The current location.
+		 * @return string $location Modified current location.
 		 */
 		public function wp_redirect_remove_filter( $location ) {
 
@@ -228,7 +258,7 @@ if ( ! class_exists( 'LoginPress_Compatibility' ) ) :
 		 *
 		 * @since 1.2.3
 		 * @param string $url The URL.
-		 * @return string $url Modfied URL.
+		 * @return string $url Modified URL.
 		 */
 		public function site_url_remove_filter( $url ) {
 			if ( class_exists( 'Webarx' ) ) {
@@ -252,7 +282,7 @@ if ( ! class_exists( 'LoginPress_Compatibility' ) ) :
 		 *
 		 * @since 1.2.3
 		 * @param string $url The URL.
-		 * @return string $url Modfied URL.
+		 * @return string $url Modified URL.
 		 */
 		public function network_site_url_remove_filter( $url ) {
 			if ( class_exists( 'Webarx' ) ) {
@@ -465,6 +495,38 @@ if ( ! class_exists( 'LoginPress_Compatibility' ) ) :
 			$logo_title = $this->loginpress_key && isset( $this->loginpress_key['customize_logo_hover_title'] ) && ! empty( $this->loginpress_key['customize_logo_hover_title'] ) ? $this->loginpress_key['customize_logo_hover_title'] : get_bloginfo( 'name' );
 
 			return $logo_title;
+		}
+
+		/**
+		 * The redirect of Hide Login compatibility with LoginPress.
+		 *
+		 * @version 3.0.8
+		 */
+		function wps_hide_login_redirect() {
+			return wp_login_url();
+		}
+
+		/**
+		 * Filters the “Go to site” link displayed in the login page footer.
+		 *
+		 * @param string $redirect_to The page where it will be redirected to.
+		 * @param string $requested_redirect_to The requested page to redirect.
+		 * @param object $user The user object.
+		 * @var $user_login passes the user_login element of user to be used in wp-login
+		 * @var $error passes the error element of user to be used in wp-login
+		 *
+		 * @since 3.0.8
+		 */
+		function wps_hide_login_compatibility( $redirect_to, $requested_redirect_to, $user ) {
+			if ( ! headers_sent() ) {
+				// Create these variables to overcome couple PHP Warnings in customizer while calling wp-login.php
+				$user_login = $user->user_login;
+				$error = $user->error;
+				
+				require_once ABSPATH . 'wp-login.php';
+				die();
+			}
+			return false;
 		}
 	}
 endif;

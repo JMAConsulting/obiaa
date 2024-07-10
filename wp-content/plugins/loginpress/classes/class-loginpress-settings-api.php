@@ -595,6 +595,7 @@ if ( !class_exists( 'LoginPress_Settings_API' ) ):
 		 * Shows all the settings section labels as tab.
 		 *
 		 * @since 1.0.0
+		 * @version 3.0.8
 		 * @return $html The html output.
 		 */
 		function show_navigation() {
@@ -607,7 +608,7 @@ if ( !class_exists( 'LoginPress_Settings_API' ) ):
 					$html .= sprintf( '<li class="settings-tabs-list"><a href="#%1$s" class="nav-tab" id="%1$s-tab">%2$s<span>%3$s</span></a></li>', $tab['id'], $tab['title'], $sub_title );
 				}
 				if ( 'loginpress_premium' == $tab['id'] ) {
-					$html .= sprintf( '<a href="%1$s" class="loginpress-premium" target="_blank"><span class="dashicons dashicons-star-filled"></span>%2$s</a>', "https://loginpress.pro/pricing/?utm_source=loginpress-lite&amp;utm_medium=tab&amp;utm_campaign=pro-upgrade", $tab['title'] );
+					$html .= sprintf( '<a href="%1$s" class="loginpress-premium" target="_blank"><span class="dashicons dashicons-star-filled"></span>%2$s</a>', "https://loginpress.pro/pricing/?utm_source=loginpress-lite&utm_medium=settings-tab&utm_campaign=pro-upgrade&utm_content=Upgrade+to+Pro+for+More+Features+CTA", $tab['title'] );
 				}
 			}
 
