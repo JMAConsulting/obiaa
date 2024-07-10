@@ -91,7 +91,7 @@ function biasync_civicrm_post(string $op, string $objectName, int $objectId, &$o
         $objectRef->addSelect('*');
         $objectRef->find(TRUE);
       }
-      $propertyId = Proprety::get(FALSE)
+      $propertyId = Property::get(FALSE)
         ->addSelect('id')
         ->addJoin('Unit AS unit', 'INNER', ['id', '=', 'unit.property_id'])
         ->addWhere('unit.id', '=', $objectRef->unit_id)
