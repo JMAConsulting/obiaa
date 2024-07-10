@@ -1,9 +1,9 @@
 === Maintenance ===
 Contributors: WebFactory
-Tags: maintenance, maintenance mode, maintenance page, coming soon, coming soon page, under construction, under construction page, bunny fonts
+Tags: maintenance, maintenance mode, maintenance page, coming soon, coming soon page
 Requires at least: 4.0
-Tested up to: 6.3
-Stable tag: 4.08
+Tested up to: 6.5
+Stable tag: 4.12
 Requires PHP: 5.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -89,8 +89,21 @@ No, it will be display error on current maintenance page, without redirect to wp
 
 Please post the question on the <a href="http://wordpress.org/support/plugin/maintenance">support forum</a>.
 
+= How can I report security bugs? =
+
+You can report security bugs through the Patchstack Vulnerability Disclosure Program. The Patchstack team help validate, triage and handle any security vulnerabilities. [Report a security vulnerability.](https://patchstack.com/database/vdp/maintenance)
+
 
 == Changelog ==
+
+= v4.12 =
+- 2024/06/07
+- minor bug fixes
+
+= v4.09 =
+- 2024/06/03
+- added Weglot support
+
 = v4.08 =
 - 2023/08/31
 - fixed reset password URL changed if Maintenance is off

@@ -339,17 +339,50 @@ add_action('add_mt_meta_boxes', 'mtnc_page_create_meta_boxes', 10);
 function mtnc_page_create_meta_boxes_widget_pro()
 {
   global $mtnc_variable;
-
 }
 add_action('add_mt_meta_boxes', 'mtnc_page_create_meta_boxes_widget_pro', 15);
 
-function mtnc_add_review_top() {
+function mtnc_add_review_top()
+{
   $promo_text  = '';
   $promo_text .= '<p><b>Your review means a lot!</b> Please help us spread the word so that others know the Maintenance plugin is free and well maintained!<br>
   Thank you very much for using our plugin and helping us out!</p>';
   $promo_text .= '<p><br><a href="https://wordpress.org/support/plugin/maintenance/reviews/#new-post" target="_blank" class="button button-primary">Leave a Review</a> &nbsp;&nbsp; <a href="#" class="hide-review-box">I already left a review ;)</a></p>';
   mtnc_wp_kses($promo_text);
 }
+
+function mtcn_is_weglot_active()
+{
+  if (!function_exists('is_plugin_active') || !function_exists('get_plugin_data')) {
+    require_once ABSPATH . 'wp-admin/includes/plugin.php';
+  }
+
+  if (is_plugin_active('weglot/weglot.php')) {
+    $weglot_info = get_plugin_data(ABSPATH . 'wp-content/plugins/weglot/weglot.php');
+    if (version_compare($weglot_info['Version'], '2.5', '<')) {
+      return false;
+    } else {
+      return true;
+    }
+  } else {
+    return false;
+  }
+} // mtcn_is_weglot_active
+
+// check if Weglot is completely set up
+function mtnc_is_weglot_setup()
+{
+    if (!mtcn_is_weglot_active()) {
+        return false;
+    }
+
+    $active_languages = weglot_get_destination_languages();
+    if (!empty($active_languages)) {
+        return true;
+    } else {
+        return false;
+    }
+} // is_weglot_setup
 
 function mtnc_page_create_meta_boxes_widget_support()
 {
@@ -361,13 +394,18 @@ function mtnc_page_create_meta_boxes_widget_support()
     add_meta_box('promo-wpfssl', __('Solve all SSL problems with the free WP Force SSL plugin', 'maintenance'), 'mtnc_promo_wpfssl', $mtnc_variable->options_page, 'side', 'high');
   }
 
+  if (!mtcn_is_weglot_active()) {
+    add_meta_box('promo-weglot', __('50% of your customers don\'t speak english', 'maintenance'), 'mtnc_promo_weglot', $mtnc_variable->options_page, 'side', 'high');
+  }
+
   add_meta_box('promo-review2', __('Help us keep the plugin free &amp; maintained', 'maintenance'), 'mtnc_review_box', $mtnc_variable->options_page, 'side', 'high');
 
   add_meta_box('promo-content2', __('Something is not working? Do you need our help?', 'maintenance'), 'mtnc_contact_support', $mtnc_variable->options_page, 'side', 'default');
 }
 add_action('add_mt_meta_boxes', 'mtnc_page_create_meta_boxes_widget_support', 13);
 
-function mtnc_add_toc($object, $box) {
+function mtnc_add_toc($object, $box)
+{
   $out = '';
 
   $out .= '<ul>';
@@ -408,23 +446,62 @@ function mtnc_add_data_fields($object, $box)
   if (isset($mt_option['logo_height'])) {
     $logo_height = wp_kses_post($mt_option['logo_height']);
   }
-  ?>
+?>
   <table class="form-table">
     <tbody>
       <?php
-        mtnc_generate_input_filed(__('Page Title', 'maintenance'), 'page_title', 'page_title', $page_title);
-        mtnc_generate_button_field(__('SEO Options', 'maintenance'), 'Make sure your page can be indexed and found from day one!', 'Configure SEO Options', 'content_seo', '', false, true);
-        mtnc_generate_input_filed(__('Headline', 'maintenance'), 'heading', 'heading', $heading);
-        mtnc_generate_tinymce_filed(__('Description', 'maintenance'), 'description', 'description', $description);
-        mtnc_generate_input_filed(__('Footer Text', 'maintenance'), 'footer_text', 'footer_text', $footer_text);
-        mtnc_generate_check_field(__('Show Some Love', 'maintenance'), __('Show a small link in the footer to let others know you\'re using this awesome &amp; free plugin', 'maintenance'), 'show_some_love', 'show_some_love', !empty($mt_option['show_some_love']));
-        mtnc_generate_check_field(__('Show Contact Form', 'maintenance'), 'Enable &amp; customize a contact form on the page so that visitors can easily get in touch with you.', 'content_contact_form', '', false, true);
-        mtnc_generate_check_field(__('Show Map', 'maintenance'), 'Make it super-easy for visitors to find your business by displaying a map with your location.', 'content_map', '', false, true);
-        mtnc_generate_check_field(__('Show Progress Bar', 'maintenance'), 'Let visitors know how your new site is progressing and when is it going to be complete.', 'content_progress_bar', '', false, true);
-        mtnc_generate_check_field(__('Enable Frontend Login', 'maintenance'), '', 'is_login', 'is_login', isset($mt_option['is_login']));
+      mtnc_generate_input_filed(__('Page Title', 'maintenance'), 'page_title', 'page_title', $page_title);
+      mtnc_generate_button_field(__('SEO Options', 'maintenance'), 'Make sure your page can be indexed and found from day one!', 'Configure SEO Options', 'content_seo', '', false, true);
+      mtnc_generate_input_filed(__('Headline', 'maintenance'), 'heading', 'heading', $heading);
+      mtnc_generate_tinymce_filed(__('Description', 'maintenance'), 'description', 'description', $description);
+      mtnc_generate_input_filed(__('Footer Text', 'maintenance'), 'footer_text', 'footer_text', $footer_text);
 
-        mtnc_wp_kses('<tr><td colspan="2"><p><input type="submit" name="submit" id="submit" class="button button-primary" value="Save Changes"></p></td></tr>');
-        ?>
+      if (mtcn_is_weglot_active()) {
+        echo '<tr id="weglot-settings">';
+        echo '<th><label for="weglot_lang">Multilingual Support</label></th>';
+        echo '<td>';
+
+
+        if (mtnc_is_weglot_setup()) {
+            $tmp = '';
+
+            $active_languages = array();
+            $active_languages_weglot = weglot_get_destination_languages();
+            
+            foreach($active_languages_weglot as $language){
+                $active_languages[] = $language['language_to'];
+            }
+            $languages = weglot_get_languages_available();
+            $original_language = weglot_get_original_language();
+            echo '<p>Your maintenance page is currently available in the following languages.<br>To add more languages and configure translations open <a href="' . esc_url(admin_url('admin.php?page=weglot-settings')) . '">Weglot settings</a>.</p>';
+            echo '<ul class="mtnc-list">';
+            foreach ($languages as $language) {
+                if ($language->getExternalCode() == $original_language) {
+                    $tmp = '<li>' . esc_html($language->getEnglishName()) . ' - original language</li>' . $tmp;
+                }
+                if (in_array($language->getExternalCode(), $active_languages)) {
+                    $tmp .= '<li>' . esc_html($language->getLocalName()) . '</li>';
+                }
+            } // foreach language
+            mtnc_wp_kses($tmp);
+            echo '</ul>';
+        } else {
+            echo '<p>Your maintenance page is currently not translated.<br>Open <a href="' . esc_url(admin_url('admin.php?page=weglot-settings')) . '">Weglot settings</a> to select languages you want to translate to.</p>';
+        }
+        echo '</td>';
+        echo '</tr>';
+    } else {
+        mtnc_generate_check_field(__('Multilingual Support', 'maintenance'), __('55% of online visitors prefer to browse in their mother tongue. If you have an audience speaking multiple languages, making your website multilingual is a must-have. To instantly translate your website and your maintenance, <a href="#" class="open-weglot-upsell">install the Weglot plugin</a> (free plan and free trial available). It seamlessly integrates with Maintenance and is compatible with all themes & plugins.', 'maintenance'), 'weglot', 'weglot', !empty($mt_option['weglot']));
+    }
+
+      mtnc_generate_check_field(__('Show Some Love', 'maintenance'), __('Show a small link in the footer to let others know you\'re using this awesome &amp; free plugin', 'maintenance'), 'show_some_love', 'show_some_love', !empty($mt_option['show_some_love']));
+      mtnc_generate_check_field(__('Show Contact Form', 'maintenance'), 'Enable &amp; customize a contact form on the page so that visitors can easily get in touch with you.', 'content_contact_form', '', false, true);
+      mtnc_generate_check_field(__('Show Map', 'maintenance'), 'Make it super-easy for visitors to find your business by displaying a map with your location.', 'content_map', '', false, true);
+      mtnc_generate_check_field(__('Show Progress Bar', 'maintenance'), 'Let visitors know how your new site is progressing and when is it going to be complete.', 'content_progress_bar', '', false, true);
+      mtnc_generate_check_field(__('Enable Frontend Login', 'maintenance'), '', 'is_login', 'is_login', isset($mt_option['is_login']));
+
+      mtnc_wp_kses('<tr><td colspan="2"><p><input type="submit" name="submit" id="submit" class="button button-primary" value="Save Changes"></p></td></tr>');
+      ?>
     </tbody>
   </table>
 <?php
@@ -432,16 +509,16 @@ function mtnc_add_data_fields($object, $box)
 
 function mtnc_add_access_fields($object, $box)
 {
-  ?>
+?>
   <table class="form-table">
     <tbody>
       <?php
-        mtnc_generate_check_field(__('Enable Secret Access Link', 'maintenance'), 'Give clients and friends a secret access link so they can see the full site.', 'access_secret_link', '', false, true);
-        mtnc_generate_check_field(__('Password Protect the Page', 'maintenance'), 'Protect the maintenanace page with a password so that only selected people can open it. Perfect for launches.', 'access_password', '', false, true);
-        mtnc_generate_check_field(__('Enable URL Based Rules', 'maintenance'), 'Individually pick pages, posts and URLs that will be or not be hidden behind the maintenance page.', 'access_url_rules', '', false, true);
+      mtnc_generate_check_field(__('Enable Secret Access Link', 'maintenance'), 'Give clients and friends a secret access link so they can see the full site.', 'access_secret_link', '', false, true);
+      mtnc_generate_check_field(__('Password Protect the Page', 'maintenance'), 'Protect the maintenanace page with a password so that only selected people can open it. Perfect for launches.', 'access_password', '', false, true);
+      mtnc_generate_check_field(__('Enable URL Based Rules', 'maintenance'), 'Individually pick pages, posts and URLs that will be or not be hidden behind the maintenance page.', 'access_url_rules', '', false, true);
 
-        mtnc_wp_kses('<tr><td colspan="2"><p><input type="submit" name="submit" id="submit" class="button button-primary" value="Save Changes"></p></td></tr>');
-        ?>
+      mtnc_wp_kses('<tr><td colspan="2"><p><input type="submit" name="submit" id="submit" class="button button-primary" value="Save Changes"></p></td></tr>');
+      ?>
     </tbody>
   </table>
 <?php
@@ -473,44 +550,45 @@ function mtnc_add_design_fields($object, $box)
   if (isset($mt_option['logo_height'])) {
     $logo_height = wp_kses_post($mt_option['logo_height']);
   }
-  ?>
+?>
   <table class="form-table">
     <tbody>
       <?php
-        mtnc_smush_option();
-        mtnc_generate_number_field(__('Set Logo Width', 'maintenance'), 'logo_width', 'logo_width', $logo_width);
-        mtnc_generate_number_field(__('Set Logo Height', 'maintenance'), 'logo_height', 'logo_height', $logo_height);
-        mtnc_generate_image_filed(__('Logo', 'maintenance'), 'logo', 'logo', (int) $mt_option['logo'], 'boxes box-logo', __('Upload Logo', 'maintenance'), 'upload_logo upload_btn button');
-        mtnc_generate_image_filed(__('Retina Logo (optional)', 'maintenance'), 'retina_logo', 'retina_logo', (int) $mt_option['retina_logo'], 'boxes box-logo', __('Upload Retina Logo', 'maintenance'), 'upload_logo upload_btn button');
-        do_action('mtnc_background_field');
-        mtnc_generate_input_filed(__('Background Video', 'maintenance'), 'design_bg_video', 'design_bg_video', '', '', 'Use a YouTube video for the bage background. It\' be muted and looped.', true);
-        mtnc_generate_image_filed(__('Background Image (portrait mode)', 'maintenance'), 'bg_image_portrait', 'bg_image_portrait', isset($mt_option['bg_image_portrait']) ? (int) $mt_option['bg_image_portrait'] : '', 'boxes box-logo', __('Upload image for portrait device orientation', 'maintenance'), 'upload_logo upload_btn button');
-        mtnc_generate_image_filed(__('Page Preloader Image', 'maintenance'), 'preloader_img', 'preloader_img', isset($mt_option['preloader_img']) ? (int) $mt_option['preloader_img'] : '', 'boxes box-logo', __('Upload preloader', 'maintenance'), 'upload_logo upload_btn button');
+      mtnc_smush_option();
+      mtnc_generate_number_field(__('Set Logo Width', 'maintenance'), 'logo_width', 'logo_width', $logo_width);
+      mtnc_generate_number_field(__('Set Logo Height', 'maintenance'), 'logo_height', 'logo_height', $logo_height);
+      mtnc_generate_image_filed(__('Logo', 'maintenance'), 'logo', 'logo', (int) $mt_option['logo'], 'boxes box-logo', __('Upload Logo', 'maintenance'), 'upload_logo upload_btn button');
+      mtnc_generate_image_filed(__('Retina Logo (optional)', 'maintenance'), 'retina_logo', 'retina_logo', (int) $mt_option['retina_logo'], 'boxes box-logo', __('Upload Retina Logo', 'maintenance'), 'upload_logo upload_btn button');
+      do_action('mtnc_background_field');
+      mtnc_generate_input_filed(__('Background Video', 'maintenance'), 'design_bg_video', 'design_bg_video', '', '', 'Use a YouTube video for the bage background. It\' be muted and looped.', true);
+      mtnc_generate_image_filed(__('Background Image (portrait mode)', 'maintenance'), 'bg_image_portrait', 'bg_image_portrait', isset($mt_option['bg_image_portrait']) ? (int) $mt_option['bg_image_portrait'] : '', 'boxes box-logo', __('Upload image for portrait device orientation', 'maintenance'), 'upload_logo upload_btn button');
+      mtnc_generate_image_filed(__('Page Preloader Image', 'maintenance'), 'preloader_img', 'preloader_img', isset($mt_option['preloader_img']) ? (int) $mt_option['preloader_img'] : '', 'boxes box-logo', __('Upload preloader', 'maintenance'), 'upload_logo upload_btn button');
 
-        do_action('mtnc_color_fields');
-        do_action('mtnc_font_fields');
+      do_action('mtnc_color_fields');
+      do_action('mtnc_font_fields');
 
-        if (isset($mt_option['is_blur'])) {
-          if ($mt_option['is_blur']) {
-            $is_blur = true;
-          }
+      if (isset($mt_option['is_blur'])) {
+        if ($mt_option['is_blur']) {
+          $is_blur = true;
         }
+      }
 
-        mtnc_generate_check_field(__('Apply Background Blur', 'maintenance'), 'Add blur effect to the background image', 'is_blur', 'is_blur', $is_blur);
-        mtnc_generate_number_field(__('Set Blur Intensity', 'maintenance'), 'blur_intensity', 'blur_intensity', (int) $mt_option['blur_intensity']);
+      mtnc_generate_check_field(__('Apply Background Blur', 'maintenance'), 'Add blur effect to the background image', 'is_blur', 'is_blur', $is_blur);
+      mtnc_generate_number_field(__('Set Blur Intensity', 'maintenance'), 'blur_intensity', 'blur_intensity', (int) $mt_option['blur_intensity']);
 
-        mtnc_wp_kses('<tr><td colspan="2"><p><input type="submit" name="submit" id="submit" class="button button-primary" value="Save Changes"></p></td></tr>');
-        ?>
+      mtnc_wp_kses('<tr><td colspan="2"><p><input type="submit" name="submit" id="submit" class="button button-primary" value="Save Changes"></p></td></tr>');
+      ?>
     </tbody>
   </table>
 <?php
 }
 
 // helper function for creating dropdowns
-function mtnc_create_select_options($options, $selected = null, $output = true) {
+function mtnc_create_select_options($options, $selected = null, $output = true)
+{
   $out = "\n";
 
-  if(!is_array($selected)) {
+  if (!is_array($selected)) {
     $selected = array($selected);
   }
 
@@ -533,7 +611,8 @@ function mtnc_create_select_options($options, $selected = null, $output = true) 
   }
 } // create_select_options
 
-function mtnc_smush_option() {
+function mtnc_smush_option()
+{
   if (defined('WP_SMUSH_VERSION')) {
     echo '<tr>';
     echo '<th><label for="smush_support">Enable Image Compression</label></th>';
@@ -545,7 +624,7 @@ function mtnc_smush_option() {
     echo '<tr>';
     echo '<th><label for="smush_support">Enable Image Compression</label></th>';
     echo '<td style="line-height: 1.5;">';
-    echo '<input type="checkbox" id="smush_support" type="checkbox" value="1" class="skip-save">The easiest way to speed up any site is to <b>compress images</b>. On an average page you can easily save a few megabytes. Doing it manually in Photoshop is a pain! That\'s why there are plugins like <a href="' . admin_url('plugin-install.php?fix-install-button=1&tab=plugin-information&plugin=wp-smushit&TB_iframe=true&width=600&height=550') . '" class="thickbox open-plugin-details-modal smush-thickbox">Smush</a> that specialize in compressing images. <a href="' . admin_url('plugin-install.php?fix-install-button=1&tab=plugin-information&plugin=wp-smushit&TB_iframe=true&width=600&height=550') . '" class="thickbox open-plugin-details-modal smush-thickbox">Install the free Smush plugin</a>. It has no limit on the amount of images you can compress, seamlessly integrates with WordPress, and is compatible with all plugins &amp; themes. And best of all - <b>it\'s used by over a million users just like you</b>.';
+    echo '<input type="checkbox" id="smush_support" type="checkbox" value="1" class="skip-save">The easiest way to speed up any site is to <b>compress images</b>. On an average page you can easily save a few megabytes. Doing it manually in Photoshop is a pain! That\'s why there are plugins like <a href="' . esc_url(admin_url('plugin-install.php?fix-install-button=1&tab=plugin-information&plugin=wp-smushit&TB_iframe=true&width=600&height=550')) . '" class="thickbox open-plugin-details-modal smush-thickbox">Smush</a> that specialize in compressing images. <a href="' . esc_url(admin_url('plugin-install.php?fix-install-button=1&tab=plugin-information&plugin=wp-smushit&TB_iframe=true&width=600&height=550')) . '" class="thickbox open-plugin-details-modal smush-thickbox">Install the free Smush plugin</a>. It has no limit on the amount of images you can compress, seamlessly integrates with WordPress, and is compatible with all plugins &amp; themes. And best of all - <b>it\'s used by over a million users just like you</b>.';
     echo '</td>';
     echo '</tr>';
   }
@@ -577,150 +656,151 @@ function mtnc_add_css_fields()
 function mtnc_add_themes_fields()
 {
 
-$themes = array (
-  0 =>
-  array (
-    'id' => '5f2f8c65307b6f3097f2ca4d25d5cb26',
-    'name' => 'Adventure Blog',
-    'name_clean' => 'adventure-blog',
-    'status' => 'pro',
-  ),
-  1 =>
-  array (
-    'id' => '0a0c5efe1e95f91a42bc9e6e6ca884dd',
-    'name' => 'Business',
-    'name_clean' => 'business',
-    'status' => 'pro',
-  ),
-  2 =>
-  array (
-    'id' => '06142f926b2da71d8dddfba3254a78cb',
-    'name' => 'Digital Marketing Agency',
-    'name_clean' => 'digital-marketing-agency',
-    'status' => 'pro',
-  ),
-  3 =>
-  array (
-    'id' => '1f62286e16a799a6cf57a5013518a915',
-    'name' => 'E-Shop',
-    'name_clean' => 'e-shop',
-    'status' => 'pro',
-  ),
-  4 =>
-  array (
-    'id' => 'd41b1b0a6d4cb304e886121b3118cfa0',
-    'name' => 'Fashion',
-    'name_clean' => 'fashion',
-    'status' => 'pro',
-  ),
-  5 =>
-  array (
-    'id' => '7f96d3918bd5840258a6dce654f4b0dc',
-    'name' => 'Flower Shop',
-    'name_clean' => 'flower-shop',
-    'status' => 'pro',
-  ),
-  6 =>
-  array (
-    'id' => '1c498ed60de01a93c2a4cac0ab50ddc2',
-    'name' => 'Gaming',
-    'name_clean' => 'gaming',
-    'status' => 'pro',
-  ),
-  7 =>
-  array (
-    'id' => 'bb9f78a54648fe776fe7cdce018d4649',
-    'name' => 'Interior Design',
-    'name_clean' => 'interior-design',
-    'status' => 'pro',
-  ),
-  8 =>
-  array (
-    'id' => 'bce5308440264fa4a8ce9cf1b38f3242',
-    'name' => 'Mobile App',
-    'name_clean' => 'mobile-app',
-    'status' => 'pro',
-  ),
-  9 =>
-  array (
-    'id' => 'b20f2da4e5cd0753638723ff12383378',
-    'name' => 'Non-Profit Organization',
-    'name_clean' => 'non-profit-organization',
-    'status' => 'pro',
-  ),
-  10 =>
-  array (
-    'id' => '2c6c47a437172cf970e9027ab7c4f680',
-    'name' => 'Photography',
-    'name_clean' => 'photography',
-    'status' => 'pro',
-  ),
-  11 =>
-  array (
-    'id' => 'ea2584e286d8e0304994f4d9d9e4d335',
-    'name' => 'Podcast',
-    'name_clean' => 'podcast',
-    'status' => 'pro',
-  ),
-  12 =>
-  array (
-    'id' => 'f7432f296c75f398c018ebbd0118cf1f',
-    'name' => 'Product Marketing',
-    'name_clean' => 'product-marketing',
-    'status' => 'pro',
-  ),
-  13 =>
-  array (
-    'id' => '274bd92fd91aadc05fe0637f614633d8',
-    'name' => 'Restaurant',
-    'name_clean' => 'restaurant',
-    'status' => 'pro',
-  ),
-  14 =>
-  array (
-    'id' => '1ff8ca16c5010eec8797eb5416373c6d',
-    'name' => 'Skincare',
-    'name_clean' => 'skincare',
-    'status' => 'pro',
-  ),
-  15 =>
-  array (
-    'id' => 'a2df8994e86f844e9fe7516fb272b6f3',
-    'name' => 'Social Media',
-    'name_clean' => 'social-media',
-    'status' => 'pro',
-  ),
-  16 =>
-  array (
-    'id' => 'eb668b7221bb4ed50c8edc8aebb68ba4',
-    'name' => 'Sport',
-    'name_clean' => 'sport',
-    'status' => 'pro',
-  ),
-  17 =>
-  array (
-    'id' => '906d50132e2caf64ad57d9c76b07f78c',
-    'name' => 'Travel Vlog',
-    'name_clean' => 'travel-vlog',
-    'status' => 'pro',
-  ),
-  18 =>
-  array (
-    'id' => 'd1dd1f82d0d557460f22ac7058c291e0',
-    'name' => 'Wedding',
-    'name_clean' => 'wedding',
-    'status' => 'pro',
-  ),
-  19 =>
-  array (
-    'id' => '35b404155b3be97d198dadf05ddfc960',
-    'name' => 'Wellness',
-    'name_clean' => 'wellness',
-    'status' => 'pro',
-  ),
-);
+  $themes = array(
+    0 =>
+    array(
+      'id' => '5f2f8c65307b6f3097f2ca4d25d5cb26',
+      'name' => 'Adventure Blog',
+      'name_clean' => 'adventure-blog',
+      'status' => 'pro',
+    ),
+    1 =>
+    array(
+      'id' => '0a0c5efe1e95f91a42bc9e6e6ca884dd',
+      'name' => 'Business',
+      'name_clean' => 'business',
+      'status' => 'pro',
+    ),
+    2 =>
+    array(
+      'id' => '06142f926b2da71d8dddfba3254a78cb',
+      'name' => 'Digital Marketing Agency',
+      'name_clean' => 'digital-marketing-agency',
+      'status' => 'pro',
+    ),
+    3 =>
+    array(
+      'id' => '1f62286e16a799a6cf57a5013518a915',
+      'name' => 'E-Shop',
+      'name_clean' => 'e-shop',
+      'status' => 'pro',
+    ),
+    4 =>
+    array(
+      'id' => 'd41b1b0a6d4cb304e886121b3118cfa0',
+      'name' => 'Fashion',
+      'name_clean' => 'fashion',
+      'status' => 'pro',
+    ),
+    5 =>
+    array(
+      'id' => '7f96d3918bd5840258a6dce654f4b0dc',
+      'name' => 'Flower Shop',
+      'name_clean' => 'flower-shop',
+      'status' => 'pro',
+    ),
+    6 =>
+    array(
+      'id' => '1c498ed60de01a93c2a4cac0ab50ddc2',
+      'name' => 'Gaming',
+      'name_clean' => 'gaming',
+      'status' => 'pro',
+    ),
+    7 =>
+    array(
+      'id' => 'bb9f78a54648fe776fe7cdce018d4649',
+      'name' => 'Interior Design',
+      'name_clean' => 'interior-design',
+      'status' => 'pro',
+    ),
+    8 =>
+    array(
+      'id' => 'bce5308440264fa4a8ce9cf1b38f3242',
+      'name' => 'Mobile App',
+      'name_clean' => 'mobile-app',
+      'status' => 'pro',
+    ),
+    9 =>
+    array(
+      'id' => 'b20f2da4e5cd0753638723ff12383378',
+      'name' => 'Non-Profit Organization',
+      'name_clean' => 'non-profit-organization',
+      'status' => 'pro',
+    ),
+    10 =>
+    array(
+      'id' => '2c6c47a437172cf970e9027ab7c4f680',
+      'name' => 'Photography',
+      'name_clean' => 'photography',
+      'status' => 'pro',
+    ),
+    11 =>
+    array(
+      'id' => 'ea2584e286d8e0304994f4d9d9e4d335',
+      'name' => 'Podcast',
+      'name_clean' => 'podcast',
+      'status' => 'pro',
+    ),
+    12 =>
+    array(
+      'id' => 'f7432f296c75f398c018ebbd0118cf1f',
+      'name' => 'Product Marketing',
+      'name_clean' => 'product-marketing',
+      'status' => 'pro',
+    ),
+    13 =>
+    array(
+      'id' => '274bd92fd91aadc05fe0637f614633d8',
+      'name' => 'Restaurant',
+      'name_clean' => 'restaurant',
+      'status' => 'pro',
+    ),
+    14 =>
+    array(
+      'id' => '1ff8ca16c5010eec8797eb5416373c6d',
+      'name' => 'Skincare',
+      'name_clean' => 'skincare',
+      'status' => 'pro',
+    ),
+    15 =>
+    array(
+      'id' => 'a2df8994e86f844e9fe7516fb272b6f3',
+      'name' => 'Social Media',
+      'name_clean' => 'social-media',
+      'status' => 'pro',
+    ),
+    16 =>
+    array(
+      'id' => 'eb668b7221bb4ed50c8edc8aebb68ba4',
+      'name' => 'Sport',
+      'name_clean' => 'sport',
+      'status' => 'pro',
+    ),
+    17 =>
+    array(
+      'id' => '906d50132e2caf64ad57d9c76b07f78c',
+      'name' => 'Travel Vlog',
+      'name_clean' => 'travel-vlog',
+      'status' => 'pro',
+    ),
+    18 =>
+    array(
+      'id' => 'd1dd1f82d0d557460f22ac7058c291e0',
+      'name' => 'Wedding',
+      'name_clean' => 'wedding',
+      'status' => 'pro',
+    ),
+    19 =>
+    array(
+      'id' => '35b404155b3be97d198dadf05ddfc960',
+      'name' => 'Wellness',
+      'name_clean' => 'wellness',
+      'status' => 'pro',
+    ),
+  );
 
-  function mntc_themes_sort($item1, $item2) {
+  function mntc_themes_sort($item1, $item2)
+  {
     if (strtotime($item1['last_edit']) == strtotime($item2['last_edit'])) {
       return 0;
     }
@@ -751,7 +831,8 @@ $themes = array (
   } // foreach theme
 }
 
-function mtnc_generate_web_link($placement = '', $page = '/', $params = array(), $anchor = '') {
+function mtnc_generate_web_link($placement = '', $page = '/', $params = array(), $anchor = '')
+{
   $base_url = 'https://wpmaintenancemode.com';
 
   if ('/' != $page) {
@@ -912,6 +993,14 @@ function mtnc_promo_wpfssl()
   mtnc_wp_kses($promo_text);
 } // mtnc_promo_wpfssl
 
+function mtnc_promo_weglot()
+{
+  $promo_text  = '';
+  $promo_text .= '<p>55% of online visitors prefer to browse in their mother tongue. If you have an audience speaking multiple languages, making your website multilingual is a must-have. To instantly translate your website and your maintenance page.</p>';
+  $promo_text .= '<p><br><a href="#" class="button button-primary open-weglot-upsell">Install the Weglot Translate freemium plugin</a></p>';
+  mtnc_wp_kses($promo_text);
+} // mtnc_promo_weglot
+
 function mtnc_promo_mtnc()
 {
   $promo_text  = '';
@@ -944,7 +1033,7 @@ function mtnc_check_exclude()
   global $mt_options, $post;
   $mt_options = mtnc_get_plugin_options(true);
   $is_skip    = false;
-  $cur_url    = mtnc_cur_page_url();
+  
   if (is_page() || is_single()) {
     $curr_id = $post->ID;
   } else {
@@ -963,7 +1052,7 @@ function mtnc_check_exclude()
     }
   }
 
-  if (isset($mt_options['exclude_pages']) && !empty($mt_options['exclude_pages'])) {
+  if (isset($curr_id) && isset($mt_options['exclude_pages']) && !empty($mt_options['exclude_pages'])) {
     $exlude_objs = $mt_options['exclude_pages'];
     foreach ($exlude_objs as $objs_id) {
       foreach ($objs_id as $obj_id) {
@@ -1050,7 +1139,7 @@ function mtnc_defer_scripts($tag, $handle)
 function mtnc_metaboxes_scripts()
 {
   global $mtnc_variable;
-  ?>
+?>
   <script type="text/javascript">
     //<![CDATA[
     jQuery(document).ready(function() {
@@ -1119,7 +1208,7 @@ function mtnc_insert_attach_sample_files()
   global $wpdb;
   $title            = '';
   $attach_id        = 0;
-  $is_attach_exists = $wpdb->get_results("SELECT p.ID FROM $wpdb->posts p WHERE  p.post_title LIKE '%mt-sample-background%'", OBJECT);
+  $is_attach_exists = $wpdb->get_results("SELECT p.ID FROM $wpdb->posts p WHERE  p.post_title LIKE '%mt-sample-background%'", OBJECT); //db call ok; no-cache ok
 
   if (!empty($is_attach_exists)) {
     $attach_id = current($is_attach_exists)->ID;
