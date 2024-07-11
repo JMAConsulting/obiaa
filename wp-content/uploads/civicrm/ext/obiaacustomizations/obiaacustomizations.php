@@ -50,27 +50,30 @@ function obiaacustomizations_civicrm_links(string $op, string $objectName, $obje
   if ('CustomField' == $objectName && (is_user_logged_in() && !in_array('administrator', wp_get_current_user()->roles))) {
     $links = [
      CRM_Core_Action::PREVIEW => [
-          'name' => ts('Preview Field Display'),
-          'url' => 'civicrm/admin/custom/group/preview',
-          'qs' => 'action=preview&reset=1&fid=%%id%%',
-          'title' => ts('Preview Custom Field'),
-      ]
+        'name' => ts('Preview Field Display'),
+        'url' => 'civicrm/admin/custom/group/preview',
+        'qs' => 'action=preview&reset=1&fid=%%id%%',
+        'title' => ts('Preview Custom Field'),
+        'weight' => CRM_Core_Action::getWeight(CRM_Core_Action::PREVIEW),
+      ],
     ];
   }
   if ('CustomGroup' == $objectName && (is_user_logged_in() && !in_array('administrator', wp_get_current_user()->roles))) {
     $links = [
       CRM_Core_Action::PREVIEW => [
-          'name' => ts('Preview'),
-          'url' => 'civicrm/admin/custom/group/preview',
-          'qs' => 'reset=1&gid=%%id%%',
-          'title' => ts('Preview Custom Data Set'),
+        'name' => ts('Preview'),
+        'url' => 'civicrm/admin/custom/group/preview',
+        'qs' => 'reset=1&gid=%%id%%',
+        'title' => ts('Preview Custom Data Set'),
+        'weight' => CRM_Core_Action::getWeight(CRM_Core_Action::PREVIEW),
       ],
-        CRM_Core_Action::BROWSE => [
-          'name' => ts('View Custom Fields'),
-          'url' => 'civicrm/admin/custom/group/field',
-          'qs' => 'reset=1&action=browse&gid=%%id%%',
-          'title' => ts('View and Edit Custom Fields'),
-        ],
+      CRM_Core_Action::BROWSE => [
+        'name' => ts('View Custom Fields'),
+        'url' => 'civicrm/admin/custom/group/field',
+        'qs' => 'reset=1&action=browse&gid=%%id%%',
+        'title' => ts('View and Edit Custom Fields'),
+        'weight' => CRM_Core_Action::getWeight(CRM_Core_Action::BROWSE),
+      ],
     ];
   }
 }
