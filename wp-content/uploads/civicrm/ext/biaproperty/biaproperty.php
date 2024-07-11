@@ -141,7 +141,6 @@ function biaproperty_civicrm_buildForm($formName, &$form) {
   }
   if ($formName == 'CRM_Biaproperty_Form_ExistingProperty') {
      $url = CRM_Utils_System::url('civicrm/property/form', ['reset' => 1, 'action' => 'add', 'context' => 'create'], FALSE, NULL, FALSE, FALSE, TRUE);
-     CRM_Core_Error::debug_var('url', $url);
      CRM_Core_Resources::singleton()->addScript(
       "CRM.$(function($) {
         CRM.config.entityRef.links.Property = [
