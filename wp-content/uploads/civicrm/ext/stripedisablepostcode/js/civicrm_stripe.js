@@ -1,3 +1,4 @@
+/*jshint esversion: 8 */
 /**
  * JS Integration between CiviCRM & Stripe.
  */
@@ -24,7 +25,7 @@
      * @param {string} objectType
      * @param {string} objectID
      */
-    successHandler: function(objectType, objectID) {
+    async successHandler(objectType, objectID) {
       script.debugging(objectType + ': success - submitting form');
 
       // Insert the token ID into the form so it gets submitted to the server
@@ -36,14 +37,28 @@
 
       CRM.payment.resetBillingFieldsRequiredForJQueryValidate();
 
+      if (script.getReCAPTCHAToken()) {
+        let recaptcha = await script.reloadReCAPTCHA();
+
+        // Insert the token ID into the form so it gets submitted to the server
+        var hiddenInput2 = document.createElement('input');
+        hiddenInput2.setAttribute('type', 'hidden');
+        hiddenInput2.setAttribute('name', 'captcha');
+        hiddenInput2.setAttribute('value', script.getReCAPTCHAToken());
+        CRM.payment.form.appendChild(hiddenInput2);
+      }
+
       // Submit the form
       CRM.payment.form.submit();
+
     },
 
     /**
-     * Get a list of jQuery elements for all possible Stripe elements that could be loaded
+     * Get a list of jQuery elements for all possible Stripe elements that
+     * could be loaded
      *
-     * @returns {{paymentrequest: (*|jQuery|HTMLElement), card: (*|jQuery|HTMLElement)}}
+     * @returns {{paymentrequest: (*|jQuery|HTMLElement), card:
+     *   (*|jQuery|HTMLElement)}}
      */
     getJQueryPaymentElements: function() {
       return {
@@ -96,127 +111,146 @@
     },
 
     /**
+     * Get the ReCAPTCHA token if available (function currently only implemented by formprotection)
+     *
+     * @returns {*|string}
+     */
+    getReCAPTCHAToken: function() {
+      return (typeof getReCAPTCHAToken === 'function') ? getReCAPTCHAToken() : '';
+    },
+
+    /**
+     * Wrapper for formprotection reloadReCAPTCHA function
+     */
+    /**
+     *
+     * @returns {promise}
+     */
+    reloadReCAPTCHA: function() {
+      if (typeof reloadReCAPTCHA === 'function') {
+        return reloadReCAPTCHA();
+      }
+    },
+
+    /**
      * Handle the "Card" submission to Stripe
      *
      * @param submitEvent
      */
-    handleSubmitCard: function(submitEvent) {
+    async handleSubmitCard(submitEvent) {
       script.debugging('handle submit card');
-      stripe.createPaymentMethod('card', script.elements.card)
-        .then(function (createPaymentMethodResult) {
-          if (createPaymentMethodResult.error) {
-            // Show error in payment form
-            CRM.payment.displayError(createPaymentMethodResult.error.message, true);
-          }
-          else {
-            // For recur, additional participants we do NOT know the final amount so must create a paymentMethod and only create the paymentIntent
-            //   once the form is finally submitted.
-            // We should never get here with amount=0 as we should be doing a "nonStripeSubmit()" instead. This may become needed when we save cards
-            var totalAmount = CRM.payment.getTotalAmount();
-            if (totalAmount) {
-              totalAmount = totalAmount.toFixed(2);
-            }
-            if (CRM.payment.getIsRecur() || (totalAmount === null)) {
-              CRM.api3('StripePaymentintent', 'Process', {
-                setup: true,
-                payment_method_id: createPaymentMethodResult.paymentMethod.id,
-                payment_processor_id: CRM.vars[script.name].id,
-                description: document.title,
-                csrfToken: CRM.vars[script.name].csrfToken,
-                extra_data: CRM.payment.getBillingEmail() + CRM.payment.getBillingName()
-              })
-                .done(function (paymentIntentProcessResponse) {
-                  CRM.payment.swalClose();
-                  CRM.payment.debugging(script.name, 'StripePaymentintent.Process done (setupIntent)');
-                  if (paymentIntentProcessResponse.is_error) {
-                    // Triggered for api3_create_error or Exception
-                    CRM.payment.displayError(paymentIntentProcessResponse.error_message, true);
-                  }
-                  else {
-                    paymentIntentProcessResponse = paymentIntentProcessResponse.values;
-                    if (paymentIntentProcessResponse.status === 'requires_action') {
-                      // Use Stripe.js to handle a pending card action (eg. 3d-secure)
-                      script.paymentData.clientSecret = paymentIntentProcessResponse.client_secret;
-                      stripe.confirmCardSetup(script.paymentData.clientSecret)
-                        .then(function (cardActionResult) {
-                          if (cardActionResult.error) {
-                            // Show error in payment form
-                            CRM.payment.displayError(cardActionResult.error.message, true);
-                          }
-                          else {
-                            // The card action has been handled
-                            // The PaymentIntent can be confirmed again on the server
-                            script.successHandler('setupIntentID', cardActionResult.setupIntent.id);
-                          }
-                        });
-                    }
-                    else {
-                      // All good, we can submit the form
-                      script.successHandler('paymentMethodID', createPaymentMethodResult.paymentMethod.id);
-                    }
-                  }
-                })
-                .fail(function (failObject) {
-                  script.stripePaymentIntentProcessFail(failObject);
-                });
+      let createPaymentMethodResult = await stripe.createPaymentMethod('card', script.elements.card);
+      if (createPaymentMethodResult.error) {
+        // Show error in payment form
+        CRM.payment.displayError(createPaymentMethodResult.error.message, true);
+      }
+      else {
+        // For recur, additional participants we do NOT know the final
+        // amount so must create a paymentMethod and only create the
+        // paymentIntent once the form is finally submitted. We should
+        // never get here with amount=0 as we should be doing a
+        // "nonStripeSubmit()" instead. This may become needed when we save
+        // cards
+        var totalAmount = CRM.payment.getTotalAmount();
+        if (totalAmount) {
+          totalAmount = totalAmount.toFixed(2);
+        }
+        if (CRM.payment.getIsRecur() || (totalAmount === null)) {
+          try {
+            let paymentIntentProcessResponse = await CRM.api4('StripePaymentintent', 'ProcessPublic', {
+              setup: true,
+              paymentMethodID: createPaymentMethodResult.paymentMethod.id,
+              paymentProcessorID: CRM.vars[script.name].id,
+              description: document.title,
+              csrfToken: CRM.vars[script.name].csrfToken,
+              extraData: CRM.payment.getBillingEmail() + CRM.payment.getBillingName(),
+              captcha: script.getReCAPTCHAToken()
+            });
+            CRM.payment.swalClose();
+            CRM.payment.debugging(script.name, 'StripePaymentintent.Process done (setupIntent)');
+            if (paymentIntentProcessResponse.status === 'requires_action') {
+              // Use Stripe.js to handle a pending card action (eg. 3d-secure)
+              script.paymentData.clientSecret = paymentIntentProcessResponse.client_secret;
+              let cardActionResult = await stripe.confirmCardSetup(script.paymentData.clientSecret);
+              if (cardActionResult.error) {
+                // Show error in payment form
+                CRM.payment.displayError(cardActionResult.error.message, true);
+              }
+              else {
+                // The card action has been handled
+                // The PaymentIntent can be confirmed again on the
+                // server
+                script.successHandler('setupIntentID', cardActionResult.setupIntent.id);
+              }
             }
             else {
-              // Send paymentMethod.id to server
-              CRM.payment.debugging(script.name, 'Waiting for pre-auth');
-              CRM.payment.swalFire({
-                title: ts('Please wait'),
-                text: ts(' while we pre-authorize your card...'),
-                allowOutsideClick: false,
-                willOpen: function () {
-                  Swal.showLoading(Swal.getConfirmButton());
-                }
-              }, '', false);
-              CRM.api3('StripePaymentintent', 'Process', {
-                payment_method_id: createPaymentMethodResult.paymentMethod.id,
-                amount: CRM.payment.getTotalAmount().toFixed(2),
-                currency: CRM.payment.getCurrency(CRM.vars[script.name].currency),
-                payment_processor_id: CRM.vars[script.name].id,
-                description: document.title,
-                csrfToken: CRM.vars[script.name].csrfToken,
-                extra_data: CRM.payment.getBillingEmail() + CRM.payment.getBillingName()
-              })
-                .done(function (paymentIntentProcessResponse) {
-                  CRM.payment.swalClose();
-                  CRM.payment.debugging(script.name, 'StripePaymentintent.Process done (paymentIntent)');
-                  if (paymentIntentProcessResponse.is_error) {
-                    // Triggered for api3_create_error or Exception
-                    CRM.payment.displayError(paymentIntentProcessResponse.error_message, true);
-                  }
-                  else {
-                    paymentIntentProcessResponse = paymentIntentProcessResponse.values;
-                    if (paymentIntentProcessResponse.requires_action) {
-                      // Use Stripe.js to handle a pending card action (eg. 3d-secure)
-                      script.paymentData.clientSecret = paymentIntentProcessResponse.paymentIntentClientSecret;
-                      stripe.handleCardAction(script.paymentData.clientSecret)
-                        .then(function (cardActionResult) {
-                          if (cardActionResult.error) {
-                            // Show error in payment form
-                            CRM.payment.displayError(cardActionResult.error.message, true);
-                          }
-                          else {
-                            // The card action has been handled
-                            // The PaymentIntent can be confirmed again on the server
-                            script.successHandler('paymentIntentID', cardActionResult.paymentIntent.id);
-                          }
-                        });
-                    }
-                    else {
-                      // All good, we can submit the form
-                      script.successHandler('paymentIntentID', paymentIntentProcessResponse.paymentIntent.id);
-                    }
-                  }
-                })
-                .fail(function (failObject) {
-                  script.stripePaymentIntentProcessFail(failObject);
-                });
+              // All good, we can submit the form
+              script.successHandler('paymentMethodID', createPaymentMethodResult.paymentMethod.id);
             }
+          } catch (failObject) {
+            script.stripePaymentIntentProcessFail(failObject);
           }
-        });
+        }
+        else {
+          // Send paymentMethod.id to server
+          CRM.payment.debugging(script.name, 'Waiting for pre-auth');
+          CRM.payment.swalFire({
+            title: ts('Please wait'),
+            text: ts(' while we pre-authorize your card...'),
+            allowOutsideClick: false,
+            willOpen: function () {
+              Swal.showLoading(Swal.getConfirmButton());
+            }
+          }, '', false);
+
+          try {
+            let processParams = {
+              // payment_method_id: createPaymentMethodResult.paymentMethod.id,
+              paymentMethodID: createPaymentMethodResult.paymentMethod.id,
+              amount: CRM.payment.getTotalAmount().toFixed(2),
+              currency: CRM.payment.getCurrency(CRM.vars[script.name].currency),
+              paymentProcessorID: CRM.vars[script.name].id,
+              description: document.title,
+              extraData: CRM.payment.getBillingEmail() + CRM.payment.getBillingName(),
+            };
+
+            let processMode = 'Public';
+            if (CRM.vars.stripe.moto && document.getElementById('enableMOTO').checked) {
+              processMode = 'MOTO';
+            }
+            else {
+              processParams.csrfToken = CRM.vars[script.name].csrfToken;
+              processParams.captcha = script.getReCAPTCHAToken();
+            }
+
+            let paymentIntentProcessResponse = await CRM.api4('StripePaymentintent', 'Process' + processMode, processParams);
+            CRM.payment.swalClose();
+            CRM.payment.debugging(script.name, 'StripePaymentintent.Process done (paymentIntent)');
+            if (paymentIntentProcessResponse.requires_action) {
+              // Use Stripe.js to handle a pending card action (eg. 3d-secure)
+              script.paymentData.clientSecret = paymentIntentProcessResponse.paymentIntentClientSecret;
+              let cardActionResult = await stripe.handleCardAction(script.paymentData.clientSecret);
+              if (cardActionResult.error) {
+                // Show error in payment form
+                CRM.payment.displayError(cardActionResult.error.message, true);
+                script.reloadReCAPTCHA();
+              }
+              else {
+                // The card action has been handled
+                // The PaymentIntent can be confirmed again on the
+                // server
+                script.successHandler('paymentIntentID', cardActionResult.paymentIntent.id);
+              }
+            }
+            else {
+              // All good, we can submit the form
+              script.successHandler('paymentIntentID', paymentIntentProcessResponse.paymentIntent.id);
+            }
+          } catch (failObject) {
+            script.stripePaymentIntentProcessFail(failObject);
+          }
+        }
+      }
     },
 
     /**
@@ -242,11 +276,13 @@
         currency: CRM.payment.getCurrency(CRM.vars[script.name].currency),
         payment_processor_id: CRM.vars[script.name].id,
         description: document.title,
-        csrfToken: CRM.vars[script.name].csrfToken
+        csrfToken: CRM.vars[script.name].csrfToken,
+        captcha: script.getReCAPTCHAToken()
       })
         .done(function (paymentIntentProcessResponse) {
           CRM.payment.swalClose();
           script.debugging('StripePaymentintent.Process done');
+
           if (paymentIntentProcessResponse.is_error) {
             // Triggered for api3_create_error or Exception
             CRM.payment.displayError(paymentIntentProcessResponse.error_message, true);
@@ -265,22 +301,31 @@
     },
 
     /**
-     * Display a helpful error message if call to StripePaymentintent.Process fails
+     * Display a helpful error message if call to StripePaymentintent.Process
+     * fails
      * @param {object} failObject
      * @returns {boolean}
      */
     stripePaymentIntentProcessFail: function(failObject) {
       var error = ts('Unknown error');
-      if (failObject.hasOwnProperty('statusText') && (failObject.statusText !== 'OK')) {
-        // A PHP exit can return 200 "OK" but we don't want to display "OK" as the error!
-        if (failObject.statusText === 'parsererror') {
-          error = ts('Configuration error - unable to process paymentIntent');
+      if (typeof failObject !== 'undefined') {
+        if (failObject.hasOwnProperty('error_message')) {
+          // From an API4 exception
+          error = failObject.error_message;
         }
-        else {
-          error = failObject.statusText;
-        }
+        else
+          if (failObject.hasOwnProperty('statusText') && (failObject.statusText !== 'OK')) {
+            // A PHP exit can return 200 "OK" but we don't want to display "OK" as the error!
+            if (failObject.statusText === 'parsererror') {
+              error = ts('Configuration error - unable to process paymentIntent');
+            }
+            else {
+              error = failObject.statusText;
+            }
+          }
       }
       CRM.payment.displayError(error, true);
+      script.reloadReCAPTCHA();
       return true;
     },
 
@@ -292,6 +337,7 @@
       script.destroyPaymentElements();
       delete (CRM.vars[script.name]);
       $(CRM.payment.getBillingSubmit()).show();
+      CRM.payment.resetBillingFieldsRequiredForJQueryValidate();
     },
 
     /**
@@ -299,7 +345,7 @@
      */
     checkAndLoad: function() {
       if (typeof CRM.vars[script.name] === 'undefined') {
-        script.debugging('CRM.vars' + script.name + ' not defined!');
+        script.debugging('CRM.vars.' + script.name + ' not defined!');
         return;
       }
 
@@ -418,6 +464,10 @@
         $('label[for="billingcheckbox"]').hide();
       }
 
+      if (CRM.vars.stripe.moto) {
+        script.addMOTOPaymentCheckbox();
+      }
+
       if (script.checkPaymentElementsAreValid()) {
         CRM.payment.triggerEvent('crmBillingFormReloadComplete', script.name);
         CRM.payment.triggerEvent('crmStripeBillingFormReloadComplete', script.name);
@@ -426,6 +476,21 @@
         script.debugging('Failed to load payment elements');
         script.triggerEventCrmBillingFormReloadFailed();
       }
+    },
+
+    addMOTOPaymentCheckbox: function() {
+      const div = document.createElement('div');
+      div.id = 'crm-stripe-moto';
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.id = 'enableMOTO';
+      checkbox.checked = true;
+      const label = document.createElement('label');
+      label.htmlFor = 'enableMOTO';
+      label.appendChild(document.createTextNode(ts('Enable MOTO for this transaction?')));
+      div.appendChild(checkbox);
+      div.appendChild(label);
+      document.getElementById('crm-payment-js-billing-form-container').after(div);
     },
 
     submit: function(submitEvent) {
@@ -595,6 +660,15 @@
       var style = {
         base: {
           fontSize: '1.1em', fontWeight: 'lighter'
+        },
+
+        invalid: {
+          "::placeholder": {
+            color: "#E25950",
+            fontWeight: '500',
+          },
+          color: "#E25950",
+          fontWeight: '500',
         }
       };
 
@@ -625,13 +699,7 @@
 
       if (postCodeElement) {
         // Hide the CiviCRM postcode field so it will still be submitted but will contain the value set in the stripe card-element.
-        if (document.getElementById('billing_postal_code-5').value) {
-          document.getElementById('billing_postal_code-5')
-            .setAttribute('disabled', true);
-        }
-        else {
-          document.getElementsByClassName('billing_postal_code-' + CRM.vars[script.name].billingAddressID + '-section')[0].setAttribute('hidden', true);
-        }
+        postCodeElement.setAttribute('readonly', true);
       }
 
       // All containers start as display: none and are enabled on demand
@@ -845,7 +913,8 @@
   });
 
   /**
-   * Called on every load of this script (whether billingblock loaded via AJAX or DOMContentLoaded)
+   * Called on every load of this script (whether billingblock loaded via AJAX
+   * or DOMContentLoaded)
    */
   function load() {
     if (window.civicrmStripeHandleReload) {

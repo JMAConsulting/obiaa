@@ -38,13 +38,7 @@ function stripedisablepostcode_civicrm_buildForm($formName, &$form) {
     foreach ($resources as $resource) {
       if (strpos($resource['name'], 'civicrmStripe') !== FALSE) {
         $test = CRM_Core_Region::instance('billing-block')->update($resource['name'], [
-          'scriptUrl' => \Civi::service('asset_builder')->getUrl(
-            'civicrmStripeDisablePostcode.js',
-            [
-              'path' => \Civi::resources()->getPath(E::LONG_NAME, 'js/civicrm_stripe.js'),
-              'mimetype' => 'application/javascript',
-            ]
-          ),
+          'scriptFileUrls' => [\Civi::resources()->getUrl(E::LONG_NAME, 'js/civicrm_stripe.js')],
         ]);
       }
     }
