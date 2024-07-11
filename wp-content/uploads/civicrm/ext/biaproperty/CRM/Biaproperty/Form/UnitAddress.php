@@ -189,8 +189,8 @@ class CRM_Biaproperty_Form_UnitAddress extends CRM_Core_Form {
           ->setValues($values)
           ->execute()
           ->first();
-        if (!empty($this->_oid)) {
-          Unit::update(FALSE)->addValue('address_id', $address['id'])->addWhere('id', '=', $this->_oid)->execute();
+        if (!empty($this->_uid)) {
+          Unit::update(FALSE)->addValue('address_id', $address['id'])->addWhere('id', '=', $this->_uid)->execute();
         }
         $this->_id = $address['id'];
         $this->ajaxResponse['label'] = (!empty($address['street_unit']) ? '#' . $address['street_unit'] . ' - ' : '') . $address['street_address'];
@@ -198,6 +198,7 @@ class CRM_Biaproperty_Form_UnitAddress extends CRM_Core_Form {
       else {
         $address = civicrm_api4('Address', 'update', [
           'values' => $values,
+          'checkPermissions' => FALSE,
         ])->first()['id'];
         $this->_id = $this->getEntityId();
         $action = 'update';
