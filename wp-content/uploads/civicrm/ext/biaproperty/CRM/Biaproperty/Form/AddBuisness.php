@@ -26,6 +26,12 @@ class CRM_Biaproperty_Form_AddBuisness extends CRM_Core_Form {
     protected $_uid;
 
     /**
+     * Are we changing the title of the business
+     * @var int
+     */
+    protected $_changeTitle;
+
+    /**
      * Preprocess form.
      *
      * This is called before buildForm. Any pre-processing that

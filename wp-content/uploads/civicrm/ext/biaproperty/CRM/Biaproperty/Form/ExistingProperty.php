@@ -123,7 +123,7 @@ class CRM_Biaproperty_Form_ExistingProperty extends CRM_Core_Form {
     else {
       $propetyOwnerCheck = \Civi\Api4\PropertyOwner::get()->addWhere('property_id', '=', $values['property_id'])->execute()->count();
       // If there is no other owners set ensure that this owner is set to be the voter
-      $values['is_voter'] = $propertyOwnerCheck === 0 ? 1 : $values['is_voter'];
+      $values['is_voter'] = $propetyOwnerCheck === 0 ? 1 : $values['is_voter'];
     }
     \Civi\Api4\PropertyOwner::create(FALSE)
       ->addValue('property_id', $values['property_id'])
