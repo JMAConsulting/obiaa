@@ -116,8 +116,8 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Contact_Field extends acf_field {
 	 */
 	public $settings = [
 		'version' => CIVICRM_WP_PROFILE_SYNC_VERSION,
-		'url' => CIVICRM_WP_PROFILE_SYNC_URL,
-		'path' => CIVICRM_WP_PROFILE_SYNC_PATH,
+		'url'     => CIVICRM_WP_PROFILE_SYNC_URL,
+		'path'    => CIVICRM_WP_PROFILE_SYNC_PATH,
 	];
 
 	/**
@@ -146,10 +146,10 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Contact_Field extends acf_field {
 	public function __construct( $parent ) {
 
 		// Store references to objects.
-		$this->plugin = $parent->acf_loader->plugin;
+		$this->plugin     = $parent->acf_loader->plugin;
 		$this->acf_loader = $parent->acf_loader;
-		$this->acf = $parent->acf;
-		$this->civicrm = $this->acf_loader->civicrm;
+		$this->acf        = $parent->acf;
+		$this->civicrm    = $this->acf_loader->civicrm;
 
 		// Define label.
 		$this->label = __( 'CiviCRM Contact Reference', 'civicrm-wp-profile-sync' );
@@ -180,6 +180,47 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Contact_Field extends acf_field {
 	}
 
 	/**
+	 * Create extra Settings for this Field Type.
+	 *
+	 * These extra Settings will be visible when editing a Field.
+	 *
+	 * @since 0.6.6
+	 *
+	 * @param array $field The Field being edited.
+	 */
+	public function render_field_settings( $field ) {
+
+		// Only render Placeholder Setting Field here in ACF prior to version 6.
+		if ( version_compare( ACF_MAJOR_VERSION, '6', '>=' ) ) {
+			return;
+		}
+
+		// Get Placeholder Setting Field.
+		$placeholder = $this->acf->field->field_setting_placeholder_get();
+
+		// Now add it.
+		acf_render_field_setting( $field, $placeholder );
+
+	}
+
+	/**
+	 * Renders the Field Fettings used in the "Presentation" tab.
+	 *
+	 * @since 0.6.6
+	 *
+	 * @param array $field The field settings array.
+	 */
+	public function render_field_presentation_settings( $field ) {
+
+		// Get Placeholder Setting Field.
+		$placeholder = $this->acf->field->field_setting_placeholder_get();
+
+		// Now add it.
+		acf_render_field_setting( $field, $placeholder );
+
+	}
+
+	/**
 	 * Filter the Custom Fields for the Setting of a "CiviCRM Contact" Field.
 	 *
 	 * @since 0.5
@@ -199,8 +240,8 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Contact_Field extends acf_field {
 		// Filter Fields to include only "Contact Reference".
 		foreach ( $custom_fields as $custom_group_name => $custom_group ) {
 			foreach ( $custom_group as $custom_field ) {
-				if ( ! empty( $custom_field['data_type'] ) && $custom_field['data_type'] == 'ContactReference' ) {
-					if ( ! empty( $custom_field['html_type'] ) && $custom_field['html_type'] == 'Autocomplete-Select' ) {
+				if ( ! empty( $custom_field['data_type'] ) && 'ContactReference' === $custom_field['data_type'] ) {
+					if ( ! empty( $custom_field['html_type'] ) && 'Autocomplete-Select' === $custom_field['html_type'] ) {
 						$filtered_fields[ $custom_group_name ][] = $custom_field;
 					}
 				}
@@ -222,12 +263,12 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Contact_Field extends acf_field {
 	public function render_field( $field ) {
 
 		// Change Field into a select.
-		$field['type'] = 'select';
-		$field['ui'] = 1;
-		$field['ajax'] = 1;
-		$field['allow_null'] = 1;
-		$field['multiple'] = 0;
-		$field['required'] = 0;
+		$field['type']              = 'select';
+		$field['ui']                = 1;
+		$field['ajax']              = 1;
+		$field['allow_null']        = 1;
+		$field['multiple']          = 0;
+		$field['required']          = 0;
 		$field['conditional_logic'] = 0;
 
 		// Init choices array.
@@ -304,15 +345,15 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Contact_Field extends acf_field {
 		// Init response.
 		$response = [
 			'results' => [],
-			'limit' => $autocomplete_count,
+			'limit'   => $autocomplete_count,
 		];
 
 		// Init defaults.
 		$defaults = [
-			'post_id' => 0,
-			's' => '',
+			'post_id'   => 0,
+			's'         => '',
 			'field_key' => '',
-			'paged' => 1,
+			'paged'     => 1,
 		];
 
 		// Parse the incoming POST array.
@@ -366,11 +407,11 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Contact_Field extends acf_field {
 		$offset = 0;
 		if ( ! empty( $options['paged'] ) ) {
 			$zero_adjusted = (int) $options['paged'] - 1;
-			$offset = $zero_adjusted * (int) $autocomplete_count;
+			$offset        = $zero_adjusted * (int) $autocomplete_count;
 		}
 
 		// Get the Contact Reference Field's Groups.
-		$groups = [];
+		$groups   = [];
 		$advanced = [];
 		if ( ! empty( $field[ $acf_field_key ] ) ) {
 
@@ -381,7 +422,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Contact_Field extends acf_field {
 
 				// Get the Custom Field data.
 				$custom_field = $this->plugin->civicrm->custom_field->get_by_id( $custom_field_id );
-				if ( $custom_field !== false && ! empty( $custom_field['filter'] ) ) {
+				if ( false !== $custom_field && ! empty( $custom_field['filter'] ) ) {
 
 					// Extract the Filter array.
 					$filter_params = [];
@@ -424,9 +465,9 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Contact_Field extends acf_field {
 		// Build extra params.
 		$params = [
 			'contact_type' => $args['contact_type'],
-			'return' => $this->plugin->civicrm->get_autocomplete_options( 'contact_reference_options' ),
-			'rowCount' => $autocomplete_count,
-			'offset' => $offset,
+			'return'       => $this->plugin->civicrm->get_autocomplete_options( 'contact_reference_options' ),
+			'rowCount'     => $autocomplete_count,
+			'offset'       => $offset,
 		];
 
 		// Maybe apply the "Groups Filter".
@@ -454,7 +495,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Contact_Field extends acf_field {
 
 				// Append to results.
 				$results[] = [
-					'id' => $contact['id'],
+					'id'   => $contact['id'],
 					'text' => $name,
 				];
 

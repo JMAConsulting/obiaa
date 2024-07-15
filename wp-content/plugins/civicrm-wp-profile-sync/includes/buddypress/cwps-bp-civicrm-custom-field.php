@@ -120,10 +120,10 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field {
 	public function __construct( $xprofile ) {
 
 		// Store references to objects.
-		$this->plugin = $xprofile->bp_loader->plugin;
+		$this->plugin    = $xprofile->bp_loader->plugin;
 		$this->bp_loader = $xprofile->bp_loader;
-		$this->civicrm = $this->plugin->civicrm;
-		$this->xprofile = $xprofile;
+		$this->civicrm   = $this->plugin->civicrm;
+		$this->xprofile  = $xprofile;
 
 		// Init when the BuddyPress Field object is loaded.
 		add_action( 'cwps/buddypress/field/loaded', [ $this, 'initialise' ] );
@@ -195,7 +195,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field {
 	public function register_mapper_hooks() {
 
 		// Bail if already registered.
-		if ( $this->mapper_hooks === true ) {
+		if ( true === $this->mapper_hooks ) {
 			return;
 		}
 
@@ -215,7 +215,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field {
 	public function unregister_mapper_hooks() {
 
 		// Bail if already unregistered.
-		if ( $this->mapper_hooks === false ) {
+		if ( false === $this->mapper_hooks ) {
 			return;
 		}
 
@@ -236,10 +236,10 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field {
 	 *
 	 * @since 0.5
 	 *
-	 * @param array $choices The existing array of choices for the Setting Field.
+	 * @param array  $choices The existing array of choices for the Setting Field.
 	 * @param string $field_type The BuddyPress Field Type.
 	 * @param string $entity_type The CiviCRM Entity Type.
-	 * @param array $entity_type_data The array of Entity Type data.
+	 * @param array  $entity_type_data The array of Entity Type data.
 	 * @return array $choices The modified array of choices for the Setting Field.
 	 */
 	public function query_setting_choices( $choices, $field_type, $entity_type, $entity_type_data ) {
@@ -250,7 +250,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field {
 		}
 
 		// Get Custom Fields for the "Contact" Entity Type.
-		if ( $entity_type === 'Contact' ) {
+		if ( 'Contact' === $entity_type ) {
 
 			// We need Contact Type data.
 			if ( empty( $entity_type_data ) ) {
@@ -258,13 +258,13 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field {
 			}
 
 			// Get the "name" of the Contact Type.
-			$name = $entity_type_data['name'];
+			$name         = $entity_type_data['name'];
 			$subtype_name = '';
 
 			// Alter names if this is a Sub-type.
 			if ( ! empty( $entity_type_data['parent_id'] ) ) {
-				$parent_type = $this->civicrm->contact->type_get_by_id( $entity_type_data['parent_id'] );
-				$name = $parent_type['name'];
+				$parent_type  = $this->civicrm->contact->type_get_by_id( $entity_type_data['parent_id'] );
+				$name         = $parent_type['name'];
 				$subtype_name = $entity_type_data['name'];
 			}
 
@@ -410,7 +410,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field {
 		$user_id = apply_filters( 'cwps/bp/query_user_id', $user_id, $args );
 
 		// Bail if we can't find a User ID.
-		if ( $user_id === false ) {
+		if ( false === $user_id ) {
 			return;
 		}
 
@@ -426,12 +426,12 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field {
 		$bp_fields_mapped = [];
 		foreach ( $bp_fields as $bp_field ) {
 			$bp_field_mapping = $bp_field['field_meta']['value'];
-			$custom_field_id = $this->id_get( $bp_field_mapping );
-			if ( $custom_field_id === false ) {
+			$custom_field_id  = $this->id_get( $bp_field_mapping );
+			if ( false === $custom_field_id ) {
 				continue;
 			}
 			$bp_field['custom_field_id'] = $custom_field_id;
-			$bp_fields_mapped[] = $bp_field;
+			$bp_fields_mapped[]          = $bp_field;
 		}
 
 		// Bail if we don't have any left.
@@ -442,20 +442,20 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field {
 		// Build a reference array for Custom Fields.
 		$custom_fields = [];
 		foreach ( $args['custom_fields'] as $key => $field ) {
-			$custom_fields[ $key ] = $field['custom_field_id'];
+			$custom_fields[ $key ] = (int) $field['custom_field_id'];
 		}
 
 		// Let's look at each BuddyPress Field in turn.
 		foreach ( $bp_fields_mapped as $bp_field ) {
 
 			// Skip if it isn't mapped to an edited Custom Field.
-			if ( ! in_array( $bp_field['custom_field_id'], $custom_fields ) ) {
+			if ( ! in_array( (int) $bp_field['custom_field_id'], $custom_fields, true ) ) {
 				continue;
 			}
 
 			// Get the corresponding Custom Field.
-			$args_key = array_search( $bp_field['custom_field_id'], $custom_fields );
-			$field = $args['custom_fields'][ $args_key ];
+			$args_key = array_search( (int) $bp_field['custom_field_id'], $custom_fields, true );
+			$field    = $args['custom_fields'][ $args_key ];
 
 			// Modify values for BuddyPress prior to update.
 			$value = $this->value_get_for_bp( $field['value'], $field, $bp_field );
@@ -503,19 +503,16 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field {
 			case 'String':
 			case 'Country':
 			case 'StateProvince':
-
 				// Convert if the value has the special CiviCRM array-like format.
 				if ( is_string( $value ) ) {
 					if ( false !== strpos( $value, CRM_Core_DAO::VALUE_SEPARATOR ) ) {
 						$value = CRM_Utils_Array::explodePadded( $value );
 					}
 				}
-
 				break;
 
 			// Contact Reference Fields may return the Contact's "sort_name".
 			case 'ContactReference':
-
 				// Test for a numeric value.
 				// phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedIf
 				if ( ! is_numeric( $value ) ) {
@@ -532,39 +529,35 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field {
 					/*
 					$e = new \Exception();
 					$trace = $e->getTraceAsString();
-					error_log( print_r( [
+					$log = [
 						'method' => __METHOD__,
 						'value' => $value,
 						'field' => $field,
 						'selector' => $selector,
 						'post_id' => $post_id,
 						//'backtrace' => $trace,
-					], true ) );
+					];
+					$this->plugin->log_error( $log );
 					*/
 
 				}
-
 				break;
 
 			// Used by "Date Select" and  "Date Time Select".
 			case 'Timestamp':
-
 				// Custom Fields use a YmdHis format, so try that.
 				$datetime = DateTime::createFromFormat( 'YmdHis', $value );
 
 				// Convert to BuddyPress format which cannot have "H:m:s".
-				if ( $datetime !== false ) {
+				if ( false !== $datetime ) {
 					$value = $datetime->format( 'Y-m-d' ) . ' 00:00:00';
 				}
-
 				break;
 
 			// Used by "Note" and maybe others.
 			case 'Memo':
-
 				// At minimum needs an unautop.
 				$value = $this->plugin->wp->unautop( $value );
-
 				break;
 
 		}
@@ -596,17 +589,17 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field {
 		$field_data = $this->plugin->civicrm->custom_field->get_by_id( $custom_field_id );
 
 		// Bail if we don't get any.
-		if ( $field_data === false ) {
+		if ( false === $field_data ) {
 			return $format;
 		}
 
 		// Bail if it's not Date.
-		if ( $field_data['data_type'] !== 'Date' ) {
+		if ( 'Date' !== $field_data['data_type'] ) {
 			return $format;
 		}
 
 		// Bail if it's not "Select Date".
-		if ( $field_data['html_type'] !== 'Select Date' ) {
+		if ( 'Select Date' !== $field_data['html_type'] ) {
 			return $format;
 		}
 
@@ -675,17 +668,17 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field {
 		$field_data = $this->plugin->civicrm->custom_field->get_by_id( $custom_field_id );
 
 		// Bail if we don't get any.
-		if ( $field_data === false ) {
+		if ( false === $field_data ) {
 			return $choices;
 		}
 
 		// Bail if it's not "String".
-		if ( $field_data['data_type'] !== 'String' ) {
+		if ( 'String' !== $field_data['data_type'] ) {
 			return $choices;
 		}
 
 		// Bail if it's not "CheckBox".
-		if ( $field_data['html_type'] !== 'CheckBox' ) {
+		if ( 'CheckBox' !== $field_data['html_type'] ) {
 			return $choices;
 		}
 
@@ -704,8 +697,8 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field {
 	 *
 	 * @since 0.5
 	 *
-	 * @param array $filtered_fields The existing array of filtered Custom Fields.
-	 * @param array $custom_fields The array of Custom Fields.
+	 * @param array  $filtered_fields The existing array of filtered Custom Fields.
+	 * @param array  $custom_fields The array of Custom Fields.
 	 * @param string $field_type The BuddyPress Field Type.
 	 * @return array $filtered_fields The modified array of filtered Custom Fields.
 	 */
@@ -719,8 +712,8 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field {
 		// Filter Fields to include only Boolean/Radio.
 		foreach ( $custom_fields as $custom_group_name => $custom_group ) {
 			foreach ( $custom_group as $custom_field ) {
-				if ( ! empty( $custom_field['data_type'] ) && $custom_field['data_type'] == 'String' ) {
-					if ( ! empty( $custom_field['html_type'] ) && $custom_field['html_type'] == 'CheckBox' ) {
+				if ( ! empty( $custom_field['data_type'] ) && 'String' === $custom_field['data_type'] ) {
+					if ( ! empty( $custom_field['html_type'] ) && 'CheckBox' === $custom_field['html_type'] ) {
 						$filtered_fields[ $custom_group_name ][] = $custom_field;
 					}
 				}
@@ -779,17 +772,17 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field {
 		$field_data = $this->plugin->civicrm->custom_field->get_by_id( $custom_field_id );
 
 		// Bail if we don't get any.
-		if ( $field_data === false ) {
+		if ( false === $field_data ) {
 			return $choices;
 		}
 
 		// Bail if it's not a data type that can have a "Select".
-		if ( ! in_array( $field_data['data_type'], $this->data_types ) ) {
+		if ( ! in_array( $field_data['data_type'], $this->data_types, true ) ) {
 			return $choices;
 		}
 
 		// Bail if it's not a type of "Select".
-		if ( ! in_array( $field_data['html_type'], $this->select_types ) ) {
+		if ( ! in_array( $field_data['html_type'], $this->select_types, true ) ) {
 			return $choices;
 		}
 
@@ -800,13 +793,13 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field {
 
 		// "Country" selects require special handling.
 		$country_selects = [ 'Select Country', 'Multi-Select Country' ];
-		if ( in_array( $field_data['html_type'], $country_selects ) ) {
+		if ( in_array( $field_data['html_type'], $country_selects, true ) ) {
 			$choices = CRM_Core_PseudoConstant::country();
 		}
 
 		// "State/Province" selects also require special handling.
 		$state_selects = [ 'Select State/Province', 'Multi-Select State/Province' ];
-		if ( in_array( $field_data['html_type'], $state_selects ) ) {
+		if ( in_array( $field_data['html_type'], $state_selects, true ) ) {
 			$choices = CRM_Core_PseudoConstant::stateProvince();
 		}
 
@@ -820,8 +813,8 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field {
 	 *
 	 * @since 0.5
 	 *
-	 * @param array $filtered_fields The existing array of filtered Custom Fields.
-	 * @param array $custom_fields The array of Custom Fields.
+	 * @param array  $filtered_fields The existing array of filtered Custom Fields.
+	 * @param array  $custom_fields The array of Custom Fields.
 	 * @param string $field_type The BuddyPress Field Type.
 	 * @return array $filtered_fields The modified array of filtered Custom Fields.
 	 */
@@ -834,7 +827,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field {
 
 		/*
 		// BuddyPress has no "Autocomplete-Select".
-		if ( $field['ui'] == 1 && $field['ajax'] == 1 ) {
+		if ( 1 === (int) $field['ui'] && 1 === (int) $field['ajax'] ) {
 
 			// Filter Fields to include only Autocomplete-Select.
 			$select_types = [ 'Autocomplete-Select' ];
@@ -848,8 +841,8 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field {
 		// Filter Fields to include only those which are compatible.
 		foreach ( $custom_fields as $custom_group_name => $custom_group ) {
 			foreach ( $custom_group as $custom_field ) {
-				if ( ! empty( $custom_field['data_type'] ) && in_array( $custom_field['data_type'], $this->data_types ) ) {
-					if ( ! empty( $custom_field['html_type'] ) && in_array( $custom_field['html_type'], $select_types ) ) {
+				if ( ! empty( $custom_field['data_type'] ) && in_array( $custom_field['data_type'], $this->data_types, true ) ) {
+					if ( ! empty( $custom_field['html_type'] ) && in_array( $custom_field['html_type'], $select_types, true ) ) {
 						$filtered_fields[ $custom_group_name ][] = $custom_field;
 					}
 				}
@@ -896,8 +889,8 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field {
 	 *
 	 * @since 0.5
 	 *
-	 * @param array $filtered_fields The existing array of filtered Custom Fields.
-	 * @param array $custom_fields The array of Custom Fields.
+	 * @param array  $filtered_fields The existing array of filtered Custom Fields.
+	 * @param array  $custom_fields The array of Custom Fields.
 	 * @param string $field_type The BuddyPress Field Type.
 	 * @return array $filtered_fields The modified array of filtered Custom Fields.
 	 */
@@ -914,8 +907,8 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field {
 		// Filter Fields to include only those which are compatible.
 		foreach ( $custom_fields as $custom_group_name => $custom_group ) {
 			foreach ( $custom_group as $custom_field ) {
-				if ( ! empty( $custom_field['data_type'] ) && in_array( $custom_field['data_type'], $this->data_types ) ) {
-					if ( ! empty( $custom_field['html_type'] ) && in_array( $custom_field['html_type'], $select_types ) ) {
+				if ( ! empty( $custom_field['data_type'] ) && in_array( $custom_field['data_type'], $this->data_types, true ) ) {
+					if ( ! empty( $custom_field['html_type'] ) && in_array( $custom_field['html_type'], $select_types, true ) ) {
 						$filtered_fields[ $custom_group_name ][] = $custom_field;
 					}
 				}
@@ -974,17 +967,17 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field {
 		$field_data = $this->plugin->civicrm->custom_field->get_by_id( $custom_field_id );
 
 		// Bail if we don't get any.
-		if ( $field_data === false ) {
+		if ( false === $field_data ) {
 			return $choices;
 		}
 
 		// Bail if it's not a data type that can have a "Radio" sub-type.
-		if ( ! in_array( $field_data['data_type'], $this->data_types ) ) {
+		if ( ! in_array( $field_data['data_type'], $this->data_types, true ) ) {
 			return $choices;
 		}
 
 		// Bail if it's not "Radio".
-		if ( $field_data['html_type'] !== 'Radio' ) {
+		if ( 'Radio' !== $field_data['html_type'] ) {
 			return $choices;
 		}
 
@@ -1003,8 +996,8 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field {
 	 *
 	 * @since 0.5
 	 *
-	 * @param array $filtered_fields The existing array of filtered Custom Fields.
-	 * @param array $custom_fields The array of Custom Fields.
+	 * @param array  $filtered_fields The existing array of filtered Custom Fields.
+	 * @param array  $custom_fields The array of Custom Fields.
 	 * @param string $field_type The BuddyPress Field Type.
 	 * @return array $filtered_fields The modified array of filtered Custom Fields.
 	 */
@@ -1018,8 +1011,8 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field {
 		// Filter Fields to include only "Radio" HTML types.
 		foreach ( $custom_fields as $custom_group_name => $custom_group ) {
 			foreach ( $custom_group as $custom_field ) {
-				if ( ! empty( $custom_field['data_type'] ) && in_array( $custom_field['data_type'], $this->data_types ) ) {
-					if ( ! empty( $custom_field['html_type'] ) && $custom_field['html_type'] == 'Radio' ) {
+				if ( ! empty( $custom_field['data_type'] ) && in_array( $custom_field['data_type'], $this->data_types, true ) ) {
+					if ( ! empty( $custom_field['html_type'] ) && 'Radio' === $custom_field['html_type'] ) {
 						$filtered_fields[ $custom_group_name ][] = $custom_field;
 					}
 				}
@@ -1036,8 +1029,8 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field {
 	 *
 	 * @since 0.5
 	 *
-	 * @param array $filtered_fields The existing array of filtered Custom Fields.
-	 * @param array $custom_fields The array of Custom Fields.
+	 * @param array  $filtered_fields The existing array of filtered Custom Fields.
+	 * @param array  $custom_fields The array of Custom Fields.
 	 * @param string $field_type The BuddyPress Field Type.
 	 * @return array $filtered_fields The modified array of filtered Custom Fields.
 	 */
@@ -1051,9 +1044,9 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field {
 		// Filter Fields to include only Date/Select Date.
 		foreach ( $custom_fields as $custom_group_name => $custom_group ) {
 			foreach ( $custom_group as $custom_field ) {
-				if ( ! empty( $custom_field['data_type'] ) && $custom_field['data_type'] == 'Date' ) {
-					if ( ! empty( $custom_field['html_type'] ) && $custom_field['html_type'] == 'Select Date' ) {
-						if ( ! isset( $custom_field['time_format'] ) || $custom_field['time_format'] == '0' ) {
+				if ( ! empty( $custom_field['data_type'] ) && 'Date' === $custom_field['data_type'] ) {
+					if ( ! empty( $custom_field['html_type'] ) && 'Select Date' === $custom_field['html_type'] ) {
+						if ( ! isset( $custom_field['time_format'] ) || 0 === (int) $custom_field['time_format'] ) {
 							$filtered_fields[ $custom_group_name ][] = $custom_field;
 						}
 					}
@@ -1102,8 +1095,8 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field {
 	 *
 	 * @since 0.5
 	 *
-	 * @param array $filtered_fields The existing array of filtered Custom Fields.
-	 * @param array $custom_fields The array of Custom Fields.
+	 * @param array  $filtered_fields The existing array of filtered Custom Fields.
+	 * @param array  $custom_fields The array of Custom Fields.
 	 * @param string $field_type The BuddyPress Field Type.
 	 * @return array $filtered_fields The modified array of filtered Custom Fields.
 	 */
@@ -1117,8 +1110,8 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field {
 		// Filter Fields to include only those of HTML type "Text".
 		foreach ( $custom_fields as $custom_group_name => $custom_group ) {
 			foreach ( $custom_group as $custom_field ) {
-				if ( ! empty( $custom_field['data_type'] ) && in_array( $custom_field['data_type'], $this->data_types ) ) {
-					if ( ! empty( $custom_field['html_type'] ) && $custom_field['html_type'] == 'Text' ) {
+				if ( ! empty( $custom_field['data_type'] ) && in_array( $custom_field['data_type'], $this->data_types, true ) ) {
+					if ( ! empty( $custom_field['html_type'] ) && 'Text' === $custom_field['html_type'] ) {
 						$filtered_fields[ $custom_group_name ][] = $custom_field;
 					}
 				}
@@ -1137,8 +1130,8 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field {
 	 *
 	 * @since 0.5
 	 *
-	 * @param array $filtered_fields The existing array of filtered Custom Fields.
-	 * @param array $custom_fields The array of Custom Fields.
+	 * @param array  $filtered_fields The existing array of filtered Custom Fields.
+	 * @param array  $custom_fields The array of Custom Fields.
 	 * @param string $field_type The BuddyPress Field Type.
 	 * @return array $filtered_fields The modified array of filtered Custom Fields.
 	 */
@@ -1152,8 +1145,8 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field {
 		// Filter Fields to include only Memo/RichTextEditor.
 		foreach ( $custom_fields as $custom_group_name => $custom_group ) {
 			foreach ( $custom_group as $custom_field ) {
-				if ( ! empty( $custom_field['data_type'] ) && $custom_field['data_type'] == 'Memo' ) {
-					if ( ! empty( $custom_field['html_type'] ) && $custom_field['html_type'] == 'RichTextEditor' ) {
+				if ( ! empty( $custom_field['data_type'] ) && 'Memo' === $custom_field['data_type'] ) {
+					if ( ! empty( $custom_field['html_type'] ) && 'RichTextEditor' === $custom_field['html_type'] ) {
 						$filtered_fields[ $custom_group_name ][] = $custom_field;
 					}
 				}
@@ -1170,8 +1163,8 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field {
 	 *
 	 * @since 0.5
 	 *
-	 * @param array $filtered_fields The existing array of filtered Custom Fields.
-	 * @param array $custom_fields The array of Custom Fields.
+	 * @param array  $filtered_fields The existing array of filtered Custom Fields.
+	 * @param array  $custom_fields The array of Custom Fields.
 	 * @param string $field_type The BuddyPress Field Type.
 	 * @return array $filtered_fields The modified array of filtered Custom Fields.
 	 */
@@ -1185,8 +1178,8 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field {
 		// Filter Fields to include only "Link".
 		foreach ( $custom_fields as $custom_group_name => $custom_group ) {
 			foreach ( $custom_group as $custom_field ) {
-				if ( ! empty( $custom_field['data_type'] ) && $custom_field['data_type'] == 'Link' ) {
-					if ( ! empty( $custom_field['html_type'] ) && $custom_field['html_type'] == 'Link' ) {
+				if ( ! empty( $custom_field['data_type'] ) && 'Link' === $custom_field['data_type'] ) {
+					if ( ! empty( $custom_field['html_type'] ) && 'Link' === $custom_field['html_type'] ) {
 						$filtered_fields[ $custom_group_name ][] = $custom_field;
 					}
 				}

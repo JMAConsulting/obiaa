@@ -9,7 +9,7 @@
  */
 
 ?><!-- assets/templates/wordpress/metaboxes/metabox-acf-migrate-info.php -->
-<?php if ( $metabox['args']['migrated'] === false ) : ?>
+<?php if ( false === $metabox['args']['migrated'] ) : ?>
 
 	<h3><?php esc_html_e( 'Why migrate?', 'civicrm-wp-profile-sync' ); ?></h3>
 
@@ -52,8 +52,8 @@
 
 		echo sprintf(
 			/* translators: 1: Opening anchor tag, 2: Closing anchor tag */
-			__( 'You can now go to your %1$sPlugins page%2$s and deactivate the CiviCRM ACF Integration plugin.', 'civicrm-wp-profile-sync' ),
-			'<a href="' . admin_url( 'plugins.php' ) . '">',
+			esc_html__( 'You can now go to your %1$sPlugins page%2$s and deactivate the CiviCRM ACF Integration plugin.', 'civicrm-wp-profile-sync' ),
+			'<a href="' . esc_url( admin_url( 'plugins.php' ) ) . '">',
 			'</a>'
 		);
 

@@ -57,6 +57,32 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Google_Map extends CiviCRM_Profile_Sync_A
 	public $mapper_hooks = false;
 
 	/**
+	 * An array of Addresses prior to edit during sync process.
+	 *
+	 * There are situations where nested updates take place (e.g. via CiviRules)
+	 * so we keep copies of the Addresses in an array and try and match them up
+	 * in the post edit hook.
+	 *
+	 * @since 0.4
+	 * @access private
+	 * @var array
+	 */
+	private $sync_bridging_array = [];
+
+	/**
+	 * An array of Addresses prior to edit.
+	 *
+	 * There are situations where nested updates take place (e.g. via CiviRules)
+	 * so we keep copies of the Addresses in an array and try and match them up
+	 * in the post edit hook.
+	 *
+	 * @since 0.4
+	 * @access private
+	 * @var array
+	 */
+	private $bridging_array = [];
+
+	/**
 	 * "CiviCRM Google Map" Field key in the ACF Field data.
 	 *
 	 * Sorry that this key name is slightly misleading - it is a leftover from
@@ -98,9 +124,9 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Google_Map extends CiviCRM_Profile_Sync_A
 	public function __construct( $parent ) {
 
 		// Store references to objects.
-		$this->plugin = $parent->acf_loader->plugin;
+		$this->plugin     = $parent->acf_loader->plugin;
 		$this->acf_loader = $parent->acf_loader;
-		$this->civicrm = $parent;
+		$this->civicrm    = $parent;
 
 		// Init when the ACF CiviCRM object is loaded.
 		add_action( 'cwps/acf/civicrm/loaded', [ $this, 'initialise' ] );
@@ -134,7 +160,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Google_Map extends CiviCRM_Profile_Sync_A
 
 		// Customise "Google Map" Fields.
 		// phpcs:ignore Squiz.Commenting.InlineComment.InvalidEndChar
-		//add_action( 'acf/render_field_settings/type=google_map', [ $this, 'map_setting_add' ] );
+		// add_action( 'acf/render_field_settings/type=google_map', [ $this, 'map_setting_add' ] );
 
 		// Add any Google Map Fields attached to a Post.
 		add_filter( 'cwps/acf/fields_get_for_post', [ $this, 'acf_fields_get_for_post' ], 10, 3 );
@@ -164,7 +190,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Google_Map extends CiviCRM_Profile_Sync_A
 	public function register_mapper_hooks() {
 
 		// Bail if already registered.
-		if ( $this->mapper_hooks === true ) {
+		if ( true === $this->mapper_hooks ) {
 			return;
 		}
 
@@ -187,7 +213,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Google_Map extends CiviCRM_Profile_Sync_A
 	public function unregister_mapper_hooks() {
 
 		// Bail if already unregistered.
-		if ( $this->mapper_hooks === false ) {
+		if ( false === $this->mapper_hooks ) {
 			return;
 		}
 
@@ -249,17 +275,17 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Google_Map extends CiviCRM_Profile_Sync_A
 	 *
 	 * @since 0.4
 	 *
-	 * @param string $field The ACF Field selector.
-	 * @param mixed $value The ACF Field value.
+	 * @param string  $field The ACF Field selector.
+	 * @param mixed   $value The ACF Field value.
 	 * @param integer $contact_id The numeric ID of the Contact.
-	 * @param array $settings The ACF Field settings.
-	 * @param array $args The array of WordPress params.
+	 * @param array   $settings The ACF Field settings.
+	 * @param array   $args The array of WordPress params.
 	 * @return bool True if updates were successful, or false on failure.
 	 */
 	public function field_handled_update( $field, $value, $contact_id, $settings, $args ) {
 
 		// Skip if it's not an ACF Field Type that this class handles.
-		if ( ! in_array( $settings['type'], $this->fields_handled ) ) {
+		if ( ! in_array( $settings['type'], $this->fields_handled, true ) ) {
 			return true;
 		}
 
@@ -270,7 +296,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Google_Map extends CiviCRM_Profile_Sync_A
 		}
 
 		// Skip if this Field isn't linked to a Primary Address.
-		if ( $settings[ $key ] !== 'primary' ) {
+		if ( 'primary' !== $settings[ $key ] ) {
 			return true;
 		}
 
@@ -281,7 +307,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Google_Map extends CiviCRM_Profile_Sync_A
 		}
 
 		// Skip if it is "Make Read Only".
-		if ( $settings[ $edit_key ] == 1 ) {
+		if ( 1 === (int) $settings[ $edit_key ] ) {
 			return true;
 		}
 
@@ -292,7 +318,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Google_Map extends CiviCRM_Profile_Sync_A
 
 		// Update the Address.
 		// phpcs:ignore Squiz.Commenting.InlineComment.InvalidEndChar
-		//$success = $this->address_update( $field, $value, $contact_id, $settings, $args );
+		// $success = $this->address_update( $field, $value, $contact_id, $settings, $args );
 
 		// --<
 		return $success;
@@ -306,11 +332,11 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Google_Map extends CiviCRM_Profile_Sync_A
 	 *
 	 * @since 0.4
 	 *
-	 * @param string $field The ACF Field selector.
-	 * @param mixed $value The ACF Field value.
+	 * @param string  $field The ACF Field selector.
+	 * @param mixed   $value The ACF Field value.
 	 * @param integer $contact_id The numeric ID of the Contact.
-	 * @param array $settings The ACF Field settings.
-	 * @param array $args The array of WordPress params.
+	 * @param array   $settings The ACF Field settings.
+	 * @param array   $args The array of WordPress params.
 	 * @return bool True if updates were successful, or false on failure.
 	 */
 	public function address_update( $field, $value, $contact_id, $settings, $args ) {
@@ -399,13 +425,13 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Google_Map extends CiviCRM_Profile_Sync_A
 		// Init CiviCRM data.
 		$address_data = [
 			'street_address' => '',
-			'street_number' => '',
-			'street_name' => '',
-			'city' => '',
-			'postal_code' => '',
-			'country_id' => '',
-			'geo_code_1' => '',
-			'geo_code_2' => '',
+			'street_number'  => '',
+			'street_name'    => '',
+			'city'           => '',
+			'postal_code'    => '',
+			'country_id'     => '',
+			'geo_code_1'     => '',
+			'geo_code_2'     => '',
 		];
 
 		// Get basic entries.
@@ -445,8 +471,8 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Google_Map extends CiviCRM_Profile_Sync_A
 			$country = $this->plugin->civicrm->address->country_get_by_short( $address['country_short'] );
 			if ( ! empty( $country ) ) {
 				$address_data['country_id'] = $country['id'];
-				$address_data['country'] = $country['name'];
-				$address_data['iso_code'] = $country['iso_code'];
+				$address_data['country']    = $country['name'];
+				$address_data['iso_code']   = $country['iso_code'];
 			}
 
 		}
@@ -481,16 +507,11 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Google_Map extends CiviCRM_Profile_Sync_A
 	 */
 	public function contact_sync_to_post_pre( $args ) {
 
-		// Always clear properties if set previously.
-		if ( isset( $this->contact_addresses_pre ) ) {
-			unset( $this->contact_addresses_pre );
-		}
-
 		// Grab Contact object.
 		$contact = $args['objectRef'];
 
-		// Init empty property.
-		$this->contact_addresses_pre = [];
+		// Reset array for this Contact ID.
+		$this->sync_bridging_array[ (int) $contact->contact_id ] = [];
 
 		// Override if the Contact has Address(es).
 		if ( ! empty( $contact->address ) && is_array( $contact->address ) ) {
@@ -499,7 +520,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Google_Map extends CiviCRM_Profile_Sync_A
 			$contact_addresses_pre = $this->plugin->civicrm->address->addresses_get_by_contact_id( $contact->contact_id );
 			foreach ( $contact_addresses_pre as $contact_address ) {
 				$key = $contact_address->id;
-				$this->contact_addresses_pre[ $key ] = $contact_address;
+				$this->sync_bridging_array[ (int) $contact->contact_id ][ $key ] = $contact_address;
 			}
 
 		}
@@ -525,21 +546,24 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Google_Map extends CiviCRM_Profile_Sync_A
 			return;
 		}
 
+		// Grab Contact ID.
+		$contact_id = (int) $args['objectId'];
+
 		// Get the current Contact Addresses.
 		$contact_addresses = [];
-		$current_addresses = $this->plugin->civicrm->address->addresses_get_by_contact_id( $args['objectId'] );
+		$current_addresses = $this->plugin->civicrm->address->addresses_get_by_contact_id( $contact_id );
 		foreach ( $current_addresses as $current_address ) {
-			$key = $current_address->id;
+			$key                       = $current_address->id;
 			$contact_addresses[ $key ] = $current_address;
 		}
 
 		// Bail if there are neither previous Addresses nor current Addresses.
-		if ( empty( $this->contact_addresses_pre ) && empty( $contact_addresses ) ) {
+		if ( empty( $this->sync_bridging_array[ $contact_id ] ) && empty( $contact_addresses ) ) {
 			return;
 		}
 
 		// Clear them if there are previous Addresses.
-		if ( ! empty( $this->contact_addresses_pre ) ) {
+		if ( ! empty( $this->sync_bridging_array[ $contact_id ] ) ) {
 			foreach ( $acf_fields['google_map'] as $selector => $address_field ) {
 				$this->acf_loader->acf->field->value_update( $selector, [], $args['post_id'] );
 			}
@@ -553,8 +577,9 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Google_Map extends CiviCRM_Profile_Sync_A
 
 				// Find previous Address if it exists.
 				$previous = null;
-				if ( ! empty( $this->contact_addresses_pre[ $address->id ] ) ) {
-					$previous = $this->contact_addresses_pre[ $address->id ];
+				if ( ! empty( $this->sync_bridging_array[ $contact_id ][ $address->id ] ) ) {
+					$previous = $this->sync_bridging_array[ $contact_id ][ $address->id ];
+					unset( $this->sync_bridging_array[ $contact_id ][ $address->id ] );
 				}
 
 				// Skip if there are no ACF Fields to update for this Address.
@@ -582,8 +607,9 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Google_Map extends CiviCRM_Profile_Sync_A
 
 					// Find previous Address if it exists.
 					$previous_shared = null;
-					if ( ! empty( $this->contact_addresses_pre[$address_shared->id] ) ) {
-						$previous_shared = $this->contact_addresses_pre[$address_shared->id];
+					if ( ! empty( $this->sync_bridging_array[ $contact_id ][ $address_shared->id ] ) ) {
+						$previous_shared = $this->sync_bridging_array[ $contact_id ][ $address_shared->id ];
+						unset( $this->sync_bridging_array[ $contact_id ][ $address->id ] );
 					}
 
 					// Update it.
@@ -595,6 +621,9 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Google_Map extends CiviCRM_Profile_Sync_A
 			}
 
 		}
+
+		// Lastly clear the stash for this Contact ID.
+		unset( $this->sync_bridging_array[ $contact_id ] );
 
 	}
 
@@ -650,11 +679,6 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Google_Map extends CiviCRM_Profile_Sync_A
 	 */
 	public function address_pre_edit( $args ) {
 
-		// Always clear properties if set previously.
-		if ( isset( $this->address_pre ) ) {
-			unset( $this->address_pre );
-		}
-
 		// Grab the Address object.
 		$address = $args['objectRef'];
 
@@ -663,8 +687,19 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Google_Map extends CiviCRM_Profile_Sync_A
 			return;
 		}
 
+		// Cast ID as integer for array key.
+		$address_id = (int) $address->id;
+
 		// Grab the previous Address data from the database via API.
-		$this->address_pre = $this->plugin->civicrm->address->address_get_by_id( $address->id );
+		$address_pre = $this->plugin->civicrm->address->address_get_by_id( $address_id );
+
+		// Maybe cast previous Address Record data as object and stash in a property.
+		if ( ! is_object( $address_pre ) ) {
+			$address_pre = (object) $address_pre;
+		}
+
+		// Stash in property array.
+		$this->bridging_array[ $address_id ] = $address_pre;
 
 	}
 
@@ -685,11 +720,31 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Google_Map extends CiviCRM_Profile_Sync_A
 			return;
 		}
 
+		// Cast ID as integer for array key.
+		$address_id = (int) $address->id;
+
+		// Populate "Previous Address" if we have it stored.
+		$address_pre = null;
+		if ( ! empty( $this->bridging_array[ $address_id ] ) ) {
+			$address_pre = $this->bridging_array[ $address_id ];
+			unset( $this->bridging_array[ $address_id ] );
+		}
+
+		// Bail if we can't find the previous Address Record or it doesn't match.
+		if ( empty( $address_pre ) || $address_id !== (int) $address_pre->id ) {
+			return;
+		}
+
+		// Bail if this is not a Contact's Address Record.
+		if ( empty( $address_pre->contact_id ) ) {
+			return;
+		}
+
 		// Check if the edited Address has had its properties toggled.
-		$address = $this->address_properties_check( $address, $this->address_pre );
+		$address = $this->address_properties_check( $address, $address_pre );
 
 		// Do the Google Map update.
-		$this->address_fields_update( $address, $this->address_pre );
+		$this->address_fields_update( $address, $address_pre );
 
 		// If this address is a "Master Address" then it will return "Shared Addresses".
 		$addresses_shared = $this->plugin->civicrm->address->addresses_shared_get_by_id( $address->id );
@@ -701,7 +756,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Google_Map extends CiviCRM_Profile_Sync_A
 
 		// Update all of them.
 		foreach ( $addresses_shared as $address_shared ) {
-			$this->address_fields_update( $address_shared, $this->address_pre );
+			$this->address_fields_update( $address_shared, $address_pre );
 		}
 
 	}
@@ -791,28 +846,24 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Google_Map extends CiviCRM_Profile_Sync_A
 		}
 
 		// Check if "Primary" has been toggled.
-		if ( $address->is_primary != $previous->is_primary ) {
+		if ( $address->is_primary !== $previous->is_primary ) {
 
 			// Get direction of toggle.
 			$address->toggle_primary = 'off';
-			if ( $previous->is_primary == '0' ) {
+			if ( '0' === (string) $previous->is_primary ) {
 				$address->toggle_primary = 'on';
 			}
-
-		} else {
 
 		}
 
 		// Check if "Billing" has been toggled.
-		if ( $address->is_billing != $previous->is_billing ) {
+		if ( $address->is_billing !== $previous->is_billing ) {
 
 			// Get direction of toggle.
 			$address->toggle_billing = 'off';
-			if ( $previous->is_billing == '0' ) {
+			if ( '0' === (string) $previous->is_billing ) {
 				$address->toggle_billing = 'on';
 			}
-
-		} else {
 
 		}
 
@@ -827,7 +878,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Google_Map extends CiviCRM_Profile_Sync_A
 	 * @since 0.4
 	 *
 	 * @param array|object $address The current Address data.
-	 * @param object $previous The previous CiviCRM Address data.
+	 * @param object       $previous The previous CiviCRM Address data.
 	 */
 	public function address_fields_update( $address, $previous = null ) {
 
@@ -843,20 +894,20 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Google_Map extends CiviCRM_Profile_Sync_A
 
 		// Bail if there's no Contact.
 		$contact = $this->plugin->civicrm->contact->get_by_id( $address->contact_id );
-		if ( $contact === false ) {
+		if ( false === $contact ) {
 			return;
 		}
 
 		// Test if of this Contact's Contact Types is mapped to a Post Type.
 		$post_types = $this->civicrm->contact->is_mapped( $contact, 'create' );
-		if ( $post_types !== false ) {
+		if ( false !== $post_types ) {
 
 			// Handle each Post Type in turn.
 			foreach ( $post_types as $post_type ) {
 
 				// Bail if this Contact has no mapped Post.
 				$post_id = $this->civicrm->contact->is_mapped_to_post( $contact, $post_type );
-				if ( $post_id === false ) {
+				if ( false === $post_id ) {
 					continue;
 				}
 
@@ -886,8 +937,8 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Google_Map extends CiviCRM_Profile_Sync_A
 	 * @since 0.4
 	 *
 	 * @param integer|string $post_id The ACF "Post ID".
-	 * @param object $address The current CiviCRM Address data.
-	 * @param object $previous The previous CiviCRM Address data.
+	 * @param object         $address The current CiviCRM Address data.
+	 * @param object         $previous The previous CiviCRM Address data.
 	 */
 	public function fields_update( $post_id, $address, $previous = null ) {
 
@@ -916,10 +967,10 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Google_Map extends CiviCRM_Profile_Sync_A
 	 *
 	 * @since 0.4
 	 *
-	 * @param object $address The Address data.
-	 * @param string $selector The ACF Field selector.
+	 * @param object  $address The Address data.
+	 * @param string  $selector The ACF Field selector.
 	 * @param integer $post_id The ACF "Post ID".
-	 * @param string $action The kind of action to perform on the ACF Field - 'update' or 'clear'.
+	 * @param string  $action The kind of action to perform on the ACF Field - 'update' or 'clear'.
 	 */
 	public function field_update( $address, $selector, $post_id, $action = '' ) {
 
@@ -958,25 +1009,25 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Google_Map extends CiviCRM_Profile_Sync_A
 	 * @since 0.4
 	 *
 	 * @param array|object $address The CiviCRM Address data.
-	 * @param string $action The kind of action to perform on the ACF Field.
+	 * @param string       $action The kind of action to perform on the ACF Field.
 	 * @return array $field_data The Address data prepared for an ACF Google Map Field.
 	 */
 	public function field_map_prepare( $address, $action = '' ) {
 
 		// If we want to clear the ACF Field, return now.
-		if ( $action === 'clear' ) {
+		if ( 'clear' === $action ) {
 			return [];
 		}
 
 		// Init ACF Field data.
 		$field_data = [
-			'address' => '',
+			'address'       => '',
 			'street_number' => '',
-			'city' => '',
-			'post_code' => '',
-			'state' => '',
-			'state_short' => '',
-			'country' => '',
+			'city'          => '',
+			'post_code'     => '',
+			'state'         => '',
+			'state_short'   => '',
+			'country'       => '',
 			'country_short' => '',
 		];
 
@@ -1006,7 +1057,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Google_Map extends CiviCRM_Profile_Sync_A
 		if ( ! empty( $address->state_province_id ) ) {
 			$state_province = $this->plugin->civicrm->address->state_province_get_by_id( $address->state_province_id );
 			if ( ! empty( $state_province ) ) {
-				$field_data['state'] = $state_province['name'];
+				$field_data['state']       = $state_province['name'];
 				$field_data['state_short'] = $state_province['abbreviation'];
 			}
 		}
@@ -1017,7 +1068,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Google_Map extends CiviCRM_Profile_Sync_A
 			// Add the Country if we get one.
 			$country = $this->plugin->civicrm->address->country_get_by_id( $address->country_id );
 			if ( ! empty( $country ) ) {
-				$field_data['country'] = $country['name'];
+				$field_data['country']       = $country['name'];
 				$field_data['country_short'] = $country['iso_code'];
 			}
 
@@ -1030,7 +1081,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Google_Map extends CiviCRM_Profile_Sync_A
 				if ( ! empty( $state_province['country_id'] ) ) {
 					$country = $this->plugin->civicrm->address->country_get_by_id( $state_province['country_id'] );
 					if ( ! empty( $country ) ) {
-						$field_data['country'] = $country['name'];
+						$field_data['country']       = $country['name'];
 						$field_data['country_short'] = $country['iso_code'];
 					}
 				}
@@ -1068,7 +1119,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Google_Map extends CiviCRM_Profile_Sync_A
 	 *
 	 * @since 0.4
 	 *
-	 * @param array $acf_fields The array of ACF Fields in the Post.
+	 * @param array  $acf_fields The array of ACF Fields in the Post.
 	 * @param object $address The current CiviCRM Address data.
 	 * @param object $previous The previous CiviCRM Address data.
 	 * @return array $fields_to_update The array of ACF Fields to update.
@@ -1082,7 +1133,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Google_Map extends CiviCRM_Profile_Sync_A
 		foreach ( $acf_fields['google_map'] as $selector => $address_field ) {
 
 			// If this Field references the "Primary Address".
-			if ( $address_field == 'primary' ) {
+			if ( 'primary' === $address_field ) {
 
 				// If this address is now the "Primary Address" it means that
 				// another Address is no longer Primary.
@@ -1090,18 +1141,18 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Google_Map extends CiviCRM_Profile_Sync_A
 				// TODO: Do we need to update the Address that is now Primary?
 
 				// We still need to update the Field though.
-				if ( $address->is_primary == '1' ) {
+				if ( '1' === (string) $address->is_primary ) {
 
 					// Always update.
 					$fields_to_update[ $selector ] = [
-						'field' => $address_field,
+						'field'  => $address_field,
 						'action' => 'update',
 					];
 
 					// Override if we're deleting it.
-					if ( isset( $address->to_delete ) && $address->to_delete === true ) {
+					if ( isset( $address->to_delete ) && true === $address->to_delete ) {
 						$fields_to_update[ $selector ] = [
-							'field' => $address_field,
+							'field'  => $address_field,
 							'action' => 'clear',
 						];
 					}
@@ -1111,21 +1162,21 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Google_Map extends CiviCRM_Profile_Sync_A
 			}
 
 			// If this Field references the "Billing Address".
-			if ( $address_field == 'billing' ) {
+			if ( 'billing' === $address_field ) {
 
 				// If this Address is the "Billing Address".
-				if ( $address->is_billing == '1' ) {
+				if ( '1' === (string) $address->is_billing ) {
 
 					// Always update.
 					$fields_to_update[ $selector ] = [
-						'field' => $address_field,
+						'field'  => $address_field,
 						'action' => 'update',
 					];
 
 					// Override if we're deleting it.
-					if ( isset( $address->to_delete ) && $address->to_delete === true ) {
+					if ( isset( $address->to_delete ) && true === $address->to_delete ) {
 						$fields_to_update[ $selector ] = [
-							'field' => $address_field,
+							'field'  => $address_field,
 							'action' => 'clear',
 						];
 					}
@@ -1135,12 +1186,12 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Google_Map extends CiviCRM_Profile_Sync_A
 				// If this Address WAS the "Billing Address" but is NOT NOW, it
 				// means we have to clear the ACF Field.
 				if (
-					$address->is_billing == '0' &&
+					'0' === (string) $address->is_billing &&
 					isset( $address->toggle_billing ) &&
-					$address->toggle_billing == 'off'
+					'off' === $address->toggle_billing
 				) {
 					$fields_to_update[ $selector ] = [
-						'field' => $address_field,
+						'field'  => $address_field,
 						'action' => 'clear',
 					];
 				}
@@ -1152,14 +1203,14 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Google_Map extends CiviCRM_Profile_Sync_A
 
 				// Always update.
 				$fields_to_update[ $selector ] = [
-					'field' => $address_field,
+					'field'  => $address_field,
 					'action' => 'update',
 				];
 
 				// Override if we're deleting it.
-				if ( isset( $address->to_delete ) && $address->to_delete === true ) {
+				if ( isset( $address->to_delete ) && true === $address->to_delete ) {
 					$fields_to_update[ $selector ] = [
-						'field' => $address_field,
+						'field'  => $address_field,
 						'action' => 'clear',
 					];
 				}
@@ -1176,7 +1227,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Google_Map extends CiviCRM_Profile_Sync_A
 
 				// Always clear the previous one.
 				$fields_to_update[ $selector ] = [
-					'field' => $address_field,
+					'field'  => $address_field,
 					'action' => 'clear',
 				];
 
@@ -1228,10 +1279,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Google_Map extends CiviCRM_Profile_Sync_A
 		 * @param array $types The retrieved array of Location Types.
 		 * @param array $field The ACF Field data array.
 		 */
-		$location_types = apply_filters(
-			'cwps/acf/google_map/location_types/get_for_acf_field',
-			$types, $field
-		);
+		$location_types = apply_filters( 'cwps/acf/google_map/location_types/get_for_acf_field', $types, $field );
 
 		// --<
 		return $location_types;
@@ -1251,7 +1299,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Google_Map extends CiviCRM_Profile_Sync_A
 	 *
 	 * @param array $custom_fields The Custom Fields to populate the ACF Field with.
 	 * @param array $location_types The Location Types to populate the ACF Field with.
-	 * @param bool $skip_specific True skips adding the  "Primary Address" and "Billing Address" choices.
+	 * @param bool  $skip_specific True skips adding the  "Primary Address" and "Billing Address" choices.
 	 * @return array $field The ACF Field data array.
 	 */
 	public function acf_field_get( $custom_fields = [], $location_types = [], $skip_specific = false ) {
@@ -1265,8 +1313,8 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Google_Map extends CiviCRM_Profile_Sync_A
 		$choices = [];
 
 		// Maybe prepend "Primary Address" and "Billing Address" choices for dropdown.
-		if ( $skip_specific === false ) {
-			$specific_address_label = esc_attr__( 'Specific Addresses', 'civicrm-wp-profile-sync' );
+		if ( false === $skip_specific ) {
+			$specific_address_label                        = esc_attr__( 'Specific Addresses', 'civicrm-wp-profile-sync' );
 			$choices[ $specific_address_label ]['primary'] = esc_attr__( 'Primary Address', 'civicrm-wp-profile-sync' );
 			$choices[ $specific_address_label ]['billing'] = esc_attr__( 'Billing Address', 'civicrm-wp-profile-sync' );
 		}
@@ -1279,20 +1327,20 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Google_Map extends CiviCRM_Profile_Sync_A
 
 		// Define Field.
 		$field = [
-			'key' => $this->acf_field_key_get(),
-			'label' => __( 'CiviCRM Address', 'civicrm-wp-profile-sync' ),
-			'name' => $this->acf_field_key_get(),
-			'type' => 'select',
-			'instructions' => __( 'Choose the CiviCRM Location Type that this ACF Field should sync with. (Optional)', 'civicrm-wp-profile-sync' ),
+			'key'           => $this->acf_field_key_get(),
+			'label'         => __( 'CiviCRM Address', 'civicrm-wp-profile-sync' ),
+			'name'          => $this->acf_field_key_get(),
+			'type'          => 'select',
+			'instructions'  => __( 'Choose the CiviCRM Location Type that this ACF Field should sync with. (Optional)', 'civicrm-wp-profile-sync' ),
 			'default_value' => '',
-			'placeholder' => '',
-			'allow_null' => 1,
-			'multiple' => 0,
-			'ui' => 0,
-			'required' => 0,
+			'placeholder'   => '',
+			'allow_null'    => 1,
+			'multiple'      => 0,
+			'ui'            => 0,
+			'required'      => 0,
 			'return_format' => 'value',
-			'parent' => $this->acf_loader->acf->field_group->placeholder_group_get(),
-			'choices' => $choices,
+			'parent'        => $this->acf_loader->acf->field_group->placeholder_group_get(),
+			'choices'       => $choices,
 		];
 
 		// --<
@@ -1317,25 +1365,25 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Google_Map extends CiviCRM_Profile_Sync_A
 
 		// Define Field.
 		$field = [
-			'key' => $this->acf_field_key_edit_get(),
-			'label' => __( 'Make Read Only', 'civicrm-wp-profile-sync' ),
-			'name' => $this->acf_field_key_edit_get(),
-			'type' => 'true_false',
-			//'message' => __( 'More explaining.', 'civicrm-wp-profile-sync' ),
-			'instructions' => __( 'Only CiviCRM can set the Location in this Field.', 'civicrm-wp-profile-sync' ),
-			'ui' => 1,
-			'default_value' => 1,
-			'required' => 0,
+			'key'               => $this->acf_field_key_edit_get(),
+			'label'             => __( 'Make Read Only', 'civicrm-wp-profile-sync' ),
+			'name'              => $this->acf_field_key_edit_get(),
+			'type'              => 'true_false',
+			// 'message' => __( 'More explaining.', 'civicrm-wp-profile-sync' ),
+			'instructions'      => __( 'Only CiviCRM can set the Location in this Field.', 'civicrm-wp-profile-sync' ),
+			'ui'                => 1,
+			'default_value'     => 1,
+			'required'          => 0,
 			'conditional_logic' => [
 				[
 					[
-						'field' => $this->acf_field_key_get(),
+						'field'    => $this->acf_field_key_get(),
 						'operator' => '==',
-						'value' => 'primary',
+						'value'    => 'primary',
 					],
 				],
 			],
-			'parent' => $this->acf_loader->acf->field_group->placeholder_group_get(),
+			'parent'            => $this->acf_loader->acf->field_group->placeholder_group_get(),
 		];
 
 		/**
@@ -1385,8 +1433,8 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Google_Map extends CiviCRM_Profile_Sync_A
 	 *
 	 * @since 0.4
 	 *
-	 * @param array $acf_fields The existing ACF Fields array.
-	 * @param array $field The ACF Field.
+	 * @param array   $acf_fields The existing ACF Fields array.
+	 * @param array   $field The ACF Field.
 	 * @param integer $post_id The numeric ID of the WordPress Post.
 	 * @return array $acf_fields The modified ACF Fields array.
 	 */
@@ -1421,7 +1469,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Google_Map extends CiviCRM_Profile_Sync_A
 	 * @param array $setting_field The existing Setting Field array.
 	 * @param array $field The ACF Field data array.
 	 * @param array $field_group The ACF Field Group data array.
-	 * @param bool $skip_check True if the check for Field Group should be skipped. Default false.
+	 * @param bool  $skip_check True if the check for Field Group should be skipped. Default false.
 	 * @return array|bool $setting_field The Setting Field array if populated, false if conflicting.
 	 */
 	public function query_settings_field( $setting_field, $field, $field_group, $skip_check = false ) {
@@ -1433,7 +1481,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Google_Map extends CiviCRM_Profile_Sync_A
 
 		// Pass if this is not a Contact Field Group or a User Field Group.
 		$is_contact_field_group = $this->civicrm->contact->is_contact_field_group( $field_group );
-		$is_user_field_group = $this->acf_loader->user->is_user_field_group( $field_group );
+		$is_user_field_group    = $this->acf_loader->user->is_user_field_group( $field_group );
 		if ( empty( $is_contact_field_group ) && empty( $is_user_field_group ) ) {
 			return $setting_field;
 		}
@@ -1475,7 +1523,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Google_Map extends CiviCRM_Profile_Sync_A
 		$edit_key = $this->acf_field_key_edit_get();
 
 		// Only skip if it's explicitly *not* set to "Read Only".
-		if ( isset( $field[ $edit_key ] ) && $field[ $edit_key ] !== 1 ) {
+		if ( isset( $field[ $edit_key ] ) && 1 !== $field[ $edit_key ] ) {
 			return;
 		}
 
@@ -1484,7 +1532,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Google_Map extends CiviCRM_Profile_Sync_A
 			'#' . $field['id'] . '.acf-google-map .title { display: none; }' .
 		'</style>';
 
-		// Write to page.
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		echo $style;
 
 	}
@@ -1496,9 +1544,9 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Google_Map extends CiviCRM_Profile_Sync_A
 	 *
 	 * @since 0.4
 	 *
-	 * @param mixed $value The existing value.
+	 * @param mixed   $value The existing value.
 	 * @param integer $post_id The Post ID from which the value was loaded.
-	 * @param array $field The Field array holding all the Field options.
+	 * @param array   $field The Field array holding all the Field options.
 	 * @return mixed $value The modified value.
 	 */
 	public function google_map_value_modify( $value, $post_id, $field ) {
@@ -1519,18 +1567,16 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Google_Map extends CiviCRM_Profile_Sync_A
 
 			// Skip if there is no Contact ID for this ACF "Post ID".
 			$contact_id = $this->acf_loader->acf->field->query_contact_id( $post_id );
-			if ( $contact_id === false ) {
+			if ( false === $contact_id ) {
 				return $value;
 			}
 
 			// Get this Contact's Addresses.
 			$addresses = $this->plugin->civicrm->address->addresses_get_by_contact_id( $contact_id );
 
-			// Init location.
+			// Try and find a location.
 			$location = false;
-
-			// Does this Field sync with the Primary Address?
-			if ( $field[ $key ] === 'primary' ) {
+			if ( 'primary' === $field[ $key ] ) {
 
 				// Assign Location from the Primary Address.
 				foreach ( $addresses as $address ) {
@@ -1540,10 +1586,9 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Google_Map extends CiviCRM_Profile_Sync_A
 					}
 				}
 
-			// Does this Field sync with the Billing Address?
-			} elseif ( $field[ $key ] === 'billing' ) {
+			} elseif ( 'billing' === $field[ $key ] ) {
 
-				// Assign Location from the Primary Address.
+				// Assign Location from the Billing Address.
 				foreach ( $addresses as $address ) {
 					if ( ! empty( $address->is_billing ) ) {
 						$location = $address;
@@ -1551,10 +1596,9 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Google_Map extends CiviCRM_Profile_Sync_A
 					}
 				}
 
-			// We need a Location Type.
 			} elseif ( is_numeric( $field[ $key ] ) ) {
 
-				// Assign Location from the type of Address.
+				// We need a Location Type so assign Location from the type of Address.
 				foreach ( $addresses as $address ) {
 					if ( $address->location_type_id == $field[ $key ] ) {
 						$location = $address;
@@ -1565,7 +1609,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Google_Map extends CiviCRM_Profile_Sync_A
 			}
 
 			// Overwrite if we get a value.
-			if ( $location !== false ) {
+			if ( false !== $location ) {
 				$value = $this->field_map_prepare( $address );
 			}
 
@@ -1612,7 +1656,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Google_Map extends CiviCRM_Profile_Sync_A
 		}
 
 		// Always set to true if not a "Primary" Address.
-		if ( $field[ $key ] != 'primary' ) {
+		if ( 'primary' !== $field[ $key ] ) {
 			$field[ $edit_key ] = 1;
 		}
 

@@ -93,6 +93,105 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Case extends CiviCRM_Profile_Syn
 	public $field_name = 'cwps_case_action_';
 
 	/**
+	 * Public Case Fields.
+	 *
+	 * @since 0.5
+	 * @access public
+	 * @var array
+	 */
+	public $public_case_fields;
+
+	/**
+	 * Fields for Contacts.
+	 *
+	 * @since 0.5
+	 * @access public
+	 * @var array
+	 */
+	public $fields_for_contacts;
+
+	/**
+	 * Custom Fields.
+	 *
+	 * @since 0.5
+	 * @access public
+	 * @var array
+	 */
+	public $custom_fields;
+
+	/**
+	 * Custom Field IDs.
+	 *
+	 * @since 0.5
+	 * @access public
+	 * @var array
+	 */
+	public $custom_field_ids;
+
+	/**
+	 * Files to examine for possible deletion.
+	 *
+	 * @since 0.5.2
+	 * @access public
+	 * @var integer
+	 */
+	public $file_fields_empty;
+
+	/**
+	 * Case Type choices.
+	 *
+	 * @since 0.6.6
+	 * @access public
+	 * @var array
+	 */
+	public $case_type_choices;
+
+	/**
+	 * Default Case Status.
+	 *
+	 * @since 0.6.6
+	 * @access public
+	 * @var array
+	 */
+	public $case_status_default;
+
+	/**
+	 * Case Status choices.
+	 *
+	 * @since 0.6.6
+	 * @access public
+	 * @var array
+	 */
+	public $case_status_choices;
+
+	/**
+	 * Default Case Encounter Medium.
+	 *
+	 * @since 0.6.6
+	 * @access public
+	 * @var array
+	 */
+	public $case_encounter_medium;
+
+	/**
+	 * Case Encounter Medium choices.
+	 *
+	 * @since 0.6.6
+	 * @access public
+	 * @var array
+	 */
+	public $case_encounter_choices;
+
+	/**
+	 * Data transient key.
+	 *
+	 * @since 0.6.6
+	 * @access private
+	 * @var string
+	 */
+	public $transient_key = 'cwps_acf_acfe_form_action_case';
+
+	/**
 	 * Public Case Fields to add.
 	 *
 	 * These are not mapped for Post Type Sync, so need to be added.
@@ -118,7 +217,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Case extends CiviCRM_Profile_Syn
 	public $fields_to_ignore = [
 		'contact_id' => 'civicrm_contact',
 		'creator_id' => 'civicrm_contact',
-		//'manager_id' => 'civicrm_contact',
+		// 'manager_id' => 'civicrm_contact',
 	];
 
 	/**
@@ -133,7 +232,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Case extends CiviCRM_Profile_Syn
 	public $contact_fields = [
 		'contact_id' => 'civicrm_contact',
 		'creator_id' => 'civicrm_contact',
-		//'manager_id' => 'civicrm_contact',
+		// 'manager_id' => 'civicrm_contact',
 	];
 
 	/**
@@ -146,11 +245,11 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Case extends CiviCRM_Profile_Syn
 	public function __construct( $parent ) {
 
 		// Store references to objects.
-		$this->plugin = $parent->acf_loader->plugin;
+		$this->plugin     = $parent->acf_loader->plugin;
 		$this->acf_loader = $parent->acf_loader;
-		$this->acfe = $parent->acfe;
-		$this->form = $parent;
-		$this->civicrm = $this->acf_loader->civicrm;
+		$this->acfe       = $parent->acfe;
+		$this->form       = $parent;
+		$this->civicrm    = $this->acf_loader->civicrm;
 
 		// Label this Form Action.
 		$this->action_label = __( 'CiviCRM Case action', 'civicrm-wp-profile-sync' );
@@ -182,15 +281,36 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Case extends CiviCRM_Profile_Syn
 	 */
 	public function configure() {
 
-		// Get the public Case Fields for all Case Types.
-		$this->public_case_fields = $this->civicrm->case_field->get_public_fields( 'create' );
-
-		/*
-		// Prepend the ones that are needed in ACFE Forms (i.e. Subject and Details).
-		foreach ( $this->fields_to_add as $name => $field_type ) {
-			array_unshift( $this->public_case_fields, $this->civicrm->case_field->get_by_name( $name ) );
+		// Maybe check our transient for cached data.
+		$data            = false;
+		$acfe_transients = (int) $this->plugin->admin->setting_get( 'acfe_integration_transients', 0 );
+		if ( 1 === $acfe_transients ) {
+			$data = get_site_transient( $this->transient_key );
 		}
-		*/
+
+		// Init transient data if none found.
+		if ( false === $data ) {
+			$transient = [];
+		}
+
+		// Get the public Case Fields for all Case Types from transient if possible.
+		if ( false !== $data && isset( $data['public_case_fields'] ) ) {
+			$this->public_case_fields = $data['public_case_fields'];
+		} else {
+
+			// Get the public Case Fields for all Case Types.
+			$this->public_case_fields = $this->civicrm->case_field->get_public_fields( 'create' );
+
+			/*
+			// Prepend the ones that are needed in ACFE Forms (i.e. Subject and Details).
+			foreach ( $this->fields_to_add as $name => $field_type ) {
+				array_unshift( $this->public_case_fields, $this->civicrm->case_field->get_by_name( $name ) );
+			}
+			*/
+
+			$transient['public_case_fields'] = $this->public_case_fields;
+
+		}
 
 		// Populate public mapping Fields.
 		foreach ( $this->public_case_fields as $field ) {
@@ -199,19 +319,25 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Case extends CiviCRM_Profile_Syn
 			}
 		}
 
+		// Get Fields for Contacts from transient if possible.
+		if ( false !== $data && isset( $data['fields_for_contacts'] ) ) {
+			$this->fields_for_contacts = $data['fields_for_contacts'];
+		} else {
+			foreach ( $this->contact_fields as $name => $field_type ) {
+				$field                       = $this->civicrm->case_field->get_by_name( $name, 'create' );
+				$this->fields_for_contacts[] = $field;
+			}
+			$transient['fields_for_contacts'] = $this->fields_for_contacts;
+		}
+
 		// Handle Contact Fields.
-		foreach ( $this->contact_fields as $name => $field_type ) {
+		foreach ( $this->fields_for_contacts as $field ) {
 
 			// Populate mapping Fields.
-			$field = $this->civicrm->case_field->get_by_name( $name, 'create' );
-
 			$this->mapping_field_filters_add( $field['name'] );
 
 			// Add Contact Action Reference Field to ACF Model.
 			$this->js_model_contact_reference_field_add( $this->field_name . 'ref_' . $field['name'] );
-
-			// Also build array of data for CiviCRM Fields.
-			$this->fields_for_contacts[] = $field;
 
 			/*
 			// Pre-load with "Generic" values.
@@ -223,18 +349,23 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Case extends CiviCRM_Profile_Syn
 
 		// Add "Manager ID" to Contact Fields.
 		$field = [
-			'name' => 'manager_id',
+			'name'  => 'manager_id',
 			'title' => __( 'Case Manager', 'civicrm-wp-profile-sync' ),
 		];
 		$this->mapping_field_filters_add( $field['name'] );
 		$this->js_model_contact_reference_field_add( $this->field_name . 'ref_' . $field['name'] );
 		$this->fields_for_contacts[] = $field;
 
-		// Get the Custom Groups and Fields for all Case Types.
-		$this->custom_fields = $this->plugin->civicrm->custom_group->get_for_cases();
-		$this->custom_field_ids = [];
+		// Get the Custom Groups and Fields for all Case Types from transient if possible.
+		if ( false !== $data && isset( $data['custom_fields'] ) ) {
+			$this->custom_fields = $data['custom_fields'];
+		} else {
+			$this->custom_fields        = $this->plugin->civicrm->custom_group->get_for_cases();
+			$transient['custom_fields'] = $this->custom_fields;
+		}
 
 		// Populate mapping Fields.
+		$this->custom_field_ids = [];
 		foreach ( $this->custom_fields as $key => $custom_group ) {
 			if ( ! empty( $custom_group['api.CustomField.get']['values'] ) ) {
 				foreach ( $custom_group['api.CustomField.get']['values'] as $custom_field ) {
@@ -247,6 +378,54 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Case extends CiviCRM_Profile_Syn
 
 		// Case Conditional Field.
 		$this->mapping_field_filters_add( 'case_conditional' );
+
+		// Finally, let's try and cache queries made in tabs.
+
+		// Get Case Type choices from transient if possible.
+		if ( false !== $data && isset( $data['case_type_choices'] ) ) {
+			$this->case_type_choices = $data['case_type_choices'];
+		} else {
+			$this->case_type_choices        = $this->civicrm->case_type->choices_get();
+			$transient['case_type_choices'] = $this->case_type_choices;
+		}
+
+		// Get default Case Status from transient if possible.
+		if ( false !== $data && isset( $data['case_status_default'] ) ) {
+			$this->case_status_default = $data['case_status_default'];
+		} else {
+			$this->case_status_default        = $this->civicrm->option_value_default_get( 'case_status' );
+			$transient['case_status_default'] = $this->case_status_default;
+		}
+
+		// Get Case Status choices from transient if possible.
+		if ( false !== $data && isset( $data['case_status_choices'] ) ) {
+			$this->case_status_choices = $data['case_status_choices'];
+		} else {
+			$this->case_status_choices        = $this->civicrm->case_field->options_get( 'case_status_id' );
+			$transient['case_status_choices'] = $this->case_status_choices;
+		}
+
+		// Get default Case Encounter Medium from transient if possible.
+		if ( false !== $data && isset( $data['case_encounter_medium'] ) ) {
+			$this->case_encounter_medium = $data['case_encounter_medium'];
+		} else {
+			$this->case_encounter_medium        = $this->civicrm->option_value_default_get( 'encounter_medium' );
+			$transient['case_encounter_medium'] = $this->case_encounter_medium;
+		}
+
+		// Get Case Encounter Medium choices from transient if possible.
+		if ( false !== $data && isset( $data['case_encounter_choices'] ) ) {
+			$this->case_encounter_choices = $data['case_encounter_choices'];
+		} else {
+			$this->case_encounter_choices        = $this->civicrm->case_field->options_get( 'case_medium_id' );
+			$transient['case_encounter_choices'] = $this->case_encounter_choices;
+		}
+
+		// Maybe store Fields in transient.
+		if ( false === $data && 1 === $acfe_transients ) {
+			$duration = $this->acfe->admin->transient_duration_get();
+			set_site_transient( $this->transient_key, $transient, $duration );
+		}
 
 	}
 
@@ -272,15 +451,15 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Case extends CiviCRM_Profile_Syn
 	 *
 	 * @since 0.5.2
 	 *
-	 * @param array $form The array of Form data.
+	 * @param array   $form The array of Form data.
 	 * @param integer $current_post_id The ID of the Post from which the Form has been submitted.
-	 * @param string $action The customised name of the action.
+	 * @param string  $action The customised name of the action.
 	 */
 	public function validation( $form, $current_post_id, $action ) {
 
 		// Get some Form details.
 		$form_name = acf_maybe_get( $form, 'name' );
-		$form_id = acf_maybe_get( $form, 'ID' );
+		$form_id   = acf_maybe_get( $form, 'ID' );
 
 		// Validate the Case data.
 		$valid = $this->form_case_validate( $form, $current_post_id, $action );
@@ -297,9 +476,9 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Case extends CiviCRM_Profile_Syn
 	 *
 	 * @since 0.5
 	 *
-	 * @param array $form The array of Form data.
+	 * @param array   $form The array of Form data.
 	 * @param integer $current_post_id The ID of the Post from which the Form has been submitted.
-	 * @param string $action The customised name of the action.
+	 * @param string  $action The customised name of the action.
 	 */
 	public function make( $form, $current_post_id, $action ) {
 
@@ -310,23 +489,23 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Case extends CiviCRM_Profile_Syn
 
 		// Get some Form details.
 		$form_name = acf_maybe_get( $form, 'name' );
-		$form_id = acf_maybe_get( $form, 'ID' );
+		$form_id   = acf_maybe_get( $form, 'ID' );
 
 		// Init array to save for this Action.
 		$args = [
 			'form_action' => $this->action_name,
-			'id' => false,
+			'id'          => false,
 		];
 
 		// Populate Case, Email, Relationship and Custom Field data arrays.
-		$case = $this->form_case_data( $form, $current_post_id, $action );
+		$case          = $this->form_case_data( $form, $current_post_id, $action );
 		$custom_fields = $this->form_custom_data( $form, $current_post_id, $action );
 
 		// Save the Case with the data from the Form.
 		$args['case'] = $this->form_case_save( $case, $custom_fields );
 
 		// If we get a Case.
-		if ( $args['case'] !== false ) {
+		if ( false !== $args['case'] ) {
 
 			// Post-process Custom Fields now that we have a Case.
 			$this->form_custom_post_process( $form, $current_post_id, $action, $args['case'] );
@@ -354,139 +533,139 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Case extends CiviCRM_Profile_Syn
 
 		// Define Case Type Field.
 		$case_types_field = [
-			'key' => $this->field_key . 'case_types',
-			'label' => __( 'Case Type', 'civicrm-wp-profile-sync' ),
-			'name' => $this->field_name . 'case_types',
-			'type' => 'select',
-			'instructions' => '',
-			'required' => 0,
+			'key'               => $this->field_key . 'case_types',
+			'label'             => __( 'Case Type', 'civicrm-wp-profile-sync' ),
+			'name'              => $this->field_name . 'case_types',
+			'type'              => 'select',
+			'instructions'      => '',
+			'required'          => 0,
 			'conditional_logic' => 0,
-			'wrapper' => [
-				'width' => '',
-				'class' => '',
-				'id' => '',
+			'wrapper'           => [
+				'width'                      => '',
+				'class'                      => '',
+				'id'                         => '',
 				'data-instruction-placement' => 'field',
 			],
-			'acfe_permissions' => '',
-			'default_value' => '',
-			'placeholder' => '',
-			'allow_null' => 0,
-			'multiple' => 0,
-			'ui' => 0,
-			'return_format' => 'value',
-			'choices' => $this->civicrm->case_type->choices_get(),
+			'acfe_permissions'  => '',
+			'default_value'     => '',
+			'placeholder'       => '',
+			'allow_null'        => 0,
+			'multiple'          => 0,
+			'ui'                => 0,
+			'return_format'     => 'value',
+			'choices'           => $this->case_type_choices,
 		];
 
 		// Define Case Status Field.
 		$case_status_field = [
-			'key' => $this->field_key . 'case_status_id',
-			'label' => __( 'Case Status', 'civicrm-wp-profile-sync' ),
-			'name' => $this->field_name . 'case_status_id',
-			'type' => 'select',
-			'instructions' => '',
-			'required' => 0,
+			'key'               => $this->field_key . 'case_status_id',
+			'label'             => __( 'Case Status', 'civicrm-wp-profile-sync' ),
+			'name'              => $this->field_name . 'case_status_id',
+			'type'              => 'select',
+			'instructions'      => '',
+			'required'          => 0,
 			'conditional_logic' => 0,
-			'wrapper' => [
-				'width' => '',
-				'class' => '',
-				'id' => '',
+			'wrapper'           => [
+				'width'                      => '',
+				'class'                      => '',
+				'id'                         => '',
 				'data-instruction-placement' => 'field',
 			],
-			'acfe_permissions' => '',
-			'default_value' => $this->civicrm->option_value_default_get( 'case_status' ),
-			'placeholder' => '',
-			'allow_null' => 0,
-			'multiple' => 0,
-			'ui' => 0,
-			'return_format' => 'value',
-			'choices' => $this->civicrm->case_field->options_get( 'case_status_id' ),
+			'acfe_permissions'  => '',
+			'default_value'     => $this->case_status_default,
+			'placeholder'       => '',
+			'allow_null'        => 0,
+			'multiple'          => 0,
+			'ui'                => 0,
+			'return_format'     => 'value',
+			'choices'           => $this->case_status_choices,
 		];
 
 		// Define Case "Activity Medium" Field.
 		$case_activity_medium_field = [
-			'key' => $this->field_key . 'case_medium_id',
-			'label' => __( 'Activity Medium', 'civicrm-wp-profile-sync' ),
-			'name' => $this->field_name . 'case_medium_id',
-			'type' => 'select',
-			'instructions' => '',
-			'required' => 0,
+			'key'               => $this->field_key . 'case_medium_id',
+			'label'             => __( 'Activity Medium', 'civicrm-wp-profile-sync' ),
+			'name'              => $this->field_name . 'case_medium_id',
+			'type'              => 'select',
+			'instructions'      => '',
+			'required'          => 0,
 			'conditional_logic' => 0,
-			'wrapper' => [
-				'width' => '',
-				'class' => '',
-				'id' => '',
+			'wrapper'           => [
+				'width'                      => '',
+				'class'                      => '',
+				'id'                         => '',
 				'data-instruction-placement' => 'field',
 			],
-			'acfe_permissions' => '',
-			'default_value' => $this->civicrm->option_value_default_get( 'encounter_medium' ),
-			'placeholder' => '',
-			'allow_null' => 0,
-			'multiple' => 0,
-			'ui' => 0,
-			'return_format' => 'value',
-			'choices' => $this->civicrm->case_field->options_get( 'case_medium_id' ),
+			'acfe_permissions'  => '',
+			'default_value'     => $this->case_encounter_medium,
+			'placeholder'       => '',
+			'allow_null'        => 0,
+			'multiple'          => 0,
+			'ui'                => 0,
+			'return_format'     => 'value',
+			'choices'           => $this->case_encounter_choices,
 		];
 
 		// Add Conditional Field.
-		$code = 'case_conditional';
-		$label = __( 'Conditional On', 'civicrm-wp-profile-sync' );
-		$conditional = $this->mapping_field_get( $code, $label );
+		$code                       = 'case_conditional';
+		$label                      = __( 'Conditional On', 'civicrm-wp-profile-sync' );
+		$conditional                = $this->mapping_field_get( $code, $label );
 		$conditional['placeholder'] = __( 'Always add', 'civicrm-wp-profile-sync' );
 		$conditional['wrapper']['data-instruction-placement'] = 'field';
-		$conditional['instructions'] = __( 'To add the Case only when a Form Field is populated (e.g. "Subject") link this to the Form Field. To add the Case only when more complex conditions are met, link this to a Hidden Field with value "1" where the conditional logic of that Field shows it when the conditions are met.', 'civicrm-wp-profile-sync' );
+		$conditional['instructions']                          = __( 'To add the Case only when a Form Field is populated (e.g. "Subject") link this to the Form Field. To add the Case only when more complex conditions are met, link this to a Hidden Field with value "1" where the conditional logic of that Field shows it when the conditions are met.', 'civicrm-wp-profile-sync' );
 
 		// Define "Dismiss if exists" Field.
 		$dismiss_if_exists_field = [
-			'key' => $this->field_key . 'dismiss_if_exists',
-			'label' => __( 'Skip creating the Case?', 'civicrm-wp-profile-sync' ),
-			'name' => $this->field_name . 'dismiss_if_exists',
-			'type' => 'true_false',
-			'instructions' => __( 'Skip creating a Case if the Contact already has a Case of this Type. See "Cheatsheet" for how to reference the "created" and "skipped" variables in this action to make other Form Actions conditional on whether the Case is created or skipped.', 'civicrm-wp-profile-sync' ),
-			'required' => 0,
+			'key'               => $this->field_key . 'dismiss_if_exists',
+			'label'             => __( 'Skip creating the Case?', 'civicrm-wp-profile-sync' ),
+			'name'              => $this->field_name . 'dismiss_if_exists',
+			'type'              => 'true_false',
+			'instructions'      => __( 'Skip creating a Case if the Contact already has a Case of this Type. See "Cheatsheet" for how to reference the "created" and "skipped" variables in this action to make other Form Actions conditional on whether the Case is created or skipped.', 'civicrm-wp-profile-sync' ),
+			'required'          => 0,
 			'conditional_logic' => 0,
-			'wrapper' => [
-				'width' => '',
-				'class' => '',
-				'id' => '',
+			'wrapper'           => [
+				'width'                      => '',
+				'class'                      => '',
+				'id'                         => '',
 				'data-instruction-placement' => 'field',
 			],
-			'acfe_permissions' => '',
-			'message' => '',
-			'default_value' => 0,
-			'ui' => 1,
-			'ui_on_text' => '',
-			'ui_off_text' => '',
+			'acfe_permissions'  => '',
+			'message'           => '',
+			'default_value'     => 0,
+			'ui'                => 1,
+			'ui_on_text'        => '',
+			'ui_off_text'       => '',
 		];
 
 		// Define "Dismissed Message" Field.
 		$dismiss_message_field = [
-			'key' => $this->field_key . 'dismiss_message',
-			'label' => __( 'Message', 'civicrm-wp-profile-sync' ),
-			'name' => $this->field_name . 'dismiss_message',
-			'type' => 'textarea',
-			'instructions' => __( 'Message to display on the Success Page if the Case of this Type already exists. See "Cheatsheet" for how to reference the "dismiss_message" variable in this action.', 'civicrm-wp-profile-sync' ),
-			'required' => 0,
+			'key'               => $this->field_key . 'dismiss_message',
+			'label'             => __( 'Message', 'civicrm-wp-profile-sync' ),
+			'name'              => $this->field_name . 'dismiss_message',
+			'type'              => 'textarea',
+			'instructions'      => __( 'Message to display on the Success Page if the Case of this Type already exists. See "Cheatsheet" for how to reference the "dismiss_message" variable in this action.', 'civicrm-wp-profile-sync' ),
+			'required'          => 0,
 			'conditional_logic' => [
 				[
 					[
-						'field' => $this->field_key . 'dismiss_if_exists',
-						//'operator' => '!=empty',
+						'field'    => $this->field_key . 'dismiss_if_exists',
+						// 'operator' => '!=empty',
 						'operator' => '==',
-						'value' => '1',
+						'value'    => '1',
 					],
 				],
 			],
-			'wrapper' => [
-				'width' => '',
-				'class' => '',
-				'id' => '',
+			'wrapper'           => [
+				'width'                      => '',
+				'class'                      => '',
+				'id'                         => '',
 				'data-instruction-placement' => 'field',
 			],
-			'acfe_permissions' => '',
-			'placeholder' => '',
-			'maxlength' => '',
-			'rows' => 4,
-			'new_lines' => '',
+			'acfe_permissions'  => '',
+			'placeholder'       => '',
+			'maxlength'         => '',
+			'rows'              => 4,
+			'new_lines'         => '',
 		];
 
 		// Init Fields.
@@ -554,22 +733,22 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Case extends CiviCRM_Profile_Syn
 
 		// "Contact References" Accordion wrapper open.
 		$fields[] = [
-			'key' => $this->field_key . 'mapping_accordion_contacts_open',
-			'label' => __( 'Contact References', 'civicrm-wp-profile-sync' ),
-			'name' => '',
-			'type' => 'accordion',
-			'instructions' => '',
-			'required' => 0,
+			'key'               => $this->field_key . 'mapping_accordion_contacts_open',
+			'label'             => __( 'Contact References', 'civicrm-wp-profile-sync' ),
+			'name'              => '',
+			'type'              => 'accordion',
+			'instructions'      => '',
+			'required'          => 0,
 			'conditional_logic' => 0,
-			'wrapper' => [
+			'wrapper'           => [
 				'width' => '',
 				'class' => '',
-				'id' => '',
+				'id'    => '',
 			],
-			'acfe_permissions' => '',
-			'open' => 0,
-			'multi_expand' => 1,
-			'endpoint' => 0,
+			'acfe_permissions'  => '',
+			'open'              => 0,
+			'multi_expand'      => 1,
+			'endpoint'          => 0,
 		];
 
 		// Add Contact Reference Fields.
@@ -577,50 +756,50 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Case extends CiviCRM_Profile_Syn
 
 			// Bundle them into a container group.
 			$contact_group_field = [
-				'key' => $this->field_key . 'contact_group_' . $field['name'],
-				'label' => $field['title'],
-				'name' => $this->field_name . 'contact_group_' . $field['name'],
-				'type' => 'group',
+				'key'          => $this->field_key . 'contact_group_' . $field['name'],
+				'label'        => $field['title'],
+				'name'         => $this->field_name . 'contact_group_' . $field['name'],
+				'type'         => 'group',
 				/* translators: %s: The name of the Field */
 				'instructions' => sprintf( __( 'Use one Field to identify the %s.', 'civicrm-wp-profile-sync' ), $field['title'] ),
-				'wrapper' => [
+				'wrapper'      => [
 					'width' => '',
 					'class' => '',
-					'id' => '',
+					'id'    => '',
 				],
-				'required' => 0,
-				'layout' => 'block',
+				'required'     => 0,
+				'layout'       => 'block',
 			];
 
 			// Define Contact Action Reference Field.
 			$contact_group_field['sub_fields'][] = [
-				'key' => $this->field_key . 'ref_' . $field['name'],
-				'label' => __( 'CiviCRM Contact Action', 'civicrm-wp-profile-sync' ),
-				'name' => $this->field_name . 'ref_' . $field['name'],
-				'type' => 'cwps_acfe_contact_action_ref',
-				'instructions' => __( 'Select a Contact Action in this Form.', 'civicrm-wp-profile-sync' ),
-				'required' => 0,
-				'wrapper' => [
+				'key'               => $this->field_key . 'ref_' . $field['name'],
+				'label'             => __( 'CiviCRM Contact Action', 'civicrm-wp-profile-sync' ),
+				'name'              => $this->field_name . 'ref_' . $field['name'],
+				'type'              => 'cwps_acfe_contact_action_ref',
+				'instructions'      => __( 'Select a Contact Action in this Form.', 'civicrm-wp-profile-sync' ),
+				'required'          => 0,
+				'wrapper'           => [
 					'width' => '',
 					'class' => '',
-					'id' => '',
+					'id'    => '',
 				],
-				'acfe_permissions' => '',
-				'default_value' => '',
-				'placeholder' => __( 'None', 'civicrm-wp-profile-sync' ),
-				'allow_null' => 0,
-				'multiple' => 0,
-				'ui' => 0,
-				'return_format' => 'value',
-				'choices' => [],
+				'acfe_permissions'  => '',
+				'default_value'     => '',
+				'placeholder'       => __( 'None', 'civicrm-wp-profile-sync' ),
+				'allow_null'        => 0,
+				'multiple'          => 0,
+				'ui'                => 0,
+				'return_format'     => 'value',
+				'choices'           => [],
 				'conditional_logic' => [
 					[
 						[
-							'field' => $this->field_key . 'map_' . $field['name'],
+							'field'    => $this->field_key . 'map_' . $field['name'],
 							'operator' => '==empty',
 						],
 						[
-							'field' => $this->field_key . 'cid_' . $field['name'],
+							'field'    => $this->field_key . 'cid_' . $field['name'],
 							'operator' => '==empty',
 						],
 					],
@@ -629,33 +808,33 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Case extends CiviCRM_Profile_Syn
 
 			// Define Contact ID Field.
 			$cid_field = [
-				'key' => $this->field_key . 'cid_' . $field['name'],
-				'label' => __( 'CiviCRM Contact ID', 'civicrm-wp-profile-sync' ),
-				'name' => $this->field_name . 'cid_' . $field['name'],
-				'type' => 'civicrm_contact',
-				'instructions' => __( 'Select a CiviCRM Contact ID from the database.', 'civicrm-wp-profile-sync' ),
-				'required' => 0,
-				'wrapper' => [
+				'key'               => $this->field_key . 'cid_' . $field['name'],
+				'label'             => __( 'CiviCRM Contact ID', 'civicrm-wp-profile-sync' ),
+				'name'              => $this->field_name . 'cid_' . $field['name'],
+				'type'              => 'civicrm_contact',
+				'instructions'      => __( 'Select a CiviCRM Contact ID from the database.', 'civicrm-wp-profile-sync' ),
+				'required'          => 0,
+				'wrapper'           => [
 					'width' => '',
 					'class' => '',
-					'id' => '',
+					'id'    => '',
 				],
-				'acfe_permissions' => '',
-				'default_value' => '',
-				'placeholder' => __( 'None', 'civicrm-wp-profile-sync' ),
-				'allow_null' => 0,
-				'multiple' => 0,
-				'ui' => 0,
-				'return_format' => 'value',
-				'choices' => [],
+				'acfe_permissions'  => '',
+				'default_value'     => '',
+				'placeholder'       => __( 'None', 'civicrm-wp-profile-sync' ),
+				'allow_null'        => 0,
+				'multiple'          => 0,
+				'ui'                => 0,
+				'return_format'     => 'value',
+				'choices'           => [],
 				'conditional_logic' => [
 					[
 						[
-							'field' => $this->field_key . 'ref_' . $field['name'],
+							'field'    => $this->field_key . 'ref_' . $field['name'],
 							'operator' => '==empty',
 						],
 						[
-							'field' => $this->field_key . 'map_' . $field['name'],
+							'field'    => $this->field_key . 'map_' . $field['name'],
 							'operator' => '==empty',
 						],
 					],
@@ -666,17 +845,17 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Case extends CiviCRM_Profile_Syn
 			$contact_group_field['sub_fields'][] = $cid_field;
 
 			// Define Custom Contact Reference Field.
-			$title = sprintf( __( 'Custom Contact Reference', 'civicrm-wp-profile-sync' ), $field['title'] );
-			$mapping_field = $this->mapping_field_get( $field['name'], $title );
-			$mapping_field['instructions'] = __( 'Define a custom Contact Reference.', 'civicrm-wp-profile-sync' );
+			$title                              = sprintf( __( 'Custom Contact Reference', 'civicrm-wp-profile-sync' ), $field['title'] );
+			$mapping_field                      = $this->mapping_field_get( $field['name'], $title );
+			$mapping_field['instructions']      = __( 'Define a custom Contact Reference.', 'civicrm-wp-profile-sync' );
 			$mapping_field['conditional_logic'] = [
 				[
 					[
-						'field' => $this->field_key . 'ref_' . $field['name'],
+						'field'    => $this->field_key . 'ref_' . $field['name'],
 						'operator' => '==empty',
 					],
 					[
-						'field' => $this->field_key . 'cid_' . $field['name'],
+						'field'    => $this->field_key . 'cid_' . $field['name'],
 						'operator' => '==empty',
 					],
 				],
@@ -692,22 +871,22 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Case extends CiviCRM_Profile_Syn
 
 		// "Contact References" Accordion wrapper close.
 		$fields[] = [
-			'key' => $this->field_key . 'mapping_accordion_contacts_close',
-			'label' => __( 'Contact References', 'civicrm-wp-profile-sync' ),
-			'name' => '',
-			'type' => 'accordion',
-			'instructions' => '',
-			'required' => 0,
+			'key'               => $this->field_key . 'mapping_accordion_contacts_close',
+			'label'             => __( 'Contact References', 'civicrm-wp-profile-sync' ),
+			'name'              => '',
+			'type'              => 'accordion',
+			'instructions'      => '',
+			'required'          => 0,
 			'conditional_logic' => 0,
-			'wrapper' => [
+			'wrapper'           => [
 				'width' => '',
 				'class' => '',
-				'id' => '',
+				'id'    => '',
 			],
-			'acfe_permissions' => '',
-			'open' => 0,
-			'multi_expand' => 1,
-			'endpoint' => 1,
+			'acfe_permissions'  => '',
+			'open'              => 0,
+			'multi_expand'      => 1,
+			'endpoint'          => 1,
 		];
 
 		// --<
@@ -729,22 +908,22 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Case extends CiviCRM_Profile_Syn
 
 		// "Case Fields" Accordion wrapper open.
 		$fields[] = [
-			'key' => $this->field_key . 'mapping_accordion_case_open',
-			'label' => __( 'Case Fields', 'civicrm-wp-profile-sync' ),
-			'name' => '',
-			'type' => 'accordion',
-			'instructions' => '',
-			'required' => 0,
+			'key'               => $this->field_key . 'mapping_accordion_case_open',
+			'label'             => __( 'Case Fields', 'civicrm-wp-profile-sync' ),
+			'name'              => '',
+			'type'              => 'accordion',
+			'instructions'      => '',
+			'required'          => 0,
 			'conditional_logic' => 0,
-			'wrapper' => [
+			'wrapper'           => [
 				'width' => '',
 				'class' => '',
-				'id' => '',
+				'id'    => '',
 			],
-			'acfe_permissions' => '',
-			'open' => 0,
-			'multi_expand' => 1,
-			'endpoint' => 0,
+			'acfe_permissions'  => '',
+			'open'              => 0,
+			'multi_expand'      => 1,
+			'endpoint'          => 0,
 		];
 
 		// Add "Mapping" Fields.
@@ -756,22 +935,22 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Case extends CiviCRM_Profile_Syn
 
 		// "Case Fields" Accordion wrapper close.
 		$fields[] = [
-			'key' => $this->field_key . 'mapping_accordion_case_close',
-			'label' => __( 'Case Fields', 'civicrm-wp-profile-sync' ),
-			'name' => '',
-			'type' => 'accordion',
-			'instructions' => '',
-			'required' => 0,
+			'key'               => $this->field_key . 'mapping_accordion_case_close',
+			'label'             => __( 'Case Fields', 'civicrm-wp-profile-sync' ),
+			'name'              => '',
+			'type'              => 'accordion',
+			'instructions'      => '',
+			'required'          => 0,
 			'conditional_logic' => 0,
-			'wrapper' => [
+			'wrapper'           => [
 				'width' => '',
 				'class' => '',
-				'id' => '',
+				'id'    => '',
 			],
-			'acfe_permissions' => '',
-			'open' => 0,
-			'multi_expand' => 1,
-			'endpoint' => 1,
+			'acfe_permissions'  => '',
+			'open'              => 0,
+			'multi_expand'      => 1,
+			'endpoint'          => 1,
 		];
 
 		// --<
@@ -793,26 +972,23 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Case extends CiviCRM_Profile_Syn
 
 		// "Custom Fields" Accordion wrapper open.
 		$fields[] = [
-			'key' => $this->field_key . 'mapping_accordion_custom_open',
-			'label' => __( 'Custom Fields', 'civicrm-wp-profile-sync' ),
-			'name' => '',
-			'type' => 'accordion',
-			'instructions' => '',
-			'required' => 0,
+			'key'               => $this->field_key . 'mapping_accordion_custom_open',
+			'label'             => __( 'Custom Fields', 'civicrm-wp-profile-sync' ),
+			'name'              => '',
+			'type'              => 'accordion',
+			'instructions'      => '',
+			'required'          => 0,
 			'conditional_logic' => 0,
-			'wrapper' => [
+			'wrapper'           => [
 				'width' => '',
 				'class' => '',
-				'id' => '',
+				'id'    => '',
 			],
-			'acfe_permissions' => '',
-			'open' => 0,
-			'multi_expand' => 1,
-			'endpoint' => 0,
+			'acfe_permissions'  => '',
+			'open'              => 0,
+			'multi_expand'      => 1,
+			'endpoint'          => 0,
 		];
-
-		// Get top-level Case Types.
-		$case_types = $this->civicrm->case_type->choices_get();
 
 		// Add "Mapping" Fields.
 		foreach ( $this->custom_fields as $key => $custom_group ) {
@@ -836,9 +1012,9 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Case extends CiviCRM_Profile_Syn
 				foreach ( $case_type_ids as $case_type_id ) {
 
 					$case_type = [
-						'field' => $this->field_key . 'case_types',
+						'field'    => $this->field_key . 'case_types',
 						'operator' => '==contains',
-						'value' => $case_type_id,
+						'value'    => $case_type_id,
 					];
 
 					$conditional_logic[] = [
@@ -850,15 +1026,15 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Case extends CiviCRM_Profile_Syn
 
 			// Bundle the Custom Fields into a container group.
 			$custom_group_field = [
-				'key' => $this->field_key . 'custom_group_' . $custom_group['id'],
-				'label' => $custom_group['title'],
-				'name' => $this->field_name . 'custom_group_' . $custom_group['id'],
-				'type' => 'group',
-				'instructions' => '',
+				'key'                   => $this->field_key . 'custom_group_' . $custom_group['id'],
+				'label'                 => $custom_group['title'],
+				'name'                  => $this->field_name . 'custom_group_' . $custom_group['id'],
+				'type'                  => 'group',
+				'instructions'          => '',
 				'instruction_placement' => 'field',
-				'required' => 0,
-				'layout' => 'block',
-				'conditional_logic' => $conditional_logic,
+				'required'              => 0,
+				'layout'                => 'block',
+				'conditional_logic'     => $conditional_logic,
 			];
 
 			// Init sub Fields array.
@@ -866,7 +1042,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Case extends CiviCRM_Profile_Syn
 
 			// Add "Map" Fields for the Custom Fields.
 			foreach ( $custom_group['api.CustomField.get']['values'] as $custom_field ) {
-				$code = 'custom_' . $custom_field['id'];
+				$code         = 'custom_' . $custom_field['id'];
 				$sub_fields[] = $this->mapping_field_get( $code, $custom_field['label'], $conditional_logic );
 			}
 
@@ -880,22 +1056,22 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Case extends CiviCRM_Profile_Syn
 
 		// "Custom Fields" Accordion wrapper close.
 		$fields[] = [
-			'key' => $this->field_key . 'mapping_accordion_custom_close',
-			'label' => __( 'Custom Fields', 'civicrm-wp-profile-sync' ),
-			'name' => '',
-			'type' => 'accordion',
-			'instructions' => '',
-			'required' => 0,
+			'key'               => $this->field_key . 'mapping_accordion_custom_close',
+			'label'             => __( 'Custom Fields', 'civicrm-wp-profile-sync' ),
+			'name'              => '',
+			'type'              => 'accordion',
+			'instructions'      => '',
+			'required'          => 0,
 			'conditional_logic' => 0,
-			'wrapper' => [
+			'wrapper'           => [
 				'width' => '',
 				'class' => '',
-				'id' => '',
+				'id'    => '',
 			],
-			'acfe_permissions' => '',
-			'open' => 0,
-			'multi_expand' => 1,
-			'endpoint' => 1,
+			'acfe_permissions'  => '',
+			'open'              => 0,
+			'multi_expand'      => 1,
+			'endpoint'          => 1,
 		];
 
 		// --<
@@ -910,9 +1086,9 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Case extends CiviCRM_Profile_Syn
 	 *
 	 * @since 0.5
 	 *
-	 * @param array $form The array of Form data.
+	 * @param array   $form The array of Form data.
 	 * @param integer $current_post_id The ID of the Post from which the Form has been submitted.
-	 * @param string $action The customised name of the action.
+	 * @param string  $action The customised name of the action.
 	 * @return array $data The array of Case data.
 	 */
 	public function form_case_data( $form, $current_post_id, $action ) {
@@ -955,18 +1131,18 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Case extends CiviCRM_Profile_Syn
 			$contact_id = false;
 			if ( ! empty( $contact_group_field[ $this->field_name . 'ref_' . $field['name'] ] ) ) {
 				$action_name = $contact_group_field[ $this->field_name . 'ref_' . $field['name'] ];
-				$contact_id = $this->form_contact_id_get_mapped( $action_name );
+				$contact_id  = $this->form_contact_id_get_mapped( $action_name );
 			}
 
 			// Check Contact ID Field.
-			if ( $contact_id === false ) {
+			if ( false === $contact_id ) {
 				if ( ! empty( $contact_group_field[ $this->field_name . 'cid_' . $field['name'] ] ) ) {
 					$contact_id = $contact_group_field[ $this->field_name . 'cid_' . $field['name'] ];
 				}
 			}
 
 			// Check mapped Field.
-			if ( $contact_id === false ) {
+			if ( false === $contact_id ) {
 				if ( ! empty( $contact_group_field[ $this->field_name . 'map_' . $field['name'] ] ) ) {
 					$reference = [ $field['name'] => $contact_group_field[ $this->field_name . 'map_' . $field['name'] ] ];
 					$reference = acfe_form_map_vs_fields( $reference, $reference, $current_post_id, $form );
@@ -985,7 +1161,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Case extends CiviCRM_Profile_Syn
 
 		// Get Case Conditional Reference.
 		$data['case_conditional_ref'] = get_sub_field( $this->field_key . 'map_case_conditional' );
-		$conditionals = [ $data['case_conditional_ref'] ];
+		$conditionals                 = [ $data['case_conditional_ref'] ];
 
 		// Populate array with mapped Conditional Field values.
 		$conditionals = acfe_form_map_vs_fields( $conditionals, $conditionals, $current_post_id, $form );
@@ -1003,9 +1179,9 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Case extends CiviCRM_Profile_Syn
 	 *
 	 * @since 0.5.2
 	 *
-	 * @param array $form The array of Form data.
+	 * @param array   $form The array of Form data.
 	 * @param integer $current_post_id The ID of the Post from which the Form has been submitted.
-	 * @param string $action The customised name of the action.
+	 * @param string  $action The customised name of the action.
 	 * @return bool $valid True if the Case can be saved, false otherwise.
 	 */
 	public function form_case_validate( $form, $current_post_id, $action ) {
@@ -1047,11 +1223,14 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Case extends CiviCRM_Profile_Syn
 
 		// Reject the submission if the Case Type ID is missing.
 		if ( empty( $case['case_type_id'] ) ) {
-			acfe_add_validation_error( '', sprintf(
-				/* translators: %s The name of the Form Action */
-				__( 'A Case Type ID is required to create a Case in "%s".', 'civicrm-wp-profile-sync' ),
-				$action
-			) );
+			acfe_add_validation_error(
+				'',
+				sprintf(
+					/* translators: %s The name of the Form Action */
+					__( 'A Case Type ID is required to create a Case in "%s".', 'civicrm-wp-profile-sync' ),
+					$action
+				)
+			);
 			return false;
 		}
 
@@ -1085,7 +1264,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Case extends CiviCRM_Profile_Syn
 		// When skipping, get the existing Case and return early if it exists.
 		if ( ! empty( $case_data['dismiss_if_exists'] ) ) {
 			$case = $this->civicrm->case->get_by_type_and_contact( $case_data['case_type_id'], $case_data['contact_id'] );
-			if ( $case !== false ) {
+			if ( false !== $case ) {
 
 				// Flag that creating the Case has been skipped.
 				$case['skipped'] = true;
@@ -1122,13 +1301,13 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Case extends CiviCRM_Profile_Syn
 
 			// Build params to create a "Case Contact".
 			$params = [
-				'case_id' => $case_data['id'],
+				'case_id'    => $case_data['id'],
 				'contact_id' => $case_data['contact_id'],
 			];
 
 			// Add the Case Contact.
 			$result = $this->civicrm->case->contact_create( $params );
-			if ( $result === false ) {
+			if ( false === $result ) {
 				return $case;
 			}
 
@@ -1141,7 +1320,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Case extends CiviCRM_Profile_Syn
 
 			// Let's create the Case.
 			$result = $this->civicrm->case->create( $case_data );
-			if ( $result === false ) {
+			if ( false === $result ) {
 				return $case;
 			}
 
@@ -1206,9 +1385,9 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Case extends CiviCRM_Profile_Syn
 	 *
 	 * @since 0.5
 	 *
-	 * @param array $form The array of Form data.
+	 * @param array   $form The array of Form data.
 	 * @param integer $current_post_id The ID of the Post from which the Form has been submitted.
-	 * @param string $action The customised name of the action.
+	 * @param string  $action The customised name of the action.
 	 * @return array $data The array of Custom Fields data.
 	 */
 	public function form_custom_data( $form, $current_post_id, $action ) {
@@ -1236,11 +1415,11 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Case extends CiviCRM_Profile_Syn
 				foreach ( $custom_group['api.CustomField.get']['values'] as $custom_field ) {
 
 					// Add to mapped Fields array.
-					$code = 'custom_' . $custom_field['id'];
+					$code            = 'custom_' . $custom_field['id'];
 					$fields[ $code ] = $custom_group_field[ $this->field_name . 'map_' . $code ];
 
 					// Track any "File" Custom Fields.
-					if ( $custom_field['data_type'] === 'File' ) {
+					if ( 'File' === $custom_field['data_type'] ) {
 						$file_fields[ $code ] = $custom_field['id'];
 					}
 
@@ -1270,7 +1449,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Case extends CiviCRM_Profile_Syn
 				// Flag for possible deletion if no File was uploaded.
 				if ( empty( $data[ $code ] ) ) {
 					$this->file_fields_empty[ $code ] = [
-						'field' => $field_ref,
+						'field'    => $field_ref,
 						'selector' => $selector,
 						'settings' => $settings,
 					];
@@ -1282,7 +1461,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Case extends CiviCRM_Profile_Syn
 				// Build an args array.
 				$args = [
 					'selector' => $selector,
-					'post_id' => $current_post_id,
+					'post_id'  => $current_post_id,
 				];
 
 				// Overwrite entry in data array with data for CiviCRM.
@@ -1316,10 +1495,10 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Case extends CiviCRM_Profile_Syn
 	 *
 	 * @since 0.5.2
 	 *
-	 * @param array $form The array of Form data.
+	 * @param array   $form The array of Form data.
 	 * @param integer $current_post_id The ID of the Post from which the Form has been submitted.
-	 * @param string $action The customised name of the action.
-	 * @param array $case The array of Case data.
+	 * @param string  $action The customised name of the action.
+	 * @param array   $case The array of Case data.
 	 * @return array $data The array of Custom Fields data.
 	 */
 	public function form_custom_post_process( $form, $current_post_id, $action, $case ) {
@@ -1336,9 +1515,12 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Case extends CiviCRM_Profile_Syn
 
 		// Get the array of Custom Field IDs.
 		$custom_field_ids = array_keys( $this->file_fields_empty );
-		array_walk( $custom_field_ids, function( &$item ) {
-			$item = (int) trim( str_replace( 'custom_', '', $item ) );
-		} );
+		array_walk(
+			$custom_field_ids,
+			function( &$item ) {
+				$item = (int) trim( str_replace( 'custom_', '', $item ) );
+			}
+		);
 
 		// Get the corresponding values.
 		$values = $this->civicrm->custom_field->values_get_by_case_id( $case['id'], $custom_field_ids );
@@ -1364,7 +1546,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Case extends CiviCRM_Profile_Syn
 
 			// Build args.
 			$args = [
-				'entity_id' => $case['id'],
+				'entity_id'       => $case['id'],
 				'custom_field_id' => $custom_field_id,
 			];
 

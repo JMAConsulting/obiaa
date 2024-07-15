@@ -61,7 +61,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Contact_Type {
 	public function __construct( $parent ) {
 
 		// Store references to objects.
-		$this->plugin = $parent->plugin;
+		$this->plugin  = $parent->plugin;
 		$this->civicrm = $parent;
 
 		// Init when the CiviCRM object is loaded.
@@ -137,10 +137,10 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Contact_Type {
 
 		// Define params to get all Contact Types.
 		$params = [
-			'version' => 3,
+			'version'    => 3,
 			'sequential' => 1,
-			'is_active' => 1,
-			'options' => [
+			'is_active'  => 1,
+			'options'    => [
 				'limit' => 0, // No limit.
 			],
 		];
@@ -149,7 +149,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Contact_Type {
 		$result = civicrm_api( 'ContactType', 'get', $params );
 
 		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
 			return $all;
 		}
 
@@ -191,10 +191,10 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Contact_Type {
 
 		// Define params to get all Contact Types.
 		$params = [
-			'version' => 3,
+			'version'    => 3,
 			'sequential' => 1,
-			'is_active' => 1,
-			'options' => [
+			'is_active'  => 1,
+			'options'    => [
 				'limit' => 0, // No limit.
 			],
 		];
@@ -203,7 +203,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Contact_Type {
 		$result = civicrm_api( 'ContactType', 'get', $params );
 
 		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
 			return $nested;
 		}
 
@@ -266,12 +266,12 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Contact_Type {
 		$contact_type_data = $this->get_data( $contact_type, $mode );
 
 		// Bail if we didn't get any.
-		if ( $contact_type_data === false ) {
+		if ( false === $contact_type_data ) {
 			return $types;
 		}
 
 		// Overwrite with name when passing in an ID.
-		if ( $mode == 'id' ) {
+		if ( 'id' === $mode ) {
 			$contact_type_name = $contact_type_data['name'];
 		} else {
 			$contact_type_name = $contact_type;
@@ -285,16 +285,16 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Contact_Type {
 
 			// Define params to get top-level Contact Type.
 			$params = [
-				'version' => 3,
+				'version'    => 3,
 				'sequential' => 1,
-				'id' => $contact_type_data['parent_id'],
+				'id'         => $contact_type_data['parent_id'],
 			];
 
 			// Call the API.
 			$result = civicrm_api( 'ContactType', 'getsingle', $params );
 
 			// Bail if there's an error.
-			if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+			if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
 				return $types;
 			}
 
@@ -305,16 +305,16 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Contact_Type {
 
 		// Clear subtype if identical to type.
 		if ( $contact_type_name == $top_level_type ) {
-			$contact_subtype = '';
+			$contact_subtype   = '';
 			$contact_type_name = $top_level_type;
 		} else {
-			$contact_subtype = $contact_type_data['name'];
+			$contact_subtype   = $contact_type_data['name'];
 			$contact_type_name = $top_level_type;
 		}
 
 		// Build types.
 		$types = [
-			'type' => $contact_type_name,
+			'type'    => $contact_type_name,
 			'subtype' => [ $contact_subtype ],
 		];
 
@@ -374,7 +374,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Contact_Type {
 				$contact_sub_type = $contact['contact_sub_type'];
 			} else {
 				if ( false !== strpos( $contact['contact_sub_type'], CRM_Core_DAO::VALUE_SEPARATOR ) ) {
-					$types = CRM_Utils_Array::explodePadded( $contact['contact_sub_type'] );
+					$types            = CRM_Utils_Array::explodePadded( $contact['contact_sub_type'] );
 					$contact_sub_type = $types;
 				} else {
 					$contact_sub_type = [ $contact['contact_sub_type'] ];
@@ -384,7 +384,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Contact_Type {
 
 		// Build types.
 		$types = [
-			'type' => $contact_type,
+			'type'    => $contact_type,
 			'subtype' => array_unique( $contact_sub_type ),
 		];
 
@@ -433,7 +433,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Contact_Type {
 		} else {
 			foreach ( $hierarchy['subtype'] as $subtype ) {
 				$contact_types[] = [
-					'type' => $hierarchy['type'],
+					'type'    => $hierarchy['type'],
 					'subtype' => $subtype,
 				];
 			}
@@ -452,7 +452,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Contact_Type {
 	 * @since 0.4
 	 *
 	 * @param string|integer $contact_type The name or ID of the CiviCRM Contact Type to query.
-	 * @param string $mode The param to query by: 'name' or 'id'.
+	 * @param string         $mode The param to query by: 'name' or 'id'.
 	 * @return array|bool $contact_type_data An array of Contact Type data, or false on failure.
 	 */
 	public function get_data( $contact_type, $mode = 'name' ) {
@@ -478,17 +478,17 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Contact_Type {
 
 		// Define params to get queried Contact Type.
 		$params = [
-			'version' => 3,
+			'version'    => 3,
 			'sequential' => 1,
-			'options' => [
+			'options'    => [
 				'limit' => 0, // No limit.
 			],
 		];
 
 		// Add param to query by.
-		if ( $mode == 'name' ) {
+		if ( 'name' === $mode ) {
 			$params['name'] = $contact_type;
-		} elseif ( $mode == 'id' ) {
+		} elseif ( 'id' === $mode ) {
 			$params['id'] = $contact_type;
 		}
 
@@ -496,7 +496,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Contact_Type {
 		$result = civicrm_api( 'ContactType', 'get', $params );
 
 		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
 			return $contact_type_data;
 		}
 

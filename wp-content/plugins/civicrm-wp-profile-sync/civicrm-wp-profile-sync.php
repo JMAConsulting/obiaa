@@ -1,14 +1,16 @@
 <?php
 /**
- * Plugin Name: CiviCRM Profile Sync
- * Plugin URI: https://github.com/christianwach/civicrm-wp-profile-sync
+ * CiviCRM Profile Sync
+ *
+ * Plugin Name:       CiviCRM Profile Sync
+ * Description:       Keeps a WordPress User profile in sync with a CiviCRM Contact and integrates WordPress and CiviCRM Entities with data synced via Advanced Custom Fields.
+ * Plugin URI:        https://github.com/christianwach/civicrm-wp-profile-sync
  * GitHub Plugin URI: https://github.com/christianwach/civicrm-wp-profile-sync
- * Description: Keeps a WordPress User profile in sync with a CiviCRM Contact and integrates WordPress and CiviCRM Entities with data synced via Advanced Custom Fields.
- * Author: Christian Wach
- * Version: 0.6.5
- * Author URI: https://haystack.co.uk
- * Text Domain: civicrm-wp-profile-sync
- * Domain Path: /languages
+ * Version:           0.6.8
+ * Author:            Christian Wach
+ * Author URI:        https://haystack.co.uk
+ * Text Domain:       civicrm-wp-profile-sync
+ * Domain Path:       /languages
  *
  * @package CiviCRM_WP_Profile_Sync
  * @since 0.1
@@ -18,7 +20,7 @@
 defined( 'ABSPATH' ) || exit;
 
 // Set plugin version here.
-define( 'CIVICRM_WP_PROFILE_SYNC_VERSION', '0.6.5' );
+define( 'CIVICRM_WP_PROFILE_SYNC_VERSION', '0.6.8' );
 
 // Set our bulk operations flag here.
 if ( ! defined( 'CIVICRM_WP_PROFILE_SYNC_BULK' ) ) {
@@ -143,7 +145,7 @@ class CiviCRM_WP_Profile_Sync {
 
 		// Only do this once.
 		static $done;
-		if ( isset( $done ) && $done === true ) {
+		if ( isset( $done ) && true === $done ) {
 			return;
 		}
 
@@ -211,13 +213,13 @@ class CiviCRM_WP_Profile_Sync {
 	public function setup_objects() {
 
 		// Initialise objects.
-		$this->admin = new CiviCRM_WP_Profile_Sync_Admin( $this );
-		$this->wp = new CiviCRM_WP_Profile_Sync_WordPress( $this );
+		$this->admin   = new CiviCRM_WP_Profile_Sync_Admin( $this );
+		$this->wp      = new CiviCRM_WP_Profile_Sync_WordPress( $this );
 		$this->civicrm = new CiviCRM_WP_Profile_Sync_CiviCRM( $this );
-		$this->bp = new CiviCRM_WP_Profile_Sync_BuddyPress( $this );
-		$this->cai = new CiviCRM_WP_Profile_Sync_CAI( $this );
-		$this->acf = new CiviCRM_WP_Profile_Sync_ACF_Loader( $this );
-		$this->mapper = new CiviCRM_WP_Profile_Sync_Mapper( $this );
+		$this->bp      = new CiviCRM_WP_Profile_Sync_BuddyPress( $this );
+		$this->cai     = new CiviCRM_WP_Profile_Sync_CAI( $this );
+		$this->acf     = new CiviCRM_WP_Profile_Sync_ACF_Loader( $this );
+		$this->mapper  = new CiviCRM_WP_Profile_Sync_Mapper( $this );
 
 	}
 

@@ -54,7 +54,7 @@ if ( ! class_exists( 'LoginPress_AJAX' ) ) :
 		 * Activate Plugins.
 		 *
 		 * @since 1.2.2
-		 * @version 3.0.0
+		 * @version 3.0.6
 		 */
 		function activate_addon() {
 
@@ -103,7 +103,7 @@ if ( ! class_exists( 'LoginPress_AJAX' ) ) :
 					activate_plugins( $free_slug );
 				}
 
-				echo wp_create_nonce( 'uninstall_' . $free_slug );
+				echo wp_create_nonce( 'uninstall_' . $plugin_slug );
 			}
 			wp_die();
 		}

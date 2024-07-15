@@ -57,7 +57,7 @@ class CiviCRM_Profile_Sync_ACF_Post_Type {
 	public function __construct( $acf_loader ) {
 
 		// Store references to objects.
-		$this->plugin = $acf_loader->plugin;
+		$this->plugin     = $acf_loader->plugin;
 		$this->acf_loader = $acf_loader;
 
 		// Init when this plugin is loaded.
@@ -102,11 +102,11 @@ class CiviCRM_Profile_Sync_ACF_Post_Type {
 
 		// Get CPTs with admin UI.
 		$args = [
-			'public'   => true,
+			'public'  => true,
 			'show_ui' => true,
 		];
 
-		$output = 'objects'; // Names or objects, note names is the default.
+		$output   = 'objects'; // Names or objects, note names is the default.
 		$operator = 'and'; // Operator may be 'and' or 'or'.
 
 		// Get Post Types.
@@ -149,14 +149,14 @@ class CiviCRM_Profile_Sync_ACF_Post_Type {
 
 		// Get existing Post Type.
 		$existing_post_type = '';
-		if ( $contact_type_id !== 0 ) {
+		if ( 0 !== $contact_type_id ) {
 			$existing_post_type = $this->acf_loader->mapping->mapping_for_contact_type_get( $contact_type_id );
 		}
 
 		// Retain only those which are unused, plus the existing one.
 		if ( count( $post_types ) > 0 ) {
 			foreach ( $post_types as $post_type ) {
-				$used = in_array( $post_type->name, $used_post_types );
+				$used = in_array( $post_type->name, $used_post_types, true );
 				$mine = ( $post_type->name == $existing_post_type ) ? true : false;
 				if ( ! $used || $mine ) {
 					$filtered[] = $post_type;
@@ -207,14 +207,14 @@ class CiviCRM_Profile_Sync_ACF_Post_Type {
 
 		// Get existing Post Type.
 		$existing_post_type = '';
-		if ( $activity_type_id !== 0 ) {
+		if ( 0 !== $activity_type_id ) {
 			$existing_post_type = $this->acf_loader->mapping->mapping_for_activity_type_get( $activity_type_id );
 		}
 
 		// Retain only those which are unused, plus the existing one.
 		if ( count( $post_types ) > 0 ) {
 			foreach ( $post_types as $post_type ) {
-				$used = in_array( $post_type->name, $used_post_types );
+				$used = in_array( $post_type->name, $used_post_types, true );
 				$mine = ( $post_type->name == $existing_post_type ) ? true : false;
 				if ( ! $used || $mine ) {
 					$filtered[] = $post_type;
@@ -265,14 +265,14 @@ class CiviCRM_Profile_Sync_ACF_Post_Type {
 
 		// Get existing Post Type.
 		$existing_post_type = '';
-		if ( $participant_role_id !== 0 ) {
+		if ( 0 !== $participant_role_id ) {
 			$existing_post_type = $this->acf_loader->mapping->mapping_for_participant_role_get( $participant_role_id );
 		}
 
 		// Retain only those which are unused, plus the existing one.
 		if ( count( $post_types ) > 0 ) {
 			foreach ( $post_types as $post_type ) {
-				$used = in_array( $post_type->name, $used_post_types );
+				$used = in_array( $post_type->name, $used_post_types, true );
 				$mine = ( $post_type->name == $existing_post_type ) ? true : false;
 				if ( ! $used || $mine ) {
 					$filtered[] = $post_type;
@@ -373,7 +373,7 @@ class CiviCRM_Profile_Sync_ACF_Post_Type {
 
 		// Loop through them and get the ones we want.
 		foreach ( $all_post_types as $post_type ) {
-			if ( in_array( $post_type->name, $synced_post_types ) ) {
+			if ( in_array( $post_type->name, $synced_post_types, true ) ) {
 				$post_types[] = $post_type;
 			}
 		}
@@ -415,7 +415,7 @@ class CiviCRM_Profile_Sync_ACF_Post_Type {
 		}
 
 		// Override if this Post Type is mapped.
-		if ( in_array( $post_type, $mapped_post_types ) ) {
+		if ( in_array( $post_type, $mapped_post_types, true ) ) {
 			$is_linked = true;
 		}
 
@@ -446,7 +446,7 @@ class CiviCRM_Profile_Sync_ACF_Post_Type {
 		}
 
 		// Override if this Post Type is mapped.
-		if ( in_array( $post_type, $mapped_post_types ) ) {
+		if ( in_array( $post_type, $mapped_post_types, true ) ) {
 			$is_linked = true;
 		}
 
@@ -477,7 +477,7 @@ class CiviCRM_Profile_Sync_ACF_Post_Type {
 		}
 
 		// Override if this Post Type is mapped.
-		if ( in_array( $post_type, $mapped_post_types ) ) {
+		if ( in_array( $post_type, $mapped_post_types, true ) ) {
 			$is_linked = true;
 		}
 
@@ -521,7 +521,7 @@ class CiviCRM_Profile_Sync_ACF_Post_Type {
 	 *
 	 * @since 0.5
 	 *
-	 * @param bool $supported The existing supported Location Rules status.
+	 * @param bool  $supported The existing supported Location Rules status.
 	 * @param array $rule The Location Rule.
 	 * @param array $params The query params array.
 	 * @param array $field_group The ACF Field Group data array.
@@ -530,7 +530,7 @@ class CiviCRM_Profile_Sync_ACF_Post_Type {
 	public function query_supported_rules( $supported, $rule, $params, $field_group ) {
 
 		// Bail if already supported.
-		if ( $supported === true ) {
+		if ( true === $supported ) {
 			return $supported;
 		}
 

@@ -106,7 +106,7 @@ class CiviCRM_WP_Profile_Sync_Mapper_UFMatch {
 	 *
 	 * @since 0.4
 	 *
-	 * @param integer $user_id The numeric ID of the WordPress User.
+	 * @param integer        $user_id The numeric ID of the WordPress User.
 	 * @param integer|string $domain_id The Domain ID (defaults to current Domain ID) or a string to search all Domains.
 	 * @return integer|bool $contact_id The CiviCRM contact ID, or false on failure.
 	 */
@@ -130,7 +130,7 @@ class CiviCRM_WP_Profile_Sync_Mapper_UFMatch {
 			$entry = $this->entry_get_by_user_id( $user_id, $domain_id );
 
 			// If we get one.
-			if ( $entry !== false ) {
+			if ( false !== $entry ) {
 
 				// Get the Contact ID if present.
 				if ( ! empty( $entry->contact_id ) ) {
@@ -166,7 +166,7 @@ class CiviCRM_WP_Profile_Sync_Mapper_UFMatch {
 	 *
 	 * @since 0.4
 	 *
-	 * @param integer $user_id The numeric ID of the WordPress User.
+	 * @param integer        $user_id The numeric ID of the WordPress User.
 	 * @param integer|string $domain_id The Domain ID (defaults to current Domain ID) or a string to search all Domains.
 	 * @return array|bool $contact The CiviCRM Contact data, or false on failure.
 	 */
@@ -176,7 +176,7 @@ class CiviCRM_WP_Profile_Sync_Mapper_UFMatch {
 		$contact_id = $this->contact_id_get_by_user_id( $user_id, $domain_id );
 
 		// Bail if we didn't get one.
-		if ( $contact_id === false ) {
+		if ( false === $contact_id ) {
 			return false;
 		}
 
@@ -195,7 +195,7 @@ class CiviCRM_WP_Profile_Sync_Mapper_UFMatch {
 	 *
 	 * @since 0.4
 	 *
-	 * @param integer $contact_id The numeric ID of the CiviCRM Contact.
+	 * @param integer        $contact_id The numeric ID of the CiviCRM Contact.
 	 * @param integer|string $domain_id The Domain ID (defaults to current Domain ID) or a string to search all Domains.
 	 * @return int|bool $user_id The numeric WordPress User ID, or false on failure.
 	 */
@@ -216,7 +216,7 @@ class CiviCRM_WP_Profile_Sync_Mapper_UFMatch {
 		$entry = $this->entry_get_by_contact_id( $contact_id, $domain_id );
 
 		// If we get a UFMatch entry.
-		if ( $entry !== false ) {
+		if ( false !== $entry ) {
 
 			// Get the User ID if a single UFMatch item is returned.
 			if ( ! empty( $entry->uf_id ) ) {
@@ -250,7 +250,7 @@ class CiviCRM_WP_Profile_Sync_Mapper_UFMatch {
 	 *
 	 * @since 0.4
 	 *
-	 * @param integer $contact_id The numeric ID of the CiviCRM Contact.
+	 * @param integer        $contact_id The numeric ID of the CiviCRM Contact.
 	 * @param integer|string $domain_id The Domain ID (defaults to current Domain ID) or a string to search all Domains.
 	 * @return WP_User|bool $user The WordPress User object, or false on failure.
 	 */
@@ -260,7 +260,7 @@ class CiviCRM_WP_Profile_Sync_Mapper_UFMatch {
 		$user_id = $this->user_id_get_by_contact_id( $contact_id, $domain_id );
 
 		// Bail if we didn't get one.
-		if ( $user_id === false ) {
+		if ( false === $user_id ) {
 			return false;
 		}
 
@@ -299,7 +299,7 @@ class CiviCRM_WP_Profile_Sync_Mapper_UFMatch {
 		// Build params to create a UFMatch record.
 		$params = [
 			'version' => 3,
-			//'debug' => 1,
+			// 'debug' => 1,
 		] + $ufmatch;
 
 		// Maybe add Domain ID.
@@ -330,15 +330,16 @@ class CiviCRM_WP_Profile_Sync_Mapper_UFMatch {
 		$result = civicrm_api( 'UFMatch', 'create', $params );
 
 		// Log and bail on failure.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
-			$e = new \Exception();
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
+			$e     = new \Exception();
 			$trace = $e->getTraceAsString();
-			error_log( print_r( [
-				'method' => __METHOD__,
-				'params' => $params,
-				'result' => $result,
+			$log   = [
+				'method'    => __METHOD__,
+				'params'    => $params,
+				'result'    => $result,
 				'backtrace' => $trace,
-			], true ) );
+			];
+			$this->plugin->log_error( $log );
 			return false;
 		}
 
@@ -370,14 +371,15 @@ class CiviCRM_WP_Profile_Sync_Mapper_UFMatch {
 
 		// Log and bail if there's no UFMatch ID.
 		if ( empty( $ufmatch['id'] ) ) {
-			$e = new \Exception();
+			$e     = new \Exception();
 			$trace = $e->getTraceAsString();
-			error_log( print_r( [
-				'method' => __METHOD__,
-				'message' => __( 'A numeric ID must be present to update a UFMatch record.', 'civicrm-wp-profile-sync' ),
-				'ufmatch' => $ufmatch,
+			$log   = [
+				'method'    => __METHOD__,
+				'message'   => __( 'A numeric ID must be present to update a UFMatch record.', 'civicrm-wp-profile-sync' ),
+				'ufmatch'   => $ufmatch,
 				'backtrace' => $trace,
-			], true ) );
+			];
+			$this->plugin->log_error( $log );
 			return false;
 		}
 
@@ -409,22 +411,23 @@ class CiviCRM_WP_Profile_Sync_Mapper_UFMatch {
 		// Construct params.
 		$params = [
 			'version' => 3,
-			'id' => $ufmatch_id,
+			'id'      => $ufmatch_id,
 		];
 
 		// Create record via API.
 		$result = civicrm_api( 'UFMatch', 'delete', $params );
 
 		// Log and bail on failure.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
-			$e = new \Exception();
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
+			$e     = new \Exception();
 			$trace = $e->getTraceAsString();
-			error_log( print_r( [
-				'method' => __METHOD__,
-				'params' => $params,
-				'result' => $result,
+			$log   = [
+				'method'    => __METHOD__,
+				'params'    => $params,
+				'result'    => $result,
 				'backtrace' => $trace,
-			], true ) );
+			];
+			$this->plugin->log_error( $log );
 			return false;
 		}
 
@@ -445,7 +448,7 @@ class CiviCRM_WP_Profile_Sync_Mapper_UFMatch {
 	 *
 	 * @since 0.4
 	 *
-	 * @param integer $contact_id The numeric ID of the CiviCRM Contact.
+	 * @param integer        $contact_id The numeric ID of the CiviCRM Contact.
 	 * @param integer|string $domain_id The CiviCRM Domain ID (defaults to current Domain ID).
 	 * @return array|object|bool $entry The UFMatch data on success, or false on failure.
 	 */
@@ -466,7 +469,7 @@ class CiviCRM_WP_Profile_Sync_Mapper_UFMatch {
 
 		// Construct params.
 		$params = [
-			'version' => 3,
+			'version'    => 3,
 			'contact_id' => $contact_id,
 		];
 
@@ -497,16 +500,17 @@ class CiviCRM_WP_Profile_Sync_Mapper_UFMatch {
 		$result = civicrm_api( 'UFMatch', 'get', $params );
 
 		// Log and bail on failure.
-		if ( isset( $result['is_error'] ) && $result['is_error'] == '1' ) {
-			$e = new \Exception();
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
+			$e     = new \Exception();
 			$trace = $e->getTraceAsString();
-			error_log( print_r( [
-				'method' => __METHOD__,
+			$log   = [
+				'method'     => __METHOD__,
 				'contact_id' => $contact_id,
-				'params' => $params,
-				'result' => $result,
-				'backtrace' => $trace,
-			], true ) );
+				'params'     => $params,
+				'result'     => $result,
+				'backtrace'  => $trace,
+			];
+			$this->plugin->log_error( $log );
 			return $entry;
 		}
 
@@ -543,7 +547,7 @@ class CiviCRM_WP_Profile_Sync_Mapper_UFMatch {
 	 *
 	 * @since 0.4
 	 *
-	 * @param integer $user_id The numeric ID of the WordPress User.
+	 * @param integer        $user_id The numeric ID of the WordPress User.
 	 * @param integer|string $domain_id The CiviCRM Domain ID (defaults to current Domain ID).
 	 * @return array|object|bool $entry The UFMatch data on success, or false on failure.
 	 */
@@ -565,7 +569,7 @@ class CiviCRM_WP_Profile_Sync_Mapper_UFMatch {
 		// Construct params.
 		$params = [
 			'version' => 3,
-			'uf_id' => $user_id,
+			'uf_id'   => $user_id,
 		];
 
 		// If no Domain ID is specified, default to current Domain ID.
@@ -591,16 +595,17 @@ class CiviCRM_WP_Profile_Sync_Mapper_UFMatch {
 		$result = civicrm_api( 'UFMatch', 'get', $params );
 
 		// Log and bail on failure.
-		if ( isset( $result['is_error'] ) && $result['is_error'] == '1' ) {
-			$e = new \Exception();
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
+			$e     = new \Exception();
 			$trace = $e->getTraceAsString();
-			error_log( print_r( [
-				'method' => __METHOD__,
-				'user_id' => $user_id,
-				'params' => $params,
-				'result' => $result,
+			$log   = [
+				'method'    => __METHOD__,
+				'user_id'   => $user_id,
+				'params'    => $params,
+				'result'    => $result,
 				'backtrace' => $trace,
-			], true ) );
+			];
+			$this->plugin->log_error( $log );
 			return $entry;
 		}
 
@@ -636,7 +641,7 @@ class CiviCRM_WP_Profile_Sync_Mapper_UFMatch {
 	 *
 	 * @since 0.4
 	 *
-	 * @param string $email The WordPress User's email address.
+	 * @param string         $email The WordPress User's email address.
 	 * @param integer|string $domain_id The CiviCRM Domain ID (defaults to current Domain ID).
 	 * @return array|object|bool $entry The UFMatch data on success, or false on failure.
 	 */
@@ -675,16 +680,17 @@ class CiviCRM_WP_Profile_Sync_Mapper_UFMatch {
 		$result = civicrm_api( 'UFMatch', 'get', $params );
 
 		// Log and bail on failure.
-		if ( isset( $result['is_error'] ) && $result['is_error'] == '1' ) {
-			$e = new \Exception();
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
+			$e     = new \Exception();
 			$trace = $e->getTraceAsString();
-			error_log( print_r( [
-				'method' => __METHOD__,
-				'email' => $email,
-				'params' => $params,
-				'result' => $result,
+			$log   = [
+				'method'    => __METHOD__,
+				'email'     => $email,
+				'params'    => $params,
+				'result'    => $result,
 				'backtrace' => $trace,
-			], true ) );
+			];
+			$this->plugin->log_error( $log );
 			return $entry;
 		}
 
@@ -727,7 +733,7 @@ class CiviCRM_WP_Profile_Sync_Mapper_UFMatch {
 	 *
 	 * @param integer $user_id The ID of the WordPress User.
 	 * @param integer $email_id The ID of the CiviCRM Email.
-	 * @param object $email The CiviCRM Email object.
+	 * @param object  $email The CiviCRM Email object.
 	 */
 	public function entries_update( $user_id, $email_id, $email ) {
 
@@ -747,7 +753,7 @@ class CiviCRM_WP_Profile_Sync_Mapper_UFMatch {
 		}
 
 		// Must be the Primary Email.
-		if ( empty( $email->is_primary ) || $email->is_primary != 1 ) {
+		if ( empty( $email->is_primary ) || 1 !== (int) $email->is_primary ) {
 			return;
 		}
 
@@ -755,7 +761,7 @@ class CiviCRM_WP_Profile_Sync_Mapper_UFMatch {
 		$entry = $this->entry_get_by_contact_id( $email->contact_id );
 
 		// Bail if there's no UFMatch entry.
-		if ( $entry === false ) {
+		if ( false === $entry ) {
 			return;
 		}
 
@@ -772,11 +778,11 @@ class CiviCRM_WP_Profile_Sync_Mapper_UFMatch {
 
 		// Build params.
 		$params = [
-			'id' => $entry->id,
-			'uf_id' => $entry->uf_id,
-			'uf_name' => $email->email,
+			'id'         => $entry->id,
+			'uf_id'      => $entry->uf_id,
+			'uf_name'    => $email->email,
 			'contact_id' => $entry->contact_id,
-			'domain_id' => $entry->domain_id,
+			'domain_id'  => $entry->domain_id,
 		];
 
 		// Update the UFMatch record.

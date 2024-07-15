@@ -84,11 +84,11 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form {
 	public function __construct( $parent ) {
 
 		// Store references to objects.
-		$this->plugin = $parent->acf_loader->plugin;
+		$this->plugin     = $parent->acf_loader->plugin;
 		$this->acf_loader = $parent->acf_loader;
-		$this->civicrm = $this->acf_loader->civicrm;
-		$this->acf = $this->acf_loader->acf;
-		$this->acfe = $parent;
+		$this->civicrm    = $this->acf_loader->civicrm;
+		$this->acf        = $this->acf_loader->acf;
+		$this->acfe       = $parent;
 
 		// Init when the ACFE class is loaded.
 		add_action( 'cwps/acf/acfe/loaded', [ $this, 'initialise' ] );
@@ -172,14 +172,14 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form {
 	 *
 	 * @since 0.5
 	 *
-	 * @param array $form The ACF Form data array.
+	 * @param array   $form The ACF Form data array.
 	 * @param integer $post_id The numeric ID of the WordPress Post.
 	 * @return array $form The modified ACF Form data array.
 	 */
 	public function form_wrapper( $form, $post_id ) {
 
 		// Alter the default "Success Wrapper".
-		if ( $form['html_updated_message'] === '<div id="message" class="updated">%s</div>' ) {
+		if ( '<div id="message" class="updated">%s</div>' === $form['html_updated_message'] ) {
 			$form['html_updated_message'] = '<div id="message" class="acfe-success">%s</div>';
 		}
 
@@ -263,7 +263,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form {
 		if ( ! ( $screen instanceof WP_Screen ) ) {
 			return;
 		}
-		if ( $screen->base != 'post' || $screen->id != 'acfe-form' ) {
+		if ( 'post' !== $screen->base || 'acfe-form' !== $screen->id ) {
 			return;
 		}
 
@@ -327,9 +327,9 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form {
 		// Build data array.
 		$vars = [
 			'localisation' => [],
-			'settings' => [
-				'contact_actions_reference' => $contact_actions,
-				'case_actions_reference' => $case_actions,
+			'settings'     => [
+				'contact_actions_reference'     => $contact_actions,
+				'case_actions_reference'        => $case_actions,
 				'participant_actions_reference' => $participant_actions,
 			],
 		];
@@ -353,20 +353,20 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form {
 	 *
 	 * @since 0.5
 	 *
-	 * @param bool $mapped The existing mapping flag.
+	 * @param bool  $mapped The existing mapping flag.
 	 * @param array $field_group The array of ACF Field Group data.
 	 * @return bool $mapped True if the Field Group should bypass ACF, or pass through if not.
 	 */
 	public function query_field_group_mapped( $mapped, $field_group ) {
 
 		// Bail if a Mapping has already been found.
-		if ( $mapped !== false ) {
+		if ( false !== $mapped ) {
 			return $mapped;
 		}
 
 		// Bail if this is not a Bypass Field Group.
 		$is_bypass_field_group = $this->is_bypass_field_group( $field_group );
-		if ( $is_bypass_field_group === false ) {
+		if ( false === $is_bypass_field_group ) {
 			return $mapped;
 		}
 
@@ -427,7 +427,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form {
 	 *
 	 * @since 0.5
 	 *
-	 * @param bool $supported The existing supported Location Rules status.
+	 * @param bool  $supported The existing supported Location Rules status.
 	 * @param array $rule The Location Rule.
 	 * @param array $params The query params array.
 	 * @param array $field_group The ACF Field Group data array.
@@ -436,7 +436,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form {
 	public function query_supported_rules( $supported, $rule, $params, $field_group ) {
 
 		// Bail if already supported.
-		if ( $supported === true ) {
+		if ( true === $supported ) {
 			return $supported;
 		}
 
@@ -465,13 +465,13 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form {
 	public function query_settings_field( $setting_field, $field, $field_group ) {
 
 		// Pass if conflicting Fields have been found.
-		if ( $setting_field === false ) {
+		if ( false === $setting_field ) {
 			return false;
 		}
 
 		// Pass if this is not a Bypass Field Group.
 		$is_visible = $this->is_bypass_field_group( $field_group );
-		if ( $is_visible === false ) {
+		if ( false === $is_visible ) {
 			return $setting_field;
 		}
 
@@ -502,20 +502,20 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form {
 
 		// Define Setting Field.
 		$setting_field = [
-			'key' => $this->civicrm->acf_field_key_get(),
-			'label' => __( 'CiviCRM Field', 'civicrm-wp-profile-sync' ),
-			'name' => $this->civicrm->acf_field_key_get(),
-			'type' => 'select',
-			'instructions' => __( 'Choose the CiviCRM Field that this ACF Field should sync with. (Optional)', 'civicrm-wp-profile-sync' ),
+			'key'           => $this->civicrm->acf_field_key_get(),
+			'label'         => __( 'CiviCRM Field', 'civicrm-wp-profile-sync' ),
+			'name'          => $this->civicrm->acf_field_key_get(),
+			'type'          => 'select',
+			'instructions'  => __( 'Choose the CiviCRM Field that this ACF Field should sync with. (Optional)', 'civicrm-wp-profile-sync' ),
 			'default_value' => '',
-			'placeholder' => '',
-			'allow_null' => 1,
-			'multiple' => 0,
-			'ui' => 0,
-			'required' => 0,
+			'placeholder'   => '',
+			'allow_null'    => 1,
+			'multiple'      => 0,
+			'ui'            => 0,
+			'required'      => 0,
 			'return_format' => 'value',
-			'parent' => $this->acf->field_group->placeholder_group_get(),
-			'choices' => $choices,
+			'parent'        => $this->acf->field_group->placeholder_group_get(),
+			'choices'       => $choices,
 		];
 
 		// Return populated array.
@@ -554,9 +554,9 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form {
 					$tmp = explode( '-', $rule['value'] );
 
 					// phpcs:ignore Squiz.Commenting.InlineComment.InvalidEndChar
-					//$entity_map = [];
+					// $entity_map = [];
 					// phpcs:ignore Squiz.Commenting.InlineComment.InvalidEndChar
-					//$entity_map[] = [ 'entity' => $tmp[0], 'entity_id' => (int) $tmp[1] ];
+					// $entity_map[] = [ 'entity' => $tmp[0], 'entity_id' => (int) $tmp[1] ];
 
 					// Add to return.
 					$entity_mapping[ $tmp[0] ][] = (int) $tmp[1];

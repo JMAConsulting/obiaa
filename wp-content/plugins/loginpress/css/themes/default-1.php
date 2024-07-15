@@ -2,7 +2,7 @@
 /**
  * Default template stylesheet.
  * @since 1.0.0
- * @version 1.1.22
+ * @version 3.0.6
  * @return string style.
  */
 function first_presets() {
@@ -10,6 +10,10 @@ function first_presets() {
   	ob_start();
   	if ( version_compare( $GLOBALS['wp_version'], '5.3', '>=' ) ) : ?>
     	<style media="screen"  id="loginpress-style-wp-5-3">
+			.login .privacy-policy-page-link>a.privacy-policy-link{
+				color: inherit;
+				text-decoration: none;
+			}
 			html body.login div.wishlistmember-loginform{
 				padding: 0;
 				margin: 2% auto;

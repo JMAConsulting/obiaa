@@ -84,7 +84,7 @@ class CiviCRM_Profile_Sync_ACF_Admin_Migrate {
 	public function __construct( $acf_loader ) {
 
 		// Store references to objects.
-		$this->plugin = $acf_loader->plugin;
+		$this->plugin     = $acf_loader->plugin;
 		$this->acf_loader = $acf_loader;
 
 		// Init on admin init.
@@ -150,25 +150,26 @@ class CiviCRM_Profile_Sync_ACF_Admin_Migrate {
 		}
 
 		// Bail if we are on our "ACF Integration" page.
-		if ( $screen->id == 'admin_page_cwps_acf_sync' ) {
+		if ( 'admin_page_cwps_acf_sync' === $screen->id ) {
 			return;
 		}
 
 		// Bail if there is already a warning.
-		if ( $this->plugin->admin->has_warning === true ) {
+		if ( true === $this->plugin->admin->has_warning ) {
 			return;
 		}
 
 		// Show general "Call to Action".
 		$message = sprintf(
 			/* translators: 1: Opening anchor tag, 2: Closing anchor tag */
-			__( 'CiviCRM ACF Integration has become part of CiviCRM Profile Sync. Please visit the %1$sMigration Page%2$s to switch over.', 'civicrm-wp-profile-sync' ),
+			esc_html__( 'CiviCRM ACF Integration has become part of CiviCRM Profile Sync. Please visit the %1$sMigration Page%2$s to switch over.', 'civicrm-wp-profile-sync' ),
 			'<a href="' . menu_page_url( 'cwps_acf_sync', false ) . '">',
 			'</a>'
 		);
 
 		// Show it.
 		echo '<div id="message" class="notice notice-warning">';
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		echo '<p>' . $message . '</p>';
 		echo '</div>';
 
@@ -294,12 +295,12 @@ class CiviCRM_Profile_Sync_ACF_Admin_Migrate {
 
 		// We must be network admin in multisite.
 		if ( is_multisite() && ! is_super_admin() ) {
-			wp_die( __( 'You do not have permission to access this page.', 'civicrm-wp-profile-sync' ) );
+			wp_die( esc_html__( 'You do not have permission to access this page.', 'civicrm-wp-profile-sync' ) );
 		}
 
 		// Check user permissions.
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( __( 'You do not have permission to access this page.', 'civicrm-wp-profile-sync' ) );
+			wp_die( esc_html__( 'You do not have permission to access this page.', 'civicrm-wp-profile-sync' ) );
 		}
 
 		// Get current screen.
@@ -368,7 +369,7 @@ class CiviCRM_Profile_Sync_ACF_Admin_Migrate {
 	 *
 	 * @since 0.4
 	 *
-	 * @param array $urls The array of subpage URLs.
+	 * @param array  $urls The array of subpage URLs.
 	 * @param string $active_tab The key of the active tab in the subpage URLs array.
 	 */
 	public function page_add_tab( $urls, $active_tab ) {
@@ -380,12 +381,13 @@ class CiviCRM_Profile_Sync_ACF_Admin_Migrate {
 		$active = '';
 
 		// Make active if it's our subpage.
-		if ( $active_tab === 'acf-migrate' ) {
+		if ( 'acf-migrate' === $active_tab ) {
 			$active = ' nav-tab-active';
 		}
 
 		// Render tab.
-		echo '<a href="' . $urls['acf-migrate'] . '" class="nav-tab' . $active . '">' . $title . '</a>' . "\n";
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo '<a href="' . $urls['acf-migrate'] . '" class="nav-tab' . esc_attr( $active ) . '">' . esc_html( $title ) . '</a>' . "\n";
 
 	}
 
@@ -401,11 +403,11 @@ class CiviCRM_Profile_Sync_ACF_Admin_Migrate {
 		// Sanitise admin page url.
 		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 		$target_url = isset( $_SERVER['REQUEST_URI'] ) ? wp_unslash( $_SERVER['REQUEST_URI'] ) : '';
-		$url_array = explode( '&', $target_url );
+		$url_array  = explode( '&', $target_url );
 
 		// Strip flag, if present, and rebuild.
 		if ( ! empty( $url_array ) ) {
-			$url_raw = str_replace( '&amp;updated=true', '', $url_array[0] );
+			$url_raw    = str_replace( '&amp;updated=true', '', $url_array[0] );
 			$target_url = htmlentities( $url_raw . '&updated=true' );
 		}
 
@@ -431,7 +433,7 @@ class CiviCRM_Profile_Sync_ACF_Admin_Migrate {
 		];
 
 		// Bail if not the Screen ID we want.
-		if ( ! in_array( $screen_id, $screen_ids ) ) {
+		if ( ! in_array( $screen_id, $screen_ids, true ) ) {
 			return;
 		}
 
@@ -450,7 +452,7 @@ class CiviCRM_Profile_Sync_ACF_Admin_Migrate {
 		}
 
 		// Only show submit if not migrated.
-		if ( $data['migrated'] === false ) {
+		if ( false === $data['migrated'] ) {
 
 			// Create Submit metabox.
 			add_meta_box(
@@ -467,7 +469,7 @@ class CiviCRM_Profile_Sync_ACF_Admin_Migrate {
 
 		// Init meta box title.
 		$title = __( 'Migration Tasks', 'civicrm-wp-profile-sync' );
-		if ( $data['migrated'] === true ) {
+		if ( true === $data['migrated'] ) {
 			$title = __( 'Migration Complete', 'civicrm-wp-profile-sync' );
 		}
 
@@ -576,7 +578,7 @@ class CiviCRM_Profile_Sync_ACF_Admin_Migrate {
 
 		// Our array of arguments.
 		$args = [
-			'page' => 'cwps_acf_sync',
+			'page'             => 'cwps_acf_sync',
 			'settings-updated' => 'true',
 		];
 
@@ -596,12 +598,7 @@ class CiviCRM_Profile_Sync_ACF_Admin_Migrate {
 	 * @param string $option_name The name of the option.
 	 * @return bool $exists Whether or not the option exists.
 	 */
-	public function option_exists( $option_name = '' ) {
-
-		// Test for empty.
-		if ( $option_name == '' ) {
-			die( __( 'You must supply an option to option_exists()', 'civicrm-wp-profile-sync' ) );
-		}
+	public function option_exists( $option_name ) {
 
 		// Test by getting option with unlikely default.
 		if ( $this->option_get( $option_name, 'fenfgehgefdfdjgrkj' ) == 'fenfgehgefdfdjgrkj' ) {
@@ -621,12 +618,7 @@ class CiviCRM_Profile_Sync_ACF_Admin_Migrate {
 	 * @param string $default The default value of the option if it has no value.
 	 * @return mixed $value the value of the option.
 	 */
-	public function option_get( $option_name = '', $default = false ) {
-
-		// Test for empty.
-		if ( $option_name == '' ) {
-			die( __( 'You must supply an option to option_get()', 'civicrm-wp-profile-sync' ) );
-		}
+	public function option_get( $option_name, $default = false ) {
 
 		// Get option.
 		$value = get_option( $option_name, $default );
@@ -642,15 +634,10 @@ class CiviCRM_Profile_Sync_ACF_Admin_Migrate {
 	 * @since 0.4
 	 *
 	 * @param string $option_name The name of the option.
-	 * @param mixed $value The value to set the option to.
+	 * @param mixed  $value The value to set the option to.
 	 * @return bool $success True if the value of the option was successfully updated.
 	 */
-	public function option_set( $option_name = '', $value = '' ) {
-
-		// Test for empty.
-		if ( $option_name == '' ) {
-			die( __( 'You must supply an option to option_set()', 'civicrm-wp-profile-sync' ) );
-		}
+	public function option_set( $option_name, $value ) {
 
 		// Update option.
 		return update_option( $option_name, $value );
@@ -665,12 +652,7 @@ class CiviCRM_Profile_Sync_ACF_Admin_Migrate {
 	 * @param string $option_name The name of the option.
 	 * @return bool $success True if the option was successfully deleted.
 	 */
-	public function option_delete( $option_name = '' ) {
-
-		// Test for empty.
-		if ( $option_name == '' ) {
-			die( __( 'You must supply an option to option_delete()', 'civicrm-wp-profile-sync' ) );
-		}
+	public function option_delete( $option_name ) {
 
 		// Delete option.
 		return delete_option( $option_name );

@@ -116,6 +116,15 @@ class CiviCRM_Profile_Sync_ACF_Mapping {
 	public $settings_key = 'cwps_acf_mapping_settings';
 
 	/**
+	 * Mapped items Settings option key.
+	 *
+	 * @since 0.4
+	 * @access public
+	 * @var integer
+	 */
+	public $saved_participant_role_id;
+
+	/**
 	 * Constructor.
 	 *
 	 * @since 0.4
@@ -125,7 +134,7 @@ class CiviCRM_Profile_Sync_ACF_Mapping {
 	public function __construct( $acf_loader ) {
 
 		// Store references to objects.
-		$this->plugin = $acf_loader->plugin;
+		$this->plugin     = $acf_loader->plugin;
 		$this->acf_loader = $acf_loader;
 
 		// Init when this plugin is loaded.
@@ -247,13 +256,13 @@ class CiviCRM_Profile_Sync_ACF_Mapping {
 	 *
 	 * @since 0.4
 	 *
-	 * @param string $formName The CiviCRM form name.
+	 * @param string $form_name The CiviCRM form name.
 	 * @param object $form The CiviCRM form object.
 	 */
-	public function form_contact_type_build( $formName, &$form ) {
+	public function form_contact_type_build( $form_name, &$form ) {
 
 		// Is this the Contact Type edit form?
-		if ( $formName != 'CRM_Admin_Form_ContactType' ) {
+		if ( 'CRM_Admin_Form_ContactType' !== $form_name ) {
 			return;
 		}
 
@@ -280,7 +289,7 @@ class CiviCRM_Profile_Sync_ACF_Mapping {
 
 		// Maybe assign Contact Type ID.
 		$contact_type_id = 0;
-		if ( $mode === 'edit' ) {
+		if ( 'edit' === $mode ) {
 			$contact_type_id = (int) $contact_type['id'];
 		}
 
@@ -306,7 +315,7 @@ class CiviCRM_Profile_Sync_ACF_Mapping {
 				}
 
 				// ACF does not support the built-in WordPress Media Post Type.
-				if ( $post_type->name == 'attachment' ) {
+				if ( 'attachment' === $post_type->name ) {
 					continue;
 				}
 
@@ -332,13 +341,13 @@ class CiviCRM_Profile_Sync_ACF_Mapping {
 		*/
 
 		// Amend form in edit mode.
-		if ( $mode === 'edit' ) {
+		if ( 'edit' === $mode ) {
 
 			// Get existing CPT.
 			$cpt_name = $this->mapping_for_contact_type_get( $contact_type['id'] );
 
 			// If we have a mapped CPT.
-			if ( $cpt_name !== false ) {
+			if ( false !== $cpt_name ) {
 
 				// Set selected value of our dropdown.
 				$cpt_select->setSelected( $cpt_name );
@@ -356,9 +365,7 @@ class CiviCRM_Profile_Sync_ACF_Mapping {
 		}
 
 		// Insert template block into the page.
-		CRM_Core_Region::instance( 'page-body' )->add([
-			'template' => 'cwps-acf-contact-type-cpt.tpl',
-		]);
+		CRM_Core_Region::instance( 'page-body' )->add( [ 'template' => 'cwps-acf-contact-type-cpt.tpl' ] );
 
 	}
 
@@ -373,22 +380,22 @@ class CiviCRM_Profile_Sync_ACF_Mapping {
 	 *
 	 * @since 0.4
 	 *
-	 * @param object $objectRef The DAO object.
+	 * @param object $object_ref The DAO object.
 	 */
-	public function form_contact_type_post_save( $objectRef ) {
+	public function form_contact_type_post_save( $object_ref ) {
 
 		// Bail if not Contact Type save operation.
-		if ( ! ( $objectRef instanceof CRM_Contact_DAO_ContactType ) ) {
+		if ( ! ( $object_ref instanceof CRM_Contact_DAO_ContactType ) ) {
 			return;
 		}
 
 		// Bail if no Contact Type ID.
-		if ( empty( $objectRef->id ) ) {
+		if ( empty( $object_ref->id ) ) {
 			return;
 		}
 
 		// Store locally for use in form_contact_type_process().
-		$this->saved_contact_type_id = $objectRef->id;
+		$this->saved_contact_type_id = $object_ref->id;
 
 	}
 
@@ -401,10 +408,10 @@ class CiviCRM_Profile_Sync_ACF_Mapping {
 	 *
 	 * @since 0.4
 	 *
-	 * @param string $formName The CiviCRM form name.
+	 * @param string $form_name The CiviCRM form name.
 	 * @param object $form The CiviCRM form object.
 	 */
-	public function form_contact_type_process( $formName, &$form ) {
+	public function form_contact_type_process( $form_name, &$form ) {
 
 		// Bail if not Contact Type edit form.
 		if ( ! ( $form instanceof CRM_Admin_Form_ContactType ) ) {
@@ -481,18 +488,18 @@ class CiviCRM_Profile_Sync_ACF_Mapping {
 	 *
 	 * @since 0.4
 	 *
-	 * @param string $formName The CiviCRM form name.
+	 * @param string $form_name The CiviCRM form name.
 	 * @param object $form The CiviCRM form object.
 	 */
-	public function form_activity_type_build( $formName, &$form ) {
+	public function form_activity_type_build( $form_name, &$form ) {
 
 		// Is this the Options edit form?
-		if ( $formName != 'CRM_Admin_Form_Options' ) {
+		if ( 'CRM_Admin_Form_Options' !== $form_name ) {
 			return;
 		}
 
 		// Is this the Activity Type edit form?
-		if ( $form->get( 'gName' ) != 'activity_type' ) {
+		if ( 'activity_type' !== $form->get( 'gName' ) ) {
 			return;
 		}
 
@@ -504,7 +511,7 @@ class CiviCRM_Profile_Sync_ACF_Mapping {
 
 		// Get list of allowed Activity Types.
 		$allowed_activity_types = [];
-		$option_group = $this->plugin->civicrm->option_group_get( 'activity_type' );
+		$option_group           = $this->plugin->civicrm->option_group_get( 'activity_type' );
 		if ( ! empty( $option_group ) ) {
 			$allowed_activity_types = CRM_Core_OptionGroup::valuesByID( $option_group['id'] );
 		}
@@ -525,7 +532,7 @@ class CiviCRM_Profile_Sync_ACF_Mapping {
 		}
 
 		// Bail if not an allowed Activity Type.
-		if ( $mode == 'edit' && ! array_key_exists( $activity_type['value'], $allowed_activity_types ) ) {
+		if ( 'edit' === $mode && ! array_key_exists( $activity_type['value'], $allowed_activity_types ) ) {
 			return;
 		}
 
@@ -536,7 +543,7 @@ class CiviCRM_Profile_Sync_ACF_Mapping {
 
 		// Maybe assign Activity Type ID.
 		$activity_type_id = 0;
-		if ( $mode === 'edit' ) {
+		if ( 'edit' === $mode ) {
 			$activity_type_id = (int) $activity_type['value'];
 		}
 
@@ -562,7 +569,7 @@ class CiviCRM_Profile_Sync_ACF_Mapping {
 				}
 
 				// ACF does not support the built-in WordPress Media Post Type.
-				if ( $post_type->name == 'attachment' ) {
+				if ( 'attachment' === $post_type->name ) {
 					continue;
 				}
 
@@ -588,13 +595,13 @@ class CiviCRM_Profile_Sync_ACF_Mapping {
 		*/
 
 		// Amend form in edit mode.
-		if ( $mode === 'edit' ) {
+		if ( 'edit' === $mode ) {
 
 			// Get existing CPT.
 			$cpt_name = $this->mapping_for_activity_type_get( $activity_type['value'] );
 
 			// If we have a mapped CPT.
-			if ( $cpt_name !== false ) {
+			if ( false !== $cpt_name ) {
 
 				// Set selected value of our dropdown.
 				$cpt_select->setSelected( $cpt_name );
@@ -612,9 +619,7 @@ class CiviCRM_Profile_Sync_ACF_Mapping {
 		}
 
 		// Insert template block into the page.
-		CRM_Core_Region::instance( 'page-body' )->add([
-			'template' => 'cwps-acf-activity-type-cpt.tpl',
-		]);
+		CRM_Core_Region::instance( 'page-body' )->add( [ 'template' => 'cwps-acf-activity-type-cpt.tpl' ] );
 
 	}
 
@@ -629,22 +634,22 @@ class CiviCRM_Profile_Sync_ACF_Mapping {
 	 *
 	 * @since 0.4
 	 *
-	 * @param object $objectRef The DAO object.
+	 * @param object $object_ref The DAO object.
 	 */
-	public function form_activity_type_post_save( $objectRef ) {
+	public function form_activity_type_post_save( $object_ref ) {
 
 		// Bail if not Activity Type save operation.
-		if ( ! ( $objectRef instanceof CRM_Core_DAO_OptionValue ) ) {
+		if ( ! ( $object_ref instanceof CRM_Core_DAO_OptionValue ) ) {
 			return;
 		}
 
 		// Bail if no Activity Type ID.
-		if ( empty( $objectRef->id ) ) {
+		if ( empty( $object_ref->id ) ) {
 			return;
 		}
 
 		// Bail if no Option Group ID.
-		if ( empty( $objectRef->option_group_id ) ) {
+		if ( empty( $object_ref->option_group_id ) ) {
 			return;
 		}
 
@@ -652,15 +657,15 @@ class CiviCRM_Profile_Sync_ACF_Mapping {
 		$activity_types_id = $this->acf_loader->civicrm->activity_type->option_group_id_get();
 
 		// Bail if not in Activity Types Option Group.
-		if ( $objectRef->option_group_id != $activity_types_id ) {
+		if ( $object_ref->option_group_id != $activity_types_id ) {
 			return;
 		}
 
 		// Get the data for the Activity Type.
-		$activity_type = $this->acf_loader->civicrm->activity_type->get_by_id( $objectRef->id );
+		$activity_type = $this->acf_loader->civicrm->activity_type->get_by_id( $object_ref->id );
 
 		// Bail on failure.
-		if ( $activity_type === false ) {
+		if ( false === $activity_type ) {
 			return;
 		}
 
@@ -678,10 +683,10 @@ class CiviCRM_Profile_Sync_ACF_Mapping {
 	 *
 	 * @since 0.4
 	 *
-	 * @param string $formName The CiviCRM form name.
+	 * @param string $form_name The CiviCRM form name.
 	 * @param object $form The CiviCRM form object.
 	 */
-	public function form_activity_type_process( $formName, &$form ) {
+	public function form_activity_type_process( $form_name, &$form ) {
 
 		// Bail if not Activity Type edit form.
 		if ( ! ( $form instanceof CRM_Admin_Form_Options ) ) {
@@ -692,7 +697,7 @@ class CiviCRM_Profile_Sync_ACF_Mapping {
 		$group_name = $form->getVar( '_gName' );
 
 		// Bail if not Activity Type.
-		if ( $group_name != 'activity_type' ) {
+		if ( 'activity_type' !== $group_name ) {
 			return;
 		}
 
@@ -765,13 +770,13 @@ class CiviCRM_Profile_Sync_ACF_Mapping {
 	 *
 	 * @since 0.5
 	 *
-	 * @param string $formName The CiviCRM form name.
+	 * @param string $form_name The CiviCRM form name.
 	 * @param object $form The CiviCRM form object.
 	 */
-	public function form_participant_role_build( $formName, &$form ) {
+	public function form_participant_role_build( $form_name, &$form ) {
 
 		// Is this the Options edit form?
-		if ( $formName != 'CRM_Admin_Form_Options' ) {
+		if ( 'CRM_Admin_Form_Options' !== $form_name ) {
 			return;
 		}
 
@@ -803,7 +808,7 @@ class CiviCRM_Profile_Sync_ACF_Mapping {
 
 		// Maybe assign Participant Role ID.
 		$participant_role_id = 0;
-		if ( $mode === 'edit' ) {
+		if ( 'edit' === $mode ) {
 			$participant_role_id = (int) $participant_role['value'];
 		}
 
@@ -829,7 +834,7 @@ class CiviCRM_Profile_Sync_ACF_Mapping {
 				}
 
 				// ACF does not support the built-in WordPress Media Post Type.
-				if ( $post_type->name == 'attachment' ) {
+				if ( 'attachment' === $post_type->name ) {
 					continue;
 				}
 
@@ -855,13 +860,13 @@ class CiviCRM_Profile_Sync_ACF_Mapping {
 		*/
 
 		// Amend form in edit mode.
-		if ( $mode === 'edit' ) {
+		if ( 'edit' === $mode ) {
 
 			// Get existing CPT.
 			$cpt_name = $this->mapping_for_participant_role_get( $participant_role['value'] );
 
 			// If we have a mapped CPT.
-			if ( $cpt_name !== false ) {
+			if ( false !== $cpt_name ) {
 
 				// Set selected value of our dropdown.
 				$cpt_select->setSelected( $cpt_name );
@@ -879,9 +884,7 @@ class CiviCRM_Profile_Sync_ACF_Mapping {
 		}
 
 		// Insert template block into the page.
-		CRM_Core_Region::instance( 'page-body' )->add([
-			'template' => 'cwps-acf-participant-role-cpt.tpl',
-		]);
+		CRM_Core_Region::instance( 'page-body' )->add( [ 'template' => 'cwps-acf-participant-role-cpt.tpl' ] );
 
 	}
 
@@ -896,22 +899,22 @@ class CiviCRM_Profile_Sync_ACF_Mapping {
 	 *
 	 * @since 0.5
 	 *
-	 * @param object $objectRef The DAO object.
+	 * @param object $object_ref The DAO object.
 	 */
-	public function form_participant_role_post_save( $objectRef ) {
+	public function form_participant_role_post_save( $object_ref ) {
 
 		// Bail if not Participant Role save operation.
-		if ( ! ( $objectRef instanceof CRM_Core_DAO_OptionValue ) ) {
+		if ( ! ( $object_ref instanceof CRM_Core_DAO_OptionValue ) ) {
 			return;
 		}
 
 		// Bail if no Participant Role ID.
-		if ( empty( $objectRef->id ) ) {
+		if ( empty( $object_ref->id ) ) {
 			return;
 		}
 
 		// Bail if no Option Group ID.
-		if ( empty( $objectRef->option_group_id ) ) {
+		if ( empty( $object_ref->option_group_id ) ) {
 			return;
 		}
 
@@ -919,15 +922,15 @@ class CiviCRM_Profile_Sync_ACF_Mapping {
 		$participant_roles_id = $this->acf_loader->civicrm->participant_role->option_group_id_get();
 
 		// Bail if not in Participant Roles Option Group.
-		if ( $objectRef->option_group_id != $participant_roles_id ) {
+		if ( $object_ref->option_group_id != $participant_roles_id ) {
 			return;
 		}
 
 		// Get the data for the Participant Role.
-		$participant_role = $this->acf_loader->civicrm->participant_role->get_by_id( $objectRef->id );
+		$participant_role = $this->acf_loader->civicrm->participant_role->get_by_id( $object_ref->id );
 
 		// Bail on failure.
-		if ( $participant_role === false ) {
+		if ( false === $participant_role ) {
 			return;
 		}
 
@@ -945,10 +948,10 @@ class CiviCRM_Profile_Sync_ACF_Mapping {
 	 *
 	 * @since 0.5
 	 *
-	 * @param string $formName The CiviCRM form name.
+	 * @param string $form_name The CiviCRM form name.
 	 * @param object $form The CiviCRM form object.
 	 */
-	public function form_participant_role_process( $formName, &$form ) {
+	public function form_participant_role_process( $form_name, &$form ) {
 
 		// Bail if not Participant Role edit form.
 		if ( ! ( $form instanceof CRM_Admin_Form_Options ) ) {
@@ -959,7 +962,7 @@ class CiviCRM_Profile_Sync_ACF_Mapping {
 		$group_name = $form->getVar( '_gName' );
 
 		// Bail if not Participant Role.
-		if ( $group_name != 'participant_role' ) {
+		if ( 'participant_role' !== $group_name ) {
 			return;
 		}
 
@@ -1035,19 +1038,19 @@ class CiviCRM_Profile_Sync_ACF_Mapping {
 	 *
 	 * @since 0.5
 	 *
-	 * @param string $formName The CiviCRM form name.
+	 * @param string $form_name The CiviCRM form name.
 	 * @param object $form The CiviCRM form object.
 	 */
-	public function form_participant_build( $formName, &$form ) {
+	public function form_participant_build( $form_name, &$form ) {
 
 		// Is this the Event Component edit form?
-		if ( $formName != 'CRM_Admin_Form_Generic' ) {
+		if ( 'CRM_Admin_Form_Generic' !== $form_name ) {
 			return;
 		}
 
 		// Grab "URL Path" from form.
 		$form_url_path = $form->getVar( 'urlPath' );
-		$url_path = [ 'civicrm', 'admin', 'setting', 'preferences', 'event' ];
+		$url_path      = [ 'civicrm', 'admin', 'setting', 'preferences', 'event' ];
 		if ( $form_url_path !== $url_path ) {
 			return;
 		}
@@ -1069,16 +1072,14 @@ class CiviCRM_Profile_Sync_ACF_Mapping {
 		$settings = $this->setting_get( 'participant' );
 
 		// Set status of checkbox based on setting.
-		if ( $settings !== false ) {
-			if ( isset( $settings['enabled'] ) && $settings['enabled'] === 1 ) {
+		if ( false !== $settings ) {
+			if ( isset( $settings['enabled'] ) && 1 === $settings['enabled'] ) {
 				$checkbox->setChecked( true );
 			}
 		}
 
 		// Insert template block into the page.
-		CRM_Core_Region::instance( 'page-body' )->add([
-			'template' => 'cwps-acf-participant-cpt.tpl',
-		]);
+		CRM_Core_Region::instance( 'page-body' )->add( [ 'template' => 'cwps-acf-participant-cpt.tpl' ] );
 
 	}
 
@@ -1087,19 +1088,19 @@ class CiviCRM_Profile_Sync_ACF_Mapping {
 	 *
 	 * @since 0.5
 	 *
-	 * @param string $formName The CiviCRM form name.
+	 * @param string $form_name The CiviCRM form name.
 	 * @param object $form The CiviCRM form object.
 	 */
-	public function form_participant_process( $formName, &$form ) {
+	public function form_participant_process( $form_name, &$form ) {
 
 		// Is this the Event Component edit form?
-		if ( $formName != 'CRM_Admin_Form_Generic' ) {
+		if ( 'CRM_Admin_Form_Generic' !== $form_name ) {
 			return;
 		}
 
 		// Grab "URL Path" from form.
 		$form_url_path = $form->getVar( 'urlPath' );
-		$url_path = [ 'civicrm', 'admin', 'setting', 'preferences', 'event' ];
+		$url_path      = [ 'civicrm', 'admin', 'setting', 'preferences', 'event' ];
 		if ( $form_url_path !== $url_path ) {
 			return;
 		}
@@ -1109,7 +1110,7 @@ class CiviCRM_Profile_Sync_ACF_Mapping {
 
 		// Assume the "Enable CPT" checkbox is not checked, but override if it is.
 		$current = 0;
-		if ( isset( $values['cwps_acf_enable_cpt'] ) && $values['cwps_acf_enable_cpt'] == '1' ) {
+		if ( isset( $values['cwps_acf_enable_cpt'] ) && 1 === (int) $values['cwps_acf_enable_cpt'] ) {
 			$current = 1;
 		}
 
@@ -1132,7 +1133,7 @@ class CiviCRM_Profile_Sync_ACF_Mapping {
 
 		// Fire one of two actions depending on what has happened.
 		$action = 'enabled';
-		if ( $previous === 1 && $current === 0 ) {
+		if ( 1 === $previous && 0 === $current ) {
 			$action = 'disabled';
 		}
 
@@ -1160,8 +1161,8 @@ class CiviCRM_Profile_Sync_ACF_Mapping {
 	public function mappings_get_all() {
 
 		// Get existing mappings.
-		$for_contacts = $this->mappings_for_contact_types_get();
-		$for_activities = $this->mappings_for_activity_types_get();
+		$for_contacts     = $this->mappings_for_contact_types_get();
+		$for_activities   = $this->mappings_for_activity_types_get();
 		$for_participants = $this->mappings_for_participant_roles_get();
 
 		// --<
@@ -1226,7 +1227,7 @@ class CiviCRM_Profile_Sync_ACF_Mapping {
 	 * @since 0.4
 	 *
 	 * @param integer $contact_type_id The numeric ID of the Contact Type.
-	 * @param string $cpt_name The name of the WordPress Post Type.
+	 * @param string  $cpt_name The name of the WordPress Post Type.
 	 */
 	public function mapping_for_contact_type_update( $contact_type_id, $cpt_name ) {
 
@@ -1308,7 +1309,7 @@ class CiviCRM_Profile_Sync_ACF_Mapping {
 	 * @since 0.4
 	 *
 	 * @param integer $activity_type_id The numeric ID of the Activity Type.
-	 * @param string $cpt_name The name of the WordPress Post Type.
+	 * @param string  $cpt_name The name of the WordPress Post Type.
 	 */
 	public function mapping_for_activity_type_update( $activity_type_id, $cpt_name ) {
 
@@ -1390,7 +1391,7 @@ class CiviCRM_Profile_Sync_ACF_Mapping {
 	 * @since 0.5
 	 *
 	 * @param integer $participant_role_id The numeric ID of the Participant Role.
-	 * @param string $cpt_name The name of the WordPress Post Type.
+	 * @param string  $cpt_name The name of the WordPress Post Type.
 	 */
 	public function mapping_for_participant_role_update( $participant_role_id, $cpt_name ) {
 
@@ -1484,7 +1485,7 @@ class CiviCRM_Profile_Sync_ACF_Mapping {
 	 * @since 0.4
 	 *
 	 * @param string $post_type The name of the Post Type.
-	 * @param array $data The settings data for the Post Type.
+	 * @param array  $data The settings data for the Post Type.
 	 */
 	public function setting_update( $post_type, $data ) {
 
@@ -1525,12 +1526,7 @@ class CiviCRM_Profile_Sync_ACF_Mapping {
 	 * @param string $option_name The name of the option.
 	 * @return bool $exists Whether or not the option exists.
 	 */
-	public function option_exists( $option_name = '' ) {
-
-		// Test for empty.
-		if ( $option_name == '' ) {
-			die( __( 'You must supply an option to option_exists()', 'civicrm-wp-profile-sync' ) );
-		}
+	public function option_exists( $option_name ) {
 
 		// Test by getting option with unlikely default.
 		if ( $this->option_get( $option_name, 'fenfgehgefdfdjgrkj' ) == 'fenfgehgefdfdjgrkj' ) {
@@ -1550,12 +1546,7 @@ class CiviCRM_Profile_Sync_ACF_Mapping {
 	 * @param string $default The default value of the option if it has no value.
 	 * @return mixed $value the value of the option.
 	 */
-	public function option_get( $option_name = '', $default = false ) {
-
-		// Test for empty.
-		if ( $option_name == '' ) {
-			die( __( 'You must supply an option to option_get()', 'civicrm-wp-profile-sync' ) );
-		}
+	public function option_get( $option_name, $default = false ) {
 
 		// Get option.
 		$value = get_option( $option_name, $default );
@@ -1571,15 +1562,10 @@ class CiviCRM_Profile_Sync_ACF_Mapping {
 	 * @since 0.4
 	 *
 	 * @param string $option_name The name of the option.
-	 * @param mixed $value The value to set the option to.
+	 * @param mixed  $value The value to set the option to.
 	 * @return bool $success True if the value of the option was successfully updated.
 	 */
-	public function option_set( $option_name = '', $value = '' ) {
-
-		// Test for empty.
-		if ( $option_name == '' ) {
-			die( __( 'You must supply an option to option_set()', 'civicrm-wp-profile-sync' ) );
-		}
+	public function option_set( $option_name, $value ) {
 
 		// Update option.
 		return update_option( $option_name, $value );
@@ -1594,12 +1580,7 @@ class CiviCRM_Profile_Sync_ACF_Mapping {
 	 * @param string $option_name The name of the option.
 	 * @return bool $success True if the option was successfully deleted.
 	 */
-	public function option_delete( $option_name = '' ) {
-
-		// Test for empty.
-		if ( $option_name == '' ) {
-			die( __( 'You must supply an option to option_delete()', 'civicrm-wp-profile-sync' ) );
-		}
+	public function option_delete( $option_name ) {
 
 		// Delete option.
 		return delete_option( $option_name );

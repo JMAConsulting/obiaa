@@ -66,10 +66,10 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Contact {
 	public function __construct( $xprofile ) {
 
 		// Store references to objects.
-		$this->plugin = $xprofile->bp_loader->plugin;
+		$this->plugin    = $xprofile->bp_loader->plugin;
 		$this->bp_loader = $xprofile->bp_loader;
-		$this->civicrm = $this->plugin->civicrm;
-		$this->xprofile = $xprofile;
+		$this->civicrm   = $this->plugin->civicrm;
+		$this->xprofile  = $xprofile;
 
 		// Init when the BuddyPress Field object is loaded.
 		add_action( 'cwps/buddypress/field/loaded', [ $this, 'initialise' ] );
@@ -128,7 +128,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Contact {
 
 		// Overwrite the params with our data.
 		$args['contact_id'] = $contact['id'];
-		$args['contact'] = $contact;
+		$args['contact']    = $contact;
 
 		/**
 		 * Broadcast that a Contact has been updated when a set of BuddyPress Fields were saved.
@@ -177,12 +177,12 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Contact {
 			}
 
 			// Skip if it's not a "Contact" xProfile Field.
-			if ( empty( $meta['entity_type'] ) || $meta['entity_type'] !== 'Contact' ) {
+			if ( empty( $meta['entity_type'] ) || 'Contact' !== $meta['entity_type'] ) {
 				continue;
 			}
 
 			// Get the CiviCRM Custom Field and Contact Field.
-			$custom_field_id = $this->xprofile->custom_field->id_get( $meta['value'] );
+			$custom_field_id    = $this->xprofile->custom_field->id_get( $meta['value'] );
 			$contact_field_name = $this->xprofile->contact_field->name_get( $meta['value'] );
 
 			// Do we have a synced Custom Field or Contact Field?
@@ -203,8 +203,8 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Contact {
 
 				// Build args for value conversion.
 				$args = [
-					'entity_type' => $meta['entity_type'],
-					'custom_field_id' => $custom_field_id,
+					'entity_type'        => $meta['entity_type'],
+					'custom_field_id'    => $custom_field_id,
 					'contact_field_name' => $contact_field_name,
 				];
 
@@ -241,7 +241,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Contact {
 
 		// Build params by which to query xProfile.
 		$query = [
-			'user_id' => $args['user_id'],
+			'user_id'           => $args['user_id'],
 			'hide_empty_groups' => false,
 			'hide_empty_fields' => false,
 		];
@@ -272,14 +272,14 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Contact {
 				}
 
 				// Only handle Contact data.
-				if ( $field_meta['entity_type'] !== 'Contact' ) {
+				if ( 'Contact' !== $field_meta['entity_type'] ) {
 					continue;
 				}
 
 				// Build an array of params.
 				$params = [
-					'field' => $field,
-					'field_id' => $field_id,
+					'field'      => $field,
+					'field_id'   => $field_id,
 					'field_meta' => $field_meta,
 				];
 
@@ -314,7 +314,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Contact {
 	 * @since 0.5
 	 *
 	 * @param array|bool $user_id The existing User ID.
-	 * @param array $args The array of CiviCRM Custom Fields params.
+	 * @param array      $args The array of CiviCRM Custom Fields params.
 	 * @return array|bool $user_id The User ID, or false if not mapped.
 	 */
 	public function query_user_id( $user_id, $args ) {
@@ -326,7 +326,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Contact {
 		foreach ( $args['custom_fields'] as $field ) {
 
 			// Skip if it is not attached to an Contact.
-			if ( $field['entity_table'] != 'civicrm_contact' ) {
+			if ( 'civicrm_contact' !== $field['entity_table'] ) {
 				continue;
 			}
 
@@ -339,13 +339,13 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Contact {
 		}
 
 		// Bail if there's no Contact ID.
-		if ( $contact_id === false ) {
+		if ( false === $contact_id ) {
 			return $user_id;
 		}
 
 		// Bail if this Contact doesn't have a User ID.
 		$user_id = $this->plugin->mapper->ufmatch->user_id_get_by_contact_id( $contact_id );
-		if ( $user_id === false ) {
+		if ( false === $user_id ) {
 			return $user_id;
 		}
 

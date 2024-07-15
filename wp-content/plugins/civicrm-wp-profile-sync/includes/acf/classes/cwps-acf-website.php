@@ -77,6 +77,19 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Website extends CiviCRM_Profile_Sync_ACF_
 	public $website_field_prefix = 'caiwebsite_';
 
 	/**
+	 * An array of Website Records prior to edit.
+	 *
+	 * There are situations where nested updates take place (e.g. via CiviRules)
+	 * so we keep copies of the Website Records in an array and try and match
+	 * them up in the post edit hook.
+	 *
+	 * @since 0.4
+	 * @access private
+	 * @var array
+	 */
+	private $bridging_array = [];
+
+	/**
 	 * Contact Fields which must be handled separately.
 	 *
 	 * @since 0.4
@@ -110,9 +123,9 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Website extends CiviCRM_Profile_Sync_ACF_
 	public function __construct( $parent ) {
 
 		// Store references to objects.
-		$this->plugin = $parent->acf_loader->plugin;
+		$this->plugin     = $parent->acf_loader->plugin;
 		$this->acf_loader = $parent->acf_loader;
-		$this->civicrm = $parent;
+		$this->civicrm    = $parent;
 
 		// Init when the ACF CiviCRM object is loaded.
 		add_action( 'cwps/acf/civicrm/loaded', [ $this, 'initialise' ] );
@@ -169,7 +182,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Website extends CiviCRM_Profile_Sync_ACF_
 	public function register_mapper_hooks() {
 
 		// Bail if already registered.
-		if ( $this->mapper_hooks === true ) {
+		if ( true === $this->mapper_hooks ) {
 			return;
 		}
 
@@ -179,7 +192,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Website extends CiviCRM_Profile_Sync_ACF_
 		add_action( 'cwps/acf/mapper/website/created', [ $this, 'website_edited' ], 10 );
 		add_action( 'cwps/acf/mapper/website/edited', [ $this, 'website_edited' ], 10 );
 		// phpcs:ignore Squiz.Commenting.InlineComment.InvalidEndChar
-		//add_action( 'cwps/acf/mapper/website/deleted', [ $this, 'website_deleted' ], 10 );
+		// add_action( 'cwps/acf/mapper/website/deleted', [ $this, 'website_deleted' ], 10 );
 
 		// Declare registered.
 		$this->mapper_hooks = true;
@@ -194,7 +207,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Website extends CiviCRM_Profile_Sync_ACF_
 	public function unregister_mapper_hooks() {
 
 		// Bail if already unregistered.
-		if ( $this->mapper_hooks === false ) {
+		if ( false === $this->mapper_hooks ) {
 			return;
 		}
 
@@ -204,7 +217,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Website extends CiviCRM_Profile_Sync_ACF_
 		remove_action( 'cwps/acf/mapper/website/created', [ $this, 'website_edited' ], 10 );
 		remove_action( 'cwps/acf/mapper/website/edited', [ $this, 'website_edited' ], 10 );
 		// phpcs:ignore Squiz.Commenting.InlineComment.InvalidEndChar
-		//remove_action( 'cwps/acf/mapper/website/deleted', [ $this, 'website_deleted' ], 10 );
+		// remove_action( 'cwps/acf/mapper/website/deleted', [ $this, 'website_deleted' ], 10 );
 
 		// Declare unregistered.
 		$this->mapper_hooks = false;
@@ -258,16 +271,16 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Website extends CiviCRM_Profile_Sync_ACF_
 	 *
 	 * @since 0.4
 	 *
-	 * @param array $field The ACF Field data.
-	 * @param mixed $value The ACF Field value.
+	 * @param array   $field The ACF Field data.
+	 * @param mixed   $value The ACF Field value.
 	 * @param integer $contact_id The numeric ID of the Contact.
-	 * @param array $settings The ACF Field settings.
+	 * @param array   $settings The ACF Field settings.
 	 * @return bool True if updates were successful, or false on failure.
 	 */
 	public function field_handled_update( $field, $value, $contact_id, $settings ) {
 
 		// Skip if it's not an ACF Field Type that this class handles.
-		if ( ! in_array( $settings['type'], $this->fields_handled ) ) {
+		if ( ! in_array( $settings['type'], $this->fields_handled, true ) ) {
 			return true;
 		}
 
@@ -318,14 +331,14 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Website extends CiviCRM_Profile_Sync_ACF_
 		// Construct API query.
 		$params = [
 			'version' => 3,
-			'id' => $website_id,
+			'id'      => $website_id,
 		];
 
 		// Get Website details via API.
 		$result = civicrm_api( 'Website', 'get', $params );
 
 		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
 			return $website;
 		}
 
@@ -369,10 +382,10 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Website extends CiviCRM_Profile_Sync_ACF_
 
 		// Define params to get queried Websites.
 		$params = [
-			'version' => 3,
+			'version'    => 3,
 			'sequential' => 1,
 			'contact_id' => $contact_id,
-			'options' => [
+			'options'    => [
 				'limit' => 0, // No limit.
 			],
 		];
@@ -381,7 +394,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Website extends CiviCRM_Profile_Sync_ACF_
 		$result = civicrm_api( 'Website', 'get', $params );
 
 		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
 			return $website_data;
 		}
 
@@ -475,11 +488,6 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Website extends CiviCRM_Profile_Sync_ACF_
 	 */
 	public function website_pre_edit( $args ) {
 
-		// Always clear properties if set previously.
-		if ( isset( $this->website_pre ) ) {
-			unset( $this->website_pre );
-		}
-
 		// We need a Contact ID in the edited Website.
 		$website = $args['objectRef'];
 		if ( empty( $website->contact_id ) ) {
@@ -487,7 +495,15 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Website extends CiviCRM_Profile_Sync_ACF_
 		}
 
 		// Grab the previous Website data from the database.
-		$this->website_pre = $this->website_get_by_id( $website->id );
+		$website_pre = $this->website_get_by_id( $website->id );
+
+		// Maybe cast previous Website data as object.
+		if ( ! is_object( $website_pre ) ) {
+			$website_pre = (object) $website_pre;
+		}
+
+		// Store for later use.
+		$this->bridging_array[ (int) $website->id ] = $website_pre;
 
 	}
 
@@ -506,13 +522,23 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Website extends CiviCRM_Profile_Sync_ACF_
 			return;
 		}
 
+		// Cast ID as integer for array key.
+		$website_id = (int) $website->id;
+
+		// Populate "Previous Website" if we have it stored.
+		$website_pre = null;
+		if ( ! empty( $this->bridging_array[ $website_id ] ) ) {
+			$website_pre = $this->bridging_array[ $website_id ];
+			unset( $this->bridging_array[ $website_id ] );
+		}
+
 		// Check previous to see if its Website Type has changed.
 		$website_type_changed = false;
-		if ( ! empty( $this->website_pre ) ) {
-			if ( (int) $this->website_pre->website_type_id !== (int) $website->website_type_id ) {
+		if ( ! empty( $website_pre ) ) {
+			if ( (int) $website_pre->website_type_id !== (int) $website->website_type_id ) {
 				$website_type_changed = true;
 				// Make a clone so we don't overwrite the Website Pre object.
-				$previous = clone $this->website_pre;
+				$previous      = clone $website_pre;
 				$previous->url = '';
 			}
 		}
@@ -522,7 +548,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Website extends CiviCRM_Profile_Sync_ACF_
 
 		// Test if any of this Contact's Contact Types is mapped.
 		$post_types = $this->civicrm->contact->is_mapped( $contact, 'create' );
-		if ( $post_types !== false ) {
+		if ( false !== $post_types ) {
 
 			// Handle each Post Type in turn.
 			foreach ( $post_types as $post_type ) {
@@ -531,7 +557,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Website extends CiviCRM_Profile_Sync_ACF_
 				$post_id = $this->civicrm->contact->is_mapped_to_post( $contact, $post_type );
 
 				// Skip if not mapped or Post doesn't yet exist.
-				if ( $post_id === false ) {
+				if ( false === $post_id ) {
 					continue;
 				}
 
@@ -596,7 +622,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Website extends CiviCRM_Profile_Sync_ACF_
 
 		// Test if any of this Contact's Contact Types is mapped.
 		$post_types = $this->civicrm->contact->is_mapped( $contact, 'create' );
-		if ( $post_types !== false ) {
+		if ( false !== $post_types ) {
 
 			// Handle each Post Type in turn.
 			foreach ( $post_types as $post_type ) {
@@ -605,7 +631,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Website extends CiviCRM_Profile_Sync_ACF_
 				$post_id = $this->civicrm->contact->is_mapped_to_post( $contact, $post_type );
 
 				// Skip if not mapped or Post doesn't yet exist.
-				if ( $post_id === false ) {
+				if ( false === $post_id ) {
 					continue;
 				}
 
@@ -634,7 +660,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Website extends CiviCRM_Profile_Sync_ACF_
 	 * @since 0.4
 	 *
 	 * @param integer|string $post_id The ACF "Post ID".
-	 * @param object $website The CiviCRM Website Record object.
+	 * @param object         $website The CiviCRM Website Record object.
 	 */
 	public function fields_update( $post_id, $website ) {
 
@@ -704,16 +730,14 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Website extends CiviCRM_Profile_Sync_ACF_
 		$result = civicrm_api( 'Website', 'getfields', $params );
 
 		// Override return if we get some.
-		if ( $result['is_error'] == 0 && ! empty( $result['values'] ) ) {
+		if ( empty( $result['is_error'] ) && ! empty( $result['values'] ) ) {
 
-			// Check for no filter.
-			if ( $filter == 'none' ) {
+			if ( 'none' === $filter ) {
 
-				// Grab all of them.
+				// Grab all Fields.
 				$fields = $result['values'];
 
-			// Check public filter.
-			} elseif ( $filter == 'public' ) {
+			} elseif ( 'public' === $filter ) {
 
 				// Skip all but those defined in our public Website Fields array.
 				foreach ( $result['values'] as $key => $value ) {
@@ -748,7 +772,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Website extends CiviCRM_Profile_Sync_ACF_
 	 * @since 0.4
 	 *
 	 * @param integer $custom_field_id The existing Custom Field ID.
-	 * @param array $field The array of ACF Field data.
+	 * @param array   $field The array of ACF Field data.
 	 * @return integer $custom_field_id The modified Custom Field ID.
 	 */
 	public function custom_field_id_get( $custom_field_id, $field ) {
@@ -850,20 +874,20 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Website extends CiviCRM_Profile_Sync_ACF_
 
 		// Define Field.
 		$field = [
-			'key' => $this->acf_field_key_get(),
-			'label' => __( 'CiviCRM Website', 'civicrm-wp-profile-sync' ),
-			'name' => $this->acf_field_key_get(),
-			'type' => 'select',
-			'instructions' => __( 'Choose the CiviCRM Website Field that this ACF Field should sync with. (Optional)', 'civicrm-wp-profile-sync' ),
+			'key'           => $this->acf_field_key_get(),
+			'label'         => __( 'CiviCRM Website', 'civicrm-wp-profile-sync' ),
+			'name'          => $this->acf_field_key_get(),
+			'type'          => 'select',
+			'instructions'  => __( 'Choose the CiviCRM Website Field that this ACF Field should sync with. (Optional)', 'civicrm-wp-profile-sync' ),
 			'default_value' => '',
-			'placeholder' => '',
-			'allow_null' => 1,
-			'multiple' => 0,
-			'ui' => 0,
-			'required' => 0,
+			'placeholder'   => '',
+			'allow_null'    => 1,
+			'multiple'      => 0,
+			'ui'            => 0,
+			'required'      => 0,
 			'return_format' => 'value',
-			'parent' => $this->acf_loader->acf->field_group->placeholder_group_get(),
-			'choices' => $choices,
+			'parent'        => $this->acf_loader->acf->field_group->placeholder_group_get(),
+			'choices'       => $choices,
 		];
 
 		// --<
@@ -890,8 +914,8 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Website extends CiviCRM_Profile_Sync_ACF_
 	 *
 	 * @since 0.4
 	 *
-	 * @param array $acf_fields The existing ACF Fields array.
-	 * @param array $field The ACF Field.
+	 * @param array   $acf_fields The existing ACF Fields array.
+	 * @param array   $field The ACF Field.
 	 * @param integer $post_id The numeric ID of the WordPress Post.
 	 * @return array $acf_fields The modified ACF Fields array.
 	 */
@@ -922,7 +946,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Website extends CiviCRM_Profile_Sync_ACF_
 	 * @param array $setting_field The existing Setting Field array.
 	 * @param array $field The ACF Field data array.
 	 * @param array $field_group The ACF Field Group data array.
-	 * @param bool $skip_check True if the check for Field Group should be skipped. Default false.
+	 * @param bool  $skip_check True if the check for Field Group should be skipped. Default false.
 	 * @return array|bool $setting_field The Setting Field array if populated, false if conflicting.
 	 */
 	public function query_settings_field( $setting_field, $field, $field_group, $skip_check = false ) {
@@ -937,7 +961,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Website extends CiviCRM_Profile_Sync_ACF_
 
 		// Check if this is a Contact Field Group or a User Field Group.
 		$is_contact_field_group = $this->civicrm->contact->is_contact_field_group( $field_group );
-		$is_user_field_group = $this->acf_loader->user->is_user_field_group( $field_group );
+		$is_user_field_group    = $this->acf_loader->user->is_user_field_group( $field_group );
 		if ( ! empty( $is_contact_field_group ) || ! empty( $is_user_field_group ) ) {
 
 			// The Website Fields for this ACF Field are needed.
@@ -1011,7 +1035,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Website extends CiviCRM_Profile_Sync_ACF_
 		}
 
 		// Get the public Fields on the Entity for this Field Type.
-		$public_fields = $this->civicrm_fields_get( 'public' );
+		$public_fields     = $this->civicrm_fields_get( 'public' );
 		$fields_for_entity = [];
 		foreach ( $public_fields as $key => $value ) {
 			if ( $field['type'] == $this->website_fields[ $value['name'] ] ) {

@@ -48,7 +48,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Address {
 	public function __construct( $parent ) {
 
 		// Store references to objects.
-		$this->plugin = $parent->plugin;
+		$this->plugin  = $parent->plugin;
 		$this->civicrm = $parent;
 
 		// Init when the CiviCRM object is loaded.
@@ -109,16 +109,16 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Address {
 
 		// Params to get the Address Type.
 		$params = [
-			'version' => 3,
+			'version'    => 3,
 			'sequential' => 1,
-			'id' => $country_id,
+			'id'         => $country_id,
 		];
 
 		// Call the CiviCRM API.
 		$result = civicrm_api( 'Country', 'get', $params );
 
 		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
 			return $country;
 		}
 
@@ -156,16 +156,16 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Address {
 
 		// Params to get the Address Type.
 		$params = [
-			'version' => 3,
+			'version'    => 3,
 			'sequential' => 1,
-			'iso_code' => $country_short,
+			'iso_code'   => $country_short,
 		];
 
 		// Call the CiviCRM API.
 		$result = civicrm_api( 'Country', 'get', $params );
 
 		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
 			return $country;
 		}
 
@@ -228,9 +228,9 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Address {
 
 		// Params to get the Address Type.
 		$params = [
-			'version' => 3,
+			'version'    => 3,
 			'sequential' => 1,
-			'options' => [
+			'options'    => [
 				'limit' => 0,
 			],
 		];
@@ -239,7 +239,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Address {
 		$result = civicrm_api( 'StateProvince', 'get', $params );
 
 		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
 			return $state_provinces;
 		}
 
@@ -251,7 +251,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Address {
 		// Build the array.
 		foreach ( $result['values'] as $value ) {
 			$state_provinces[ $value['country_id'] ][] = [
-				'id' => $value['id'],
+				'id'   => $value['id'],
 				'text' => $value['name'],
 			];
 		}
@@ -282,8 +282,8 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Address {
 
 		// Params to get the State/Province.
 		$params = [
-			'version' => 3,
-			'sequential' => 1,
+			'version'           => 3,
+			'sequential'        => 1,
 			'state_province_id' => $state_province_id,
 		];
 
@@ -291,7 +291,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Address {
 		$result = civicrm_api( 'StateProvince', 'get', $params );
 
 		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
 			return $state_province;
 		}
 
@@ -329,8 +329,8 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Address {
 
 		// Params to get the State/Province.
 		$params = [
-			'version' => 3,
-			'sequential' => 1,
+			'version'      => 3,
+			'sequential'   => 1,
 			'abbreviation' => $abbreviation,
 		];
 
@@ -338,7 +338,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Address {
 		$result = civicrm_api( 'StateProvince', 'get', $params );
 
 		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
 			return $state_province;
 		}
 
@@ -381,14 +381,14 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Address {
 
 		// Build the query.
 		$query = 'SELECT name, id, state_province_id, abbreviation FROM civicrm_county';
-		$dao = CRM_Core_DAO::executeQuery( $query );
+		$dao   = CRM_Core_DAO::executeQuery( $query );
 
 		// Build the array.
 		while ( $dao->fetch() ) {
 			$counties[ $dao->id ] = [
-				'name' => $dao->name,
+				'name'              => $dao->name,
 				'state_province_id' => $dao->state_province_id,
-				'abbreviation' => $dao->abbreviation,
+				'abbreviation'      => $dao->abbreviation,
 			];
 		}
 
@@ -425,12 +425,12 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Address {
 
 		// Build the query.
 		$query = 'SELECT name, id, state_province_id, abbreviation FROM civicrm_county';
-		$dao = CRM_Core_DAO::executeQuery( $query );
+		$dao   = CRM_Core_DAO::executeQuery( $query );
 
 		// Build the array.
 		while ( $dao->fetch() ) {
 			$counties[ $dao->state_province_id ][] = [
-				'id' => $dao->id,
+				'id'   => $dao->id,
 				'text' => $dao->name,
 			];
 		}
@@ -466,7 +466,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Address {
 		}
 
 		// Query directly.
-		$query = 'SELECT state_province_id FROM civicrm_county WHERE id = ' . (int) $county_id;
+		$query    = 'SELECT state_province_id FROM civicrm_county WHERE id = ' . (int) $county_id;
 		$state_id = CRM_Core_DAO::singleValueQuery( $query );
 
 		// Bail on failure.
@@ -507,10 +507,10 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Address {
 
 		// Construct params to find Shared Addresses.
 		$params = [
-			'version' => 3,
+			'version'    => 3,
 			'sequential' => 1,
-			'master_id' => $address_id,
-			'options' => [
+			'master_id'  => $address_id,
+			'options'    => [
 				'limit' => 0,
 			],
 		];
@@ -519,7 +519,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Address {
 		$result = civicrm_api( 'Address', 'get', $params );
 
 		// Bail on failure.
-		if ( isset( $result['is_error'] ) && $result['is_error'] == '1' ) {
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
 			return $shared;
 		}
 
@@ -560,14 +560,14 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Address {
 		// Construct API query.
 		$params = [
 			'version' => 3,
-			'id' => $address_id,
+			'id'      => $address_id,
 		];
 
 		// Get Address details via API.
 		$result = civicrm_api( 'Address', 'get', $params );
 
 		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
 			return $address;
 		}
 
@@ -606,8 +606,8 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Address {
 
 		// Construct API query.
 		$params = [
-			'version' => 3,
-			'contact_id' => $contact_id,
+			'version'          => 3,
+			'contact_id'       => $contact_id,
 			'location_type_id' => $location_type_id,
 		];
 
@@ -615,7 +615,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Address {
 		$result = civicrm_api( 'Address', 'get', $params );
 
 		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
 			return $address;
 		}
 
@@ -653,7 +653,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Address {
 
 		// Construct API query.
 		$params = [
-			'version' => 3,
+			'version'    => 3,
 			'contact_id' => $contact_id,
 		];
 
@@ -661,7 +661,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Address {
 		$result = civicrm_api( 'Address', 'get', $params );
 
 		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
 			return $addresses;
 		}
 
@@ -701,7 +701,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Address {
 
 		// Construct API query.
 		$params = [
-			'version' => 3,
+			'version'    => 3,
 			'is_primary' => 1,
 			'contact_id' => $contact_id,
 		];
@@ -710,7 +710,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Address {
 		$result = civicrm_api( 'Address', 'get', $params );
 
 		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
 			return $address;
 		}
 
@@ -781,16 +781,16 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Address {
 
 		// Params to get the Address Type.
 		$params = [
-			'version' => 3,
+			'version'    => 3,
 			'sequential' => 1,
-			'id' => $location_type_id,
+			'id'         => $location_type_id,
 		];
 
 		// Call the CiviCRM API.
 		$result = civicrm_api( 'LocationType', 'get', $params );
 
 		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
 			return $location_type;
 		}
 
@@ -827,10 +827,10 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Address {
 
 		// Params to get all Location Types.
 		$params = [
-			'version' => 3,
-			'is_active' => 1,
+			'version'    => 3,
+			'is_active'  => 1,
 			'sequential' => 1,
-			'options' => [
+			'options'    => [
 				'limit' => 0,
 			],
 		];
@@ -839,7 +839,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Address {
 		$result = civicrm_api( 'LocationType', 'get', $params );
 
 		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
 			return $location_types;
 		}
 
@@ -879,7 +879,9 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Address {
 		$settings = CRM_Core_BAO_Setting::valueOptions(
 			CRM_Core_BAO_Setting::SYSTEM_PREFERENCES_NAME,
 			'address_options',
-			true, null, true
+			true,
+			null,
+			true
 		);
 
 		// The items that are missing the "_id" suffix.
@@ -913,7 +915,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Address {
 	 * @since 0.5 Moved to this class.
 	 *
 	 * @param integer $contact_id The numeric ID of the Contact.
-	 * @param string $data The Address data to update the Contact with.
+	 * @param string  $data The Address data to update the Contact with.
 	 * @return array|bool $address The array of Address Record data, or false on failure.
 	 */
 	public function update( $contact_id, $data ) {
@@ -928,7 +930,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Address {
 
 		// Define params to create new Address Record.
 		$params = [
-			'version' => 3,
+			'version'    => 3,
 			'contact_id' => $contact_id,
 		] + $data;
 
@@ -936,15 +938,16 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Address {
 		$result = civicrm_api( 'Address', 'create', $params );
 
 		// Log and bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
-			$e = new Exception();
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
+			$e     = new Exception();
 			$trace = $e->getTraceAsString();
-			error_log( print_r( [
-				'method' => __METHOD__,
-				'params' => $params,
-				'result' => $result,
+			$log   = [
+				'method'    => __METHOD__,
+				'params'    => $params,
+				'result'    => $result,
 				'backtrace' => $trace,
-			], true ) );
+			];
+			$this->plugin->log_error( $log );
 			return $address;
 		}
 
@@ -983,14 +986,14 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Address {
 		// Define params to delete this Address Record.
 		$params = [
 			'version' => 3,
-			'id' => $address_id,
+			'id'      => $address_id,
 		];
 
 		// Call the API.
 		$result = civicrm_api( 'Address', 'delete', $params );
 
 		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
 			return $success;
 		}
 
@@ -1000,7 +1003,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Address {
 		}
 
 		// The result set should contain only one item.
-		$success = ( $result['values'] == '1' ) ? true : false;
+		$success = ( 1 === (int) $result['values'] ) ? true : false;
 
 		// --<
 		return $success;
@@ -1014,7 +1017,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Address {
 	 * @since 0.5 Moved to this class.
 	 *
 	 * @param integer $contact_id The numeric ID of the Contact.
-	 * @param array $data The Address data to save.
+	 * @param array   $data The Address data to save.
 	 * @return array|bool $address The array of Address data, or false on failure.
 	 */
 	public function address_record_update( $contact_id, $data ) {
@@ -1029,8 +1032,8 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Address {
 
 		// Get the current Address for this Location Type.
 		$params = [
-			'version' => 3,
-			'contact_id' => $contact_id,
+			'version'          => 3,
+			'contact_id'       => $contact_id,
 			'location_type_id' => $data['location_type_id'],
 		];
 
@@ -1038,13 +1041,13 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Address {
 		$existing_address = civicrm_api( 'Address', 'get', $params );
 
 		// Bail if there's an error.
-		if ( ! empty( $existing_address['is_error'] ) && $existing_address['is_error'] == 1 ) {
+		if ( ! empty( $existing_address['is_error'] ) && 1 === (int) $existing_address['is_error'] ) {
 			return $address;
 		}
 
 		// Update the Address if there is an existing one.
 		if ( ! empty( $existing_address['values'] ) ) {
-			$existing = array_pop( $existing_address['values'] );
+			$existing   = array_pop( $existing_address['values'] );
 			$data['id'] = $existing['id'];
 		}
 
@@ -1079,15 +1082,15 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Address {
 		// Construct params.
 		$params = [
 			'version' => 3,
-			'name' => $name,
-			'action' => 'get',
+			'name'    => $name,
+			'action'  => 'get',
 		];
 
 		// Call the API.
 		$result = civicrm_api( 'Address', 'getfield', $params );
 
 		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
 			return $field;
 		}
 

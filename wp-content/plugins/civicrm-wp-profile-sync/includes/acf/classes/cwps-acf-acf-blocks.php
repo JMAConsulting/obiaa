@@ -57,9 +57,9 @@ class CiviCRM_Profile_Sync_ACF_Blocks {
 	public function __construct( $parent ) {
 
 		// Store references to objects.
-		$this->plugin = $parent->acf_loader->plugin;
+		$this->plugin     = $parent->acf_loader->plugin;
 		$this->acf_loader = $parent->acf_loader;
-		$this->acf = $parent;
+		$this->acf        = $parent;
 
 		// Init when the parent class is loaded.
 		add_action( 'cwps/acf/acf/loaded', [ $this, 'register_hooks' ] );
@@ -96,24 +96,25 @@ class CiviCRM_Profile_Sync_ACF_Blocks {
 
 		// Define Block.
 		$block = [
-			'name' => 'cwps-phone',
-			'title' => __( 'CiviCRM Phone', 'civicrm-wp-profile-sync' ),
-			'description' => __( 'A custom phone block.', 'civicrm-wp-profile-sync' ),
+			'name'            => 'cwps-phone',
+			'title'           => __( 'CiviCRM Phone', 'civicrm-wp-profile-sync' ),
+			'description'     => __( 'A custom phone block.', 'civicrm-wp-profile-sync' ),
 			'render_callback' => [ 'CiviCRM_Profile_Sync_ACF_Blocks', 'block_test_render' ],
-			'category' => 'common',
-			'keywords' => [ 'civicrm' ],
-			'post_types' => [ 'page' ],
+			'category'        => 'common',
+			'keywords'        => [ 'civicrm' ],
+			'post_types'      => [ 'page' ],
 		];
 
 		/*
 		$e = new \Exception();
 		$trace = $e->getTraceAsString();
-		error_log( print_r( [
+		$log = [
 			'method' => __METHOD__,
 			'block' => $block,
 			'callable' => is_callable( $block['render_callback'] ),
 			//'backtrace' => $trace,
-		], true ) );
+		];
+		$this->plugin->log_error( $log );
 		*/
 
 		// Register it.
@@ -122,11 +123,12 @@ class CiviCRM_Profile_Sync_ACF_Blocks {
 		/*
 		$e = new \Exception();
 		$trace = $e->getTraceAsString();
-		error_log( print_r( [
+		$log = [
 			'method' => __METHOD__,
 			'result' => $result,
 			//'backtrace' => $trace,
-		], true ) );
+		];
+		$this->plugin->log_error( $log );
 		*/
 
 	}
@@ -136,9 +138,9 @@ class CiviCRM_Profile_Sync_ACF_Blocks {
 	 *
 	 * @since 0.4
 	 *
-	 * @param array $block The Block settings and attributes.
-	 * @param string $content The Block inner HTML (empty).
-	 * @param bool $is_preview True during AJAX preview.
+	 * @param array          $block The Block settings and attributes.
+	 * @param string         $content The Block inner HTML (empty).
+	 * @param bool           $is_preview True during AJAX preview.
 	 * @param integer|string $post_id The Post ID this Block is saved to.
 	 */
 	public function block_test_render( $block, $content = '', $is_preview = false, $post_id = 0 ) {
@@ -160,7 +162,7 @@ class CiviCRM_Profile_Sync_ACF_Blocks {
 
 		// Load values and assign defaults.
 		// phpcs:ignore Squiz.Commenting.InlineComment.InvalidEndChar
-		//$data = get_field( 'selector' );
+		// $data = get_field( 'selector' );
 
 		?>
 		<div id="<?php echo esc_attr( $id ); ?>" class="<?php echo esc_attr( $class_name ); ?>">

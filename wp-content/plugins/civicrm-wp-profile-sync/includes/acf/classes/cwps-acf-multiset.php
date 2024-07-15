@@ -57,6 +57,19 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Multiple_Record_Set extends CiviCRM_Profi
 	public $mapper_hooks = false;
 
 	/**
+	 * An array of Instant Messenger Records prior to delete.
+	 *
+	 * There are situations where nested updates take place (e.g. via CiviRules)
+	 * so we keep copies of the Instant Messenger Records in an array and try
+	 * and match them up in the post delete hook.
+	 *
+	 * @since 0.4
+	 * @access private
+	 * @var array
+	 */
+	private $bridging_array = [];
+
+	/**
 	 * ACF Fields which must be handled separately.
 	 *
 	 * @since 0.4
@@ -77,9 +90,9 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Multiple_Record_Set extends CiviCRM_Profi
 	public function __construct( $parent ) {
 
 		// Store references to objects.
-		$this->plugin = $parent->acf_loader->plugin;
+		$this->plugin     = $parent->acf_loader->plugin;
 		$this->acf_loader = $parent->acf_loader;
-		$this->civicrm = $parent;
+		$this->civicrm    = $parent;
 
 		// Init when the ACF CiviCRM object is loaded.
 		add_action( 'cwps/acf/civicrm/loaded', [ $this, 'initialise' ] );
@@ -132,7 +145,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Multiple_Record_Set extends CiviCRM_Profi
 	public function register_mapper_hooks() {
 
 		// Bail if already registered.
-		if ( $this->mapper_hooks === true ) {
+		if ( true === $this->mapper_hooks ) {
 			return;
 		}
 
@@ -157,7 +170,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Multiple_Record_Set extends CiviCRM_Profi
 	public function unregister_mapper_hooks() {
 
 		// Bail if already unregistered.
-		if ( $this->mapper_hooks === false ) {
+		if ( false === $this->mapper_hooks ) {
 			return;
 		}
 
@@ -216,17 +229,17 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Multiple_Record_Set extends CiviCRM_Profi
 	 *
 	 * @since 0.4
 	 *
-	 * @param string $field The ACF Field selector.
-	 * @param mixed $value The ACF Field value.
+	 * @param string  $field The ACF Field selector.
+	 * @param mixed   $value The ACF Field value.
 	 * @param integer $contact_id The numeric ID of the Contact.
-	 * @param array $settings The ACF Field settings.
-	 * @param array $args The array of WordPress params.
+	 * @param array   $settings The ACF Field settings.
+	 * @param array   $args The array of WordPress params.
 	 * @return bool True if updates were successful, or false on failure.
 	 */
 	public function field_handled_update( $field, $value, $contact_id, $settings, $args ) {
 
 		// Skip if it's not an ACF Field Type that this class handles.
-		if ( ! in_array( $settings['type'], $this->fields_handled ) ) {
+		if ( ! in_array( $settings['type'], $this->fields_handled, true ) ) {
 			return true;
 		}
 
@@ -282,10 +295,10 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Multiple_Record_Set extends CiviCRM_Profi
 
 		// Define params to get queried Multiple Record Sets.
 		$params = [
-			'version' => 3,
+			'version'    => 3,
 			'sequential' => 1,
 			'contact_id' => $contact_id,
-			'options' => [
+			'options'    => [
 				'limit' => 0, // No limit.
 			],
 		];
@@ -294,7 +307,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Multiple_Record_Set extends CiviCRM_Profi
 		$result = civicrm_api( 'Im', 'get', $params );
 
 		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
 			return $multiset_data;
 		}
 
@@ -369,10 +382,10 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Multiple_Record_Set extends CiviCRM_Profi
 	 *
 	 * @since 0.4
 	 *
-	 * @param array $values The array of Multiple Record Sets to update the Contact with.
+	 * @param array   $values The array of Multiple Record Sets to update the Contact with.
 	 * @param integer $contact_id The numeric ID of the Contact.
-	 * @param string $selector The ACF Field selector.
-	 * @param array $args The array of WordPress params.
+	 * @param string  $selector The ACF Field selector.
+	 * @param array   $args The array of WordPress params.
 	 * @return array|bool $multisets The array of Multiple Record Sets, or false on failure.
 	 */
 	public function multisets_update( $values, $contact_id, $selector, $args = [] ) {
@@ -405,11 +418,11 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Multiple_Record_Set extends CiviCRM_Profi
 
 				// Make an array of our params.
 				$params = [
-					'key' => $key,
-					'value' => $value,
-					'multiset' => $multiset,
+					'key'        => $key,
+					'value'      => $value,
+					'multiset'   => $multiset,
 					'contact_id' => $contact_id,
-					'selector' => $selector,
+					'selector'   => $selector,
 				];
 
 				/**
@@ -459,13 +472,16 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Multiple_Record_Set extends CiviCRM_Profi
 		$acf_multiset_ids = wp_list_pluck( $values, 'field_multiset_id' );
 
 		// Sanitise array contents.
-		array_walk( $acf_multiset_ids, function( &$item ) {
-			$item = (int) trim( $item );
-		} );
+		array_walk(
+			$acf_multiset_ids,
+			function( &$item ) {
+				$item = (int) trim( $item );
+			}
+		);
 
 		// Records to delete are missing from the ACF data.
 		foreach ( $current as $current_multiset ) {
-			if ( ! in_array( $current_multiset['id'], $acf_multiset_ids ) ) {
+			if ( ! in_array( (int) $current_multiset['id'], $acf_multiset_ids, true ) ) {
 				$actions['delete'][] = $current_multiset['id'];
 				continue;
 			}
@@ -485,11 +501,11 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Multiple_Record_Set extends CiviCRM_Profi
 
 			// Make an array of our params.
 			$params = [
-				'key' => $key,
-				'value' => $value,
-				'multiset' => $multiset,
+				'key'        => $key,
+				'value'      => $value,
+				'multiset'   => $multiset,
 				'contact_id' => $contact_id,
-				'selector' => $selector,
+				'selector'   => $selector,
 			];
 
 			/**
@@ -520,11 +536,11 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Multiple_Record_Set extends CiviCRM_Profi
 
 			// Make an array of our params.
 			$params = [
-				'key' => $key,
-				'value' => $value,
-				'multiset' => $multiset,
+				'key'        => $key,
+				'value'      => $value,
+				'multiset'   => $multiset,
 				'contact_id' => $contact_id,
-				'selector' => $selector,
+				'selector'   => $selector,
 			];
 
 			/**
@@ -548,9 +564,9 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Multiple_Record_Set extends CiviCRM_Profi
 			// Make an array of our params.
 			$params = [
 				'multiset_id' => $multiset_id,
-				'multiset' => $multiset,
-				'contact_id' => $contact_id,
-				'selector' => $selector,
+				'multiset'    => $multiset,
+				'contact_id'  => $contact_id,
+				'selector'    => $selector,
 			];
 
 			/**
@@ -572,7 +588,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Multiple_Record_Set extends CiviCRM_Profi
 	 *
 	 * @since 0.4
 	 *
-	 * @param array $value The array of Multiple Record Set data in the ACF Field.
+	 * @param array   $value The array of Multiple Record Set data in the ACF Field.
 	 * @param integer $multiset_id The numeric ID of the Multiple Record Set (or null if new).
 	 * @return array $multiset_data The CiviCRM Multiple Record Set data.
 	 */
@@ -587,10 +603,10 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Multiple_Record_Set extends CiviCRM_Profi
 		}
 
 		// Convert ACF data to CiviCRM data.
-		$multiset_data['is_primary'] = empty( $value['field_multiset_primary'] ) ? '0' : '1';
+		$multiset_data['is_primary']       = empty( $value['field_multiset_primary'] ) ? '0' : '1';
 		$multiset_data['location_type_id'] = (int) $value['field_multiset_location'];
-		$multiset_data['provider_id'] = (int) $value['field_multiset_provider'];
-		$multiset_data['name'] = trim( $value['field_multiset_name'] );
+		$multiset_data['provider_id']      = (int) $value['field_multiset_provider'];
+		$multiset_data['name']             = trim( $value['field_multiset_name'] );
 
 		// --<
 		return $multiset_data;
@@ -616,11 +632,11 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Multiple_Record_Set extends CiviCRM_Profi
 		}
 
 		// Convert CiviCRM data to ACF data.
-		$multiset_data['field_multiset_name'] = trim( $value->name );
+		$multiset_data['field_multiset_name']     = trim( $value->name );
 		$multiset_data['field_multiset_location'] = (int) $value->location_type_id;
 		$multiset_data['field_multiset_provider'] = (int) $value->provider_id;
-		$multiset_data['field_multiset_primary'] = empty( $value->is_primary ) ? '0' : '1';
-		$multiset_data['field_multiset_id'] = (int) $value->id;
+		$multiset_data['field_multiset_primary']  = empty( $value->is_primary ) ? '0' : '1';
+		$multiset_data['field_multiset_id']       = (int) $value->id;
 
 		// --<
 		return $multiset_data;
@@ -637,7 +653,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Multiple_Record_Set extends CiviCRM_Profi
 	 * @since 0.4
 	 *
 	 * @param integer $contact_id The numeric ID of the Contact.
-	 * @param string $data The Multiple Record Set data to update the Contact with.
+	 * @param string  $data The Multiple Record Set data to update the Contact with.
 	 * @return array|bool $multiset The array of Multiple Record Set data, or false on failure.
 	 */
 	public function update( $contact_id, $data ) {
@@ -652,7 +668,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Multiple_Record_Set extends CiviCRM_Profi
 
 		// Define params to create new Multiple Record Set.
 		$params = [
-			'version' => 3,
+			'version'    => 3,
 			'contact_id' => $contact_id,
 		] + $data;
 
@@ -660,7 +676,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Multiple_Record_Set extends CiviCRM_Profi
 		$result = civicrm_api( 'Im', 'create', $params );
 
 		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
 			return $multiset;
 		}
 
@@ -698,14 +714,14 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Multiple_Record_Set extends CiviCRM_Profi
 		// Define params to delete this Multiple Record Set.
 		$params = [
 			'version' => 3,
-			'id' => $multiset_id,
+			'id'      => $multiset_id,
 		];
 
 		// Call the API.
 		$result = civicrm_api( 'Im', 'delete', $params );
 
 		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
 			return $success;
 		}
 
@@ -715,7 +731,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Multiple_Record_Set extends CiviCRM_Profi
 		}
 
 		// The result set should contain only one item.
-		$success = ( $result['values'] == '1' ) ? true : false;
+		$success = ( 1 === (int) $result['values'] ) ? true : false;
 
 		// --<
 		return $success;
@@ -760,12 +776,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Multiple_Record_Set extends CiviCRM_Profi
 	 */
 	public function multiset_pre_delete( $args ) {
 
-		// Always clear properties if set previously.
-		if ( isset( $this->multiset_pre ) ) {
-			unset( $this->multiset_pre );
-		}
-
-		// We just need the PHone ID.
+		// We just need the Multiple Record Set ID.
 		$multiset_id = (int) $args['objectId'];
 
 		// Grab the Multiple Record Set data from the database.
@@ -773,10 +784,11 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Multiple_Record_Set extends CiviCRM_Profi
 
 		// Maybe cast previous Multiple Record Set data as object and stash in a property.
 		if ( ! is_object( $multiset_pre ) ) {
-			$this->multiset_pre = (object) $multiset_pre;
-		} else {
-			$this->multiset_pre = $multiset_pre;
+			$multiset_pre = (object) $multiset_pre;
 		}
+
+		// Stash in property array.
+		$this->bridging_array[ $multiset_id ] = $multiset_pre;
 
 	}
 
@@ -789,26 +801,28 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Multiple_Record_Set extends CiviCRM_Profi
 	 */
 	public function multiset_deleted( $args ) {
 
-		// Bail if we don't have a pre-delete Multiple Record Set.
-		if ( ! isset( $this->multiset_pre ) ) {
-			return;
-		}
-
 		// We just need the Multiple Record Set ID.
 		$multiset_id = (int) $args['objectId'];
 
-		// Sanity check.
-		if ( $multiset_id != $this->multiset_pre->id ) {
+		// Populate "Previous Multiple Record Set" if we have it stored.
+		$multiset_pre = null;
+		if ( ! empty( $this->bridging_array[ $multiset_id ] ) ) {
+			$multiset_pre = $this->bridging_array[ $multiset_id ];
+			unset( $this->bridging_array[ $multiset_id ] );
+		}
+
+		// Bail if we can't find the previous Multiple Record Set or it doesn't match.
+		if ( empty( $multiset_pre ) || $multiset_id !== (int) $multiset_pre->id ) {
 			return;
 		}
 
 		// Bail if this is not a Contact's Multiple Record Set.
-		if ( empty( $this->multiset_pre->contact_id ) ) {
+		if ( empty( $multiset_pre->contact_id ) ) {
 			return;
 		}
 
 		// Process the Multiple Record Set.
-		$this->multiset_process( $this->multiset_pre, $args );
+		$this->multiset_process( $multiset_pre, $args );
 
 	}
 
@@ -818,7 +832,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Multiple_Record_Set extends CiviCRM_Profi
 	 * @since 0.4
 	 *
 	 * @param object $multiset The CiviCRM Multiple Record Set object.
-	 * @param array $args The array of CiviCRM params.
+	 * @param array  $args The array of CiviCRM params.
 	 */
 	public function multiset_process( $multiset, $args ) {
 
@@ -830,7 +844,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Multiple_Record_Set extends CiviCRM_Profi
 
 		// Bail if none of this Contact's Contact Types is mapped.
 		$post_types = $this->civicrm->contact->is_mapped( $contact, 'create' );
-		if ( $post_types === false ) {
+		if ( false === $post_types ) {
 			return;
 		}
 
@@ -841,7 +855,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Multiple_Record_Set extends CiviCRM_Profi
 			$post_id = $this->civicrm->contact->is_mapped_to_post( $contact, $post_type );
 
 			// Skip if not mapped or Post doesn't yet exist.
-			if ( $post_id === false ) {
+			if ( false === $post_id ) {
 				continue;
 			}
 
@@ -855,7 +869,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Multiple_Record_Set extends CiviCRM_Profi
 
 			// TODO: Find the ACF Fields to update.
 			// phpcs:ignore Squiz.Commenting.InlineComment.InvalidEndChar
-			//$fields_to_update = $this->fields_to_update_get( $acf_fields, $multiset, $args['op'] );
+			// $fields_to_update = $this->fields_to_update_get( $acf_fields, $multiset, $args['op'] );
 
 			// Let's look at each ACF Field in turn.
 			foreach ( $acf_fields['multiset'] as $selector => $multiset_field ) {
@@ -864,7 +878,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Multiple_Record_Set extends CiviCRM_Profi
 				$existing = get_field( $selector, $post_id );
 
 				// Before applying edit, make some checks.
-				if ( $args['op'] == 'edit' ) {
+				if ( 'edit' === $args['op'] ) {
 
 					// If there is no existing Field value, treat as a 'create' op.
 					if ( empty( $existing ) ) {
@@ -875,12 +889,15 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Multiple_Record_Set extends CiviCRM_Profi
 						$acf_multiset_ids = wp_list_pluck( $existing, 'field_multiset_id' );
 
 						// Sanitise array contents.
-						array_walk( $acf_multiset_ids, function( &$item ) {
-							$item = (int) trim( $item );
-						} );
+						array_walk(
+							$acf_multiset_ids,
+							function( &$item ) {
+								$item = (int) trim( $item );
+							}
+						);
 
 						// If the ID is missing, treat as a 'create' op.
-						if ( ! in_array( $multiset->id, $acf_multiset_ids ) ) {
+						if ( ! in_array( (int) $multiset->id, $acf_multiset_ids, true ) ) {
 							$args['op'] = 'create';
 						}
 
@@ -892,9 +909,8 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Multiple_Record_Set extends CiviCRM_Profi
 				switch ( $args['op'] ) {
 
 					case 'create':
-
 						// Make sure no other Multiple Record Set is Primary if this one is.
-						if ( $acf_multiset['field_multiset_primary'] == '1' && ! empty( $existing ) ) {
+						if ( 1 === (int) $acf_multiset['field_multiset_primary'] && ! empty( $existing ) ) {
 							foreach ( $existing as $key => $record ) {
 								$existing[ $key ]['field_multiset_id'] = '0';
 							}
@@ -902,11 +918,9 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Multiple_Record_Set extends CiviCRM_Profi
 
 						// Add array record.
 						$existing[] = $acf_multiset;
-
 						break;
 
 					case 'edit':
-
 						// Overwrite array record.
 						foreach ( $existing as $key => $record ) {
 							if ( $multiset->id == $record['field_multiset_id'] ) {
@@ -914,11 +928,9 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Multiple_Record_Set extends CiviCRM_Profi
 								break;
 							}
 						}
-
 						break;
 
 					case 'delete':
-
 						// Remove array record.
 						foreach ( $existing as $key => $record ) {
 							if ( $multiset->id == $record['field_multiset_id'] ) {
@@ -926,7 +938,6 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Multiple_Record_Set extends CiviCRM_Profi
 								break;
 							}
 						}
-
 						break;
 
 				}
@@ -951,16 +962,6 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Multiple_Record_Set extends CiviCRM_Profi
 	 * @return array $multisets The array of possible Multiple Record Sets.
 	 */
 	public function get_for_acf_field( $field ) {
-
-		/*
-		$e = new \Exception();
-		$trace = $e->getTraceAsString();
-		error_log( print_r( [
-			'method' => __METHOD__,
-			'field' => $field,
-			//'backtrace' => $trace,
-		], true ) );
-		*/
 
 		// Init return.
 		$multisets = [];
@@ -996,14 +997,14 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Multiple_Record_Set extends CiviCRM_Profi
 		$mapped = apply_filters( 'cwps/acf/query_field_group_mapped', $mapped, $field_group );
 
 		// Bail if this Field Group is not mapped.
-		if ( $mapped === false ) {
+		if ( false === $mapped ) {
 			return $field_group;
 		}
 
 		// Get all Multiple Record Sets for this Entity Type.
 		// NOTE: "$extra" is not implemented. See the method for details.
-		$type = '';
-		$subtype = '';
+		$type          = '';
+		$subtype       = '';
 		$custom_groups = $this->plugin->civicrm->custom_group->get_for_entity_type( $type, $subtype, $extra );
 
 		// Filter groups to include only "Multiple".
@@ -1059,20 +1060,20 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Multiple_Record_Set extends CiviCRM_Profi
 
 		// Define Field.
 		$field = [
-			'key' => $this->civicrm->acf_field_key_get(),
-			'label' => __( 'CiviCRM Field', 'civicrm-wp-profile-sync' ),
-			'name' => $this->civicrm->acf_field_key_get(),
-			'type' => 'select',
-			'instructions' => __( 'Choose the CiviCRM Field that this ACF Field should sync with. (Optional)', 'civicrm-wp-profile-sync' ),
+			'key'           => $this->civicrm->acf_field_key_get(),
+			'label'         => __( 'CiviCRM Field', 'civicrm-wp-profile-sync' ),
+			'name'          => $this->civicrm->acf_field_key_get(),
+			'type'          => 'select',
+			'instructions'  => __( 'Choose the CiviCRM Field that this ACF Field should sync with. (Optional)', 'civicrm-wp-profile-sync' ),
 			'default_value' => '',
-			'placeholder' => '',
-			'allow_null' => 1,
-			'multiple' => 0,
-			'ui' => 0,
-			'required' => 0,
+			'placeholder'   => '',
+			'allow_null'    => 1,
+			'multiple'      => 0,
+			'ui'            => 0,
+			'required'      => 0,
 			'return_format' => 'value',
-			'parent' => $this->acf_loader->acf->field_group->placeholder_group_get(),
-			'choices' => $choices,
+			'parent'        => $this->acf_loader->acf->field_group->placeholder_group_get(),
+			'choices'       => $choices,
 		];
 
 		// --<
@@ -1085,15 +1086,15 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Multiple_Record_Set extends CiviCRM_Profi
 	 *
 	 * @since 0.4
 	 *
-	 * @param array $acf_fields The existing ACF Fields array.
-	 * @param array $field The ACF Field.
+	 * @param array   $acf_fields The existing ACF Fields array.
+	 * @param array   $field The ACF Field.
 	 * @param integer $post_id The numeric ID of the WordPress Post.
 	 * @return array $acf_fields The modified ACF Fields array.
 	 */
 	public function acf_fields_get_for_post( $acf_fields, $field, $post_id ) {
 
 		// Add if it has a reference to a Multiple Record Set Field.
-		if ( ! empty( $field['type'] == 'civicrm_multiset' ) ) {
+		if ( ! empty( $field['type'] ) && 'civicrm_multiset' === $field['type'] ) {
 			$acf_fields['multiset'][ $field['name'] ] = $field['type'];
 		}
 
@@ -1130,7 +1131,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Multiple_Record_Set extends CiviCRM_Profi
 		// Add Multiple Record Set ID and overwrite array element.
 		if ( ! empty( $existing[ $params['key'] ] ) ) {
 			$params['value']['field_multiset_id'] = $params['multiset']->id;
-			$existing[ $params['key'] ] = $params['value'];
+			$existing[ $params['key'] ]           = $params['value'];
 		}
 
 		// Now update Field.

@@ -66,6 +66,50 @@ class CiviCRM_Profile_Sync_ACF_Post_Tax {
 	public $term_meta_key = '_cai_civicrm_group_id';
 
 	/**
+	 * Synced Taxonomies.
+	 *
+	 * @since 0.4
+	 * @access public
+	 * @var array
+	 */
+	public $taxonomies = [];
+
+	/**
+	 * Terms to compare before and after a Post is saved.
+	 *
+	 * @since 0.4
+	 * @access public
+	 * @var array
+	 */
+	public $terms_pre;
+
+	/**
+	 * An array of Term objects prior to edit.
+	 *
+	 * There are situations where nested updates take place (e.g. via CiviRules)
+	 * so we keep copies of the Terms in an array and try and match them up in
+	 * the post edit hook.
+	 *
+	 * @since 0.4
+	 * @access private
+	 * @var array
+	 */
+	private $term_edited = [];
+
+	/**
+	 * An array of Terms prior to edit.
+	 *
+	 * There are situations where nested updates take place (e.g. via CiviRules)
+	 * so we keep copies of the Terms in an array and try and match them up in
+	 * the post edit hook.
+	 *
+	 * @since 0.4
+	 * @access private
+	 * @var array
+	 */
+	private $bridging_array = [];
+
+	/**
 	 * Constructor.
 	 *
 	 * @since 0.4
@@ -75,9 +119,9 @@ class CiviCRM_Profile_Sync_ACF_Post_Tax {
 	public function __construct( $parent ) {
 
 		// Store references to objects.
-		$this->plugin = $parent->acf_loader->plugin;
+		$this->plugin     = $parent->acf_loader->plugin;
 		$this->acf_loader = $parent->acf_loader;
-		$this->post = $parent;
+		$this->post       = $parent;
 
 		// Init when the "mapping" class has loaded.
 		add_action( 'cwps/acf/post/loaded', [ $this, 'register_hooks' ] );
@@ -116,7 +160,7 @@ class CiviCRM_Profile_Sync_ACF_Post_Tax {
 	public function register_mapper_hooks() {
 
 		// Bail if already registered.
-		if ( $this->mapper_hooks === true ) {
+		if ( true === $this->mapper_hooks ) {
 			return;
 		}
 
@@ -143,7 +187,7 @@ class CiviCRM_Profile_Sync_ACF_Post_Tax {
 	public function unregister_mapper_hooks() {
 
 		// Bail if already unregistered.
-		if ( $this->mapper_hooks === false ) {
+		if ( false === $this->mapper_hooks ) {
 			return;
 		}
 
@@ -230,7 +274,7 @@ class CiviCRM_Profile_Sync_ACF_Post_Tax {
 	 * @since 0.4
 	 *
 	 * @param WP_Term $tag The current taxonomy term object.
-	 * @param string $taxonomy The current taxonomy slug.
+	 * @param string  $taxonomy The current taxonomy slug.
 	 */
 	public function form_element_edit_term_add( $tag, $taxonomy ) {
 
@@ -238,7 +282,7 @@ class CiviCRM_Profile_Sync_ACF_Post_Tax {
 		$group_id = $this->term_meta_get( $tag->term_id );
 
 		// Cast failures as "None set".
-		if ( $group_id === false ) {
+		if ( false === $group_id ) {
 			$group_id = 0;
 		}
 
@@ -255,7 +299,7 @@ class CiviCRM_Profile_Sync_ACF_Post_Tax {
 	 *
 	 * @since 0.4
 	 *
-	 * @param string $taxonomy The current taxonomy slug.
+	 * @param string  $taxonomy The current taxonomy slug.
 	 * @param integer $group_id The chosen Group ID, if present.
 	 * @return array $groups The array of Groups to display.
 	 */
@@ -263,7 +307,7 @@ class CiviCRM_Profile_Sync_ACF_Post_Tax {
 
 		// Get all Groups from CiviCRM.
 		$groups_all = $this->acf_loader->civicrm->group->groups_get_all();
-		$group_ids = wp_list_pluck( $groups_all, 'id' );
+		$group_ids  = wp_list_pluck( $groups_all, 'id' );
 
 		// Get the full taxonomy data.
 		$tax_object = get_taxonomy( $taxonomy );
@@ -291,17 +335,18 @@ class CiviCRM_Profile_Sync_ACF_Post_Tax {
 		$filtered = array_diff( $group_ids, $term_ids_all );
 
 		// Add existing Group if it exists.
-		if ( ! is_null( $group_id ) && $group_id !== 0 ) {
+		if ( ! is_null( $group_id ) && 0 !== $group_id ) {
 			$filtered[] = $group_id;
 		}
 
 		// Sanity check.
 		$filtered = array_unique( $filtered );
+		$filtered = array_map( 'intval', $filtered );
 
 		// Build Groups.
 		$groups = [];
 		foreach ( $groups_all as $group ) {
-			if ( in_array( $group['id'], $filtered ) ) {
+			if ( in_array( (int) $group['id'], $filtered, true ) ) {
 				$groups[] = $group;
 			}
 		}
@@ -327,11 +372,14 @@ class CiviCRM_Profile_Sync_ACF_Post_Tax {
 			return;
 		}
 
+		// Check authentication.
+		check_admin_referer( 'add-tag', '_wpnonce_add-tag' );
+
 		// Sanitise input.
 		$group_id = (int) sanitize_text_field( wp_unslash( $_POST['cwps-civicrm-group'] ) );
 
 		// Bail if Group ID is zero.
-		if ( $group_id == 0 ) {
+		if ( 0 === $group_id ) {
 			return;
 		}
 
@@ -364,7 +412,7 @@ class CiviCRM_Profile_Sync_ACF_Post_Tax {
 		}
 
 		// Store for reference in term_edited().
-		$this->term_edited = clone $term;
+		$this->term_edited[ $term->term_id ] = clone $term;
 
 	}
 
@@ -382,19 +430,21 @@ class CiviCRM_Profile_Sync_ACF_Post_Tax {
 			return;
 		}
 
+		// Check authentication.
+		check_admin_referer( 'update-tag_' . $args['term_id'] );
+
 		// Sanitise input.
 		$group_id = (int) sanitize_text_field( wp_unslash( $_POST['cwps-civicrm-group'] ) );
 
-		// Assume we have no edited term.
-		$old_term = null;
-
-		// Use it if we have the term stored.
-		if ( isset( $this->term_edited ) ) {
-			$old_term = $this->term_edited;
-		}
-
-		// Get current term object.
+		// Get current Term object.
 		$new_term = get_term_by( 'id', $args['term_id'], $args['taxonomy'] );
+
+		// Populate "Old Term" if we have it stored.
+		$old_term = null;
+		if ( ! empty( $this->term_edited[ $new_term->term_id ] ) ) {
+			$old_term = $this->term_edited[ $new_term->term_id ];
+			unset( $this->term_edited[ $new_term->term_id ] );
+		}
 
 		/*
 		 * If Group ID is zero, there are a couple of possibilities:
@@ -402,11 +452,11 @@ class CiviCRM_Profile_Sync_ACF_Post_Tax {
 		 * 1. No Group ID is set and none exists.
 		 * 2. A Group ID was set and is now being deleted.
 		 */
-		if ( $group_id == 0 ) {
+		if ( 0 === $group_id ) {
 
 			// Remove term meta if it exists.
 			$existing = $this->term_meta_get( $args['term_id'] );
-			if ( $existing !== false ) {
+			if ( false !== $existing ) {
 				$this->term_meta_delete( $args['term_id'] );
 
 				// TODO: Terms must be removed from Posts now.
@@ -437,11 +487,12 @@ class CiviCRM_Profile_Sync_ACF_Post_Tax {
 		/*
 		$e = new \Exception();
 		$trace = $e->getTraceAsString();
-		error_log( print_r( [
+		$log = [
 			'method' => __METHOD__,
 			'args' => $args,
 			//'backtrace' => $trace,
-		], true ) );
+		];
+		$this->plugin->log_error( $log );
 		*/
 
 	}
@@ -487,7 +538,7 @@ class CiviCRM_Profile_Sync_ACF_Post_Tax {
 
 		// Log something if there's an error.
 		// phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedIf
-		if ( $meta_id === false ) {
+		if ( false === $meta_id ) {
 
 			/*
 			 * This probably means that the term already has its term meta set.
@@ -497,13 +548,14 @@ class CiviCRM_Profile_Sync_ACF_Post_Tax {
 			/*
 			$e = new \Exception();
 			$trace = $e->getTraceAsString();
-			error_log( print_r( [
+			$log = [
 				'method' => __METHOD__,
 				'message' => __( 'Could not add term_meta', 'civicrm-wp-profile-sync' ),
 				'term_id' => $term_id,
 				'group_id' => $group_id,
 				'backtrace' => $trace,
-			], true ) );
+			];
+			$this->plugin->log_error( $log );
 			*/
 
 		}
@@ -512,15 +564,16 @@ class CiviCRM_Profile_Sync_ACF_Post_Tax {
 		if ( is_wp_error( $meta_id ) ) {
 
 			// Log error message.
-			$e = new \Exception();
+			$e     = new \Exception();
 			$trace = $e->getTraceAsString();
-			error_log( print_r( [
-				'method' => __METHOD__,
-				'message' => $meta_id->get_error_message(),
-				'term' => $term,
-				'group_id' => $group_id,
+			$log   = [
+				'method'    => __METHOD__,
+				'message'   => $meta_id->get_error_message(),
+				'term'      => $term,
+				'group_id'  => $group_id,
 				'backtrace' => $trace,
-			], true ) );
+			];
+			$this->plugin->log_error( $log );
 
 			// Also overwrite return.
 			$meta_id = false;
@@ -550,7 +603,7 @@ class CiviCRM_Profile_Sync_ACF_Post_Tax {
 		$meta_id = update_term_meta( $term_id, $this->term_meta_key, (int) $group_id );
 
 		// Return early on successful update.
-		if ( $meta_id === true ) {
+		if ( true === $meta_id ) {
 			return $meta_id;
 		}
 
@@ -560,17 +613,18 @@ class CiviCRM_Profile_Sync_ACF_Post_Tax {
 		 * Note that this is also triggered when the value has not changed, so
 		 * we have to compare against the existing value as well.
 		 */
-		if ( $meta_id === false ) {
-			if ( $existing_id !== false && (int) $existing_id !== (int) $group_id ) {
-				$e = new \Exception();
+		if ( false === $meta_id ) {
+			if ( false !== $existing_id && (int) $existing_id !== (int) $group_id ) {
+				$e     = new \Exception();
 				$trace = $e->getTraceAsString();
-				error_log( print_r( [
-					'method' => __METHOD__,
-					'message' => __( 'Could not update term_meta', 'civicrm-wp-profile-sync' ),
-					'term_id' => $term_id,
-					'group_id' => $group_id,
+				$log   = [
+					'method'    => __METHOD__,
+					'message'   => __( 'Could not update term_meta', 'civicrm-wp-profile-sync' ),
+					'term_id'   => $term_id,
+					'group_id'  => $group_id,
 					'backtrace' => $trace,
-				], true ) );
+				];
+				$this->plugin->log_error( $log );
 			}
 		}
 
@@ -578,15 +632,16 @@ class CiviCRM_Profile_Sync_ACF_Post_Tax {
 		if ( is_wp_error( $meta_id ) ) {
 
 			// Log error message.
-			$e = new \Exception();
+			$e     = new \Exception();
 			$trace = $e->getTraceAsString();
-			error_log( print_r( [
-				'method' => __METHOD__,
-				'message' => $meta_id->get_error_message(),
-				'term_id' => $term_id,
-				'group_id' => $group_id,
+			$log   = [
+				'method'    => __METHOD__,
+				'message'   => $meta_id->get_error_message(),
+				'term_id'   => $term_id,
+				'group_id'  => $group_id,
 				'backtrace' => $trace,
-			], true ) );
+			];
+			$this->plugin->log_error( $log );
 
 			// Also overwrite return.
 			$meta_id = false;
@@ -630,13 +685,13 @@ class CiviCRM_Profile_Sync_ACF_Post_Tax {
 
 		// Query terms for those with the ID of the Group in meta data.
 		$args = [
-			'taxonomy' => $this->taxonomies,
+			'taxonomy'   => $this->taxonomies,
 			'hide_empty' => false,
 			// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
 			'meta_query' => [
 				[
-					'key' => $this->term_meta_key,
-					'value' => $group_id,
+					'key'     => $this->term_meta_key,
+					'value'   => $group_id,
 					'compare' => '=',
 				],
 			],
@@ -654,14 +709,15 @@ class CiviCRM_Profile_Sync_ACF_Post_Tax {
 		if ( is_wp_error( $terms ) ) {
 
 			// Write error message.
-			$e = new \Exception();
+			$e     = new \Exception();
 			$trace = $e->getTraceAsString();
-			error_log( print_r( [
-				'method' => __METHOD__,
-				'message' => $terms->get_error_message(),
-				'group_id' => $group_id,
+			$log   = [
+				'method'    => __METHOD__,
+				'message'   => $terms->get_error_message(),
+				'group_id'  => $group_id,
 				'backtrace' => $trace,
-			], true ) );
+			];
+			$this->plugin->log_error( $log );
 			return false;
 
 		}
@@ -693,7 +749,7 @@ class CiviCRM_Profile_Sync_ACF_Post_Tax {
 
 		// Query terms in those taxonomies.
 		$args = [
-			'taxonomy' => $taxonomies,
+			'taxonomy'   => $taxonomies,
 			'hide_empty' => false,
 		];
 
@@ -770,12 +826,12 @@ class CiviCRM_Profile_Sync_ACF_Post_Tax {
 
 		// Query terms in those taxonomies.
 		$args = [
-			'taxonomy' => $taxonomies,
+			'taxonomy'   => $taxonomies,
 			'hide_empty' => false,
 			// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
 			'meta_query' => [
 				[
-					'key' => $this->term_meta_key,
+					'key'     => $this->term_meta_key,
 					'compare' => 'EXISTS',
 				],
 			],
@@ -814,7 +870,7 @@ class CiviCRM_Profile_Sync_ACF_Post_Tax {
 			// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
 			'meta_query' => [
 				[
-					'key' => $this->term_meta_key,
+					'key'     => $this->term_meta_key,
 					'compare' => 'EXISTS',
 				],
 			],
@@ -844,7 +900,7 @@ class CiviCRM_Profile_Sync_ACF_Post_Tax {
 	 * @since 0.4
 	 *
 	 * @param integer|string $post_id The ACF "Post ID".
-	 * @param integer $group_id The ID of the CiviCRM Group.
+	 * @param integer        $group_id The ID of the CiviCRM Group.
 	 * @return array $terms The array of terms.
 	 */
 	public function synced_terms_get_for_post_and_group( $post_id, $group_id ) {
@@ -872,7 +928,7 @@ class CiviCRM_Profile_Sync_ACF_Post_Tax {
 		$synced_terms_for_post_type = $this->synced_terms_get_for_post_type( $post->post_type );
 
 		// Filter synced terms for just this Group.
-		$args = [ 'group_id' => $group_id ];
+		$args           = [ 'group_id' => $group_id ];
 		$terms_for_post = wp_filter_object_list( $synced_terms_for_post_type, $args );
 
 		/*
@@ -899,12 +955,12 @@ class CiviCRM_Profile_Sync_ACF_Post_Tax {
 
 		// Query terms in those taxonomies.
 		$args = [
-			'taxonomy' => $taxonomy,
+			'taxonomy'   => $taxonomy,
 			'hide_empty' => false,
 			// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
 			'meta_query' => [
 				[
-					'key' => $this->term_meta_key,
+					'key'     => $this->term_meta_key,
 					'compare' => 'EXISTS',
 				],
 			],
@@ -939,12 +995,12 @@ class CiviCRM_Profile_Sync_ACF_Post_Tax {
 
 		// Query terms in those taxonomies.
 		$args = [
-			'taxonomy' => $this->taxonomies,
+			'taxonomy'   => $this->taxonomies,
 			'hide_empty' => false,
 			// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
 			'meta_query' => [
 				[
-					'key' => $this->term_meta_key,
+					'key'     => $this->term_meta_key,
 					'compare' => 'EXISTS',
 				],
 			],
@@ -976,12 +1032,9 @@ class CiviCRM_Profile_Sync_ACF_Post_Tax {
 	 * @since 0.4
 	 *
 	 * @param integer|string $post_id The ACF "Post ID".
-	 * @param array $data The array of unslashed post data.
+	 * @param array          $data The array of unslashed post data.
 	 */
 	public function post_saved_pre( $post_id, $data ) {
-
-		// Init property.
-		$this->terms_pre = [];
 
 		// Get the full Post.
 		$post = get_post( $post_id );
@@ -999,14 +1052,12 @@ class CiviCRM_Profile_Sync_ACF_Post_Tax {
 
 		// Get the filtered terms.
 		$terms = $this->synced_terms_get_for_post( $post_id );
-
-		// Bail if there are no terms.
 		if ( empty( $terms ) ) {
 			return;
 		}
 
 		// Store for later use.
-		$this->terms_pre = $terms;
+		$this->bridging_array[ $post_id ] = $terms;
 
 	}
 
@@ -1019,12 +1070,19 @@ class CiviCRM_Profile_Sync_ACF_Post_Tax {
 	 */
 	public function post_saved( $args ) {
 
+		// Get the Post ID.
+		$post_id = (int) $args['post_id'];
+
 		// Get the existing filtered term IDs.
-		$terms_pre = isset( $this->terms_pre ) ? $this->terms_pre : [];
+		$terms_pre = [];
+		if ( ! empty( $this->bridging_array[ $post_id ] ) ) {
+			$terms_pre = $this->bridging_array[ $post_id ];
+			unset( $this->bridging_array[ $post_id ] );
+		}
 		$term_ids_pre = wp_list_pluck( $terms_pre, 'term_id' );
 
 		// Get the new filtered term IDs.
-		$terms = $this->synced_terms_get_for_post( $args['post_id'] );
+		$terms    = $this->synced_terms_get_for_post( $post_id );
 		$term_ids = wp_list_pluck( $terms, 'term_id' );
 
 		// Find the existing terms that are missing in the current terms.
@@ -1037,7 +1095,7 @@ class CiviCRM_Profile_Sync_ACF_Post_Tax {
 		$group_ids_removed = [];
 		foreach ( $terms_removed as $term_id ) {
 			$group_id = $this->term_meta_get( $term_id );
-			if ( $group_id === false ) {
+			if ( false === $group_id ) {
 				continue;
 			}
 			$group_ids_removed[ $term_id ] = $group_id;
@@ -1047,7 +1105,7 @@ class CiviCRM_Profile_Sync_ACF_Post_Tax {
 		$group_ids_added = [];
 		foreach ( $terms_added as $term_id ) {
 			$group_id = $this->term_meta_get( $term_id );
-			if ( $group_id === false ) {
+			if ( false === $group_id ) {
 				continue;
 			}
 			$group_ids_added[ $term_id ] = $group_id;
@@ -1059,7 +1117,7 @@ class CiviCRM_Profile_Sync_ACF_Post_Tax {
 
 				// If not already a member.
 				$is_member = $this->acf_loader->civicrm->group->group_contact_exists( $group_id, $args['contact_id'] );
-				if ( $is_member === false ) {
+				if ( false === $is_member ) {
 
 					// Add to the Group.
 					$this->acf_loader->civicrm->group->group_contact_create( $group_id, $args['contact_id'] );
@@ -1086,7 +1144,7 @@ class CiviCRM_Profile_Sync_ACF_Post_Tax {
 
 				// If already a member.
 				$is_member = $this->acf_loader->civicrm->group->group_contact_exists( $group_id, $args['contact_id'] );
-				if ( $is_member === true ) {
+				if ( true === $is_member ) {
 
 					// Remove from the Group.
 					$this->acf_loader->civicrm->group->group_contact_delete( $group_id, $args['contact_id'] );
@@ -1108,11 +1166,11 @@ class CiviCRM_Profile_Sync_ACF_Post_Tax {
 		}
 
 		// Add our data to the params.
-		$args['terms'] = $terms;
-		$args['term_ids'] = $term_ids;
-		$args['terms_added'] = $terms_added;
-		$args['terms_removed'] = $terms_removed;
-		$args['group_ids_added'] = $group_ids_added;
+		$args['terms']             = $terms;
+		$args['term_ids']          = $term_ids;
+		$args['terms_added']       = $terms_added;
+		$args['terms_removed']     = $terms_removed;
+		$args['group_ids_added']   = $group_ids_added;
 		$args['group_ids_removed'] = $group_ids_removed;
 
 		/**
@@ -1134,8 +1192,8 @@ class CiviCRM_Profile_Sync_ACF_Post_Tax {
 	 * @since 0.4
 	 *
 	 * @param integer $group_id The ID of the CiviCRM Group.
-	 * @param array $contact_ids Array of CiviCRM Contact IDs.
-	 * @param string $op The kind of operation - 'add' or 'remove'.
+	 * @param array   $contact_ids Array of CiviCRM Contact IDs.
+	 * @param string  $op The kind of operation - 'add' or 'remove'.
 	 */
 	public function terms_update_for_group_contacts( $group_id, $contact_ids, $op ) {
 
@@ -1153,20 +1211,20 @@ class CiviCRM_Profile_Sync_ACF_Post_Tax {
 
 			// Grab Contact.
 			$contact = $this->plugin->civicrm->contact->get_by_id( $contact_id );
-			if ( $contact === false ) {
+			if ( false === $contact ) {
 				continue;
 			}
 
 			// Test if any of this Contact's Contact Types is mapped.
 			$post_types = $this->acf_loader->civicrm->contact->is_mapped( $contact, 'create' );
-			if ( $post_types !== false ) {
+			if ( false !== $post_types ) {
 
 				// Handle each Post Type in turn.
 				foreach ( $post_types as $post_type ) {
 
 					// Get the Post ID that this Contact is mapped to.
 					$post_id = $this->acf_loader->civicrm->contact->is_mapped_to_post( $contact, $post_type );
-					if ( $post_id === false ) {
+					if ( false === $post_id ) {
 						continue;
 					}
 
@@ -1174,7 +1232,7 @@ class CiviCRM_Profile_Sync_ACF_Post_Tax {
 					$post = get_post( $post_id );
 
 					// Get all synced term IDs for the Post Type.
-					$synced_terms_for_post_type = $this->synced_terms_get_for_post_type( $post->post_type );
+					$synced_terms_for_post_type    = $this->synced_terms_get_for_post_type( $post->post_type );
 					$synced_term_ids_for_post_type = wp_list_pluck( $synced_terms_for_post_type, 'term_id' );
 
 					// Find the term ID(s) from those the Group syncs with.
@@ -1191,15 +1249,16 @@ class CiviCRM_Profile_Sync_ACF_Post_Tax {
 					}
 
 					// Get all the current terms for the Post.
-					$terms_in_post = $this->terms_get_for_post( $post_id );
+					$terms_in_post    = $this->terms_get_for_post( $post_id );
 					$term_ids_in_post = wp_list_pluck( $terms_in_post, 'term_id' );
+					$term_ids_in_post = array_map( 'intval', $term_ids_in_post );
 
 					// If the term(s) need to be added.
-					if ( $op === 'add' ) {
+					if ( 'add' === $op ) {
 
 						// If the Post does not have the term(s), add them.
 						foreach ( $term_ids_for_post as $term_id_for_post ) {
-							if ( ! in_array( $term_id_for_post, $term_ids_in_post ) ) {
+							if ( ! in_array( (int) $term_id_for_post, $term_ids_in_post, true ) ) {
 								$terms_in_post[] = $terms_for_post[ $term_id_for_post ];
 							}
 						}
@@ -1207,7 +1266,7 @@ class CiviCRM_Profile_Sync_ACF_Post_Tax {
 					}
 
 					// If the term(s) need to be removed.
-					if ( $op === 'remove' ) {
+					if ( 'remove' === $op ) {
 
 						// Init final array.
 						$term_ids_final = array_diff( $term_ids_in_post, $term_ids_for_post );
@@ -1236,7 +1295,7 @@ class CiviCRM_Profile_Sync_ACF_Post_Tax {
 					foreach ( $taxonomies as $taxonomy ) {
 
 						// Find the terms in this taxonomy.
-						$args = [ 'taxonomy' => $taxonomy ];
+						$args         = [ 'taxonomy' => $taxonomy ];
 						$terms_in_tax = wp_filter_object_list( $terms_in_post, $args );
 
 						// If there are none.

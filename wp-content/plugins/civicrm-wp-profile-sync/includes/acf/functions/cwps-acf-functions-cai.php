@@ -18,7 +18,7 @@ defined( 'ABSPATH' ) || exit;
  *
  * @since 0.4
  *
- * @param string $selector The ACF Field selector.
+ * @param string         $selector The ACF Field selector.
  * @param integer|string $post_id The ACF "Post ID".
  * @return string $age The age expressed as a string.
  */
@@ -45,7 +45,7 @@ function cacf_get_age_from_acf_field( $selector, $post_id = null ) {
 	}
 
 	// Bail if it's not a "Date" or "Date Time" ACF Field.
-	if ( ! in_array( $acf_settings['type'], [ 'date_picker', 'date_time_picker' ] ) ) {
+	if ( ! in_array( $acf_settings['type'], [ 'date_picker', 'date_time_picker' ], true ) ) {
 		return '';
 	}
 
@@ -59,7 +59,7 @@ function cacf_get_age_from_acf_field( $selector, $post_id = null ) {
 
 	// Convert ACF Field value to CiviCRM "Ymdhis" format.
 	$datetime = DateTime::createFromFormat( $acf_settings['return_format'], $value );
-	$date = $datetime->format( 'Ymdhis' );
+	$date     = $datetime->format( 'Ymdhis' );
 
 	// Get "Age" as string.
 	$age = $cwps->civicrm->contact_field->date_age_get( $date );
@@ -78,7 +78,7 @@ function cacf_get_age_from_acf_field( $selector, $post_id = null ) {
  *
  * @since 0.4
  *
- * @param string $selector The ACF Field selector.
+ * @param string         $selector The ACF Field selector.
  * @param integer|string $post_id The ACF "Post ID".
  * @return string $phones The formatted Phone Numbers.
  */
@@ -174,10 +174,10 @@ function cacf_get_phone_numbers( $selector, $post_id = null ) {
  *
  * @since 0.4
  *
- * @param string $selector The ACF Field selector.
- * @param integer $location_type_id The numeric ID of the CiviCRM Phone Location Type.
- * @param integer $phone_type_id The numeric ID of the CiviCRM Phone Type.
- * @param string $return Return an HTML list or comma-delimited string. Default 'list'.
+ * @param string         $selector The ACF Field selector.
+ * @param integer        $location_type_id The numeric ID of the CiviCRM Phone Location Type.
+ * @param integer        $phone_type_id The numeric ID of the CiviCRM Phone Type.
+ * @param string         $return Return an HTML list or comma-delimited string. Default 'list'.
  * @param integer|string $post_id The ACF "Post ID".
  * @return string $phone The formatted Phone Number.
  */
@@ -234,7 +234,7 @@ function cacf_get_phone_numbers_by_type_ids( $selector, $location_type_id, $phon
 	}
 
 	// Format the return.
-	if ( $return === 'list' ) {
+	if ( 'list' === $return ) {
 
 		// Open the list.
 		$phones .= '<ul><li>';
@@ -275,9 +275,9 @@ function cacf_get_phone_numbers_by_type_ids( $selector, $location_type_id, $phon
  *
  * @since 0.4
  *
- * @param string $selector The ACF Field selector.
- * @param integer $location_type_id The numeric ID of the CiviCRM Phone Location Type.
- * @param integer $phone_type_id The numeric ID of the CiviCRM Phone Phone Type.
+ * @param string         $selector The ACF Field selector.
+ * @param integer        $location_type_id The numeric ID of the CiviCRM Phone Location Type.
+ * @param integer        $phone_type_id The numeric ID of the CiviCRM Phone Phone Type.
  * @param integer|string $post_id The ACF "Post ID".
  * @return array $phones The array of Phone Record data.
  */
@@ -360,7 +360,7 @@ function cacf_get_phone_records_by_type_ids( $selector, $location_type_id, $phon
  *
  * @since 0.4
  *
- * @param string $selector The ACF Field selector.
+ * @param string         $selector The ACF Field selector.
  * @param integer|string $post_id The ACF "Post ID".
  * @return string $phone The formatted Phone Number.
  */
@@ -418,7 +418,7 @@ function cacf_get_primary_phone_number( $selector, $post_id = null ) {
  *
  * @since 0.4
  *
- * @param string $selector The ACF Field selector.
+ * @param string         $selector The ACF Field selector.
  * @param integer|string $post_id The ACF "Post ID".
  * @return array $phone The array of Phone Record data.
  */
@@ -432,7 +432,7 @@ function cacf_get_primary_phone_record( $selector, $post_id = null ) {
 
 	// Now try and find the Primary Phone Record.
 	foreach ( $records as $record ) {
-		if ( $record['field_phone_primary'] == '1' ) {
+		if ( 1 === (int) $record['field_phone_primary'] ) {
 			$phone = $record;
 			break;
 		}
@@ -460,7 +460,7 @@ function cacf_get_primary_phone_record( $selector, $post_id = null ) {
  *
  * @since 0.4
  *
- * @param string $selector The ACF Field selector.
+ * @param string         $selector The ACF Field selector.
  * @param integer|string $post_id The ACF "Post ID".
  * @return array $records The array of Phone Record data.
  */
@@ -487,7 +487,7 @@ function cacf_get_phone_records( $selector, $post_id = null ) {
 	}
 
 	// Bail if it's not a CiviCRM Phone Field.
-	if ( $acf_settings['type'] != 'civicrm_phone' ) {
+	if ( 'civicrm_phone' !== $acf_settings['type'] ) {
 		return $records;
 	}
 
@@ -519,7 +519,7 @@ function cacf_get_phone_records( $selector, $post_id = null ) {
  *
  * @since 0.4
  *
- * @param string $selector The ACF Field selector.
+ * @param string         $selector The ACF Field selector.
  * @param integer|string $post_id The ACF "Post ID".
  * @return string $ims The formatted Instant Messenger "Names".
  */
@@ -605,10 +605,10 @@ function cacf_get_ims( $selector, $post_id = null ) {
  *
  * @since 0.4
  *
- * @param string $selector The ACF Field selector.
- * @param integer $location_type_id The numeric ID of the CiviCRM Instant Messenger Location Type.
- * @param integer $im_provider_id The numeric ID of the Instant Messenger Provider.
- * @param string $return Return an HTML list or comma-delimited string. Default 'list'.
+ * @param string         $selector The ACF Field selector.
+ * @param integer        $location_type_id The numeric ID of the CiviCRM Instant Messenger Location Type.
+ * @param integer        $im_provider_id The numeric ID of the Instant Messenger Provider.
+ * @param string         $return Return an HTML list or comma-delimited string. Default 'list'.
  * @param integer|string $post_id The ACF "Post ID".
  * @return string $im The formatted Instant Messenger.
  */
@@ -655,7 +655,7 @@ function cacf_get_ims_by_type_ids( $selector, $location_type_id, $im_provider_id
 	}
 
 	// Format the return.
-	if ( $return === 'list' ) {
+	if ( 'list' === $return ) {
 
 		// Open the list.
 		$ims .= '<ul><li>';
@@ -696,9 +696,9 @@ function cacf_get_ims_by_type_ids( $selector, $location_type_id, $im_provider_id
  *
  * @since 0.4
  *
- * @param string $selector The ACF Field selector.
- * @param integer $location_type_id The numeric ID of the CiviCRM Instant Messenger Location Type.
- * @param integer $im_provider_id The numeric ID of the CiviCRM IM Provider.
+ * @param string         $selector The ACF Field selector.
+ * @param integer        $location_type_id The numeric ID of the CiviCRM Instant Messenger Location Type.
+ * @param integer        $im_provider_id The numeric ID of the CiviCRM IM Provider.
  * @param integer|string $post_id The ACF "Post ID".
  * @return array $ims The array of Instant Messenger Record data.
  */
@@ -781,7 +781,7 @@ function cacf_get_im_records_by_type_ids( $selector, $location_type_id, $im_prov
  *
  * @since 0.4
  *
- * @param string $selector The ACF Field selector.
+ * @param string         $selector The ACF Field selector.
  * @param integer|string $post_id The ACF "Post ID".
  * @return string $im The formatted Instant Messenger.
  */
@@ -840,7 +840,7 @@ function cacf_get_primary_im( $selector, $post_id = null ) {
  *
  * @since 0.4
  *
- * @param string $selector The ACF Field selector.
+ * @param string         $selector The ACF Field selector.
  * @param integer|string $post_id The ACF "Post ID".
  * @return array $im The array of Instant Messenger Record data.
  */
@@ -854,7 +854,7 @@ function cacf_get_primary_im_record( $selector, $post_id = null ) {
 
 	// Now try and find the Primary Instant Messenger Record.
 	foreach ( $records as $record ) {
-		if ( $record['field_im_primary'] == '1' ) {
+		if ( 1 === (int) $record['field_im_primary'] ) {
 			$im = $record;
 			break;
 		}
@@ -883,7 +883,7 @@ function cacf_get_primary_im_record( $selector, $post_id = null ) {
  *
  * @since 0.4
  *
- * @param string $selector The ACF Field selector.
+ * @param string         $selector The ACF Field selector.
  * @param integer|string $post_id The ACF "Post ID".
  * @return array $records The array of Instant Messenger Record data.
  */
@@ -910,7 +910,7 @@ function cacf_get_im_records( $selector, $post_id = null ) {
 	}
 
 	// Bail if it's not a CiviCRM Instant Messenger Field.
-	if ( $acf_settings['type'] != 'civicrm_im' ) {
+	if ( 'civicrm_im' !== $acf_settings['type'] ) {
 		return $records;
 	}
 
@@ -942,7 +942,7 @@ function cacf_get_im_records( $selector, $post_id = null ) {
  *
  * @since 0.4
  *
- * @param string $selector The ACF Field selector.
+ * @param string         $selector The ACF Field selector.
  * @param integer|string $post_id The ACF "Post ID".
  * @return string $addresses The formatted Addresses.
  */
@@ -982,26 +982,26 @@ function cacf_get_addresses( $selector, $post_id = null ) {
 		);
 
 		// Convert basic ACF data to template data.
-		$street_address = esc_html( trim( $record['field_address_street_address'] ) );
+		$street_address         = esc_html( trim( $record['field_address_street_address'] ) );
 		$supplemental_address_1 = esc_html( trim( $record['field_address_supplemental_address_1'] ) );
 		$supplemental_address_2 = esc_html( trim( $record['field_address_supplemental_address_2'] ) );
 		$supplemental_address_3 = esc_html( trim( $record['field_address_supplemental_address_3'] ) );
-		$city = esc_html( trim( $record['field_address_city'] ) );
-		$postal_code = esc_html( trim( $record['field_address_postal_code'] ) );
+		$city                   = esc_html( trim( $record['field_address_city'] ) );
+		$postal_code            = esc_html( trim( $record['field_address_postal_code'] ) );
 
 		// Convert Country ACF data to template data.
 		$state_province_id = empty( $record['field_address_state_province_id'] ) ? '' : (int) $record['field_address_state_province_id'];
-		$state_province = $cwps->plugin->civicrm->address->state_province_get_by_id( $state_province_id );
+		$state_province    = $cwps->plugin->civicrm->address->state_province_get_by_id( $state_province_id );
 		if ( ! empty( $state_province ) ) {
-			$state = esc_html( $state_province['name'] );
+			$state       = esc_html( $state_province['name'] );
 			$state_short = esc_html( $state_province['abbreviation'] );
 		}
 
 		// Convert Country ACF data to template data.
-		$country_id = empty( $record['field_address_country_id'] ) ? '' : (int) $record['field_address_country_id'];
+		$country_id   = empty( $record['field_address_country_id'] ) ? '' : (int) $record['field_address_country_id'];
 		$country_data = $cwps->plugin->civicrm->address->country_get_by_id( $country_id );
 		if ( ! empty( $country_data ) ) {
-			$country = esc_html( $country_data['name'] );
+			$country       = esc_html( $country_data['name'] );
 			$country_short = esc_html( $country_data['iso_code'] );
 		}
 
@@ -1053,8 +1053,8 @@ function cacf_get_addresses( $selector, $post_id = null ) {
  *
  * @since 0.4
  *
- * @param string $selector The ACF Field selector.
- * @param integer $location_type_id The numeric ID of the CiviCRM Address Location Type.
+ * @param string         $selector The ACF Field selector.
+ * @param integer        $location_type_id The numeric ID of the CiviCRM Address Location Type.
  * @param integer|string $post_id The ACF "Post ID".
  * @return string $address The formatted Address.
  */
@@ -1088,26 +1088,26 @@ function cacf_get_address_by_type_id( $selector, $location_type_id, $post_id = n
 	foreach ( $records as $record ) {
 
 		// Convert basic ACF data to template data.
-		$street_address = esc_html( trim( $record['field_address_street_address'] ) );
+		$street_address         = esc_html( trim( $record['field_address_street_address'] ) );
 		$supplemental_address_1 = esc_html( trim( $record['field_address_supplemental_address_1'] ) );
 		$supplemental_address_2 = esc_html( trim( $record['field_address_supplemental_address_2'] ) );
 		$supplemental_address_3 = esc_html( trim( $record['field_address_supplemental_address_3'] ) );
-		$city = esc_html( trim( $record['field_address_city'] ) );
-		$postal_code = esc_html( trim( $record['field_address_postal_code'] ) );
+		$city                   = esc_html( trim( $record['field_address_city'] ) );
+		$postal_code            = esc_html( trim( $record['field_address_postal_code'] ) );
 
 		// Convert Country ACF data to template data.
 		$state_province_id = empty( $record['field_address_state_province_id'] ) ? '' : (int) $record['field_address_state_province_id'];
-		$state_province = $cwps->plugin->civicrm->address->state_province_get_by_id( $state_province_id );
+		$state_province    = $cwps->plugin->civicrm->address->state_province_get_by_id( $state_province_id );
 		if ( ! empty( $state_province ) ) {
-			$state = esc_html( $state_province['name'] );
+			$state       = esc_html( $state_province['name'] );
 			$state_short = esc_html( $state_province['abbreviation'] );
 		}
 
 		// Convert Country ACF data to template data.
-		$country_id = empty( $record['field_address_country_id'] ) ? '' : (int) $record['field_address_country_id'];
+		$country_id   = empty( $record['field_address_country_id'] ) ? '' : (int) $record['field_address_country_id'];
 		$country_data = $cwps->plugin->civicrm->address->country_get_by_id( $country_id );
 		if ( ! empty( $country_data ) ) {
-			$country = esc_html( $country_data['name'] );
+			$country       = esc_html( $country_data['name'] );
 			$country_short = esc_html( $country_data['iso_code'] );
 		}
 
@@ -1150,8 +1150,8 @@ function cacf_get_address_by_type_id( $selector, $location_type_id, $post_id = n
  *
  * @since 0.4
  *
- * @param string $selector The ACF Field selector.
- * @param integer $location_type_id The numeric ID of the CiviCRM Address Location Type.
+ * @param string         $selector The ACF Field selector.
+ * @param integer        $location_type_id The numeric ID of the CiviCRM Address Location Type.
  * @param integer|string $post_id The ACF "Post ID".
  * @return array $addresses The array of Address Record data.
  */
@@ -1209,7 +1209,7 @@ function cacf_get_address_records_by_type_id( $selector, $location_type_id, $pos
  *
  * @since 0.4
  *
- * @param string $selector The ACF Field selector.
+ * @param string         $selector The ACF Field selector.
  * @param integer|string $post_id The ACF "Post ID".
  * @return string $city The formatted Address.
  */
@@ -1230,26 +1230,26 @@ function cacf_get_primary_address( $selector, $post_id = null ) {
 	$cwps = civicrm_wp_profile_sync()->acf;
 
 	// Convert basic ACF data to template data.
-	$street_address = esc_html( trim( $record['field_address_street_address'] ) );
+	$street_address         = esc_html( trim( $record['field_address_street_address'] ) );
 	$supplemental_address_1 = esc_html( trim( $record['field_address_supplemental_address_1'] ) );
 	$supplemental_address_2 = esc_html( trim( $record['field_address_supplemental_address_2'] ) );
 	$supplemental_address_3 = esc_html( trim( $record['field_address_supplemental_address_3'] ) );
-	$city = esc_html( trim( $record['field_address_city'] ) );
-	$postal_code = esc_html( trim( $record['field_address_postal_code'] ) );
+	$city                   = esc_html( trim( $record['field_address_city'] ) );
+	$postal_code            = esc_html( trim( $record['field_address_postal_code'] ) );
 
 	// Convert Country ACF data to template data.
 	$state_province_id = empty( $record['field_address_state_province_id'] ) ? '' : (int) $record['field_address_state_province_id'];
-	$state_province = $cwps->plugin->civicrm->address->state_province_get_by_id( $state_province_id );
+	$state_province    = $cwps->plugin->civicrm->address->state_province_get_by_id( $state_province_id );
 	if ( ! empty( $state_province ) ) {
-		$state = esc_html( $state_province['name'] );
+		$state       = esc_html( $state_province['name'] );
 		$state_short = esc_html( $state_province['abbreviation'] );
 	}
 
 	// Convert Country ACF data to template data.
-	$country_id = empty( $record['field_address_country_id'] ) ? '' : (int) $record['field_address_country_id'];
+	$country_id   = empty( $record['field_address_country_id'] ) ? '' : (int) $record['field_address_country_id'];
 	$country_data = $cwps->plugin->civicrm->address->country_get_by_id( $country_id );
 	if ( ! empty( $country_data ) ) {
-		$country = esc_html( $country_data['name'] );
+		$country       = esc_html( $country_data['name'] );
 		$country_short = esc_html( $country_data['iso_code'] );
 	}
 
@@ -1282,7 +1282,7 @@ function cacf_get_primary_address( $selector, $post_id = null ) {
  *
  * @since 0.4
  *
- * @param string $selector The ACF Field selector.
+ * @param string         $selector The ACF Field selector.
  * @param integer|string $post_id The ACF "Post ID".
  * @return array $address The array of Address Record data.
  */
@@ -1296,7 +1296,7 @@ function cacf_get_primary_address_record( $selector, $post_id = null ) {
 
 	// Now try and find the Primary Address Record.
 	foreach ( $records as $record ) {
-		if ( $record['field_address_primary'] == '1' ) {
+		if ( 1 === (int) $record['field_address_primary'] ) {
 			$address = $record;
 			break;
 		}
@@ -1325,7 +1325,7 @@ function cacf_get_primary_address_record( $selector, $post_id = null ) {
  *
  * @since 0.4
  *
- * @param string $selector The ACF Field selector.
+ * @param string         $selector The ACF Field selector.
  * @param integer|string $post_id The ACF "Post ID".
  * @return array $records The array of Address Record data.
  */
@@ -1352,7 +1352,7 @@ function cacf_get_address_records( $selector, $post_id = null ) {
 	}
 
 	// Bail if it's not a CiviCRM Address Field.
-	if ( $acf_settings['type'] != 'civicrm_address' ) {
+	if ( 'civicrm_address' !== $acf_settings['type'] ) {
 		return $records;
 	}
 
@@ -1384,7 +1384,7 @@ function cacf_get_address_records( $selector, $post_id = null ) {
  *
  * @since 0.4
  *
- * @param string $selector The ACF Field selector.
+ * @param string         $selector The ACF Field selector.
  * @param integer|string $post_id The ACF "Post ID".
  * @return string $cities The formatted Cities.
  */
@@ -1466,9 +1466,9 @@ function cacf_get_cities( $selector, $post_id = null ) {
  *
  * @since 0.4
  *
- * @param string $selector The ACF Field selector.
- * @param integer $location_type_id The numeric ID of the CiviCRM Address Location Type.
- * @param string $return Return an HTML list or comma-delimited string. Default 'list'.
+ * @param string         $selector The ACF Field selector.
+ * @param integer        $location_type_id The numeric ID of the CiviCRM Address Location Type.
+ * @param string         $return Return an HTML list or comma-delimited string. Default 'list'.
  * @param integer|string $post_id The ACF "Post ID".
  * @return string $city The formatted City.
  */
@@ -1537,7 +1537,7 @@ function cacf_get_city_by_type_id( $selector, $location_type_id, $return = 'list
  *
  * @since 0.4
  *
- * @param string $selector The ACF Field selector.
+ * @param string         $selector The ACF Field selector.
  * @param integer|string $post_id The ACF "Post ID".
  * @return string $city The formatted City.
  */
@@ -1587,7 +1587,7 @@ function cacf_get_primary_city( $selector, $post_id = null ) {
  *
  * @since 0.4
  *
- * @param string $selector The ACF Field selector.
+ * @param string         $selector The ACF Field selector.
  * @param integer|string $post_id The ACF "Post ID".
  * @return string $states The formatted States.
  */
@@ -1672,9 +1672,9 @@ function cacf_get_states( $selector, $post_id = null ) {
  *
  * @since 0.4
  *
- * @param string $selector The ACF Field selector.
- * @param integer $location_type_id The numeric ID of the CiviCRM Address Location Type.
- * @param string $return Return an HTML list or comma-delimited string. Default 'list'.
+ * @param string         $selector The ACF Field selector.
+ * @param integer        $location_type_id The numeric ID of the CiviCRM Address Location Type.
+ * @param string         $return Return an HTML list or comma-delimited string. Default 'list'.
  * @param integer|string $post_id The ACF "Post ID".
  * @return string $state The formatted State.
  */
@@ -1749,7 +1749,7 @@ function cacf_get_state_by_type_id( $selector, $location_type_id, $return = 'lis
  *
  * @since 0.4
  *
- * @param string $selector The ACF Field selector.
+ * @param string         $selector The ACF Field selector.
  * @param integer|string $post_id The ACF "Post ID".
  * @return string $state The formatted State.
  */

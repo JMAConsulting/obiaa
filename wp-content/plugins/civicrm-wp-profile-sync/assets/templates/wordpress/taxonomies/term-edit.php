@@ -13,7 +13,7 @@
 	<th scope="row"><label for="cwps-civicrm-group"><?php esc_html_e( 'CiviCRM Group for ACF Integration', 'civicrm-wp-profile-sync' ); ?></label></th>
 	<td>
 		<select name="cwps-civicrm-group" id="cwps-civicrm-group" class="postform">
-			<?php if ( $group_id !== 0 ) : ?>
+			<?php if ( 0 !== $group_id ) : ?>
 				<option value="0"><?php esc_html_e( 'None', 'civicrm-wp-profile-sync' ); ?></option>
 			<?php else : ?>
 				<option value="0" selected="selected"><?php esc_html_e( 'None', 'civicrm-wp-profile-sync' ); ?></option>
@@ -21,9 +21,9 @@
 			<?php if ( ! empty( $groups ) ) : ?>
 				<?php foreach ( $groups as $group ) : ?>
 					<?php if ( $group['id'] == $group_id ) : ?>
-						<option value="<?php echo $group['id']; ?>" selected="selected"><?php echo $group['title']; ?></option>
+						<option value="<?php echo esc_attr( $group['id'] ); ?>" selected="selected"><?php echo esc_html( $group['title'] ); ?></option>
 					<?php else : ?>
-						<option value="<?php echo $group['id']; ?>"><?php echo $group['title']; ?></option>
+						<option value="<?php echo esc_attr( $group['id'] ); ?>"><?php echo esc_html( $group['title'] ); ?></option>
 					<?php endif; ?>
 				<?php endforeach; ?>
 			<?php endif; ?>

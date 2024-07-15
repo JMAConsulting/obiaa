@@ -57,9 +57,9 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Tag {
 	public function __construct( $parent ) {
 
 		// Store references to objects.
-		$this->plugin = $parent->acf_loader->plugin;
+		$this->plugin     = $parent->acf_loader->plugin;
 		$this->acf_loader = $parent->acf_loader;
-		$this->civicrm = $parent;
+		$this->civicrm    = $parent;
 
 		// Init when the ACF CiviCRM object is loaded.
 		add_action( 'cwps/acf/civicrm/loaded', [ $this, 'register_hooks' ] );
@@ -107,15 +107,16 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Tag {
 		$result = civicrm_api( 'Tag', 'create', $params );
 
 		// Log and bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
-			$e = new Exception();
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
+			$e     = new Exception();
 			$trace = $e->getTraceAsString();
-			error_log( print_r( [
-				'method' => __METHOD__,
-				'params' => $params,
-				'result' => $result,
+			$log   = [
+				'method'    => __METHOD__,
+				'params'    => $params,
+				'result'    => $result,
 				'backtrace' => $trace,
-			], true ) );
+			];
+			$this->plugin->log_error( $log );
 			return $tag;
 		}
 
@@ -147,14 +148,15 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Tag {
 
 		// Log and bail if there's no Tag ID.
 		if ( empty( $data['id'] ) ) {
-			$e = new \Exception();
+			$e     = new \Exception();
 			$trace = $e->getTraceAsString();
-			error_log( print_r( [
-				'method' => __METHOD__,
-				'message' => __( 'A numeric ID must be present to update a Tag.', 'civicrm-wp-profile-sync' ),
-				'data' => $data,
+			$log   = [
+				'method'    => __METHOD__,
+				'message'   => __( 'A numeric ID must be present to update a Tag.', 'civicrm-wp-profile-sync' ),
+				'data'      => $data,
 				'backtrace' => $trace,
-			], true ) );
+			];
+			$this->plugin->log_error( $log );
 			return false;
 		}
 
@@ -186,14 +188,14 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Tag {
 		// Construct API query.
 		$params = [
 			'version' => 3,
-			'id' => $tag_id,
+			'id'      => $tag_id,
 		];
 
 		// Get Tag details via API.
 		$result = civicrm_api( 'Tag', 'get', $params );
 
 		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
 			return $tag;
 		}
 
@@ -231,10 +233,10 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Tag {
 
 		// Define params to get queried Tags.
 		$params = [
-			'version' => 3,
+			'version'    => 3,
 			'sequential' => 1,
-			'used_for' => 'civicrm_contact',
-			'options' => [
+			'used_for'   => 'civicrm_contact',
+			'options'    => [
 				'limit' => 0, // No limit.
 			],
 		];
@@ -243,7 +245,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Tag {
 		$result = civicrm_api( 'Tag', 'get', $params );
 
 		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
 			return $tag_data;
 		}
 
@@ -265,7 +267,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Tag {
 	 *
 	 * @since 0.5
 	 *
-	 * @param array $contact_id The numeric ID of a CiviCRM Contact.
+	 * @param array   $contact_id The numeric ID of a CiviCRM Contact.
 	 * @param integer $tag_id The numeric ID of the Tag.
 	 * @return bool $has_tag True if the Contact has the Tag, or false otherwise.
 	 */
@@ -273,27 +275,28 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Tag {
 
 		// Params to query Entity Tag.
 		$params = [
-			'version' => 3,
+			'version'      => 3,
 			'entity_table' => 'civicrm_contact',
-			'contact_id' => $contact_id,
-			'tag_id' => $tag_id,
+			'contact_id'   => $contact_id,
+			'tag_id'       => $tag_id,
 		];
 
 		// Call API.
 		$result = civicrm_api( 'EntityTag', 'get', $params );
 
 		// Add log entry on failure.
-		if ( isset( $result['is_error'] ) && $result['is_error'] == '1' ) {
-			$e = new \Exception();
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
+			$e     = new \Exception();
 			$trace = $e->getTraceAsString();
-			error_log( print_r( [
-				'method' => __METHOD__,
+			$log   = [
+				'method'     => __METHOD__,
 				'contact_id' => $contact_id,
-				'tag_id' => $tag_id,
-				'params' => $params,
-				'result' => $result,
-				'backtrace' => $trace,
-			], true ) );
+				'tag_id'     => $tag_id,
+				'params'     => $params,
+				'result'     => $result,
+				'backtrace'  => $trace,
+			];
+			$this->plugin->log_error( $log );
 			return false;
 		}
 
@@ -307,7 +310,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Tag {
 	 *
 	 * @since 0.5
 	 *
-	 * @param array $contact_id The numeric ID of a CiviCRM Contact.
+	 * @param array   $contact_id The numeric ID of a CiviCRM Contact.
 	 * @param integer $tag_id The numeric ID of the Tag.
 	 * @return array|bool $result The Group-Contact data, or false on failure.
 	 */
@@ -315,27 +318,28 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Tag {
 
 		// Params to add a Tag.
 		$params = [
-			'version' => 3,
+			'version'      => 3,
 			'entity_table' => 'civicrm_contact',
-			'contact_id' => $contact_id,
-			'tag_id' => $tag_id,
+			'contact_id'   => $contact_id,
+			'tag_id'       => $tag_id,
 		];
 
 		// Call API.
 		$result = civicrm_api( 'EntityTag', 'create', $params );
 
 		// Add log entry on failure.
-		if ( isset( $result['is_error'] ) && $result['is_error'] == '1' ) {
-			$e = new \Exception();
+		if ( ! empty( $result['is_error'] ) && 1 === (int) $result['is_error'] ) {
+			$e     = new \Exception();
 			$trace = $e->getTraceAsString();
-			error_log( print_r( [
-				'method' => __METHOD__,
+			$log   = [
+				'method'     => __METHOD__,
 				'contact_id' => $contact_id,
-				'tag_id' => $tag_id,
-				'params' => $params,
-				'result' => $result,
-				'backtrace' => $trace,
-			], true ) );
+				'tag_id'     => $tag_id,
+				'params'     => $params,
+				'result'     => $result,
+				'backtrace'  => $trace,
+			];
+			$this->plugin->log_error( $log );
 			return false;
 		}
 

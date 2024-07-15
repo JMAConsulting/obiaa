@@ -55,9 +55,9 @@ class CiviCRM_WP_Profile_Sync_ACF_Geo_Mashup {
 	public function __construct( $acf_loader ) {
 
 		// Store references to objects.
-		$this->plugin = $acf_loader->plugin;
+		$this->plugin     = $acf_loader->plugin;
 		$this->acf_loader = $acf_loader;
-		$this->civicrm = $acf_loader->civicrm;
+		$this->civicrm    = $acf_loader->civicrm;
 
 		// Init when this plugin is loaded.
 		add_action( 'cwps/acf/loaded', [ $this, 'initialise' ] );
@@ -477,9 +477,9 @@ class CiviCRM_WP_Profile_Sync_ACF_Geo_Mashup {
 	 *
 	 * @since 0.5.8
 	 *
-	 * @param mixed $value The value being saved to the database.
+	 * @param mixed   $value The value being saved to the database.
 	 * @param integer $post_id The Post ID from which the value was loaded.
-	 * @param array $field The Field array holding all the Field options.
+	 * @param array   $field The Field array holding all the Field options.
 	 * @return mixed $value The modified value.
 	 */
 	public function field_modified( $value, $post_id, $field ) {
@@ -518,13 +518,13 @@ class CiviCRM_WP_Profile_Sync_ACF_Geo_Mashup {
 
 			// Skip if the mapped Location Type is "primary" and this Address isn't.
 			$is_primary = isset( $address['field_address_primary'] ) ? $address['field_address_primary'] : '';
-			if ( $location_type === 'primary' && empty( $is_primary ) ) {
+			if ( 'primary' === $location_type && empty( $is_primary ) ) {
 				continue;
 			}
 
 			// Skip if the mapped Location Type is "billing" and this Address isn't.
 			$is_billing = isset( $address['field_address_billing'] ) ? $address['field_address_billing'] : '';
-			if ( $location_type === 'billing' && empty( $is_billing ) ) {
+			if ( 'billing' === $location_type && empty( $is_billing ) ) {
 				continue;
 			}
 
@@ -604,7 +604,7 @@ class CiviCRM_WP_Profile_Sync_ACF_Geo_Mashup {
 		// Check if the Post Types are mapped either here or in Geo Mashup.
 		$in_both = [];
 		foreach ( $is_contact_field_group as $post_type_name ) {
-			if ( in_array( $post_type_name, $located_post_types ) ) {
+			if ( in_array( $post_type_name, $located_post_types, true ) ) {
 				$in_both[] = $post_type_name;
 			}
 		}
@@ -640,7 +640,7 @@ class CiviCRM_WP_Profile_Sync_ACF_Geo_Mashup {
 		$choices = [];
 
 		// Build specific Locations.
-		$specific_label = esc_attr__( 'Specific Location', 'civicrm-wp-profile-sync' );
+		$specific_label                        = esc_attr__( 'Specific Location', 'civicrm-wp-profile-sync' );
 		$choices[ $specific_label ]['primary'] = esc_attr__( 'Primary', 'civicrm-wp-profile-sync' );
 		$choices[ $specific_label ]['billing'] = esc_attr__( 'Billing', 'civicrm-wp-profile-sync' );
 
@@ -653,21 +653,21 @@ class CiviCRM_WP_Profile_Sync_ACF_Geo_Mashup {
 
 		// Define Location Field.
 		$location = [
-			'label' => __( 'Geo Mashup sync', 'civicrm-wp-profile-sync' ),
-			'name' => 'geo_mashup_location_type',
-			'type' => 'select',
-			'instructions' => __( 'Choose the Location Type to sync to Geo Mashup. (Optional)', 'civicrm-wp-profile-sync' ),
-			'required' => 0,
+			'label'             => __( 'Geo Mashup sync', 'civicrm-wp-profile-sync' ),
+			'name'              => 'geo_mashup_location_type',
+			'type'              => 'select',
+			'instructions'      => __( 'Choose the Location Type to sync to Geo Mashup. (Optional)', 'civicrm-wp-profile-sync' ),
+			'required'          => 0,
 			'conditional_logic' => 0,
-			'allow_null' => 1,
-			'multiple' => 0,
-			'ui' => 0,
-			'return_format' => 'value',
-			'ajax' => 0,
-			'placeholder' => '',
-			'prefix' => '',
-			'default_value' => false,
-			'choices' => $choices,
+			'allow_null'        => 1,
+			'multiple'          => 0,
+			'ui'                => 0,
+			'return_format'     => 'value',
+			'ajax'              => 0,
+			'placeholder'       => '',
+			'prefix'            => '',
+			'default_value'     => false,
+			'choices'           => $choices,
 		];
 
 		// Now add it.
@@ -682,10 +682,10 @@ class CiviCRM_WP_Profile_Sync_ACF_Geo_Mashup {
 	 *
 	 * @since 0.5.8
 	 *
-	 * @param string $formName The CiviCRM form name.
+	 * @param string $form_name The CiviCRM form name.
 	 * @param object $form The CiviCRM form object.
 	 */
-	public function form_contact_type_build( $formName, &$form ) {
+	public function form_contact_type_build( $form_name, &$form ) {
 
 		global $geo_mashup_options;
 
@@ -696,7 +696,7 @@ class CiviCRM_WP_Profile_Sync_ACF_Geo_Mashup {
 		}
 
 		// Is this the Contact Type edit form?
-		if ( $formName != 'CRM_Admin_Form_ContactType' ) {
+		if ( 'CRM_Admin_Form_ContactType' !== $form_name ) {
 			return;
 		}
 
@@ -746,19 +746,19 @@ class CiviCRM_WP_Profile_Sync_ACF_Geo_Mashup {
 		);
 
 		// Amend form in edit mode.
-		if ( $mode === 'edit' ) {
+		if ( 'edit' === $mode ) {
 
 			// Get existing CPT.
 			$cpt_name = $this->acf_loader->mapping->mapping_for_contact_type_get( $contact_type['id'] );
 
 			// If we have a mapped CPT.
-			if ( $cpt_name !== false ) {
+			if ( false !== $cpt_name ) {
 
 				// Get CPT settings.
 				$cpt_settings = $this->acf_loader->mapping->setting_get( $cpt_name );
 
 				// If we have some settings.
-				if ( $cpt_settings !== false ) {
+				if ( false !== $cpt_settings ) {
 
 					// Set status of checkbox based on setting.
 					if ( isset( $cpt_settings['geo_mashup'] ) && 1 === (int) $cpt_settings['geo_mashup'] ) {
@@ -777,9 +777,7 @@ class CiviCRM_WP_Profile_Sync_ACF_Geo_Mashup {
 		}
 
 		// Insert template block into the page.
-		CRM_Core_Region::instance( 'page-body' )->add( [
-			'template' => 'cwps-acf-geo-mashup-compat.tpl',
-		] );
+		CRM_Core_Region::instance( 'page-body' )->add( [ 'template' => 'cwps-acf-geo-mashup-compat.tpl' ] );
 
 	}
 
@@ -788,8 +786,8 @@ class CiviCRM_WP_Profile_Sync_ACF_Geo_Mashup {
 	 *
 	 * @since 0.5.8
 	 *
-	 * @param int $contact_type_id The updated Contact Type ID.
-	 * @param str $post_type The updated Post Type name.
+	 * @param int   $contact_type_id The updated Contact Type ID.
+	 * @param str   $post_type The updated Post Type name.
 	 * @param array $values The form values.
 	 */
 	public function mapping_edited( $contact_type_id, $post_type, $values ) {
@@ -810,11 +808,11 @@ class CiviCRM_WP_Profile_Sync_ACF_Geo_Mashup {
 		$data = $this->acf_loader->mapping->setting_get( $post_type );
 
 		// Add/Update settings.
-		$data['geo_mashup'] = $geo_mashup;
+		$data['geo_mashup']         = $geo_mashup;
 		$data['geo_mashup_metabox'] = $geo_mashup_metabox;
 
 		// Override the "metabox" checkbox value when sync is off.
-		if ( $geo_mashup === 0 ) {
+		if ( 0 === $geo_mashup ) {
 			$data['geo_mashup_metabox'] = 0;
 		}
 
