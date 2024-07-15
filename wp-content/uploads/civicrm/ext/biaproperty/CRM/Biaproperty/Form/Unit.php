@@ -74,7 +74,7 @@ class CRM_Biaproperty_Form_Unit extends CRM_Core_Form {
         'join' => [['File AS file', 'LEFT'], ['Address AS adddress', 'INNER']],
         'limit' => 1])->first();
       $this->_pid = $this->_unit['property_id'];
-      CRM_Utils_System::setTitle(E::ts('Edit Unit %1'), [1 => [(!empty($this->_unit['address.street_unit']) ? '#' . $this->_unit['address.street_unit'] . ' - ' : '') . $this->_unit['address.street_address']]]);
+      CRM_Utils_System::setTitle(E::ts('Edit Unit %1', [1 => [(!empty($this->_unit['address.street_unit']) ? '#' . $this->_unit['address.street_unit'] . ' - ' : '') . $this->_unit['address.street_address']]]));
       $this->assign('unit', $this->_unit);
       if ($context === 'propertyView') {
         $property = Property::get()->addWhere('id', '=', $this->_pid)->execute()->first();
