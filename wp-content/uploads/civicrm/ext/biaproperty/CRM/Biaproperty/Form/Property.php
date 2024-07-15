@@ -169,7 +169,8 @@ class CRM_Biaproperty_Form_Property extends CRM_Core_Form {
         if ($count === 0) {
           civicrm_api4('Address', 'delete', [
             'join' => [['LocBlock AS loc_block', 'LEFT', ['id', '=', 'loc_block.address_id']]],
-            'where' => [['id', '=', $unit['address_id']], ['contact_id', 'IS NULL'], ['loc_block.address_id', 'IS NULL']]
+            'where' => [['id', '=', $unit['address_id']], ['contact_id', 'IS NULL'], ['loc_block.address_id', 'IS NULL']],
+            'checkPermissions' => FALSE,
           ]);
         }
         civicrm_api4('Unit', 'delete', ['where' => [['id', '=', $unit['id']]]]);
@@ -209,6 +210,7 @@ class CRM_Biaproperty_Form_Property extends CRM_Core_Form {
             'country_id' => $values['country_id'],
             'state_province_id' => $values['state_province_id'],
           ],
+          'checkPermissions' => FALSE,
         ])->first()['id'];
         $unitParams['address_id'] = $address;
         $params['created_id'] = CRM_Core_Session::singleton()->getLoggedInContactID();
@@ -237,7 +239,7 @@ class CRM_Biaproperty_Form_Property extends CRM_Core_Form {
       if (!empty($this->_oid)) {
         $propetyOwnerCheck = PropertyOwner::get()->addWhere('property_id', '=', $propertyID)->execute();
         // If there is no other owners set ensure that this owner is set to be the voter
-        $vote = count($propertyOwnerCheck) == 0 ? 1 : $values['is_voter'];
+        $vote = count($propetyOwnerCheck) == 0 ? 1 : $values['is_voter'];
         PropertyOwner::create(FALSE)
           ->addValue('property_id', $propertyID)
           ->addValue('owner_id', $this->_oid)
