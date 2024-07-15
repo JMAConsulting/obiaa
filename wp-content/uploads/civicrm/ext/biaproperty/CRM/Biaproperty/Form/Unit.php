@@ -318,7 +318,6 @@ class CRM_Biaproperty_Form_Unit extends CRM_Core_Form {
           if (!empty($values['street_unit'])) {
             $addressValues['street_unit'] = $values['street_unit'];
           }
-          \Civi::log()->debug('address_values', ['values' => $addressValues]);
           $address = Address::create(FALSE)->setValues($addressValues)->execute();
           $values['address_id'] = $address[0]['id'];
         }
