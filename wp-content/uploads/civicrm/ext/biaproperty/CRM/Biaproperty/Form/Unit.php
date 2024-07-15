@@ -68,13 +68,15 @@ class CRM_Biaproperty_Form_Unit extends CRM_Core_Form {
     }
     CRM_Utils_System::setTitle('Add Unit');
     if ($this->_id) {
-      CRM_Utils_System::setTitle($title);
       $this->_unit = civicrm_api4('Unit', 'get', [
         'select' => ['*', 'file.uri', 'file.mime_type', 'address.street_unit', 'address.street_address', 'address.city', 'address.state_province_id:label', 'address.postal_code'],
         'where' => [['id', '=', $this->_id]],
-        'join' => [['File AS file', 'LEFT'], ['Address AS adddress', 'INNER']],
-        'limit' => 1])->first();
+        'join' => [['File AS file', 'LEFT'], ['Address AS address', 'INNER']],
+        'limit' => 1,
+        'checkPermissions' => FALSE
+      ])->first();
       $this->_pid = $this->_unit['property_id'];
+      CRM_Utils_System::setTitle(E::ts('Edit Unit %1', [1 => (!empty($this->_unit['address.street_unit']) ? '#' . $this->_unit['address.street_unit'] . ' - ' : '') . $this->_unit['address.street_address']]));
       $this->assign('unit', $this->_unit);
       if ($context === 'propertyView') {
         $property = Property::get()->addWhere('id', '=', $this->_pid)->execute()->first();
@@ -287,7 +289,7 @@ class CRM_Biaproperty_Form_Unit extends CRM_Core_Form {
 
   public function postProcess() {
     if ($this->_action == CRM_Core_Action::DELETE) {
-      civicrm_api4('Address', 'delete', ['where' => [['id', '=', $this->_unit['address_id']]]]);
+      civicrm_api4('Address', 'delete', ['where' => [['id', '=', $this->_unit['address_id']]], 'checkPermissions' => FALSE]);
       civicrm_api4('Unit', 'delete', ['where' => [['id', '=', $this->_id]]]);
       $count = civicrm_api4('Unit', 'get', ['where' => [['address_id', '=', $this->_unit['address_id']], ['id', '!=', $this->_id]]])->count();
       CRM_Core_Session::setStatus(E::ts('Removed Unit'), E::ts('Unit'), 'success');
@@ -309,20 +311,20 @@ class CRM_Biaproperty_Form_Unit extends CRM_Core_Form {
         }
       }
       if ($action === 'create') {
-        $addressElements = ['street_address', 'city', 'postal_code', 'state_province_id', 'country_id'];
-        $addressValues = [];
-        foreach ($addressElements as $addressElement) {
-          $addressValues[$addressElement] = $values[$addressElement];
+        if (empty($values['address_id'])) {
+          $addressElements = ['street_address', 'city', 'postal_code', 'state_province_id', 'country_id'];
+          $addressValues = [];
+          foreach ($addressElements as $addressElement) {
+            $addressValues[$addressElement] = $values[$addressElement];
+          }
+          if (!empty($values['street_unit'])) {
+            $addressValues['street_unit'] = $values['street_unit'];
+          }
+          $address = Address::create(FALSE)->setValues($addressValues)->execute();
+          $values['address_id'] = $address[0]['id'];
         }
-        if (!empty($values['street_unit'])) {
-          $addressValues['street_unit'] = $values['street_unit'];
-        }
-        $address = Address::create(FALSE)->setValues($addressValues)->execute();
-        $values['address_id'] = $address[0]['id'];
-      }
-      elseif ($action === 'create') {
-        // If we are in create action but have an address id lets see if it is already linked to a unit and if so change action to be update.
-        if (!empty($values['address_id'])) {
+        else {
+          // If we are in create action but have an address id lets see if it is already linked to a unit and if so change action to be update.
           $unit = Unit::get(FALSE)->addWhere('address_id', '=', $values['address_id'])->execute();
           if (count($unit) > 0) {
             $this->_id = $unit[0]['id'];
