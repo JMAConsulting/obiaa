@@ -71,8 +71,10 @@ class CRM_Biaproperty_Form_Unit extends CRM_Core_Form {
       $this->_unit = civicrm_api4('Unit', 'get', [
         'select' => ['*', 'file.uri', 'file.mime_type', 'address.street_unit', 'address.street_address', 'address.city', 'address.state_province_id:label', 'address.postal_code'],
         'where' => [['id', '=', $this->_id]],
-        'join' => [['File AS file', 'LEFT'], ['Address AS adddress', 'INNER']],
-        'limit' => 1])->first();
+        'join' => [['File AS file', 'LEFT'], ['Address AS address', 'INNER']],
+        'limit' => 1,
+        'checkPermissions' => FALSE
+      ])->first();
       $this->_pid = $this->_unit['property_id'];
       CRM_Utils_System::setTitle(E::ts('Edit Unit %1', [1 => (!empty($this->_unit['address.street_unit']) ? '#' . $this->_unit['address.street_unit'] . ' - ' : '') . $this->_unit['address.street_address']]));
       $this->assign('unit', $this->_unit);
