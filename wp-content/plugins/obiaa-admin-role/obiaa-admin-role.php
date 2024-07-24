@@ -186,6 +186,7 @@ function obiaa_admin_role() {
       'obiaa_admin',
       'subscriber',
       'author',
+      'editor',
       'contributor',
     ];
     $sections_to_hide = [
@@ -195,21 +196,25 @@ function obiaa_admin_role() {
         'upload.php',
         'edit.php?post_type=page',
         'edit-comments.php',
+        'group-admin',
         'separator2',
         'themes.php',
         'plugins.php',
         'users.php',
         'tools.php',
         'options-general.php',
+        'edit.php?post_type=acf-field-group',
         'separator-last',
-        'obiaa_site_listing_settings',
     ];
     $adminizesettings = _mw_adminimize_get_option_value();
     foreach ($roles_to_hide as $role_name) {
-      $adminizesettings['mw_adminimize_disabled_dashboard_option_' . $role_name . '_items'] = $sections_to_hide;
+      $adminizesettings['mw_adminimize_disabled_menu_' . $role_name . '_items'] = $sections_to_hide;
     }
-    _mw_adminimize_update_option($adminizesettings);
+    wp_cache_delete( 'mw_adminimize' );
+    update_option( 'mw_adminimize', $adminizesettings );
+    wp_cache_add( 'mw_adminimize', $adminizesettings );
+
   }
 }
 
-obiaa_admin_role();
+add_action('init', 'obiaa_admin_role');
