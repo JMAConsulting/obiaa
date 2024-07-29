@@ -196,7 +196,7 @@ function obiaa_admin_role() {
         'upload.php',
         'edit.php?post_type=page',
         'edit-comments.php',
-        'group-admin',
+        'groups-admin',
         'separator2',
         'themes.php',
         'plugins.php',
