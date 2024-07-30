@@ -112,7 +112,7 @@ class CRM_Stripe_Upgrader extends CRM_Extension_Upgrader_Base {
             CRM_Core_DAO::executeQuery('UPDATE `civicrm_stripe_subscriptions` SET processor_id = %2 where processor_id IS NULL and is_live = 0', $p);
           }
         }
-      } catch (CiviCRM_API3_Exception $e) {
+      } catch (CRM_Core_Exception $e) {
         Civi::log()->debug("Cannot find a PaymentProcessorType named Stripe.");
         return;
       }
@@ -242,7 +242,7 @@ class CRM_Stripe_Upgrader extends CRM_Extension_Upgrader_Base {
           'invoice_id' => $subscriptions->invoice_id,
           'contribution_test' => $test_mode,
         ]);
-      } catch (CiviCRM_API3_Exception $e) {
+      } catch (CRM_Core_Exception $e) {
         // Don't quit here. If we can't find the recurring ID for a single customer, make a note in the error log and carry on.
         Civi::log()->debug('Recurring contribution search: ' . $e->getMessage());
       }

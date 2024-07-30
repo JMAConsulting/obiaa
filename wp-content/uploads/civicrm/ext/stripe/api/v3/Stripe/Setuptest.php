@@ -34,7 +34,7 @@ function _civicrm_api3_stripe_Setuptest_spec(&$spec) {
  * @param array $params
  *
  * @return array API result descriptor
- * @throws \CiviCRM_API3_Exception
+ * @throws \CRM_Core_Exception
  *
  * @deprecated
  */

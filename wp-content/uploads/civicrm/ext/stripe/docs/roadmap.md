@@ -3,8 +3,12 @@ This roadmap may not always be up to date but gives an idea of what is planned a
 
 ## Implement Overdue/Failed statuses for Stripe recur
 
-For recurring contributions we currently only implement `In Progress`, `Cancelled` and I think `Completed`
-but we need to change that to support `Overdue` and `Failed` status like is implemented and described in GoCardless here: https://docs.civicrm.org/gocardless/en/latest/reference/technical/
+For recurring contributions we currently only implement `In Progress`, `Cancelled` and `Completed`
+but we need to change that to support `Overdue` and `Failed` status like is implemented and described in GoCardless
+here: [https://docs.civicrm.org/gocardless/en/latest/reference/technical/](https://docs.civicrm.org/gocardless/en/latest/reference/technical/)
+
+Details of the Stripe subscription lifecycle can be found here: [https://docs.stripe.com/billing/subscriptions/overview#subscription-lifecycle](https://docs.stripe.com/billing/subscriptions/overview#subscription-lifecycle)
+
 
 ### Estimate: 6 hours.
 
@@ -107,7 +111,15 @@ in the Stripe extension and then 8 hours for the specific payment method "Bancon
 Adding additional payment methods such as Sofort would then require approximately 8 hours each
 to implement.
 
+# Completed
+
+## Stripe ACH/EFT - Available in 6.9 release via Stripe Checkout.
+
+See [Make it Happen](https://civicrm.org/make-it-happen/stripe-ach-payments) campaign on CiviCRM.org.
+
 ## Update Subscription
+
+*Implemented for "amount" in Stripe 6.11*
 
 See: [Issue#18](https://lab.civicrm.org/extensions/stripe/-/issues/18)
 
@@ -140,10 +152,3 @@ We create plans based on the frequency interval, unit, amount + currency and re-
 $planId = "every-{$params['recurFrequencyInterval']}-{$params['recurFrequencyUnit']}-{$amount}-" . strtolower($currency);
 ```
 
-### Estimate: 12-16 hours.
-
-# Completed
-
-## Stripe ACH/EFT - Available in 6.9 release via Stripe Checkout.
-
-See [Make it Happen](https://civicrm.org/make-it-happen/stripe-ach-payments) campaign on CiviCRM.org.

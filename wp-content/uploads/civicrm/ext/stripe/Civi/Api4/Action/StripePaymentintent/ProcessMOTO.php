@@ -77,17 +77,8 @@ class ProcessMOTO extends \Civi\Api4\Generic\AbstractAction {
   /**
    * @param \Civi\Api4\Generic\Result $result
    *
-   * @return array
-   * @throws \CRM_Core_Exception
-   * @throws \CiviCRM_API3_Exception
-   */
-  /**
-   * @param \Civi\Api4\Generic\Result $result
-   *
    * @return void
-   * @throws \API_Exception
    * @throws \CRM_Core_Exception
-   * @throws \CiviCRM_API3_Exception
    * @throws \Stripe\Exception\ApiErrorException
    */
   public function _run(\Civi\Api4\Generic\Result $result) {

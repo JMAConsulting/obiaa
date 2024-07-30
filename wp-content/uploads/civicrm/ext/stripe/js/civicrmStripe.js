@@ -644,6 +644,11 @@
         elementsCreateParams.disableLink = true;
       }
 
+      // Regulation (EU) 2015/751 requires businesses in the European Economic Area (EEA) to honor customers’ card brand choice for co-badged cards
+      // https://docs.stripe.com/co-badged-cards-compliance?type=web-elements&ui=card-element#selecting-a-default-network
+      elementsCreateParams.hideIcon = false;
+      elementsCreateParams.preferredNetwork = ['cartes_bancaires', 'visa', 'mastercard'];
+
       // Cleanup any classes leftover from previous switching payment processors
       script.getJQueryPaymentElements().card.removeClass();
       // Create an instance of the card Element.

@@ -19,7 +19,7 @@ use Civi\Api4\StripePaymentintent;
  *
  * @return array
  *   API result array.
- * @throws CiviCRM_API3_Exception
+ * @throws CRM_Core_Exception
  */
 function civicrm_api3_job_process_stripe($params) {
   // Note: "canceled" is the status from Stripe, we used to record "cancelled" so we check for both
@@ -68,7 +68,7 @@ function civicrm_api3_job_process_stripe($params) {
             $cancelledIDs[] = $incompletePaymentintent['id'];
           }
         }
-        \Civi::log()->error("Stripe.process_stripe: Unable to cancel paymentIntentID: {$incompletePaymentintent['id']}: " . $e->getMessage());
+        \Civi::log('stripe')->error("Stripe.process_stripe: Unable to cancel paymentIntentID: {$incompletePaymentintent['id']}: " . $e->getMessage());
       }
     }
     if (!empty($cancelledIDs)) {

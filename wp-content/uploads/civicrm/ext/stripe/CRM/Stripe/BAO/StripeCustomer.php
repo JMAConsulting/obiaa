@@ -4,6 +4,7 @@ use Civi\Api4\Contact;
 use Civi\Api4\Email;
 use Civi\Api4\Extension;
 use Civi\Api4\StripeCustomer;
+use Civi\Payment\Exception\PaymentProcessorException;
 use CRM_Stripe_ExtensionUtil as E;
 
 class CRM_Stripe_BAO_StripeCustomer extends CRM_Stripe_DAO_StripeCustomer {
@@ -72,15 +73,15 @@ class CRM_Stripe_BAO_StripeCustomer extends CRM_Stripe_DAO_StripeCustomer {
    * @param \CRM_Core_Payment_Stripe $stripe
    * @param string $stripeCustomerID
    *
-   * @return \Stripe\Customer
-   * @throws \CiviCRM_API3_Exception
+   * @return string
+   * @throws \CRM_Core_Exception
    * @throws \Civi\Payment\Exception\PaymentProcessorException
    */
-  public static function updateMetadata(array $params, \CRM_Core_Payment_Stripe $stripe, string $stripeCustomerID) {
+  public static function updateMetadata(array $params, \CRM_Core_Payment_Stripe $stripe, string $stripeCustomerID): string {
     $requiredParams = ['contact_id'];
     foreach ($requiredParams as $required) {
       if (empty($params[$required])) {
-        throw new \Civi\Payment\Exception\PaymentProcessorException('Stripe Customer (updateMetadata): Missing required parameter: ' . $required);
+        throw new PaymentProcessorException('Stripe Customer (updateMetadata): Missing required parameter: ' . $required);
       }
     }
 
@@ -91,14 +92,19 @@ class CRM_Stripe_BAO_StripeCustomer extends CRM_Stripe_DAO_StripeCustomer {
     }
     catch (Exception $e) {
       $err = $stripe->parseStripeException('create_customer', $e);
-      \Civi::log('stripe')->error('Failed to create Stripe Customer: ' . $err['message'] . '; ' . print_r($err, TRUE));
-      throw new \Civi\Payment\Exception\PaymentProcessorException('Failed to update Stripe Customer: ' . $err['code']);
+      if ($e instanceof \Stripe\Exception\PermissionException) {
+        \Civi::log('stripe')->warning($stripe->getLogPrefix() . 'Could not update Stripe Customer metadata for StripeCustomerID: ' . $stripeCustomerID . '; contactID: ' . $params['contact_id']);
+      }
+      else {
+        \Civi::log('stripe')->error($stripe->getLogPrefix() . 'Failed to create Stripe Customer: ' . $err['message'] . '; ' . print_r($err, TRUE));
+        throw new PaymentProcessorException('Failed to update Stripe Customer: ' . $err['code']);
+      }
     }
-    return $stripeCustomer;
+    return $stripeCustomer ?? '';
   }
 
   /**
-   * Update the metadata at Stripe for a given contactid
+   * Update the metadata at Stripe for a given contactID
    *
    * @param int $contactID
    *
@@ -112,18 +118,12 @@ class CRM_Stripe_BAO_StripeCustomer extends CRM_Stripe_DAO_StripeCustomer {
     // Could be multiple customer_id's and/or stripe processors
     foreach ($customers as $customer) {
       /** @var CRM_Core_Payment_Stripe $stripe */
-      \Civi\Api4\StripeCustomer::updateStripe(FALSE)
+      StripeCustomer::updateStripe(FALSE)
         ->setPaymentProcessorID($customer['processor_id'])
         ->setContactID($contactID)
         ->setCustomerID($customer['customer_id'])
         ->execute()
         ->first();
-      $stripe = \Civi\Payment\System::singleton()->getById($customer['processor_id']);
-      CRM_Stripe_BAO_StripeCustomer::updateMetadata(
-        ['contact_id' => $contactID, 'processor_id' => $customer['processor_id']],
-        $stripe,
-        $customer['customer_id']
-      );
     }
   }
 

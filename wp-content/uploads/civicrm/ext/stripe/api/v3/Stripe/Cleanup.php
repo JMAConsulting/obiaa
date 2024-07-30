@@ -35,11 +35,11 @@ function _civicrm_api3_stripe_Cleanup_spec(&$spec) {
  * @param $params
  *
  * @return array
- * @throws \CiviCRM_API3_Exception
+ * @throws \CRM_Core_Exception
  */
 function civicrm_api3_stripe_Cleanup($params) {
   if (empty($params['confirm'])) {
-    throw new CiviCRM_API3_Exception('You must set the parameter "confirm" to run the Stripe.cleanup API');
+    throw new CRM_Core_Exception('You must set the parameter "confirm" to run the Stripe.cleanup API');
   }
 
   CRM_Core_DAO::executeQuery('DROP TABLE IF EXISTS civicrm_stripe_plans');

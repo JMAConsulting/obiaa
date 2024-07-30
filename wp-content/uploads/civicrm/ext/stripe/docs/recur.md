@@ -9,6 +9,21 @@ When you create a recurring contribution in CiviCRM using the Stripe payment pro
 !!! tip "If you are using recurring contributions make sure you have webhooks configured correctly"
     See [Webhooks](webhook.md)
 
+## Recurring statuses
+
+Recurring contributions start in the status "Pending".
+
+The Stripe subscription status is mapped to the recurring contribution status as follows:
+(see `CRM_Stripe_Api::mapSubscriptionStatusToRecurStatus`):
+
+      'incomplete' => 'Failed',
+      'incomplete_expired' => 'Failed',
+      'trialing' => 'In Progress',
+      'active' => 'In Progress',
+      'past_due' => 'Overdue',
+      'canceled' => 'Cancelled',
+      'unpaid' => 'Failed',
+
 ## Starting a Recurring contribution in the future
 If you would like your users to be able to specify a future recurring start date you can enable
 `Enable public selection of future recurring start dates for intervals` in *Administer->CiviContribute->Stripe Settings*.
@@ -43,14 +58,47 @@ You can cancel a recurring contribution from the Stripe Dashboard or from within
 
 ![Cancel Subscription in CiviCRM](images/backend_cancelrecur.png)
 
-## Recurring statuses
+## Editing / Updating Subscription
 
-Recurring contributions start in the status "Pending".
+*Supported from Stripe 6.11*
 
-The Stripe subscription status is mapped to the recurring contribution status as follows:
+You can update the amount of a Stripe Subscription / Recurring Contribution from the 
+Stripe Dashboard or from within CiviCRM.
 
-* STATUS_INCOMPLETE => Pending
-* STATUS_ACTIVE => In Progress
-* STATUS_TRIALING => In Progress
-* STATUS_PAST_DUE => Overdue
-* STATUS_CANCELED / STATUS_UNPAID / STATUS_INCOMPLETE_EXPIRED => Cancelled
+Stripe uses the following concepts:
+
+    Subscription
+    -->SubscriptionItem
+       -->Product
+       -->Price
+
+So when updating a subscription we actually create a new Price for the Product and link them together.
+
+### Notes
+
+Stripe supports "pro-rata" subscription updates but this extension does not.
+When making changes from CiviCRM pro-rata will automatically be disabled (ie. the new amount will take effect when the next invoice is issued).
+When making changes from Stripe be sure to turn off pro-rata.
+
+#### Updating a subscription in Stripe
+
+1. Open the Stripe Dashboard.
+1. Find the subscription you want to change.
+1. Click Actions->Update subscription and follow the instructions.
+
+![Update Subscription in Stripe](images/updatesubscriptionstripe.png)
+
+#### Updating a subscription in CiviCRM
+
+1. Find a recurring contribution using the "Contributions->Recurring Contributions" tab on the contact record.
+1. Click "Edit" on the recurring contribution that you want to change the amount:
+1. Enter the new amount (please ignore the "installments" field as will be hidden once [https://github.com/civicrm/civicrm-core/pull/28617](https://github.com/civicrm/civicrm-core/pull/28617) is merged).
+1. Click "Save" - you'll see that the amount has been updated in CiviCRM and Stripe - the next invoice generated at Stripe will be for the updated amount.
+
+![Update Subscription in CiviCRM](images/updatesubscriptioncivicrm.png)
+
+### Bulk updates
+
+If you'd like to make bulk updates to recurring contributions (for example a membership price increase)
+we support the "Update Recurring Contributions" extension by @artfulrobot.
+For now, please use the MJW version from here: [https://lab.civicrm.org/mattwire/upgraderecur/-/tree/mjw](https://lab.civicrm.org/mattwire/upgraderecur/-/tree/mjw)

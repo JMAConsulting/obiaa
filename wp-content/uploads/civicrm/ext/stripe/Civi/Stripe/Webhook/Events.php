@@ -11,6 +11,7 @@
  */
 
 namespace Civi\Stripe\Webhook;
+use Brick\Money\Money;
 use Civi\Api4\Contribution;
 use Civi\Api4\ContributionRecur;
 use CRM_Stripe_ExtensionUtil as E;
@@ -24,15 +25,9 @@ class Events {
    */
   private $api;
 
-  /**
-   * @var \CRM_Core_Payment_Stripe Payment processor
-   */
-  private $paymentProcessor;
-
   public function __construct(int $paymentProcessorID) {
     $this->setPaymentProcessor($paymentProcessorID);
-    $this->api = new \Civi\Stripe\Api();
-    $this->api->setPaymentProcessor($paymentProcessorID);
+    $this->api = new \Civi\Stripe\Api($this->_paymentProcessor);
   }
 
   /**
@@ -65,7 +60,7 @@ class Events {
   /**
    * @return \stdClass
    */
-  private function getResultObject() {
+  public function getResultObject() {
     $return = new \stdClass();
     $return->message = '';
     $return->ok = FALSE;
@@ -135,7 +130,7 @@ class Events {
     if (empty($contributionApi3['count'])) {
       if ((bool)\Civi::settings()->get('stripe_ipndebug')) {
         $message = $this->getPaymentProcessor()->getPaymentProcessorLabel() . 'No matching contributions for event ' . $this->getEventID();
-        \Civi::log()->debug($message);
+        \Civi::log('stripe')->debug($message);
       }
       $result = [];
       \CRM_Mjwshared_Hook::webhookEventNotMatched('stripe', $this, 'contribution_not_found', $result);
@@ -155,7 +150,14 @@ class Events {
    *   a) We've reached the end date / number of installments
    *   b) The recurring contribution is marked as completed
    *
-   * @throws \CiviCRM_API3_Exception
+   * @param string $subscriptionID
+   * @param int|NULL $contributionRecurID
+   *
+   * @return void
+   * @throws \CRM_Core_Exception
+   * @throws \Civi\API\Exception\UnauthorizedException
+   * @throws \Civi\Payment\Exception\PaymentProcessorException
+   * @throws \Stripe\Exception\ApiErrorException
    */
   private function handleInstallmentsForSubscription(string $subscriptionID = '', int $contributionRecurID = NULL) {
     // Check that we have both contributionRecurID and subscriptionID
@@ -178,6 +180,12 @@ class Events {
     // if (empty($contributionRecur['installments'])) { return; }
 
     $stripeSubscription = $this->getPaymentProcessor()->stripeClient->subscriptions->retrieve($subscriptionID);
+
+    // If the subscription is already cancelled don't try to modify it
+    if (!empty($stripeSubscription->canceled_at) || $stripeSubscription->status === 'canceled') {
+      return;
+    }
+
     // If we've passed the end date cancel the subscription
     if (($stripeSubscription->current_period_end >= strtotime($contributionRecur['end_date']))
       || ($contributionRecur['contribution_status_id']
@@ -207,7 +215,7 @@ class Events {
     if (empty($contributionRecur)) {
       if ((bool)\Civi::settings()->get('stripe_ipndebug')) {
         $message = $this->getPaymentProcessor()->getPaymentProcessorLabel() . ': ' . $this->getEventID() . ': Cannot find recurring contribution for subscription ID: ' . $subscriptionID;
-        \Civi::log()->debug($message);
+        \Civi::log('stripe')->debug($message);
       }
       return [];
     }
@@ -226,7 +234,6 @@ class Events {
    *
    * @return int
    * @throws \CRM_Core_Exception
-   * @throws \CiviCRM_API3_Exception
    * @throws \Civi\Payment\Exception\PaymentProcessorException
    * @throws \Stripe\Exception\ApiErrorException
    */
@@ -279,7 +286,6 @@ class Events {
    *
    * @return \stdClass
    * @throws \CRM_Core_Exception
-   * @throws \CiviCRM_API3_Exception
    * @throws \Civi\Payment\Exception\PaymentProcessorException
    * @throws \Stripe\Exception\ApiErrorException
    */
@@ -388,7 +394,7 @@ class Events {
       return $return;
     }
 
-    $return->message = $this->formatResultMessage(__FUNCTION__, '', ['coid' => $contribution['id']]);
+    $return->message = $this->formatResultMessage(__FUNCTION__, 'OK', ['coid' => $contribution['id']]);
     $return->ok = TRUE;
     return $return;
   }
@@ -399,7 +405,6 @@ class Events {
    *
    * @return \stdClass
    * @throws \CRM_Core_Exception
-   * @throws \CiviCRM_API3_Exception
    * @throws \Civi\Payment\Exception\PaymentProcessorException
    * @throws \Stripe\Exception\ApiErrorException
    */
@@ -473,7 +478,7 @@ class Events {
 
     $lock = \Civi::lockManager()->acquire('data.contribute.contribution.' . $refundParams['contribution_id']);
     if (!$lock->isAcquired()) {
-      \Civi::log()->error('Could not acquire lock to record refund for contribution: ' . $refundParams['contribution_id']);
+      \Civi::log('stripe')->error('Could not acquire lock to record refund for contribution: ' . $refundParams['contribution_id']);
     }
     $refundPayment = civicrm_api3('Payment', 'get', [
       'trxn_id' => $refundParams['trxn_id'],
@@ -497,7 +502,7 @@ class Events {
    * One-time donation and per invoice payment
    *
    * @return \stdClass
-   * @throws \CiviCRM_API3_Exception
+   * @throws \CRM_Core_Exception
    * @throws \Civi\Payment\Exception\PaymentProcessorException
    */
   public function doChargeFailed(): \stdClass {
@@ -543,7 +548,7 @@ class Events {
     $failedContributionParams['order_reference'] = empty($invoiceID) ? $chargeID : $invoiceID;
     $this->updateContributionFailed($failedContributionParams);
 
-    $return->message = $this->formatResultMessage(__FUNCTION__, '', ['coid' => $contribution['id']]);
+    $return->message = $this->formatResultMessage(__FUNCTION__, 'OK', ['coid' => $contribution['id']]);
     $return->ok = TRUE;
     return $return;
 
@@ -609,29 +614,38 @@ class Events {
         ->execute();
     }
 
-    // charge.succeeded often arrives before checkout.session.completed and we have no way
-    //   to match it to a contribution so it will be ignored.
-    // Now we have processed checkout.session.completed see if we need to process
-    //   charge.succeeded again.
-    $chargeSucceededWebhook = \Civi\Api4\PaymentprocessorWebhook::get(FALSE)
+    // The charge.succeeded and invoice.paid (for recurring contributions)
+    // notices often arrive before checkout.session.completed and we have no
+    // way to match it to a contribution so it will be ignored. Now we have
+    // processed checkout.session.completed see if we need to process
+    // charge.succeeded or invoice.paid again.
+    if (!empty($subscriptionID) && !empty($contribution['contribution_recur_id'])) {
+      $identifier = $subscriptionID;
+      $trigger = 'invoice.paid';
+    }
+    else {
+      $identifier = $paymentIntentID;
+      $trigger = 'charge.succeeded';
+    }
+    $webhook = \Civi\Api4\PaymentprocessorWebhook::get(FALSE)
       ->addSelect('id')
-      ->addWhere('identifier', 'CONTAINS', $paymentIntentID)
-      ->addWhere('trigger', '=', 'charge.succeeded')
+      ->addWhere('identifier', 'CONTAINS', $identifier)
+      ->addWhere('trigger', '=', $trigger)
       ->addWhere('status', '=', 'success')
       ->addOrderBy('created_date', 'DESC')
       ->execute()
       ->first();
-    if (!empty($chargeSucceededWebhook)) {
-      // Flag charge.succeeded for re-processing
+    if (!empty($webhook)) {
+      // Flag for re-processing
       \Civi\Api4\PaymentprocessorWebhook::update(FALSE)
         ->addValue('status', 'new')
         ->addValue('processed_date', NULL)
-        ->addWhere('id', '=', $chargeSucceededWebhook['id'])
+        ->addWhere('id', '=', $webhook['id'])
         ->execute();
-      $return->message = $this->formatResultMessage(__FUNCTION__, 'charge.succeeded flagged for re-process', ['coid' => $contribution['id']]);
+      $return->message = $this->formatResultMessage(__FUNCTION__, "${trigger} flagged for re-process", ['coid' => $contribution['id']]);
     }
     else {
-      $return->message = $this->formatResultMessage(__FUNCTION__, '', ['coid' => $contribution['id']]);
+      $return->message = $this->formatResultMessage(__FUNCTION__, "No suitable {$trigger} found to re-process for {$identifier}", ['coid' => $contribution['id']]);
     }
 
     $return->ok = TRUE;
@@ -652,7 +666,6 @@ class Events {
    *
    * @return \stdClass
    * @throws \CRM_Core_Exception
-   * @throws \CiviCRM_API3_Exception
    * @throws \Civi\Payment\Exception\PaymentProcessorException
    */
   public function doInvoicePaid(): \stdClass {
@@ -683,7 +696,7 @@ class Events {
     // Acquire the lock to find/create contribution
     $lock = \Civi::lockManager()->acquire('data.contribute.contribution.' . $invoiceID);
     if (!$lock->isAcquired()) {
-      \Civi::log()->error('Could not acquire lock to record ' . $this->getEventType() . ' for Stripe InvoiceID: ' . $invoiceID);
+      \Civi::log('stripe')->error('Could not acquire lock to record ' . $this->getEventType() . ' for Stripe InvoiceID: ' . $invoiceID);
     }
 
     // We *normally/ideally* expect to be able to find the contribution,
@@ -717,7 +730,7 @@ class Events {
     // Now acquire lock to record payment on the contribution
     $lock = \Civi::lockManager()->acquire('data.contribute.contribution.' . $contribution['id']);
     if (!$lock->isAcquired()) {
-      \Civi::log()->error('Could not acquire lock to record ' . $this->getEventType() . ' for contribution: ' . $contribution['id']);
+      \Civi::log('stripe')->error('Could not acquire lock to record ' . $this->getEventType() . ' for contribution: ' . $contribution['id']);
     }
 
     // By this point we should have a contribution
@@ -728,6 +741,7 @@ class Events {
       // Payment already recorded
       $return->ok = TRUE;
       $return->message = $this->formatResultMessage(__FUNCTION__, E::ts('Payment already recorded'), ['coid' => $contribution['id']]);
+      $lock->release();
       return $return;
     }
 
@@ -752,12 +766,26 @@ class Events {
       }
 
       $this->updateContributionCompleted($contributionParams);
-      // Don't touch the contributionRecur as it's updated automatically by Contribution.completetransaction
+      // The contributionRecur as it's updated automatically by Contribution.completetransaction
+      // However, it will only update status if in "Pending" or "In Progress"
+
+      // Get the contributionRecur and if not in "In Progress" update it to that since we have a successful payment
+      $recur = ContributionRecur::get(FALSE)
+        ->addSelect('contribution_status_id:name')
+        ->addWhere('id', '=', $contributionRecur['id'])
+        ->execute()
+        ->first();
+      if (!empty($recur) && ($recur['contribution_status_id:name'] !== 'In Progress')) {
+        ContributionRecur::update(FALSE)
+          ->addValue('contribution_status_id:name', 'In Progress')
+          ->addWhere('id', '=', $contributionRecur['id'])
+          ->execute();
+      }
     }
     $lock->release();
 
     $this->handleInstallmentsForSubscription($subscriptionID, $contributionRecur['id']);
-    $return->message = $this->formatResultMessage(__FUNCTION__, '', ['coid' => $contribution['id']]);
+    $return->message = $this->formatResultMessage(__FUNCTION__, 'OK', ['coid' => $contribution['id']]);
     $return->ok = TRUE;
     return $return;
   }
@@ -767,7 +795,6 @@ class Events {
    *
    * @return \stdClass
    * @throws \CRM_Core_Exception
-   * @throws \CiviCRM_API3_Exception
    * @throws \Civi\Payment\Exception\PaymentProcessorException
    * @throws \Stripe\Exception\ApiErrorException
    */
@@ -802,7 +829,8 @@ class Events {
     // This usually happens automatically through a Stripe subscription
     if (empty($contribution)) {
       // Unable to find a Contribution.
-      $this->createNextContributionForRecur($chargeID, $invoiceID, $contributionRecur);
+      $contributionID = $this->createNextContributionForRecur($chargeID, $invoiceID, $contributionRecur);
+      $return->message = $this->formatResultMessage(__FUNCTION__, E::ts('Created Contribution'), ['coid' => $contributionID]);
       $return->ok = TRUE;
       return $return;
     }
@@ -812,12 +840,15 @@ class Events {
     // Now we do we can map subscription_id to invoice_id so payment can be recorded
     // via subsequent IPN requests (eg. invoice.payment_succeeded)
     if ($contribution['trxn_id'] === $subscriptionID) {
-      $this->updateContribution([
-        'contribution_id' => $contribution['id'],
-        'trxn_id' => $invoiceID,
-      ]);
+      Contribution::update(FALSE)
+        ->addWhere('id', '=', $contribution['id'])
+        ->addValue('trxn_id', $invoiceID)
+        ->execute();
+      $return->message = $this->formatResultMessage(__FUNCTION__, E::ts('Updated contribution trxn_id to invoiceID (was subscriptionID)'), ['coid' => $contribution['id']]);
     }
-    $return->message = $this->formatResultMessage(__FUNCTION__, '', ['coid' => $contribution['id']]);
+    if (empty($return->message)) {
+      $return->message = $this->formatResultMessage(__FUNCTION__, E::ts('Nothing to do'), ['coid' => $contribution['id']]);
+    }
     $return->ok = TRUE;
     return $return;
   }
@@ -827,7 +858,7 @@ class Events {
    * Failed recurring payment. Either we are failing an existing contribution or it's the next one in a subscription
    *
    * @return \stdClass
-   * @throws \CiviCRM_API3_Exception
+   * @throws \CRM_Core_Exception
    * @throws \Civi\Payment\Exception\PaymentProcessorException
    * @throws \Stripe\Exception\ApiErrorException
    */
@@ -879,7 +910,7 @@ class Events {
       ];
       $this->updateContributionFailed($params);
     }
-    $return->message = $this->formatResultMessage(__FUNCTION__, '', ['coid' => $contribution['id']]);
+    $return->message = $this->formatResultMessage(__FUNCTION__, 'OK', ['coid' => $contribution['id']]);
     $return->ok = TRUE;
     return $return;
   }
@@ -888,7 +919,7 @@ class Events {
    * Subscription is cancelled.
    *
    * @return \stdClass
-   * @throws \CiviCRM_API3_Exception
+   * @throws \CRM_Core_Exception
    * @throws \Civi\Payment\Exception\PaymentProcessorException
    */
   public function doCustomerSubscriptionDeleted(): \stdClass {
@@ -937,13 +968,80 @@ class Events {
   public function doCustomerSubscriptionUpdated(): \stdClass {
     $return = $this->getResultObject();
 
+    /** @var \Stripe\StripeObject $data */
+    $stripeData = $this->getData();
+    if (!($stripeData->object instanceof \Stripe\Subscription)) {
+      $return->message = $this->formatResultMessage(__FUNCTION__, 'Invalid data');
+      return $return;
+    }
+
     // Check we have the right data object for this event
-    if (($this->getData()->object->object ?? '') !== 'subscription') {
+    if (($stripeData->object->object ?? '') !== 'subscription') {
       $return->message = $this->formatResultMessage(__FUNCTION__, 'Invalid object type');
       return $return;
     }
 
-    $return->message = $this->formatResultMessage(__FUNCTION__, 'ignoring - not implemented');
+    $subscriptionID = $this->api->getValueFromStripeObject('subscription_id', 'String', $stripeData->object);
+
+    $contributionRecur = $this->getRecurFromSubscriptionID($subscriptionID);
+    if (empty($contributionRecur)) {
+      // Subscription was not found in CiviCRM
+      $result = [];
+      \CRM_Mjwshared_Hook::webhookEventNotMatched('stripe', $this, 'subscription_not_found', $result);
+      if (empty($result['contributionRecur'])) {
+        $return->message = $this->formatResultMessage(__FUNCTION__, E::ts('No contributionRecur record found in CiviCRM. Ignored'));
+        $return->ok = TRUE;
+        return $return;
+      }
+      $contributionRecur = $result['contributionRecur'];
+    }
+
+    if (!isset($stripeData->previous_attributes)) {
+      // Nothing changed?!
+      $return->message = $this->formatResultMessage(__FUNCTION__, E::ts('No changes. Ignored'));
+      $return->ok = TRUE;
+      return $return;
+    }
+
+    // First work out what changed. This is held in "previous_attributes" on webhook data
+    $previousAttributes = $stripeData->previous_attributes;
+    // Simple check that we actually have some items data
+    // Otherwise it could just be a metadata change which we are not interested in.
+    $amountHasChanged = FALSE;
+    if (!empty($previousAttributes->items->data)) {
+      $amountHasChanged = TRUE;
+    }
+
+    if ($amountHasChanged) {
+      $subscriptionItems = $stripeData->object->items->data;
+      $calculatedItems = $this->api->calculateItemsForSubscription($subscriptionID, $subscriptionItems);
+    }
+
+    // $calculatedItems now contains array of new prices by key [currency]_[frequency_unit]_[frequency_interval]
+    // Eg. $calculatedItems[usd_month_1] = [
+    //       'currency' => 'usd',
+    //       'amount' => '2000', (amount is in pence)
+    //     ];
+
+    // Now check if recurring contribution matches frequency
+    $contributionRecurKey = mb_strtolower($contributionRecur['currency']) . "_{$contributionRecur['frequency_unit']}_{$contributionRecur['frequency_interval']}";
+    if (isset($calculatedItems[$contributionRecurKey])) {
+      $calculatedItem = $calculatedItems[$contributionRecurKey];
+      $templateContribution = \CRM_Contribute_BAO_ContributionRecur::getTemplateContribution($contributionRecur['id']);
+      if (!Money::of($calculatedItem['amount'], mb_strtoupper($calculatedItem['currency']))
+        ->isAmountAndCurrencyEqualTo(Money::of($templateContribution['total_amount'], $templateContribution['currency']))) {
+        // Create a new template contribution to update the amount
+        ContributionRecur::updateAmountOnRecurMJW(FALSE)
+          ->addWhere('id', '=', $contributionRecur['id'])
+          ->addValue('amount', $calculatedItem['amount'])
+          ->execute();
+        $return->message = $this->formatResultMessage(__FUNCTION__, 'recur: ' . $contributionRecur['id'] . '; new amount: ' . $calculatedItem['amount'] . ' currency: ' . $calculatedItem['currency']);
+      }
+      else {
+        $return->message = $this->formatResultMessage(__FUNCTION__, 'recur already updated: ' . $contributionRecur['id'] . '; amount: ' . $calculatedItem['amount'] . ' currency: ' . $calculatedItem['currency']);
+      }
+    }
+
     $return->ok = TRUE;
     return $return;
   }
