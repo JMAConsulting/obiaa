@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## Version 3.10 (2024-07-28)
+
+* Fix 'Recur next scheduled date' trigger was not working (it was comparing a datetime field with a date so it would never match).
+* [!265](https://lab.civicrm.org/extensions/civirules/-/merge_requests/265) Avoid php errors because count()'ing a boolean.
+* [!263](https://lab.civicrm.org/extensions/civirules/-/merge_requests/263) Activity Type condition: cache triggering activity type.
+* [!264](https://lab.civicrm.org/extensions/civirules/-/merge_requests/264) Improve performance when firing trigger for multiple contacts.
+
 ## Version 3.9 (2024-06-25)
 
 * Add Action: Set Contact as Deceased.

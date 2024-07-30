@@ -17,7 +17,7 @@ class CRM_Mjwshared_Hook {
   /**
    * This hook allows modifying recurring contribution parameters
    *
-   * @param string $type The type of webhook - eg. 'stripeipn'
+   * @param string $type The type of webhook - eg. 'stripe'
    * @param object $object The object (eg. CRM_Core_Payment_StripeIPN)
    * @param string $code "Code" to identify what was not matched (eg. customer_not_found)
    * @param array $result Results returned by hook processing. Depends on the type/code. Eg. for stripe.contribution_not_found return $result['contribution'] = "contribution array from API"

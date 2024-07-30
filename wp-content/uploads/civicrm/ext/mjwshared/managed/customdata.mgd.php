@@ -1,13 +1,13 @@
 <?php
 use CRM_Mjwshared_ExtensionUtil as E;
 
-// This enables custom fields for Grant entities
+// This enables custom fields for FinancialTrxn entities
 return [
   [
     'name' => 'cg_extend_objects:FinancialTrxn',
     'entity' => 'OptionValue',
-    'cleanup' => 'always',
-    'update' => 'always',
+    'cleanup' => 'unused',
+    'update' => 'unmodified',
     'params' => [
       'version' => 4,
       'values' => [
