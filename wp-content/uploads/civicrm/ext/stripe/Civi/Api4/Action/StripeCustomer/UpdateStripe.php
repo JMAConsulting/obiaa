@@ -63,7 +63,6 @@ class UpdateStripe extends \Civi\Api4\Generic\AbstractAction {
    *
    * @return void
    * @throws \CRM_Core_Exception
-   * @throws \Stripe\Exception\ApiErrorException
    */
   public function _run(\Civi\Api4\Generic\Result $result) {
     if (empty($this->customerID) && empty($this->contactID)) {
@@ -94,9 +93,10 @@ class UpdateStripe extends \Civi\Api4\Generic\AbstractAction {
 
     /** @var \CRM_Core_Payment_Stripe $paymentProcessor */
     $paymentProcessor = \Civi\Payment\System::singleton()->getById($this->paymentProcessorID);
-    $stripeCustomer = \CRM_Stripe_BAO_StripeCustomer::updateMetadata(['contact_id' => $this->contactID, 'description' => $this->description], $paymentProcessor, $this->customerID);
+    $stripeCustomerID = \CRM_Stripe_BAO_StripeCustomer::updateMetadata(['contact_id' => $this->contactID, 'description' => $this->description], $paymentProcessor, $this->customerID);
 
-    $result->exchangeArray($stripeCustomer->toArray());
+    // Return values may change!
+    $result->exchangeArray(['stripeCustomerID' => $stripeCustomerID]);
   }
 
 }

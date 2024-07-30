@@ -39,7 +39,7 @@ function _civicrm_api3_stripe_paymentintent_delete_spec(&$spec) {
  *
  * @return array API result descriptor
  * @throws \API_Exception
- * @throws \CiviCRM_API3_Exception
+ * @throws \CRM_Core_Exception
  * @throws \Civi\API\Exception\UnauthorizedException
  */
 function civicrm_api3_stripe_paymentintent_delete($params) {

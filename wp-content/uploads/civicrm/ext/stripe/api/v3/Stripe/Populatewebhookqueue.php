@@ -51,7 +51,7 @@ function _civicrm_api3_stripe_Populatewebhookqueue_spec(&$spec) {
  *
  * @return array API result descriptor
  * @throws \API_Exception
- * @throws \CiviCRM_API3_Exception
+ * @throws \CRM_Core_Exception
  */
 function civicrm_api3_stripe_Populatewebhookqueue($params) {
   if (!$params['ppid']) {

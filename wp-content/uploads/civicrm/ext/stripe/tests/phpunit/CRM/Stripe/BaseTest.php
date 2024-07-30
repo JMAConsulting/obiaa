@@ -11,7 +11,6 @@
 
 use Civi\Test\HeadlessInterface;
 use Civi\Test\HookInterface;
-use Civi\Test\TransactionalInterface;
 
 define('STRIPE_PHPUNIT_TEST', 1);
 
@@ -21,7 +20,7 @@ define('STRIPE_PHPUNIT_TEST', 1);
  *
  * @group headless
  */
-abstract class CRM_Stripe_BaseTest extends \PHPUnit\Framework\TestCase implements HeadlessInterface, HookInterface, TransactionalInterface {
+abstract class CRM_Stripe_BaseTest extends CiviUnitTestCase implements HeadlessInterface, HookInterface {
 
   /** @var int */
   protected $created_ts;
@@ -55,6 +54,27 @@ abstract class CRM_Stripe_BaseTest extends \PHPUnit\Framework\TestCase implement
     'installments' => 5,
   ];
 
+  /**
+   * List of extensions required for this set of tests
+   *
+   * @var array|string[]
+   */
+  protected array $requiredExtensions = [
+    'mjwshared' => 'mjwshared',
+    'firewall' => 'firewall',
+  ];
+
+  /**
+   * Setup used when HeadlessInterface is implemented.
+   *
+   * Civi\Test has many helpers, like install(), uninstall(), sql(), and sqlFile().
+   *
+   * @link https://github.com/civicrm/org.civicrm.testapalooza/blob/master/civi-test.md
+   *
+   * @return \Civi\Test\CiviEnvBuilder
+   *
+   * @throws \CRM_Extension_Exception_ParseException
+   */
   public function setUpHeadless() {
     // Civi\Test has many helpers, like install(), uninstall(), sql(), and sqlFile().
     // See: https://github.com/civicrm/org.civicrm.testapalooza/blob/master/civi-test.md
@@ -65,29 +85,35 @@ abstract class CRM_Stripe_BaseTest extends \PHPUnit\Framework\TestCase implement
       $reInstallOnce=TRUE;
       $reInstall = TRUE;
     }
-    if (!is_dir(__DIR__ . '/../../../../../mjwshared')) {
-      civicrm_api3('Extension', 'download', ['key' => 'mjwshared']);
-    }
-    if (!is_dir(__DIR__ . '/../../../../../firewall')) {
-      civicrm_api3('Extension', 'download', ['key' => 'firewall']);
+
+    $headless = \Civi\Test::headless();
+
+    foreach ($this->requiredExtensions as $extensionFile => $extensionKey) {
+      if (!is_dir(__DIR__ . '/../../../../../' . $extensionFile)) {
+        civicrm_api3('Extension', 'download', ['key' => $extensionKey]);
+      }
+      $headless->install($extensionKey);
     }
 
-    return \Civi\Test::headless()
+    return $headless
       ->installMe(__DIR__)
-      ->install('mjwshared')
-      ->install('firewall')
       ->apply($reInstall);
   }
 
   public function setUp(): void {
-    civicrm_api3('Extension', 'install', ['keys' => 'com.drastikbydesign.stripe']);
-    require_once('vendor/stripe/stripe-php/init.php');
+    parent::setUp();
     // Create Stripe Checkout processor
     $this->setOrCreateStripeCheckoutPaymentProcessor();
     // Create Stripe processor
     $this->setOrCreateStripePaymentProcessor();
     $this->createContact();
     $this->created_ts = time();
+  }
+
+  public function tearDown(): void {
+    $this->quickCleanUpFinancialEntities();
+    $this->quickCleanup(['civicrm_stripe_customers', 'civicrm_paymentprocessor_webhook']);
+    parent::tearDown();
   }
 
   /**
@@ -136,8 +162,8 @@ abstract class CRM_Stripe_BaseTest extends \PHPUnit\Framework\TestCase implement
       'is_default' => 0,
       'is_test' => 1,
       'is_recur' => 1,
-      'user_name' => 'pk_test_k2hELLGpBLsOJr6jZ2z9RaYh',
-      'password' => 'sk_test_TlGdeoi8e1EOPC3nvcJ4q5UZ',
+      'user_name' => 'pk_test_PNlMrGPvqOxwLK6Y3A9B2EFn',
+      'password' => 'sk_test_WHbZbmFH97YpY2y4OpVfry9W',
       'class_name' => 'Payment_Stripe',
       'billing_mode' => 1,
       'payment_instrument_id' => 1,
@@ -334,7 +360,6 @@ abstract class CRM_Stripe_BaseTest extends \PHPUnit\Framework\TestCase implement
    *
    * @return array The result from doPayment()
    * @throws \CRM_Core_Exception
-   * @throws \CiviCRM_API3_Exception
    * @throws \Civi\Payment\Exception\PaymentProcessorException
    * @throws \Stripe\Exception\ApiErrorException
    */
@@ -372,7 +397,6 @@ abstract class CRM_Stripe_BaseTest extends \PHPUnit\Framework\TestCase implement
    *
    * @return array The result from PaymentProcessor->doPayment
    * @throws \CRM_Core_Exception
-   * @throws \CiviCRM_API3_Exception
    * @throws \Civi\Payment\Exception\PaymentProcessorException
    * @throws \Stripe\Exception\ApiErrorException
    */

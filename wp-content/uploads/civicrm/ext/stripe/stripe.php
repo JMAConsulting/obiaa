@@ -71,26 +71,11 @@ function stripe_civicrm_buildForm($formName, &$form) {
 /**
  * Implements hook_civicrm_check().
  *
- * @throws \CiviCRM_API3_Exception
+ * @throws \CRM_Core_Exception
  */
 function stripe_civicrm_check(&$messages) {
   $checks = new CRM_Stripe_Check($messages);
   $messages = $checks->checkRequirements();
-}
-
-/**
- * Implements hook_civicrm_navigationMenu().
- */
-function stripe_civicrm_navigationMenu(&$menu) {
-  _stripe_civix_insert_navigation_menu($menu, 'Administer/CiviContribute', [
-    'label' => E::ts('Stripe Settings'),
-    'name' => 'stripe_settings',
-    'url' => 'civicrm/admin/setting/stripe',
-    'permission' => 'administer CiviCRM',
-    'operator' => 'OR',
-    'separator' => 0,
-  ]);
-  _stripe_civix_navigationMenu($menu);
 }
 
 /**
@@ -109,7 +94,9 @@ function stripe_civicrm_alterLogTables(&$logTableSpec) {
  */
 function stripe_civicrm_permission(&$permissions) {
   if (\Civi::settings()->get('stripe_moto')) {
-    $permissions['allow stripe moto payments'] = E::ts('CiviCRM Stripe: Process MOTO transactions');
+    $permissions['allow stripe moto payments'] = [
+      'label' => E::ts('CiviCRM Stripe: Process MOTO transactions')
+    ];
   }
 }
 
@@ -126,7 +113,7 @@ function stripe_civicrm_post($op, $objectName, $objectId, &$objectRef) {
             CRM_Stripe_BAO_StripeCustomer::updateMetadataForContact($objectId);
           }
           catch (Exception $e) {
-            \Civi::log(E::SHORT_NAME)->error('Stripe Contact Merge failed: ' . $e->getMessage());
+            \Civi::log('stripe')->error('Stripe Contact Merge failed: ' . $e->getMessage());
           }
           break;
 
@@ -170,12 +157,14 @@ function stripe_civicrm_shutdown_updatestripecustomer(int $contactID) {
     // Update the contact details at Stripe for each customer associated with this contact
     foreach ($stripeCustomers as $stripeCustomer) {
       \Civi\Api4\StripeCustomer::updateStripe(FALSE)
+        ->setPaymentProcessorID($stripeCustomer['processor_id'])
+        ->setContactID($stripeCustomer['contact_id'])
         ->setCustomerID($stripeCustomer['customer_id'])
         ->execute();
     }
   }
   catch (Exception $e) {
-    \Civi::log(E::SHORT_NAME)->error('Stripe Contact update failed: ' . $e->getMessage());
+    \Civi::log('stripe')->error('Stripe Contact update failed: ' . $e->getMessage());
   }
 
 }

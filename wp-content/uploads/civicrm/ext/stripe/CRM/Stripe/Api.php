@@ -51,6 +51,7 @@ class CRM_Stripe_Api {
             return (string) $stripeObject->balance_transaction;
 
           case 'receive_date':
+          case 'created_date':
             return self::formatDate($stripeObject->created);
 
           case 'invoice_id':
@@ -74,6 +75,13 @@ class CRM_Stripe_Api {
           case 'payment_intent_id':
             return (string) $stripeObject->payment_intent;
 
+          case 'description':
+            return (string) $stripeObject->description;
+
+          case 'status':
+            // This might be "succeeded", "pending", "failed" (https://stripe.com/docs/api/charges/object#charge_object-status)
+            return (string) $stripeObject->status;
+
         }
         break;
 
@@ -87,6 +95,28 @@ class CRM_Stripe_Api {
             return (string) $stripeObject->id;
 
           case 'receive_date':
+            /*
+             * The "created" date of the invoice does not equal the paid date but it *might* be the same.
+             * We should use the paid_at below or lookup via the charge or paymentintent.
+             * "status_transitions": {
+             * "finalized_at": 1676295806,
+             * "marked_uncollectible_at": null,
+             * "paid_at": 1677591861,
+             * "voided_at": null
+             * },
+             */
+            if (!empty($stripeObject->status_transitions->paid_at)) {
+              return self::formatDate($stripeObject->status_transitions->paid_at);
+            }
+            // Intentionally falls through to invoice_date
+
+          case 'invoice_date':
+            if (!empty($stripeObject->status_transitions->finalized_at)) {
+              return self::formatDate($stripeObject->status_transitions->finalized_at);
+            }
+          // Intentionally falls through to created_date
+
+          case 'created_date':
             return self::formatDate($stripeObject->created);
 
           case 'subscription_id':
@@ -104,14 +134,6 @@ class CRM_Stripe_Api {
           case 'currency':
             return self::formatCurrency($stripeObject->currency);
 
-          case 'status_id':
-            if ((bool) $stripeObject->paid) {
-              return 'Completed';
-            }
-            else {
-              return 'Pending';
-            }
-
           case 'description':
             return (string) $stripeObject->description;
 
@@ -122,6 +144,9 @@ class CRM_Stripe_Api {
             // This is a coding error, but it looks like the general policy here is to return something. Could otherwise consider throwing an exception.
             Civi::log()->error("Coding error: CRM_Stripe_Api::getObjectParam failure_message is not a property on a Stripe Invoice object. Please alter your code to fetch the Charge and obtain the failure_message from that.");
             return '';
+
+          case 'status':
+            return self::mapInvoiceStatusToContributionStatus($stripeObject);
 
         }
         break;
@@ -166,6 +191,9 @@ class CRM_Stripe_Api {
           case 'cancel_date':
             return self::formatDate($stripeObject->canceled_at);
 
+          case 'next_sched_contribution_date':
+            return self::formatDate($stripeObject->current_period_end);
+
           case 'cycle_day':
             return date("d", $stripeObject->billing_cycle_anchor);
 
@@ -189,8 +217,10 @@ class CRM_Stripe_Api {
               case \Stripe\Subscription::STATUS_INCOMPLETE_EXPIRED:
               default:
                 return CRM_Core_PseudoConstant::getKey('CRM_Contribute_BAO_Contribution', 'contribution_status_id', 'Cancelled');
-
             }
+
+          case 'status':
+            return self::mapSubscriptionStatusToRecurStatus($stripeObject->status);
 
           case 'customer_id':
             return (string) $stripeObject->customer;
@@ -217,6 +247,43 @@ class CRM_Stripe_Api {
 
           case 'subscription_id':
             return (string) $stripeObject->subscription;
+        }
+        break;
+
+      case 'subscription_item':
+        /** @var \Stripe\SubscriptionItem $stripeObject */
+        switch ($name) {
+          default:
+            if (isset($stripeObject->$name)) {
+              return $stripeObject->$name;
+            }
+            \Civi::log('stripe')->error('getObjectParam: Tried to get param "' . $name . '" from "' . $stripeObject->object . '" but it is not set');
+            return NULL;
+          // unit_amount
+        }
+        break;
+
+      case 'price':
+        /** @var \Stripe\Price $stripeObject */
+        switch ($name) {
+          case 'unit_amount':
+            return (float) $stripeObject->unit_amount / 100;
+
+          case 'recurring_interval':
+            // eg. "year"
+            return (string) $stripeObject->recurring->interval ?? '';
+
+          case 'recurring_interval_count':
+            // eg 1
+            return (int) $stripeObject->recurring->interval_count ?? 0;
+
+          default:
+            if (isset($stripeObject->$name)) {
+              return $stripeObject->$name;
+            }
+            \Civi::log('stripe')->error('getObjectParam: Tried to get param "' . $name . '" from "' . $stripeObject->object . '" but it is not set');
+            return NULL;
+          // unit_amount
         }
         break;
 
@@ -304,7 +371,7 @@ class CRM_Stripe_Api {
       // 'affirm',
       // 'afterpay_clearpay',
       // 'alipay',
-      // 'au_becs_debit',
+      'au_becs_debit' => E::ts('BECS Direct Debit payments in Australia'),
       'bacs_debit' => E::ts('BACS Direct Debit'),
       // 'bancontact',
       // 'blik',
@@ -328,6 +395,50 @@ class CRM_Stripe_Api {
       'us_bank_account' => E::ts('ACH Direct Debit'),
       // 'wechat_pay',
     ];
+  }
+
+  /**
+   * Map the Stripe Subscription Status to the CiviCRM ContributionRecur status.
+   *
+   * @param string $subscriptionStatus
+   *
+   * @return string
+   */
+  public static function mapSubscriptionStatusToRecurStatus(string $subscriptionStatus): string {
+    $statusMap = [
+      'incomplete' => 'Failed',
+      'incomplete_expired' => 'Failed',
+      'trialing' => 'In Progress',
+      'active' => 'In Progress',
+      'past_due' => 'Overdue',
+      'canceled' => 'Cancelled',
+      'unpaid' => 'Failed',
+    ];
+    return $statusMap[$subscriptionStatus] ?? '';
+  }
+
+  /**
+   * Map the Stripe Invoice Status to the CiviCRM Contribution status.
+   * https://stripe.com/docs/invoicing/overview#invoice-statuses
+   *
+   * @param \Stripe\Invoice $invoice
+   *
+   * @return string
+   */
+  public static function mapInvoiceStatusToContributionStatus(\Stripe\Invoice $invoice): string {
+    $statusMap = [
+      'draft' => 'Pending',
+      'open' => 'Pending',
+      'paid' => 'Completed',
+      'void' => 'Cancelled',
+      'uncollectible' => 'Failed',
+    ];
+    if ($invoice->status === 'open' && $invoice->attempted && empty($invoice->next_payment_attempt)) {
+      // An invoice will automatically be retried. If that fails the status will remain "open" but it has effectively failed.
+      // We use attempted + next_payment_attempt to check if it will NOT be retried and then record it as Failed in CiviCRM.
+      return 'Failed';
+    }
+    return $statusMap[$invoice->status] ?? '';
   }
 
 }

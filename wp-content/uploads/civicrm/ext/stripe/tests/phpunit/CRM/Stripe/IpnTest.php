@@ -952,6 +952,7 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_BaseTest {
       'id'                  => 'ch_mock_2',
       'object'              => 'charge',
       'balance_transaction' => 'txn_mock_2',
+      'currency'     => 'usd',
       'amount'              => $this->total*100,
       'subscription' => 'sub_mock',
       'customer'     => 'cus_mock',
@@ -1053,6 +1054,7 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_BaseTest {
       'id'                  => 'ch_mock_3',
       'object'              => 'charge',
       'balance_transaction' => 'txn_mock_3',
+      'currency'     => 'usd',
       'amount'              => $this->total*100,
       'subscription'        => 'sub_mock',
       'customer'            => 'cus_mock',
@@ -1175,39 +1177,6 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_BaseTest {
   }
 
   /**
-   * Retrieve the event with a matching subscription id
-   *
-   * This method is/was intended for use with the live Stripe API, however
-   * now we're using mocks we don't need it.
-   */
-  public function getEvent($type) {
-    // If the type has subscription in it, then the id is the subscription id
-    if (preg_match('/\.subscription\./', $type)) {
-      $property = 'id';
-    }
-    else {
-      // Otherwise, we'll find the subscription id in the subscription property.
-      $property = 'subscription';
-    }
-    // Gather all events since this class was instantiated.
-    $params['created'] = ['gte' => $this->created_ts];
-    //$params['type'] = $type;
-    $params['ppid'] = $this->paymentProcessorID;
-    $params['output'] = 'raw';
-
-    // Now try to retrieve this transaction.
-    $transactions = civicrm_api3('Stripe', 'listevents', $params);
-    foreach($transactions['values']['data'] as $transaction) {
-      $_ = $transaction->data;
-      $_ = $_->object;
-      if ($transaction->data->object->$property == $this->processorID) {
-        return $transaction;
-      }
-    }
-    return NULL;
-  }
-
-  /**
    * Run the webhook/ipn
    *
    * @return bool whether it was successful (nb. FALSE might be valid where we
@@ -1290,12 +1259,14 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_BaseTest {
         'id'                  => 'ch_mock',
         'object'              => 'charge',
         'balance_transaction' => 'txn_mock',
+        'currency'            => 'usd',
         'amount'              => $this->total*100,
       ]);
     $mockCharge2 = new PropertySpy('charge2', $common + [
         'id'                  => 'ch_mock_2',
         'object'              => 'charge',
         'balance_transaction' => 'txn_mock_2',
+        'currency'            => 'usd',
         'amount'              => $this->total*100,
       ]);
     $mockInvoice2 = new PropertySpy('invoice2', $common + [
@@ -1580,11 +1551,6 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_BaseTest {
       ->method('retrieve')
       ->with($this->equalTo($eventData['id']))
       ->willReturn(new PropertySpy('events.retrieve', $mockEvent));
-
-    // Fetch the event
-    // Previously used the following - but see docblock of getEvent()
-    // $event = $this->getEvent($eventData['type']);
-    // $this->assertNotEmpty($event, "Failed to fetch event type $eventData[type]");
 
     // Process it with the IPN/webhook
     return $this->ipn($mockEvent, FALSE, $exceptionOnFailure);

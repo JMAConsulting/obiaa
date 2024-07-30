@@ -24,6 +24,9 @@
     <type>varchar</type>
     <length>255</length>
     <comment>Stripe Customer ID</comment>
+    <html>
+      <type>Text</type>
+    </html>
   </field>
   <index>
     <name>customer_id</name>
@@ -35,6 +38,9 @@
     <name>contact_id</name>
     <type>int unsigned</type>
     <comment>FK to Contact</comment>
+    <html>
+      <type>EntityRef</type>
+    </html>
   </field>
   <foreignKey>
     <name>contact_id</name>
@@ -48,6 +54,9 @@
     <title>Payment Processor ID</title>
     <type>int unsigned</type>
     <comment>ID from civicrm_payment_processor</comment>
+    <html>
+      <type>EntityRef</type>
+    </html>
     <pseudoconstant>
       <table>civicrm_payment_processor</table>
       <keyColumn>id</keyColumn>
@@ -62,6 +71,9 @@
     <headerPattern>/cur(rency)?/i</headerPattern>
     <dataPattern>/^[A-Z]{3}$/i</dataPattern>
     <comment>3 character string, value from Stripe customer.</comment>
+    <html>
+      <type>Text</type>
+    </html>
   </field>
 
 

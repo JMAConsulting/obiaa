@@ -136,7 +136,6 @@ class CRM_Core_Payment_StripeCheckout extends CRM_Core_Payment_Stripe {
    *   Result array
    *
    * @throws \CRM_Core_Exception
-   * @throws \CiviCRM_API3_Exception
    * @throws \Civi\Payment\Exception\PaymentProcessorException
    */
   public function doPayment(&$paymentParams, $component = 'contribute') {
@@ -200,6 +199,7 @@ class CRM_Core_Payment_StripeCheckout extends CRM_Core_Payment_Stripe {
       'mode' => $propertyBag->getIsRecur() ? 'subscription' : 'payment',
       'success_url' => $successUrl,
       'cancel_url' => $failUrl,
+      // Nb. We can only specify customer_email|customer, not both.
       // 'customer_email' => $propertyBag->getEmail(),
       'customer' => $stripeCustomerID,
       // 'submit_type' => one of 'auto', pay, book, donate

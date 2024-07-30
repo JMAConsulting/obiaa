@@ -40,7 +40,7 @@ function _civicrm_api3_stripe_membershipcheck_spec(&$spec) {
  * @param $params
  *
  * @return array
- * @throws \CiviCRM_API3_Exception
+ * @throws \CRM_Core_Exception
  */
 function civicrm_api3_stripe_membershipcheck($params) {
   $limit = isset($params['options']['limit']) ? $params['options']['limit'] : 50;
