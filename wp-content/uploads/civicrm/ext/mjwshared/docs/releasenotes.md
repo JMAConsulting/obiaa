@@ -9,6 +9,21 @@ Releases use the following numbering system:
 
 * **[BC]**: Items marked with [BC] indicate a breaking change that will require updates to your code if you are using that code in your extension.
 
+## Release 1.3 (2024-07-17)
+
+* Add new API4 functions:
+  * ContributionRecur.updateAmountOnRecurMJW 
+  * Membership.LinkToRecurMJW 
+  * Membership.UnlinkFromRecurMJW 
+  * PriceFieldValue.GetDefaultPriceFieldValueForContributionMJW 
+  * PriceFieldValue.GetDefaultPriceFieldValueForMembershipMJW
+  * PaymentMJW.create
+
+See [API docs](api.md) for more information.
+
+* Add search identifier and raw data options to Payment Processor Webhooks UI.
+
+
 ## Release 1.2.22 (2024-03-09)
 
 * Fix message display on PaymentProcessorWebhook UI when message is NULL.
