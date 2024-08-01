@@ -20,11 +20,12 @@ class CRM_Biaproperty_BAO_UnitBusiness extends CRM_Biaproperty_DAO_UnitBusiness 
     $instance->copyValues($params);
     $instance->save();
     if ($hook == 'create') {
+      $sourceContactID = CRM_Core_Session::getLoggedInContactID() ? CRM_Core_Session::getLoggedInContactID() : $instance->business_id;
       \Civi\Api4\Activity::create(FALSE)
         ->addValue('activity_type_id:name', 'Business opened')
         ->addValue('target_contact_id', $instance->business_id)
         ->addValue('assignee_contact_id', $instance->business_id)
-        ->addValue('source_contact_id', CRM_Core_Session::getLoggedInContactID())
+        ->addValue('source_contact_id', $sourceContactID)
         ->addValue('status_id:name', 'Completed')
         ->addValue('subject', 'Business opened')
         ->execute();
