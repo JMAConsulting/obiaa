@@ -371,13 +371,13 @@
     // Initial call to hide any elements that are already in the DOM
     hideNewPropertyFields();
 
-    $('input[type="url"]').on("focus", function () {
+    $(document).on("focus", 'input[type="url"]', function () {
       if ($(this).val() === "" || $(this).val() === "https://") {
         $(this).val("https://");
       }
     });
 
-    $('input[type="url"]').on("blur", function () {
+    $(document).on("blur", 'input[type="url"]', function () {
       if ($(this).val() === "https://") {
         $(this).val("");
       }
@@ -454,3 +454,4 @@
     );
   });
 })(jQuery);
+
