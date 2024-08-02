@@ -181,45 +181,45 @@ function obiaa_admin_role() {
         $user->remove_role('administrator');
       }
     }
-    $roles_to_hide = [
-      'anonymous_user',
-      'obiaa_admin',
-      'subscriber',
-      'author',
-      'editor',
-      'contributor',
-    ];
-    $sections_to_hide = [
-        'index.php',
-        'separator1',
-        'edit.php',
-        'upload.php',
-        'edit.php?post_type=page',
-        'edit-comments.php',
-        'groups-admin',
-        'separator2',
-        'themes.php',
-        'plugins.php',
-        'users.php',
-        'tools.php',
-        'options-general.php',
-        'edit.php?post_type=acf-field-group',
-        'separator-last',
-    ];
-    $sub_sections_to_hide = [
-      'CiviCRM__1',
-      'CiviCRM__2',
-    ];
-    $adminizesettings = _mw_adminimize_get_option_value();
-    foreach ($roles_to_hide as $role_name) {
-      $adminizesettings['mw_adminimize_disabled_menu_' . $role_name . '_items'] = $sections_to_hide;
-      $adminizesettings['mw_adminimize_disabled_submenu_' . $role_name . '_items'] = $sub_sections_to_hide;
-    }
-    wp_cache_delete( 'mw_adminimize' );
-    update_option( 'mw_adminimize', $adminizesettings );
-    wp_cache_add( 'mw_adminimize', $adminizesettings );
-
   }
+  $roles_to_hide = [
+    'anonymous_user',
+    'obiaa_admin',
+    'subscriber',
+    'author',
+    'editor',
+    'contributor',
+    'bia_staff',
+  ];
+  $sections_to_hide = [
+    'index.php',
+    'separator1',
+    'edit.php',
+    'upload.php',
+    'edit.php?post_type=page',
+    'edit-comments.php',
+    'groups-admin',
+    'separator2',
+    'themes.php',
+    'plugins.php',
+    'users.php',
+    'tools.php',
+    'options-general.php',
+    'edit.php?post_type=acf-field-group',
+    'separator-last',
+ ];
+ $sub_sections_to_hide = [
+   'CiviCRM__1',
+   'CiviCRM__2',
+  ];
+  $adminizesettings = _mw_adminimize_get_option_value();
+  foreach ($roles_to_hide as $role_name) {
+    $adminizesettings['mw_adminimize_disabled_menu_' . $role_name . '_items'] = $sections_to_hide;
+    $adminizesettings['mw_adminimize_disabled_submenu_' . $role_name . '_items'] = $sub_sections_to_hide;
+  }
+  wp_cache_delete( 'mw_adminimize' );
+  update_option( 'mw_adminimize', $adminizesettings);
+  wp_cache_add( 'mw_adminimize', $adminizesettings);
 }
 
 add_action('init', 'obiaa_admin_role');
