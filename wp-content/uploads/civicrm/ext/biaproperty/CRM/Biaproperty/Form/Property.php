@@ -3,6 +3,7 @@
 use CRM_Biaproperty_ExtensionUtil as E;
 use Civi\Api4\PropertyOwner;
 use Civi\Api4\Unit;
+use Civi\Api4\Organization;
 
 /**
  * Form controller class
@@ -244,6 +245,19 @@ class CRM_Biaproperty_Form_Property extends CRM_Core_Form {
           ->addValue('property_id', $propertyID)
           ->addValue('owner_id', $this->_oid)
           ->addValue('is_voter', $vote)
+          ->execute();
+      } else {
+        // Create a dummy property owner
+        $dummyOrg = Organization::get(FALSE)
+        ->addSelect('id')
+        ->addWhere('organization_name', '=', 'Empty Property Owner')
+        ->execute()
+        ->first();
+
+        PropertyOwner::create(FALSE)
+          ->addValue('property_id', $propertyID)
+          ->addValue('owner_id', $dummyOrg['id'])
+          ->addValue('is_voter', TRUE)
           ->execute();
       }
 
