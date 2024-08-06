@@ -28,7 +28,7 @@ add_filter('acf/load_field/name=property_address', 'acf_load_property_choices');
 function acf_load_property_choices( $field ) {
     // reset choices
     $field['choices'] = array();
-  
+
     // Initialize CiviCRM
     civicrm_initialize();
     $choices = Property::get(FALSE)
@@ -39,7 +39,7 @@ function acf_load_property_choices( $field ) {
     foreach($choices as $choice) {
       $field['choices'][$choice['id']] = $choice['property_address'];
     }
-  
+
     return $field;
 }
 
@@ -47,7 +47,7 @@ add_action('wp_enqueue_scripts', 'enqueue_acf_custom_js');
 
 function enqueue_acf_custom_js() {
     wp_register_script(
-        'acf-custom-js', 
+        'acf-custom-js',
         plugin_dir_url(__FILE__) . 'js/acf-custom.js',
         array('jquery'),
         '1.0',
@@ -68,7 +68,7 @@ function get_sub_categories() {
     global $wpdb;
 
     // Check for nonce security
-    check_ajax_referer('acf_nonce', 'security'); 
+    check_ajax_referer('acf_nonce', 'security');
 
     if (!isset($_POST['categories'])) {
         wp_send_json_error('No categories provided');
@@ -90,7 +90,7 @@ function get_sub_categories() {
 
     // Execute the query and fetch the results
     $results = $wpdb->get_results($query, ARRAY_A);
-    
+
     // Extract contact_custom_8 values
     $contact_custom_8_values = [];
     if (!empty($results)) {
@@ -106,7 +106,7 @@ function get_sub_categories() {
 
     // Remove duplicates
     $contact_custom_8_values = array_unique($contact_custom_8_values);
-    
+
     // Convert the array to JSON
     $contact_custom_8_json = json_encode($contact_custom_8_values);
 
@@ -207,7 +207,7 @@ function validate_tax_roll($valid, $value, $field, $input) {
                     $is_new_property = '';
                 }
             }
-                
+
         } else {
             $is_new_property = '';
             break;
@@ -244,7 +244,7 @@ function validate_new_address($valid, $value, $field, $input) {
                     $is_new_property = '';
                 }
             }
-                
+
         } else {
             $is_new_property = '';
             break;
@@ -281,7 +281,7 @@ function validate_unit_address($valid, $value, $field, $input) {
                     $is_new_unit = '';
                 }
             }
-                
+
         } else {
             $is_new_unit = '';
             break;
@@ -318,7 +318,7 @@ function validate_new_unit($valid, $value, $field, $input) {
                     $is_new_unit = '';
                 }
             }
-                
+
         } else {
             $is_new_unit = '';
             break;
@@ -332,6 +332,39 @@ function validate_new_unit($valid, $value, $field, $input) {
         }
     }
 
+    return $valid;
+}
+
+add_filter('acf/validate_value', 'validate_property_present', 20, 4);
+
+function validate_property_present($valid, $value, $field, $input) {
+    if ($valid !== TRUE) {
+        return $value;
+    }
+    $propertyEntered = $unitEntered = FALSE;
+    if (isset($field['name']) && $field['name'] == 'property_&_unit_details') {
+        foreach ($value as $row => $sections) {
+            foreach ($sections as $fields) {
+                // Existing Tax Roll Address Selected
+                if (array_key_exists('field_669679f71b1b0', $fields) && !empty($fields['field_669679f71b1b0'])) {
+                    $propertyEntered = TRUE;
+                }
+                elseif (array_key_exists('field_669679ed1b1af', $fields) && !empty($fields['field_669679ed1b1af'])) {
+                    // New tax Roll address is present.
+                    $propertyEntered = TRUE;
+                }
+                if (array_key_exists('field_66968109025e6', $fields) && !empty($fields['field_66968109025e6'])) {
+                    $unitEntered = TRUE;
+                }
+                elseif (array_key_exists('field_66a4007826665', $fields) && !empty($fields['field_66a4007826665'])) {
+                    $unitEntered = TRUE;
+                }
+            }
+        }
+    }
+    if (!$propertyEntered || !$unitEntered) {
+        return __('Need to link this business to at least one property and a unit');
+    }
     return $valid;
 }
 
@@ -404,15 +437,15 @@ function add_business_form_handler_save_post($post_id) {
             'contact_email' => find_field_value($form_data,'field_6696791485380'),
             'contact_phone' => find_field_value($form_data,'field_6696792385381'),
         ];
-        
+
         $propAndUnitDeets = find_field_value($form_data, 'field_669674ee2ea21');
 
         $properties = [];
-        
+
         foreach($propAndUnitDeets as $propDeets) {
             if (isset($propDeets['field_66967535e6284'])) {
                 $property = $propDeets['field_66967535e6284'];
-                
+
                 // Create an array to store the property details
                 $propertyDetails = [
                     'roll_no' => $property['field_669679ed1b1af'] ?? '',
@@ -423,7 +456,7 @@ function add_business_form_handler_save_post($post_id) {
                     'is_new_property' => $property['field_66a7cf3944bf8'] ?? '',
                     'units' => []
                 ];
-                
+
                 // Check if there are unit details under 'field_66967511a2d57'
                 if (isset($propDeets['field_66967511a2d57'])) {
                     foreach ($propDeets['field_66967511a2d57'] as $unit) {
@@ -451,7 +484,7 @@ function add_business_form_handler_save_post($post_id) {
         if (mb_strlen($organizationName) > $organizationNameFieldDefinition['input_attrs']['maxlength']) {
             $organizationName = CRM_Utils_String::ellipsify($organizationName, $organizationNameFieldDefinition['input_attrs']['maxlength']);
         }
-        
+
         $dedupeParams = [
             'contact_sub_type' => 'Members_Businesses_',
             'organization_name' => $organizationName,
@@ -485,7 +518,7 @@ function add_business_form_handler_save_post($post_id) {
                     ->execute()
                     ->first();
             }
-            
+
             // If no property is found, create a new one
             if (empty($property)) {
                 $property = Property::create(FALSE)
@@ -526,7 +559,7 @@ function add_business_form_handler_save_post($post_id) {
                     ->addWhere('value', '=', $unitDeets['unit_status'])
                     ->execute()
                     ->first()['value'];
-                
+
                 if($unitDeets['is_new_unit']) {
                     $unitStreetAddress = empty($unitDeets['new_unit_address']) ? $property['property_address'] : $unitDeets['new_unit_address'];
                 }
@@ -534,7 +567,7 @@ function add_business_form_handler_save_post($post_id) {
                 else {
                     $unitStreetAddress = $property['property_address'];
                 }
-                
+
                 $unitOp = empty($unitDeets['property_unit']) ? 'IS NULL' : '=';
                 $unitValue = empty($unitDeets['property_unit']) ? '' : $unitDeets['property_unit'];
 
@@ -567,7 +600,7 @@ function add_business_form_handler_save_post($post_id) {
                         ->addValue('city', $property['city'])
                         ->addValue('postal_code', $property['postal_code'])
                         ->execute()
-                        ->first();   
+                        ->first();
                     $unit = Unit::create(FALSE)
                         ->addValue('address_id', $unitAddress['id'])
                         ->addValue('unit_size', $unitDeets['unit_size'])
@@ -585,7 +618,7 @@ function add_business_form_handler_save_post($post_id) {
                     Unit::update(FALSE)
                         ->addValue('unit_size', $unitDeets['unit_size'])
                         ->addValue('unit_price', $unitDeets['unit_price'])
-                        ->addValue('unit_status', $unitStatus) 
+                        ->addValue('unit_status', $unitStatus)
                         ->addValue('unit_location', $unitDeets['unit_location'])
                         ->addValue('mls_listing_link', $unitDeets['mls_listing_link'])
                         ->addWhere('id', '=', $unit['id'])
@@ -607,7 +640,7 @@ function add_business_form_handler_save_post($post_id) {
         }
 
         // Now Look for Business Contact / create business contact.
-        $phoneOnBiz = empty($params['organization_name']);
+        $phoneOnBiz = !empty($params['organization_name']);
         if (!empty($params['first_name']) || !empty($params['last_name']) || !empty($params['contact_email'])) {
             $contactDups = \Civi\Api4\Individual::getDuplicates(FALSE)
                 ->setDedupeRule('Individual.Supervised')
@@ -617,12 +650,12 @@ function add_business_form_handler_save_post($post_id) {
                 ->execute();
 
             $contactDuplicates = [];
-    
+
             // Loop through the input array
             foreach ($contactDups as $dup) {
                 $contactDuplicates[] = (int)$dup['id'];
             }
-            
+
             if (count($contactDuplicates) > 0) {
                 if (count($contactDuplicates) > 1) {
                     $businessContactId = 0;
@@ -691,7 +724,7 @@ function add_business_form_handler_save_post($post_id) {
             // set the Position on the employer/employee relatonship.
             Relationship::update(FALSE)->addValue('Business_Contact.Business_Contact_Position', $params['contact_position'])->addWhere('id', '=', $relationship['id'])->execute();
         }
-        
+
         // If we have created the business using first name and last name put the phone on the business as well.
         if ($phoneOnBiz) {
             $phones = Phone::get(FALSE)->addWhere('contact_id', '=', $contact['id'])->addWhere('phone', '=', $params['phone'])->execute();
@@ -710,7 +743,7 @@ function add_business_form_handler_save_post($post_id) {
             $websites = Website::get(FALSE)->addWhere('contact_id', '=', $contact['id'])->addWhere('url', '=', $params['website'])->execute();
             if(!count($emails)) {
                 Website::create(FALSE)->addValue('url', $params['website'])->addValue('website_type_id:label', 'Work')->addValue('contact_id', $contact['id'])->execute();
-            }    
+            }
         }
         // Now loop through all the fields that match to a custom field to create APIv4 Params.
         $orgValues = [];
@@ -726,7 +759,7 @@ function add_business_form_handler_save_post($post_id) {
                             ->addWhere('option_group_id:name', '=', $optionGroups[$field])
                             ->execute()
                             ->first();
-                            
+
                         if ($field !== 'local_bia' && empty($optionValue)) {
                             throw new \CRM_Core_Exception(E::ts('Value %1 supplied for field %2 does not exist in the database', [1 => $value, 2 => $field]));
                         } elseif (empty($optionValue)) {
