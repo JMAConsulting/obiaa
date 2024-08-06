@@ -341,10 +341,10 @@ function validate_property_present($valid, $value, $field, $input) {
     if ($valid !== TRUE) {
         return $value;
     }
-    $propertyEntered = $unitEntered = FALSE;
     if (isset($field['name']) && $field['name'] == 'property_&_unit_details') {
+        $propertyEntered = $unitEntered = FALSE;
         foreach ($value as $row => $sections) {
-            foreach ($sections as $fields) {
+            foreach ($sections as $key => $fields) {
                 // Existing Tax Roll Address Selected
                 if (array_key_exists('field_669679f71b1b0', $fields) && !empty($fields['field_669679f71b1b0'])) {
                     $propertyEntered = TRUE;
@@ -353,17 +353,21 @@ function validate_property_present($valid, $value, $field, $input) {
                     // New tax Roll address is present.
                     $propertyEntered = TRUE;
                 }
-                if (array_key_exists('field_66968109025e6', $fields) && !empty($fields['field_66968109025e6'])) {
-                    $unitEntered = TRUE;
-                }
-                elseif (array_key_exists('field_66a4007826665', $fields) && !empty($fields['field_66a4007826665'])) {
-                    $unitEntered = TRUE;
+                if ($key === 'field_66967511a2d57') {
+                    foreach ($fields as $unitRow => $unitFields) {
+                        if (array_key_exists('field_66968109025e6', $unitFields) && !empty($unitFields['field_66968109025e6'])) {
+                            $unitEntered = TRUE;
+                        }
+                        elseif (array_key_exists('field_66a4007826665', $unitFields) && !empty($unitFields['field_66a4007826665'])) {
+                            $unitEntered = TRUE;
+                        }
+                    }
                 }
             }
         }
-    }
-    if (!$propertyEntered || !$unitEntered) {
-        return __('Need to link this business to at least one property and a unit');
+        if (!$propertyEntered || !$unitEntered) {
+            return __('Need to link this business to at least one property and a unit');
+        }
     }
     return $valid;
 }
