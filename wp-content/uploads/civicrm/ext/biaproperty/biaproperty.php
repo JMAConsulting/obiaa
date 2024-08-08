@@ -235,6 +235,18 @@ function biaproperty_civicrm_postProcess($formName, &$form) {
         CRM_Core_DAO::executeQuery('UPDATE civicrm_property_owner SET is_voter = 0 WHERE is_voter = 1 AND property_id = ' . $values['property_id']);
       }
       if (!empty($values['property_id'])) {
+        // Remove Dummy Org if this is a Property Owner form
+        $dummyOrg = \Civi\Api4\Organization::get(FALSE)
+          ->addSelect('id')
+          ->addWhere('organization_name', '=', 'Empty Property Owner')
+          ->execute()
+          ->first();
+
+          \Civi\Api4\PropertyOwner::delete(FALSE)
+          ->addWhere('property_id', '=',  $values['property_id'])
+          ->addWhere('owner_id', '=', $dummyOrg['id'])
+          ->execute();
+
         \Civi\Api4\PropertyOwner::create(FALSE)
           ->addValue('property_id', $values['property_id'])
           ->addValue('owner_id', $form->_contactId)
