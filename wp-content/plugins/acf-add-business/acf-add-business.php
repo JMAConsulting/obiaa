@@ -714,7 +714,7 @@ function add_business_form_handler_save_post($post_id) {
             // Contact Details for the Business contact
             if (!empty($params['contact_phone'])) {
                 $phones = Phone::get(FALSE)->addWhere('contact_id', '=', $businessContactId)->addWhere('phone', '=', $params['contact_phone'])->execute();
-                if(!count($phones)) {
+                if(!count($phones) && $params['contact_phone']) {
                     Phone::create(FALSE)->addValue('phone', $params['contact_phone'])->addValue('phone_type_id:label', 'Phone')->addValue('location_type_id:label', 'Work')->addValue('contact_id', $businessContactId)->execute();
                 }
             }
@@ -732,7 +732,7 @@ function add_business_form_handler_save_post($post_id) {
         // If we have created the business using first name and last name put the phone on the business as well.
         if ($phoneOnBiz) {
             $phones = Phone::get(FALSE)->addWhere('contact_id', '=', $contact['id'])->addWhere('phone', '=', $params['phone'])->execute();
-            if(!count($phones)) {
+            if(!count($phones) && $params['phone']) {
                 Phone::create(FALSE)->addValue('phone', $params['phone'])->addValue('phone_type_id:label', 'Phone')->addValue('location_type_id:label', 'Work')->addValue('contact_id', $contact['id'])->execute();
             }
         }
