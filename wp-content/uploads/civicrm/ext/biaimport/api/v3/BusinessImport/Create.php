@@ -185,8 +185,10 @@ function civicrm_api3_business_import_Create($params) {
         ->addValue('unit', $params['property_unit'])
         ->addValue('city', $property['city'])
         ->addValue('postal_code', $property['postal_code'])
+        ->addValue('state_province_id:label', 'Ontario')
+        ->addValue('country_id:label', 'Canada')
         ->addValue('is_primary', 1)
-	->execute();
+        ->execute();
     }
     $unitCheck = Unit::get(FALSE)->addWhere('property_id', '=', $property['id'])->addWhere('address_id', '=', $unitAddress[0]['id'])->execute();
     if (count($unitCheck) == 0) {
@@ -194,11 +196,12 @@ function civicrm_api3_business_import_Create($params) {
         ->addValue('property_id', $property['id'])
         ->addValue('address_id', $unitAddress[0]['id'])
         ->addValue('unit_status', $unitStatus)
-	->execute();
+        ->execute();
     }
     return;
   }
   // If for instance we have no organization name, first name etc just move onto the next record.
+  $unitStreetAddress = empty($params['property_street_address']) ? $params['property_address'] : $params['property_street_address'];
   if (empty($params['organization_name']) && empty($params['first_name']) && empty($params['last_name'])) {
     $unitOp = empty($params['property_unit']) ? 'IS NULL' : '=';
     $unitValue = empty($params['property_unit']) ? '' : $params['property_unit'];
@@ -223,7 +226,7 @@ function civicrm_api3_business_import_Create($params) {
           ->execute();
       }
       Unit::create(FALSE)
-        ->addValue('address_id', $unitAddress['id'])
+        ->addValue('address_id', $addressCheck['id'])
         ->addValue('unit_size', $params['unit_size'])
         ->addValue('unit_price', $params['unit_price'])
         ->addValue('unit_status', $unitStatus)
@@ -233,7 +236,6 @@ function civicrm_api3_business_import_Create($params) {
     }
     return;
   }
-  $unitStreetAddress = empty($params['property_street_address']) ? $params['property_address'] : $params['property_street_address'];
   // Try and Find matching business (member) record.
   $organizationName = !empty($params['organization_name']) ? $params['organization_name'] : $params['first_name'] . '  ' . $params['last_name'];
   $organizationNameFieldDefinition = Contact::getFields(FALSE)->addWhere('name', '=', 'organization_name')->execute()->first();
@@ -288,7 +290,7 @@ function civicrm_api3_business_import_Create($params) {
       ->addValue('city', $property['city'])
       ->addValue('postal_code', $property['postal_code'])
       ->execute()
-      ->first();   
+      ->first();
     $unit = Unit::create(FALSE)
       ->addValue('address_id', $unitAddress['id'])
       ->addValue('unit_size', $params['unit_size'])
@@ -340,7 +342,7 @@ function civicrm_api3_business_import_Create($params) {
         }
         if ($businessContactId === 0) {
           $possiblePhones = Phone::get(FALSE)->addWhere('phone', '=', $params['phone'])->addWhere('contact_id', 'IN', $contactDuplicates)->execute();
-          if (count($possiblePhones == 1)) {
+          if (count($possiblePhones) == 1) {
             $businessContactId = $possiblePhones[0]['contact_id'];
           }
           elseif (count($possiblePhones) > 1) {
@@ -354,7 +356,7 @@ function civicrm_api3_business_import_Create($params) {
       else {
         $businessContactId = $contactDuplicates[0];
       }
-      $businessContact = Contact::get(FALSE)->addWhere('id', '=', $contactId)->execute()->first();
+      $businessContact = Contact::get(FALSE)->addWhere('id', '=', $businessContactId)->execute()->first();
       // Ensure that the individual (business contact) is linked to the employer.
       if (empty($businessContact['employer_id']) || $businessContact['employer_id'] !== $contact['id']) {
         Contact::update(FALSE)->addValue('employer_id', $contact['id'])->addWhere('id', '=', $businessContactId)->execute();

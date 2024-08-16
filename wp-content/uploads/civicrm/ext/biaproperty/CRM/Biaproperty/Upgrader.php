@@ -1,4 +1,6 @@
 <?php
+
+use Civi\Api4\Address;
 use CRM_Biaproperty_ExtensionUtil as E;
 
 /**
@@ -273,6 +275,30 @@ class CRM_Biaproperty_Upgrader extends CRM_Extension_Upgrader_Base {
           \Civi\Api4\OptionValue::delete(FALSE)->addWhere('id', '=', $optionValue['id'])->execute();
         }
       }
+    }
+    return TRUE;
+  }
+
+  public function upgrade_2205(): bool {
+    $this->ctx->log->info('Upgrae 2205 Populate unit addresses with ontario as the state and canada as the country where they are null because they were missed in the property owner import');
+    $addresses = Address::get(FALSE)
+      ->addCaluse('OR', ['state_province_id', 'IS NULL', ''], ['country_id', 'IS NULL', ''])
+      ->addWhere('contact_id', 'IS NULL', '')
+      ->execute();
+    foreach ($addresses as $address) {
+      $state_province_value = CRM_Core_PseudoConstant::getKey('CRM_Core_BAO_Address', 'state_province_id', 'Ontario');
+      $country_value = CRM_Core_PseudoConstant::getKey('CRM_Core_BAO_Address', 'country_id', 'Canada');
+      if (!empty($address['state_province_id'])) {
+        $state_province_value = $address['state_province_id'];
+      }
+      if (!empty($address['country_id'])) {
+        $country_value = $address['country_id'];
+      }
+      Address::update(FALSE)
+        ->addValue('state_province_id', $state_province_value)
+        ->addValue('country_id', $country_value)
+        ->addWhere('id', '=', $address['id'])
+        ->execute();
     }
     return TRUE;
   }
