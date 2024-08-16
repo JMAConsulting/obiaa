@@ -282,7 +282,7 @@ class CRM_Biaproperty_Upgrader extends CRM_Extension_Upgrader_Base {
   public function upgrade_2205(): bool {
     $this->ctx->log->info('Upgrae 2205 Populate unit addresses with ontario as the state and canada as the country where they are null because they were missed in the property owner import');
     $addresses = Address::get(FALSE)
-      ->addCaluse('OR', ['state_province_id', 'IS NULL', ''], ['country_id', 'IS NULL', ''])
+      ->addClause('OR', ['state_province_id', 'IS NULL', ''], ['country_id', 'IS NULL', ''])
       ->addWhere('contact_id', 'IS NULL', '')
       ->execute();
     foreach ($addresses as $address) {
