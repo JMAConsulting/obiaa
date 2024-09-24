@@ -243,8 +243,8 @@ function civicrm_api3_property_owner_import_create($params) {
       ->addWhere('supplemental_address_1', '=', $params['owner_' . $owner . '_supplemental_address_1'])
       ->addWhere('city', '=', $params['owner_' . $owner . '_city'])
       ->addWhere('postal_code', '=', $params['owner_' . $owner . '_postal_code'])
-      ->addWhere('country_id:label', '=', $params['owner_' . $owner . '_country'])
-      ->addWhere('state_province_id:label', '=', $params['owner_' . $owner . '_province'])
+      ->addWhere('country_id:label', '=', (!empty($params['owner_' . $owner . '_country']) ? $params['owner_' . $owner . '_country'] : 'Canada'))
+      ->addWhere('state_province_id:label', '=', (!empty($params['owner_' . $owner . '_province']) ? $params['owner_' . $owner . '_province'] : 'Ontario'))
       ->addWhere('contact_id', '=', $contactParams['id'])
       ->execute();
     if (count($currentAddress) == 0) {
@@ -253,8 +253,8 @@ function civicrm_api3_property_owner_import_create($params) {
         ->addValue('supplemental_address_1', $params['owner_' . $owner . '_supplemental_address_1'])
         ->addValue('city', $params['owner_' . $owner . '_city'])
         ->addValue('postal_code', $params['owner_' . $owner . '_postal_code'])
-        ->addValue('country_id:label', $params['owner_' . $owner . '_country'])
-        ->addValue('state_province_id:label', $params['owner_' . $owner . '_province'])
+        ->addValue('country_id:label', (!empty($params['owner_' . $owner . '_country']) ? $params['owner_' . $owner . '_country'] : 'Canada'))
+        ->addValue('state_province_id:label', (!empty($params['owner_' . $owner . '_province']) ? $params['owner_' . $owner . '_province'] : 'Ontario'))
         ->addValue('contact_id', $contactParams['id'])
         ->addValue('is_primray', (count($currentPrimaryAddress) == 0 ? 1 : 0))
         ->execute();
