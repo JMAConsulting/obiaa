@@ -155,6 +155,16 @@ class CiviCRM_For_WordPress_Shortcodes {
 
         global $post;
 
+        /**
+         * Filters the Post content.
+         *
+         * @since 5.75
+         *
+         * @param string $post_content The Post content.
+         * @param WP_Post $post The WordPress Post object.
+         */
+        $post->post_content = apply_filters('civicrm_prerender_post_content', $post->post_content, $post);
+
         // Check for existence of Shortcode in content.
         if (has_shortcode($post->post_content, 'civicrm')) {
 
@@ -335,6 +345,8 @@ class CiviCRM_For_WordPress_Shortcodes {
    */
   public function render_single($atts) {
 
+    global $post;
+
     // Do not parse Shortcodes in REST context for PUT, POST and DELETE methods.
     // Nonce is not necessary here.
     // phpcs:ignore WordPress.Security.NonceVerification.Missing
@@ -348,23 +360,29 @@ class CiviCRM_For_WordPress_Shortcodes {
       return $shortcode;
     }
 
-    // Check if we've already parsed this Shortcode.
-    global $post;
-    if (is_object($post)) {
-      if (!empty($this->shortcode_markup)) {
-        if (isset($this->shortcode_markup[$post->ID])) {
+    /*
+     * Check if we've already rendered this Shortcode by parsing post content in
+     * The Loop in `prerender()` above. CiviCRM Shortcodes that are rendered via
+     * `do_shortcode('[civicrm ...]')` elsewhere (e.g. in a template) will never
+     * have been prerendered and cannot be present in the Shortcode markup array.
+     */
+    if (in_the_loop()) {
+      if (is_object($post)) {
+        if (!empty($this->shortcode_markup)) {
+          if (isset($this->shortcode_markup[$post->ID])) {
 
-          // Set counter flag.
-          if (!isset($this->shortcode_in_post[$post->ID])) {
-            $this->shortcode_in_post[$post->ID] = 0;
+            // Set counter flag.
+            if (!isset($this->shortcode_in_post[$post->ID])) {
+              $this->shortcode_in_post[$post->ID] = 0;
+            }
+            else {
+              $this->shortcode_in_post[$post->ID]++;
+            }
+
+            // This Shortcode must have been rendered.
+            return $this->shortcode_markup[$post->ID][$this->shortcode_in_post[$post->ID]];
+
           }
-          else {
-            $this->shortcode_in_post[$post->ID]++;
-          }
-
-          // This Shortcode must have been rendered.
-          return $this->shortcode_markup[$post->ID][$this->shortcode_in_post[$post->ID]];
-
         }
       }
     }
