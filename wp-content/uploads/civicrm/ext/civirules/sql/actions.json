@@ -50,5 +50,7 @@
   {"name":"end_relationship","label":"Disable/end or delete a relationship","class_name":"CRM_CivirulesActions_Relationship_End"},
   {"name":"register_participant","label":"Register Event Participant","class_name":"CRM_CivirulesActions_Participant_Register"},
   {"name":"contributionrecur_update_status","label":"Update Recurring Contribution Status","class_name":"CRM_CivirulesActions_ContributionRecur_UpdateStatus"},
-  {"name":"decease_contact","label":"Set Contact as Deceased","class_name":"CRM_CivirulesActions_Contact_DeceaseContact"}
+  {"name":"contribution_update_status","label":"Update Contribution Status","class_name":"CRM_CivirulesActions_Contribution_UpdateStatus"},
+  {"name":"decease_contact","label":"Set Contact as Deceased","class_name":"CRM_CivirulesActions_Contact_DeceaseContact"},
+  {"name":"cancel_latest_membership","label":"Cancel Latest Membership","class_name":"CRM_CivirulesActions_Membership_CancelLatestMembership"}
 ]
