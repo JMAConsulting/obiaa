@@ -218,17 +218,16 @@
       // This gets messy quickly!
       // input[name="auto_renew"] : set to 1 when there is a force-renew membership with no priceset.
       else if ($('input[name="auto_renew"]').length !== 0) {
-        if ($('input[name="auto_renew"]').prop('checked')) {
-          isRecur = true;
-        }
-        else if ($('input[name="auto_renew"]').attr('type') == 'hidden') {
+        if ($('input[name="auto_renew"]').attr('type') == 'hidden' ||
+          $('input[name="auto_renew"]').is(":hidden")) {
           // If the auto_renew field exists as a hidden field, then we force a
-          // recurring contribution (the value isn't useful since it depends on
-          // the locale - e.g.  "Please renew my membership")
+          // recurring contribution - since it won't be checked but it signals
+          // a autorenew.
           isRecur = true;
         }
         else {
-          isRecur = Boolean($('input[name="auto_renew"]').checked);
+          // Otherwise, see if it's checked indicating auto renew is selected.
+          isRecur = Boolean($('input[name="auto_renew"]').prop('checked'));
         }
       }
       if (!isRecur) {

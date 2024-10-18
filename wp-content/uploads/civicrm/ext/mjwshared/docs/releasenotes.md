@@ -9,6 +9,17 @@ Releases use the following numbering system:
 
 * **[BC]**: Items marked with [BC] indicate a breaking change that will require updates to your code if you are using that code in your extension.
 
+## Release 1.3.2 (2024-10-13)
+
+* Add check for webhooks stuck in processing status - if this is triggered something probably needs fixing manually.
+* Replace deprecated exception.
+* Switch to entity framework v2.
+* Switch to mgd files to define cg_extend_objects - used to allow custom fields on "FinancialTrxn" entity. Added in a way that doesn't conflict with other extensions.
+
+## Release 1.3.1 (2024-08-26)
+
+* [!46](https://lab.civicrm.org/extensions/mjwshared/-/merge_requests/46) Ensure autorenew works with memberships.
+
 ## Release 1.3 (2024-07-17)
 
 * Add new API4 functions:
