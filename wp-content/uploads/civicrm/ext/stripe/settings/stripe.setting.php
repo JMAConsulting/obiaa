@@ -256,5 +256,20 @@ You also need to give the permission "CiviCRM Stripe: Process MOTO transactions"
       ]
     ],
   ],
-
+  'stripe_record_payoutcurrency' => [
+    'name' => 'stripe_record_payoutcurrency',
+    'type' => 'Boolean',
+    'html_type' => 'checkbox',
+    'default' => 0,
+    'is_domain' => 1,
+    'is_contact' => 0,
+    'title' => E::ts('EXPERIMENTAL: Record payments using the Payout currency'),
+    'description' => E::ts('(Will not work in some circumstances) Normally you would record the payment in CiviCRM in the currency/amount that was used to make the transaction. This setting allows you to record the payment in the currency that it was paid out in.'),
+    'html_attributes' => [],
+    'settings_pages' => [
+      'stripe' => [
+        'weight' => 200,
+      ]
+    ],
+  ],
 ];

@@ -241,7 +241,7 @@ class Events {
     // We have a recurring contribution but no contribution so we'll repeattransaction
     // Stripe has generated a new invoice (next payment in a subscription) so we
     //   create a new contribution in CiviCRM
-    $balanceTransactionDetails = $this->api->getDetailsFromBalanceTransaction($chargeID, $this->getData()->object);
+    $balanceTransactionDetails = $this->api->getDetailsFromBalanceTransactionByChargeID($chargeID);
     $repeatContributionParams = [
       'contribution_recur_id' => $contributionRecur['id'],
       'contribution_status_id' => \CRM_Core_PseudoConstant::getKey('CRM_Contribute_BAO_Contribution', 'contribution_status_id', 'Pending'),
@@ -344,7 +344,7 @@ class Events {
 
     // If contribution is in Pending or Failed state record payment and transition to Completed
     if (in_array($contribution['contribution_status_id'], $statusesAllowedToComplete)) {
-      $balanceTransactionDetails = $this->api->getDetailsFromBalanceTransaction($chargeID, $this->getData()->object);
+      $balanceTransactionDetails = $this->api->getDetailsFromBalanceTransactionByChargeObject($this->getData()->object);
       $contributionParams = [
         'contribution_id' => $contribution['id'],
         'trxn_date' => $this->api->getValueFromStripeObject('receive_date', 'String', $this->getData()->object),
@@ -370,7 +370,7 @@ class Events {
         ->first();
       $return->message = $this->formatResultMessage(__FUNCTION__, 'already completed. No additional payment details added', ['coid' => $contribution['id']]);
       if (empty($financialTrxn['Payment_details.available_on'])) {
-        $balanceTransactionDetails = $this->api->getDetailsFromBalanceTransaction($chargeID, $this->getData()->object);
+        $balanceTransactionDetails = $this->api->getDetailsFromBalanceTransactionByChargeObject($this->getData()->object);
         foreach ($balanceTransactionDetails as $key => $value) {
           $paymentParams[$key] = $value;
         }
@@ -677,15 +677,18 @@ class Events {
       return $return;
     }
 
+    $stripeInvoice = $this->getData()->object;
     // Invoice ID is required
-    $invoiceID = $this->api->getValueFromStripeObject('invoice_id', 'String', $this->getData()->object);
+    $invoiceID = $this->api->getValueFromStripeObject('invoice_id', 'String', $stripeInvoice);
     if (!$invoiceID) {
       $return->message = $this->formatResultMessage(__FUNCTION__, 'Missing invoice_id');
       return $return;
     }
 
-    $chargeID = $this->api->getValueFromStripeObject('charge_id', 'String', $this->getData()->object);
-    $subscriptionID = $this->api->getValueFromStripeObject('subscription_id', 'String', $this->getData()->object);
+    $chargeID = $this->api->getValueFromStripeObject('charge_id', 'String', $stripeInvoice);
+    $subscriptionID = $this->api->getValueFromStripeObject('subscription_id', 'String', $stripeInvoice);
+    $stripeSubscription = $this->getPaymentProcessor()->stripeClient->subscriptions->retrieve($subscriptionID);
+
     $contributionRecur = $this->getRecurFromSubscriptionID($subscriptionID);
     if (empty($contributionRecur)) {
       $return->message = $this->formatResultMessage(__FUNCTION__, E::ts('No contributionRecur record found in CiviCRM. Ignored'));
@@ -751,13 +754,13 @@ class Events {
 
     // If contribution is in Pending or Failed state record payment and transition to Completed
     if (in_array($contribution['contribution_status_id'], $statusesAllowedToComplete)) {
-      $balanceTransactionDetails = $this->api->getDetailsFromBalanceTransaction($chargeID, $this->getData()->object);
+      $balanceTransactionDetails = $this->api->getDetailsFromBalanceTransactionByChargeID($chargeID);
       $contributionParams = [
         'contribution_id' => $contribution['id'],
-        'trxn_date' => $this->api->getValueFromStripeObject('receive_date', 'String', $this->getData()->object),
+        'trxn_date' => $this->api->getValueFromStripeObject('receive_date', 'String', $stripeInvoice),
         'order_reference' => $invoiceID,
         'trxn_id' => $chargeID,
-        'total_amount' => $this->api->getValueFromStripeObject('amount', 'String', $this->getData()->object),
+        'total_amount' => $this->api->getValueFromStripeObject('amount', 'String', $stripeInvoice),
         // 'fee_amount' Added below via $balanceTransactionDetails
         'contribution_status_id' => $contribution['contribution_status_id'],
       ];
@@ -775,11 +778,23 @@ class Events {
         ->addWhere('id', '=', $contributionRecur['id'])
         ->execute()
         ->first();
-      if (!empty($recur) && ($recur['contribution_status_id:name'] !== 'In Progress')) {
-        ContributionRecur::update(FALSE)
-          ->addValue('contribution_status_id:name', 'In Progress')
-          ->addWhere('id', '=', $contributionRecur['id'])
-          ->execute();
+      if (!empty($recur)) {
+        $recurValues = [];
+        if ($recur['contribution_status_id:name'] !== 'In Progress') {
+          $recurValues['contribution_status_id:name'] = 'In Progress';
+        }
+        // next_sched_contribution_date is calculated automatically by CiviCRM in CRM_Contribute_BAO_ContributionRecur::updateOnNewPayment()
+        //   when a new payment is added and time will be set to 00:00. But we can get the actual value directly from Stripe.
+        $nextSchedContributionDate = \CRM_Stripe_Api::getObjectParam('next_sched_contribution_date', $stripeSubscription);
+        if (!empty($nextSchedContributionDate)) {
+          $recurValues['next_sched_contribution_date'] = $nextSchedContributionDate;
+        }
+        if (!empty($recurValues)) {
+          ContributionRecur::update(FALSE)
+            ->setValues($recurValues)
+            ->addWhere('id', '=', $contributionRecur['id'])
+            ->execute();
+        }
       }
     }
     $lock->release();

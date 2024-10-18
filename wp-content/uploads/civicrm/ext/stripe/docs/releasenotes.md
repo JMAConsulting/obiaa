@@ -9,6 +9,16 @@ Releases use the following numbering system:
 
 * **[BC]**: Items marked with [BC] indicate a breaking change that will require updates to your code if you are using that code in your extension.
 
+## Release 6.11.3 (2024-10-13)
+
+* Upgrade to EntityFrameworkV2
+* Add setting to allow recording contributions/payments using payout amount/currency instead of charge amount/currency.
+
+## Release 6.11.2 (2024-08-12)
+
+* Set next_sched_contribution_date to the actual date retrieved from Stripe instead of using CiviCRM calculated value.
+* Minor refactor of doPayment for Stripe Checkout to allow easier integration with other APIs, like InlayPay.
+
 ## Release 6.11.1 (2024-07-29)
 
 * Add custom fields for payout/charge currency/amount per [!252](https://lab.civicrm.org/extensions/stripe/-/merge_requests/252).

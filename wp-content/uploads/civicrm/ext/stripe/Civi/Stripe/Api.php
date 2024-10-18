@@ -32,7 +32,34 @@ class Api {
    * @throws \Civi\Payment\Exception\PaymentProcessorException
    * @throws \Stripe\Exception\ApiErrorException
    */
-  public function getValueFromStripeObject(string $name, string $dataType, $stripeObject) {
+  public function getValueFromStripeObject(string $name, string $dataType, $stripeObject, $allowOverride = TRUE) {
+    if (\Civi::settings()->get('stripe_record_payoutcurrency') && $allowOverride) {
+      // Intercept amount/currency as we need to use the values from the balancetransaction
+      if (in_array($name, ['amount', 'currency'])) {
+        try {
+          $balanceTransactionDetails = $this->getDetailsFromBalanceTransactionByChargeObject($stripeObject);
+          switch ($name) {
+            case 'amount':
+              if (isset($balanceTransactionDetails['payout_amount'])) {
+                return $balanceTransactionDetails['payout_amount'];
+              }
+              break;
+
+            case 'currency':
+              if (isset($balanceTransactionDetails['payout_currency'])) {
+                return $balanceTransactionDetails['payout_currency'];
+              }
+              break;
+          }
+        }
+        catch (PaymentProcessorException $e) {
+          \Civi::log('stripe')->warning($this->getPaymentProcessor()->getLogPrefix() . "getValueFromStripeObject($name, $dataType, $stripeObject->object) getDetailsFromBalanceTransaction failed: " . $e->getMessage());
+          // We allow this to continue with "normal" processing as this feature is experimental and we don't want to break normal workflow
+          // It means we'll end up with values for amount/currency in the amount charged per normal behaviour.
+        }
+      }
+    }
+
     $value = \CRM_Stripe_Api::getObjectParam($name, $stripeObject);
     $value = \CRM_Utils_Type::validate($value, $dataType, FALSE);
     return $value;
@@ -40,24 +67,50 @@ class Api {
 
   /**
    * @param string $chargeID
-   * @param \Stripe\StripeObject $stripeObject
    *
-   * @return array
+   * @return float[]
    * @throws \CRM_Core_Exception
    * @throws \Civi\Payment\Exception\PaymentProcessorException
    * @throws \Stripe\Exception\ApiErrorException
    */
-  public function getDetailsFromBalanceTransaction(string $chargeID, $stripeObject = NULL): array {
-    if (!empty($chargeID)) {
-      $charge = $this->getPaymentProcessor()->stripeClient->charges->retrieve($chargeID);
-      $balanceTransactionID = $this->getValueFromStripeObject('balance_transaction', 'String', $charge);
-    }
-    elseif ($stripeObject && ($stripeObject->object === 'charge')) {
-      $balanceTransactionID = $this->getValueFromStripeObject('balance_transaction', 'String', $stripeObject);
+  public function getDetailsFromBalanceTransactionByChargeID(string $chargeID): array {
+    $chargeObject = $this->getPaymentProcessor()->stripeClient->charges->retrieve($chargeID);
+    $balanceTransactionID = $this->getValueFromStripeObject('balance_transaction', 'String', $chargeObject);
+    return $this->getDetailsFromBalanceTransaction($balanceTransactionID, $chargeObject);
+  }
+
+  /**
+   * @param \Stripe\StripeObject $chargeObject
+   *
+   * @return float[]
+   * @throws \CRM_Core_Exception
+   * @throws \Civi\Payment\Exception\PaymentProcessorException
+   * @throws \Stripe\Exception\ApiErrorException
+   */
+  public function getDetailsFromBalanceTransactionByChargeObject($chargeObject): array {
+    if ($chargeObject && ($chargeObject->object === 'charge')) {
+      $balanceTransactionID = $this->getValueFromStripeObject('balance_transaction', 'String', $chargeObject);
+      return $this->getDetailsFromBalanceTransaction($balanceTransactionID, $chargeObject);
     }
     else {
       // We don't have any way of getting the balance_transaction ID.
-      throw new \Civi\Payment\Exception\PaymentProcessorException('Cannot call getDetailsFromBalanceTransaction with empty chargeID when stripeObject is not of type "charge"');
+      throw new \Civi\Payment\Exception\PaymentProcessorException('Cannot call getDetailsFromBalanceTransaction when stripeObject is not of type "charge"');
+    }
+  }
+
+  /**
+   * @param string $balanceTransactionID
+   * @param \Stripe\StripeObject $chargeObject
+   *
+   * @return float[]
+   * @throws \CRM_Core_Exception
+   * @throws \Civi\Payment\Exception\PaymentProcessorException
+   * @throws \Stripe\Exception\ApiErrorException
+   */
+  public function getDetailsFromBalanceTransaction(string $balanceTransactionID, $chargeObject): array {
+    if (empty($balanceTransactionID)) {
+      // This shouldn't be able to happen, but catch it in case it does so we can debug
+      throw new \Civi\Payment\Exception\PaymentProcessorException('getDetailsFromBalanceTransaction: empty balanceTransactionID!');
     }
 
     // We may need to get balance transaction details multiple times when processing.
@@ -72,27 +125,21 @@ class Api {
     catch (\Exception $e) {
       throw new \Civi\Payment\Exception\PaymentProcessorException("Error retrieving balanceTransaction {$balanceTransactionID}. " . $e->getMessage());
     }
-    if (!empty($balanceTransactionID)) {
-      $fee = $this->getPaymentProcessor()
-        ->getFeeFromBalanceTransaction($balanceTransaction, $this->getValueFromStripeObject('currency', 'String', $stripeObject));
-      \Civi::$statics[__CLASS__][__FUNCTION__]['balanceTransactions'][$balanceTransactionID] = [
-        'fee_amount' => \Civi::settings()->get('stripe_record_payoutcurrency') ? $balanceTransaction->fee / 100 : $fee,
-        'available_on' => \CRM_Stripe_Api::formatDate($balanceTransaction->available_on),
-        'exchange_rate' => $balanceTransaction->exchange_rate,
-        'charge_amount' => $this->getValueFromStripeObject('amount', 'Float', $stripeObject),
-        'charge_currency' => $this->getValueFromStripeObject('currency', 'String', $stripeObject),
-        'charge_fee' => $fee,
-        'payout_amount' => $balanceTransaction->amount / 100,
-        'payout_currency' => \CRM_Stripe_Api::formatCurrency($balanceTransaction->currency),
-        'payout_fee' => $balanceTransaction->fee / 100,
-      ];
-      return \Civi::$statics[__CLASS__][__FUNCTION__]['balanceTransactions'][$balanceTransactionID];
-    }
-    else {
-      return [
-        'fee_amount' => 0.0
-      ];
-    }
+
+    $chargeCurrency = $this->getValueFromStripeObject('currency', 'String', $chargeObject, FALSE);
+    $chargeFee = $this->getPaymentProcessor()->getFeeFromBalanceTransaction($balanceTransaction, $chargeCurrency);
+    \Civi::$statics[__CLASS__][__FUNCTION__]['balanceTransactions'][$balanceTransactionID] = [
+      'fee_amount' => \Civi::settings()->get('stripe_record_payoutcurrency') ? $balanceTransaction->fee / 100 : $chargeFee,
+      'available_on' => \CRM_Stripe_Api::formatDate($balanceTransaction->available_on),
+      'exchange_rate' => $balanceTransaction->exchange_rate,
+      'charge_amount' => $this->getValueFromStripeObject('amount', 'Float', $chargeObject, FALSE),
+      'charge_currency' => $chargeCurrency,
+      'charge_fee' => $chargeFee,
+      'payout_amount' => $balanceTransaction->amount / 100,
+      'payout_currency' => \CRM_Stripe_Api::formatCurrency($balanceTransaction->currency),
+      'payout_fee' => $balanceTransaction->fee / 100,
+    ];
+    return \Civi::$statics[__CLASS__][__FUNCTION__]['balanceTransactions'][$balanceTransactionID];
   }
 
   /**

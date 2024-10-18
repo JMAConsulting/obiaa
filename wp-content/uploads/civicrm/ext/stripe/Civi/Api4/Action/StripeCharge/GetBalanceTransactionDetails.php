@@ -54,7 +54,7 @@ class GetBalanceTransactionDetails extends \Civi\Api4\Generic\AbstractAction {
     $stripeEvent = new \Stripe\Event();
     $stripeEvent->object = $charge;
     $stripeApi->setData($stripeEvent);
-    $balanceTransactionDetails = $stripeApi->getDetailsFromBalanceTransaction($this->chargeID, $stripeEvent->object);
+    $balanceTransactionDetails = $stripeApi->getDetailsFromBalanceTransactionByChargeObject($stripeEvent->object);
 
     $result->exchangeArray($balanceTransactionDetails);
   }

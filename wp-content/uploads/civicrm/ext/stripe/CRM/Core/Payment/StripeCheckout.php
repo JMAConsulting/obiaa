@@ -9,13 +9,9 @@
  +--------------------------------------------------------------------+
  */
 
-use Civi\Api4\PaymentprocessorWebhook;
 use CRM_Stripe_ExtensionUtil as E;
 use Civi\Payment\PropertyBag;
-use Stripe\Stripe;
 use Civi\Payment\Exception\PaymentProcessorException;
-use Stripe\StripeObject;
-use Stripe\Webhook;
 
 /**
  * Class CRM_Core_Payment_Stripe
@@ -132,9 +128,6 @@ class CRM_Core_Payment_StripeCheckout extends CRM_Core_Payment_Stripe {
    *   Assoc array of input parameters for this transaction.
    * @param string $component
    *
-   * @return array
-   *   Result array
-   *
    * @throws \CRM_Core_Exception
    * @throws \Civi\Payment\Exception\PaymentProcessorException
    */
@@ -150,23 +143,24 @@ class CRM_Core_Payment_StripeCheckout extends CRM_Core_Payment_Stripe {
 
     // Not sure what the point of this next line is.
     $this->_component = $component;
+
     $successUrl = $this->getReturnSuccessUrl($paymentParams['qfKey']);
     $failUrl = $this->getCancelUrl($paymentParams['qfKey'], NULL);
+    $lineItems = $this->calculateLineItems($paymentParams);
+    $checkoutSession = $this->createCheckoutSession($successUrl, $failUrl, $propertyBag, $lineItems);
 
-    // Get existing/saved Stripe customer or create a new one
-    $existingStripeCustomer = \Civi\Api4\StripeCustomer::get(FALSE)
-      ->addWhere('contact_id', '=', $propertyBag->getContactID())
-      ->addWhere('processor_id', '=', $this->getPaymentProcessor()['id'])
-      ->execute()
-      ->first();
-    if (empty($existingStripeCustomer)) {
-      $stripeCustomer = $this->getStripeCustomer($propertyBag);
-      $stripeCustomerID = $stripeCustomer->id;
-    }
-    else {
-      $stripeCustomerID = $existingStripeCustomer['customer_id'];
-    }
+    // Allow each CMS to do a pre-flight check before redirecting to Stripe.
+    CRM_Core_Config::singleton()->userSystem->prePostRedirect();
+    CRM_Utils_System::setHttpHeader("HTTP/1.1 303 See Other", '');
+    CRM_Utils_System::redirect($checkoutSession->url);
+  }
 
+  /**
+   * This gathers the line items which are then used in buildCheckoutLineItems()
+   *
+   * @param array|PropertyBag $paymentParams
+   */
+  public function calculateLineItems($paymentParams): array {
     $lineItems = [];
     if (!empty($paymentParams['skipLineItem']) || empty($paymentParams['line_item'])) {
       if (!empty($paymentParams['participants_info'])) {
@@ -185,14 +179,38 @@ class CRM_Core_Payment_StripeCheckout extends CRM_Core_Payment_Stripe {
               'field_title' => $paymentParams['source'] ?? $paymentParams['description'],
               'label' => $paymentParams['source'] ?? $paymentParams['description'],
               'qty' => 1,
-            ]
-          ]
+            ],
+          ],
         ];
       }
     }
     else {
-      $lineItems = $paymentParams['line_item'];
+      $lineItems = $paymentParams['line_item'] ?? [];
     }
+    return $lineItems;
+  }
+
+  /**
+   * Create a Stripe Checkout Session
+   *
+   * @return \Stripe\Checkout\Session
+   */
+  public function createCheckoutSession(string $successUrl, string $failUrl, PropertyBag $propertyBag, array $lineItems) {
+
+    // Get existing/saved Stripe customer or create a new one
+    $existingStripeCustomer = \Civi\Api4\StripeCustomer::get(FALSE)
+      ->addWhere('contact_id', '=', $propertyBag->getContactID())
+      ->addWhere('processor_id', '=', $this->getPaymentProcessor()['id'])
+      ->execute()
+      ->first();
+    if (empty($existingStripeCustomer)) {
+      $stripeCustomer = $this->getStripeCustomer($propertyBag);
+      $stripeCustomerID = $stripeCustomer->id;
+    }
+    else {
+      $stripeCustomerID = $existingStripeCustomer['customer_id'];
+    }
+
     // Build the checkout session parameters
     $checkoutSessionParams = [
       'line_items' => $this->buildCheckoutLineItems($lineItems, $propertyBag),
@@ -233,10 +251,7 @@ class CRM_Core_Payment_StripeCheckout extends CRM_Core_Payment_Stripe {
 
     CRM_Stripe_BAO_StripeCustomer::updateMetadata(['contact_id' => $propertyBag->getContactID()], $this, $checkoutSession['customer']);
 
-    // Allow each CMS to do a pre-flight check before redirecting to PayPal.
-    CRM_Core_Config::singleton()->userSystem->prePostRedirect();
-    CRM_Utils_System::setHttpHeader("HTTP/1.1 303 See Other", '');
-    CRM_Utils_System::redirect($checkoutSession->url);
+    return $checkoutSession;
   }
 
   /**
@@ -276,7 +291,6 @@ class CRM_Core_Payment_StripeCheckout extends CRM_Core_Payment_Stripe {
     }
     return $result;
   }
-
 
   /**
    * Takes the lineitems passed into doPayment and converts them into an array suitable for passing to Stripe Checkout
