@@ -28,12 +28,12 @@ class CRM_CiviMobileAPI_Form_Agenda extends CRM_Event_Form_ManageEvent {
     try {
       $event = CRM_Event_BAO_Event::findById($this->eventId);
     } catch (Exception $e) {
-      CRM_Core_Error::statusBounce('Invalid eventId parameter.', $url, E::ts('Not Found'));
+      CRM_Core_Error::statusBounce(E::ts('Invalid eventId parameter.'), $url, E::ts('Not Found'));
     }
 
     $isActive = [
-      1 => 'Yes',
-      0 => 'No',
+      1 => E::ts('Yes'),
+      0 => E::ts('No'),
     ];
 
     $this->assign('venues', CRM_CiviMobileAPI_BAO_LocationVenue::getAll(["location_id" => $event->loc_block_id]));

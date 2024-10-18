@@ -28,6 +28,10 @@ class CRM_CiviMobileAPI_ApiWrapper_EntityTag_Get implements API_Wrapper {
    * @throws API_Exception
    */
   public function toApiOutput($apiRequest, $result) {
+    if (empty($result['values']) || !is_array($result['values'])) {
+      return $result;
+    }
+
     foreach ($result['values'] as &$value) {
       if (empty($value['tag_id'])) {
        continue;
