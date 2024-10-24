@@ -27,7 +27,7 @@
   </classloader>
   <civix>
     <namespace>CRM/Obiaatemplate</namespace>
-    <format>23.02.1</format>
+    <format>24.09.1</format>
     <angularModule>crmObiaatemplate</angularModule>
   </civix>
   <mixins>

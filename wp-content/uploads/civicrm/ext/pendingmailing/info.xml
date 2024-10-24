@@ -23,9 +23,10 @@
   <comments/>
   <civix>
     <namespace>CRM/Pendingmailing</namespace>
-    <format>22.10.0</format>
+    <format>24.09.1</format>
   </civix>
   <classloader>
     <psr0 prefix="CRM_" path="."/>
+    <psr4 prefix="Civi\" path="Civi"/>
   </classloader>
 </extension>
