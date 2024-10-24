@@ -4,24 +4,6 @@ use CRM_Mjwshared_ExtensionUtil as E;
 // This enables custom fields for Grant entities
 return [
   [
-    'name' => 'cg_extend_objects:FinancialTrxn',
-    'entity' => 'OptionValue',
-    'cleanup' => 'always',
-    'update' => 'always',
-    'params' => [
-      'version' => 4,
-      'values' => [
-        'option_group_id.name' => 'cg_extend_objects',
-        'label' => E::ts('Financial Transaction (Payment)'),
-        'value' => 'FinancialTrxn',
-        'name' => 'civicrm_financial_trxn',
-        'is_reserved' => TRUE,
-        'is_active' => TRUE,
-      ],
-    ],
-    'match' => ['option_group_id', 'name'],
-  ],
-  [
     'name' => 'CustomGroup_Payment_details',
     'entity' => 'CustomGroup',
     'cleanup' => 'unused',

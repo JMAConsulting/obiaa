@@ -12,7 +12,7 @@ class CRM_CiviMobileAPI_Form_Speaker extends CRM_Core_Form {
     $eventId = CRM_Utils_Request::retrieve('eid', 'Positive');
 
     if ($this->getAction() == CRM_Core_Action::UPDATE && !CRM_CiviMobileAPI_Utils_Permission::isEnoughPermissionToEditSpeaker()) {
-      CRM_Core_Error::statusBounce('You do not have all the permissions needed for this page.', '', E::ts('Permission Denied'));
+      CRM_Core_Error::statusBounce(E::ts('You do not have all the permissions needed for this page.'), '', E::ts('Permission Denied'));
     }
 
     if (!$participantId) {
@@ -33,7 +33,7 @@ class CRM_CiviMobileAPI_Form_Speaker extends CRM_Core_Form {
         'reset' => '1',
         'id' => $eventId
       ]));
-      CRM_Core_Error::statusBounce('The speaker doesn`t exists.', $url, E::ts('Not Found'));
+      CRM_Core_Error::statusBounce(E::ts('The speaker doesn`t exists.'), $url, E::ts('Not Found'));
     }
 
     $this->assign('speaker', $this->speaker);
@@ -61,7 +61,7 @@ class CRM_CiviMobileAPI_Form_Speaker extends CRM_Core_Form {
       $this->add('text', 'job_title', E::ts('Position'), ['class' => 'huge']);
       $this->add('textarea', 'participant_bio', E::ts('Bio'), ['class' => 'big']);
       $this->addField('image_URL', ['maxlength' => '255', 'label' => E::ts('Image')]);
-      $this->addEntityRef('current_employer_id', 'Company', [
+      $this->addEntityRef('current_employer_id', E::ts('Company'), [
         'create' => TRUE,
         'multiple' => FALSE,
         'api' => ['params' => ['contact_type' => 'Organization']],
@@ -179,13 +179,19 @@ class CRM_CiviMobileAPI_Form_Speaker extends CRM_Core_Form {
     $contactFields = CRM_Contact_DAO_Contact::fields();
 
     if (strlen($values['first_name']) > $contactFields['first_name']['maxlength']) {
-      $errors['first_name'] = "Title length cannot be more than " . $contactFields['first_name']['maxlength'] . " characters.";
+      $errors['first_name'] = E::ts('Title length cannot be more than %1 characters.', array(
+        1 => $contactFields['first_name']['maxlength'],
+      ));
     }
     if (strlen($values['last_name']) > $contactFields['last_name']['maxlength']) {
-      $errors['last_name'] = "Title length cannot be more than " . $contactFields['last_name']['maxlength'] . " characters.";
+      $errors['last_name'] = E::ts('Title length cannot be more than %1 characters.', array(
+        1 => $contactFields['last_name']['maxlength'] ,
+      ));
     }
     if (strlen($values['job_title']) > $contactFields['job_title']['maxlength']) {
-      $errors['job_title'] = "Title length cannot be more than " . $contactFields['job_title']['maxlength'] . " characters.";
+      $errors['job_title'] = E::ts('Title length cannot be more than %1 characters.', array(
+        1 => $contactFields['job_title']['maxlength'] ,
+      ));
     }
 
     return empty($errors) ? TRUE : $errors;

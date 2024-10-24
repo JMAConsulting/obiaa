@@ -16,48 +16,48 @@
     {if $action eq 4}
       <table class="crm-info-panel">
         <tr>
-          <td class="label">Title</td>
+          <td class="label">{ts}Title{/ts}</td>
           <td>
             {$eventSession.title}
           </td>
         </tr>
         <tr>
-          <td class="label">Date</td>
+          <td class="label">{ts}Date{/ts}</td>
           <td>
             {$eventSession.date_formatted}
           </td>
         </tr>
         <tr>
-          <td class="label">Start Time</td>
+          <td class="label">{ts}Start Time{/ts}</td>
           <td>
             {$eventSession.start_time_formatted}
           </td>
         </tr>
         <tr>
-          <td class="label">End Time</td>
+          <td class="label">{ts}End Time{/ts}</td>
           <td>
             {$eventSession.end_time_formatted}
           </td>
         </tr>
         <tr>
-          <td class="label">Speakers</td>
+          <td class="label">{ts}Speakers{/ts}</td>
           <td>{$eventSession.speakers_with_links}</td>
         </tr>
         <tr>
-          <td class="label">Venue</td>
+          <td class="label">{ts}Venue{/ts}</td>
           <td>
             {$eventSession.venue_link}
           </td>
         </tr>
         <tr>
-          <td class="label">Description</td>
+          <td class="label">{ts}Description{/ts}</td>
           <td>
             {$eventSession.description}
           </td>
         </tr>
        {if $eventSession.participant_with_links}
         <tr>
-          <td class="label">Participant</td>
+          <td class="label">{ts}Participant{/ts}</td>
           <td>
               {$eventSession.participant_with_links}
           </td>
@@ -66,7 +66,7 @@
       </table>
     {else}
       {if $action eq 8}
-        <p class="status">Are you really want to delete the Session?</p>
+        <p class="status">{ts}Are you really want to delete the Session?{/ts}</p>
       {else}
         <table class="form-layout">
           <tr>
