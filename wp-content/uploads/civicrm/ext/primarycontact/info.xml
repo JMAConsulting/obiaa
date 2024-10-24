@@ -26,5 +26,6 @@
   </classloader>
   <civix>
     <namespace>CRM/Primarycontact</namespace>
+    <format>24.09.1</format>
   </civix>
 </extension>
