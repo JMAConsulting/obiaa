@@ -22,7 +22,6 @@ use Civi\Api4\Property;
 function _civicrm_api3_business_import_Create_spec(&$spec) {
   $spec['property_address'] = [
     'title' => E::ts('Tax Roll Address'),
-    'api.required' => 1,
     'type' => CRM_Utils_Type::T_STRING,
   ];
   $spec['property_tax_roll_unit'] = [
@@ -169,10 +168,28 @@ function civicrm_api3_business_import_Create($params) {
     'black' => 'Ownership_Demographics.Black_community_member',
     'disabilities'  => 'Ownership_Demographics.People_with_disabilities',
   ];
-  // Go looking for a property first.
-  $property = Property::get(FALSE)->addWhere('property_address', '=', $params['property_address'])->execute()->first();
-  if (empty($property)) {
-    throw new \CRM_Core_Exception('Property must be created first');
+  if (empty($params['property_address']) && empty($params['property_street_address'])) {
+    throw new \CRM_Core_Exception('Need either a MPAC property address or a Address of the Business');
+  }
+  elseif (empty($params['property_address']) && !empty($params['property_street_address'])) {
+    $property = Property::get(FALSE)->addWhere('property_address', '=', $params['property_street_address'])->execute();
+    if (count($property) < 1) {
+      $property = Property::create(FALSE)
+        ->addValue('property_address', '=', $params['property_street_address'])
+        ->addValue('non_mpac_property', 1)
+        ->execute()
+        ->first();
+    }
+    else {
+      $property = $property->first();
+    }
+  }
+  else {
+    // Go looking for a property first.
+    $property = Property::get(FALSE)->addWhere('property_address', '=', $params['property_address'])->execute()->first();
+    if (empty($property)) {
+      throw new \CRM_Core_Exception('Property must be created first');
+    }
   }
   // If no unit status is provided set it to be unavailable for rent.
   $params['unit_status'] = !empty($params['unit_status']) ? $params['unit_status'] : 'Vacant (unavailable for rent and/or derelict)';
@@ -183,8 +200,8 @@ function civicrm_api3_business_import_Create($params) {
       $unitAddress = Address::create(FALSE)
         ->addValue('street_address', $params['property_address'])
         ->addValue('unit', $params['property_unit'])
-        ->addValue('city', $property['city'])
-        ->addValue('postal_code', $property['postal_code'])
+        ->addValue('city', $property['city'] ?? '')
+        ->addValue('postal_code', $property['postal_code'] ?? '')
         ->addValue('state_province_id:label', 'Ontario')
         ->addValue('country_id:label', 'Canada')
         ->addValue('is_primary', 1)
