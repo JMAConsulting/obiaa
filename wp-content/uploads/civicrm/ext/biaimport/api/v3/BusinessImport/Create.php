@@ -175,8 +175,10 @@ function civicrm_api3_business_import_Create($params) {
     $property = Property::get(FALSE)->addWhere('property_address', '=', $params['property_street_address'])->execute();
     if (count($property) < 1) {
       $property = Property::create(FALSE)
-        ->addValue('property_address', '=', $params['property_street_address'])
-        ->addValue('non_mpac_property', 1)
+        ->addValue('property_address', $params['property_street_address'])
+	->addValue('non_mpac_property', 1)
+        ->addValue('created_id', (int) CRM_Core_Session::getLoggedInContactID())
+        ->addValue('modified_id', (int) CRM_Core_Session::getLoggedInContactID())
         ->execute()
         ->first();
     }
