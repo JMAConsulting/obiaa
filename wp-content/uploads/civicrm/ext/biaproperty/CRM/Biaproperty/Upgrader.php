@@ -303,6 +303,12 @@ class CRM_Biaproperty_Upgrader extends CRM_Extension_Upgrader_Base {
     return TRUE;
   }
 
+  public function upgrade_2206(): bool {
+    $this->ctx->log->info('Applying Update 2205 Adding non MPAC property field onto property table');
+    CRM_Core_DAO::executeQuery("ALTER TABLE civicrm_property ADD COLUMN non_mpac_property tinyint NOT NULL DEFAULT 0");
+    return TRUE;
+  }
+
   /**
    * Example: Run an external SQL script.
    *
