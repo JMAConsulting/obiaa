@@ -10,6 +10,7 @@ foreach ($importEntities as $importEntity) {
     $fields = array_merge(['_id' => TRUE, '_status' => TRUE, '_entity_id' => TRUE, '_status_message' => TRUE], Import::getFieldsForUserJobID($importEntity['user_job_id'], FALSE));
   }
   catch (CRM_Core_Exception $e) {
+    CRM_Core_Error::debug_var('e', $e);    
     continue;
   }
   $fields['_entity_id']['link'] = [
