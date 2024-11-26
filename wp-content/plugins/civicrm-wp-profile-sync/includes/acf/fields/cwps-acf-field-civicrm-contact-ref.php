@@ -261,9 +261,31 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Contact_Ref extends acf_field {
 	 */
 	public function ajax_query() {
 
-		// Validate.
-		if ( ! acf_verify_ajax() ) {
-			die();
+		// Verify AJAX by version.
+		if ( version_compare( ACF_VERSION, '6.3.2', '<' ) ) {
+
+			// Validate the old way.
+			if ( ! acf_verify_ajax() ) {
+				die();
+			}
+
+		} else {
+
+			// Get validation params.
+			$nonce     = acf_request_arg( 'nonce', '' );
+			$field_key = acf_request_arg( 'field_key', '' );
+
+			// Back-compat for field settings.
+			if ( ! acf_is_field_key( $field_key ) ) {
+				$nonce     = '';
+				$field_key = '';
+			}
+
+			// Validate the new way.
+			if ( ! acf_verify_ajax( $nonce, $field_key ) ) {
+				die();
+			}
+
 		}
 
 		// Get choices.
