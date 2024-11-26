@@ -9,7 +9,7 @@
  *   Author URI:  https://persistentlogin.com/
  * 	 Text Domain: wp-persistent-login
  *   Domain Path: /languages
- *   Version: 2.1.0
+ *   Version: 2.1.2
  *
  *
  */
@@ -32,7 +32,6 @@
 if ( !defined( 'ABSPATH' ) ) {
     exit;
 }
-
 if ( function_exists( 'persistent_login' ) ) {
     persistent_login()->set_basename( false, __FILE__ );
 } else {
@@ -50,11 +49,10 @@ if ( function_exists( 'persistent_login' ) ) {
     define( 'WPPL_TEXT_DOMAIN', 'wp-persitent-login' );
     // Load text domain
     add_action( 'init', 'wp_persistent_login_load_textdomain' );
-    function wp_persistent_login_load_textdomain()
-    {
+    function wp_persistent_login_load_textdomain() {
         load_plugin_textdomain( 'wp-persistent-login', false, dirname( plugin_basename( __FILE__ ) ) . '/languages/' );
     }
-    
+
     // Load freemius.
     require WPPL_PLUGIN_PATH . '/includes/freemius.php';
     // Load installation file.
@@ -74,8 +72,8 @@ if ( function_exists( 'persistent_login' ) ) {
     new WP_Persistent_Login_Admin();
     new WP_Persistent_Login_Profile();
     new WP_Persistent_Login_Active_Logins();
-    new WP_Persistent_Login_Email();
     new WP_Persistent_Login_Login_History();
+    new WP_Persistent_Login_Email();
     new WP_Persistent_Login_User_Count();
     /**
      * Action hook to execute after WP Persistent Login plugin init.
@@ -85,6 +83,17 @@ if ( function_exists( 'persistent_login' ) ) {
      * @since 2.0.0
      */
     do_action( 'wp_persistent_login_init' );
-}
+    add_action(
+        'wp_mail_failed',
+        'onMailError',
+        10,
+        1
+    );
+    function onMailError(  $wp_error  ) {
+        // turn wp_error into a string.
+        $wp_error = $wp_error->get_error_message();
+        error_log( 'WP Persistent Login: ' . $wp_error );
+    }
 
+}
 // end if persistent_login() exists.

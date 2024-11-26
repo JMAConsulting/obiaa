@@ -3,8 +3,9 @@ Contributors: lukeseager, freemius
 Donate link: 
 Tags: login, active logins, sessions, session management
 Requires at least: 5.0
-Tested up to: 6.4.1
-Stable tag: 2.1.0
+Tested up to: 6.6.2
+Stable tag: 2.1.2
+Requires PHP: 7.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -160,6 +161,16 @@ Visit [persistentlogin.com](https://persistentlogin.com) to learn more.
 5. Active Login settings (premium)
 
 == Changelog == 
+
+= 2.1.2 =
+* Feature: Added option to set a subject for the login history email notification.
+* Premium Feature (beta): Added account inavctivity email notifications for users that haven't logged in for a set period of time.
+* Updating Freemius SDK to latest version.
+
+= 2.1.1 = 
+* Updating Freemius SDK to latest version.
+* Updating browser detection library.
+* Fix: Removed undefined array index notice on Profile page and Manage Logins block.
 
 = 2.1.0 =
 * New Feature: Login History - Notify users of logins from new devices for improved security

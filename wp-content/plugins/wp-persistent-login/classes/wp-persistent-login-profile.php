@@ -100,7 +100,11 @@ class WP_Persistent_Login_Profile {
 
             foreach( $sessions as $key => $session ) {
 
-                $device = $this->get_user_device($session['ua']);
+                if( isset($session['ua']) ) {
+                    $device = $this->get_user_device($session['ua']);
+                } else {
+                    $device = __('Unknown Device', 'wp-persistent-login' );
+                }
                 $ip_address = $session['ip'];
                 $login_time = $this->get_human_readable_login_duration($session['login']);
                 $session_key = $key;

@@ -53,6 +53,8 @@ class Admin
 
         add_action('admin_notices', [$this, 'review_plugin_notice']);
         add_action('admin_notices', [$this, 'ptlr_is_now_loginwp_notice']);
+        add_action('admin_notices', [$this, 'loginwp_display_free_license_admin_notice']);
+        add_action('admin_init', [$this, 'loginwp_activate_free_license']);
     }
 
     public static function set_admin_notice_cache($id, $timeout)
@@ -227,6 +229,163 @@ class Admin
         echo '<div data-dismissible="loginwp-review-plugin-notice-forever" class="update-nag notice notice-warning is-dismissible">';
         echo "<p>$notice</p>";
         echo '</div>';
+    }
+
+    /**
+     * Show a notice to subscribe to newsletter
+     */
+    public function loginwp_display_free_license_admin_notice()
+    {
+        $license_key = get_option('loginwp_free_license');
+        if (!current_user_can('update_plugins') || !empty($license_key))
+            return;
+
+        //show rating notice to page that matters most
+        global $pagenow;
+        if (!in_array($pagenow, array('admin.php'))) {
+            return;
+        }
+
+        if ($pagenow == 'admin.php' && function_exists('get_current_screen')) {
+            $screen = get_current_screen();
+            if (isset($screen->base) && ($screen->base != 'toplevel_page_loginwp-settings' && $screen->base != 'loginwp_page_loginwp-redirections')) {
+                return;
+            }
+        }
+
+        $htmlNotice = '
+            <div class="notice loginwp-notice" style="border-left-color: #064466">
+                <form method="post">
+                    <h3>' . __( 'Free License', 'peters-login-redirect' ) .'</h3>
+                    <p>' . __( "You're currently using the free version of LoginWP. To register a free license for the plugin, please fill in your email below. This is not required but helps us support you better.", 'peters-login-redirect' ) . '</p>
+                    <input type="text" name="email" placeholder="' . __( 'Email Address', 'peters-login-redirect' ) . '" />
+                    ' . wp_nonce_field( 'loginwp_free_license_action', 'loginwp_free_license_field' ) . '
+                    <input type="submit" name="loginwp_free_license_activator" value="Register Free License" class="button button-primary" />
+                    <input type="button" name="loginwp_free_license_dismiss" value="Dismiss" class="button button-secondary" /><br><br>
+                    <input type="checkbox" name="loginwp_free_license_subscribe" value="1" checked /> Add me to your newsletter and keep me updated whenever you release news, updates and promos.
+                    <p><small>* ' . __( 'Your email is secure with us! We will keep you updated on new feature releases and major announcements about LoginWP.', 'peters-login-redirect' ) . '</small></p>
+                </form>
+                <form method="post" id="loginwp_free_license_dismiss_form">
+                    ' . wp_nonce_field( 'loginwp_free_license_dismiss', 'loginwp_free_license_dismiss_field' ) . '
+                    <input type="hidden" name="loginwp_free_dismiss" value="1" />
+                </form>
+            </div>
+            <script>
+            jQuery( document ).ready(function( $ ) {
+
+                jQuery(\'input[name="loginwp_free_license_dismiss"]\').on("click", function(e){
+                    e.preventDefault();
+                    jQuery("#loginwp_free_license_dismiss_form").submit();
+                });
+
+            });
+            </script>
+        ';
+
+        echo $htmlNotice;
+    }
+    public function loginwp_activate_free_license () {
+        if ( ! empty( $_POST['loginwp_free_license_activator'] ) ) {
+            if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST[ 'loginwp_free_license_field' ] ) ), 'loginwp_free_license_action' ) ) {
+                return;
+            }
+
+            $email = sanitize_email( wp_unslash( $_POST['email'] ) );
+
+            if ( is_email( $email ) ) {
+                $user       = get_user_by( 'email', $email );
+                $first_name = '';
+                $last_name  = '';
+                $url        = rawurlencode( home_url() );
+
+                if ( is_a( $user, 'WP_User' ) ) {
+                    $first_name = $user->first_name;
+                    $last_name  = $user->last_name;
+                }
+
+                if ( ! empty( $_POST['loginwp_free_license_subscribe'] ) ) {
+                    // Make request, save key.
+                    $request = wp_remote_post(
+                        'https://loginwp.com/wp-admin/admin-ajax.php',
+                        array(
+                            'body'    =>
+                                array(
+                                    'action' => 'loginwp_free_license',
+                                    'email_address' => $email,
+                                    'fname'    => $first_name,
+                                    'lname'     => $last_name,
+                                    'url'           => $url,
+                                )
+                        )
+                    );
+
+                    if ( ! is_wp_error( $request ) ) {
+                        $license = $email;
+
+                        if ( ! empty( $license ) ) {
+                            update_option( 'loginwp_free_license', sanitize_text_field( $license ), false );
+
+                            add_action(
+                                'admin_notices',
+                                function() {
+                                    ?>
+                                    <div class="notice notice-success">
+                                        <p><?php esc_html_e( 'Free license activated!', 'peters-login-redirect' ); ?></p>
+                                    </div>
+                                    <?php
+                                }
+                            );
+                        }
+                    } else {
+                        add_action(
+                            'admin_notices',
+                            function() {
+                                ?>
+                                <div class="notice notice-error">
+                                    <p><?php esc_html_e( 'Something went wrong! Try again later.', 'peters-login-redirect' ); ?></p>
+                                </div>
+                                <?php
+                            }
+                        );
+                    }
+                } else {
+                    $license = $email;
+
+                    if ( ! empty( $license ) ) {
+                        update_option( 'loginwp_free_license', sanitize_text_field( $license ), false );
+
+                        add_action(
+                            'admin_notices',
+                            function() {
+                                ?>
+                                <div class="notice notice-success">
+                                    <p><?php esc_html_e( 'Free license activated!', 'peters-login-redirect' ); ?></p>
+                                </div>
+                                <?php
+                            }
+                        );
+                    }
+                }
+            } else {
+                add_action(
+                    'admin_notices',
+                    function() {
+                        ?>
+                        <div class="notice notice-error">
+                            <p><?php esc_html_e( 'Invalid email address!', 'peters-login-redirect' ); ?></p>
+                        </div>
+                        <?php
+                    }
+                );
+            }
+        }
+        if ( ! empty( $_POST['loginwp_free_dismiss'] ) ) {
+            if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST[ 'loginwp_free_license_dismiss_field' ] ) ), 'loginwp_free_license_dismiss' ) ) {
+                return;
+            }
+
+            update_option( 'loginwp_free_license', sanitize_text_field( 'NA' ), false );
+        }
     }
 
     public function removable_query_args($args)

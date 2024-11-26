@@ -3,7 +3,7 @@
 Plugin Name: LoginWP (Formerly Peter's Login Redirect)
 Plugin URI: https://loginwp.com
 Description: Redirect users to different URLs based on their role, capability and more.
-Version: 3.0.8.5
+Version: 3.0.8.6
 Author: LoginWP Team
 Author URI: https://loginwp.com
 Text Domain: peters-login-redirect
@@ -16,7 +16,7 @@ use LoginWP\Core\Core;
 require __DIR__ . '/vendor/autoload.php';
 
 define('PTR_LOGINWP_SYSTEM_FILE_PATH', __FILE__);
-define('PTR_LOGINWP_VERSION_NUMBER', '3.0.8.5');
+define('PTR_LOGINWP_VERSION_NUMBER', '3.0.8.6');
 
 add_action('init', function () {
     load_plugin_textdomain('peters-login-redirect', false, dirname(plugin_basename(__FILE__)) . '/languages');

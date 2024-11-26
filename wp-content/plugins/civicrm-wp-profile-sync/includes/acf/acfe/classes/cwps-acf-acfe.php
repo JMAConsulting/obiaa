@@ -164,13 +164,13 @@ class CiviCRM_Profile_Sync_ACF_ACFE {
 	}
 
 	/**
-	 * Registers the Field Types for ACF5.
+	 * Registers the Field Types for ACF5+.
 	 *
 	 * @since 0.5
 	 *
-	 * @param string $version The installed version of ACF.
+	 * @param integer $api_version The ACF Field API version.
 	 */
-	public function register_field_types( $version ) {
+	public function register_field_types( $api_version ) {
 
 		// Include Reference Field Types.
 		include CIVICRM_WP_PROFILE_SYNC_PATH . 'includes/acf/acfe/fields/cwps-acf-acfe-field-action-reference-contact.php';

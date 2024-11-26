@@ -190,6 +190,12 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Contact_Field extends acf_field {
 	 */
 	public function render_field_settings( $field ) {
 
+		// Get Multiple Setting Field.
+		$multiple = $this->acf->field->field_setting_multiple_get();
+
+		// Now add it.
+		acf_render_field_setting( $field, $multiple );
+
 		// Only render Placeholder Setting Field here in ACF prior to version 6.
 		if ( version_compare( ACF_MAJOR_VERSION, '6', '>=' ) ) {
 			return;
@@ -267,9 +273,13 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Contact_Field extends acf_field {
 		$field['ui']                = 1;
 		$field['ajax']              = 1;
 		$field['allow_null']        = 1;
-		$field['multiple']          = 0;
 		$field['required']          = 0;
 		$field['conditional_logic'] = 0;
+
+		// Maybe assign "multiple" property.
+		if ( ! isset( $field['multiple'] ) ) {
+			$field['multiple'] = 0;
+		}
 
 		// Init choices array.
 		$field['choices'] = [];
@@ -315,9 +325,31 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Contact_Field extends acf_field {
 	 */
 	public function ajax_query() {
 
-		// Validate.
-		if ( ! acf_verify_ajax() ) {
-			die();
+		// Verify AJAX by version.
+		if ( version_compare( ACF_VERSION, '6.3.2', '<' ) ) {
+
+			// Validate the old way.
+			if ( ! acf_verify_ajax() ) {
+				die();
+			}
+
+		} else {
+
+			// Get validation params.
+			$nonce     = acf_request_arg( 'nonce', '' );
+			$field_key = acf_request_arg( 'field_key', '' );
+
+			// Back-compat for field settings.
+			if ( ! acf_is_field_key( $field_key ) ) {
+				$nonce     = '';
+				$field_key = '';
+			}
+
+			// Validate the new way.
+			if ( ! acf_verify_ajax( $nonce, $field_key ) ) {
+				die();
+			}
+
 		}
 
 		// Get choices.

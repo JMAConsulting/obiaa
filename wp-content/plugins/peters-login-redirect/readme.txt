@@ -1,11 +1,10 @@
 === LoginWP (Formerly Peter's Login Redirect) ===
-Contributors: marketingfire, collizo4sky
-Donate link: https://loginwp.com/pricing/
-Tags: login, logout, redirect, login form, user registration, admin, administration, dashboard, users, authentication
+Contributors: marketingfire
+Tags: after registration redirect, login redirect, logout redirect
 Requires at least: 4.9
-Requires PHP: 5.6
-Tested up to: 6.3
-Stable tag: 3.0.8.5
+Requires PHP: 7.4
+Tested up to: 6.6
+Stable tag: 3.0.8.6
 License: GPL-2.0+
 
 Redirect users to different locations after they log in, log out and register based on different conditions.
@@ -47,6 +46,9 @@ This is the lite version that works with the default WordPress login page and li
 * [WishList Member](https://loginwp.com/?utm_source=wprepo&utm_medium=link&utm_campaign=liteversion#pro-integrations)
 * [Theme My Login](https://loginwp.com/?utm_source=wprepo&utm_medium=link&utm_campaign=liteversion#pro-integrations)
 * [User Registration (WPEverest)](https://loginwp.com/?utm_source=wprepo&utm_medium=link&utm_campaign=liteversion#pro-integrations)
+* [Elementor Login Form](https://loginwp.com/?utm_source=wprepo&utm_medium=link&utm_campaign=liteversion#pro-integrations)
+* [BuddyBoss Theme Login/Registration Form](https://loginwp.com/?utm_source=wprepo&utm_medium=link&utm_campaign=liteversion#pro-integrations)
+* [Divi Theme Login/Registration Form](https://loginwp.com/?utm_source=wprepo&utm_medium=link&utm_campaign=liteversion#pro-integrations)
 
 
 == Installation ==
@@ -72,6 +74,9 @@ Please visit the [plugin page](https://loginwp.com/?utm_source=wprepo&utm_medium
 Login redirects not working? This plugin uses WordPress's standard login_redirect hook. The usual cause of problems is that another plugin is using the hook first, or there is a custom login form that isn't even running through the standard WordPress login functions.
 
 == Changelog ==
+
+= 3.0.8.6 =
+* Fixed: Custom login page redirects to the default WordPress login page when incorrect credentials are entered.
 
 = 3.0.8.5 =
 * Fixed: Cookie issue
