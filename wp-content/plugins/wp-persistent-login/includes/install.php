@@ -3,8 +3,7 @@
 /**
  * Run activation function to setup 
  */
-function persistent_login_activate()
-{
+function persistent_login_activate() {
     // add db version for future reference
     update_option( 'persistent_login_db_version', WPPL_DATABASE_VERSION );
     // setup CRON to check how many users are logged in
@@ -17,7 +16,6 @@ function persistent_login_activate()
     }
     // set detaults for permissions - all roles are available for persistent login by default
     // free options
-    
     if ( !get_option( 'persistent_login_options' ) ) {
         $defaultOptions = array(
             'duplicateSessions'  => '0',
@@ -28,5 +26,4 @@ function persistent_login_activate()
         );
         update_option( 'persistent_login_options', $defaultOptions );
     }
-
 }
