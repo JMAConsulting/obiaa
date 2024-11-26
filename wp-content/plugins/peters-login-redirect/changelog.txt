@@ -1,5 +1,8 @@
 == Changelog ==
 
+= 3.0.8.6 =
+* Fixed: Custom login page redirects to the default WordPress login page when incorrect credentials are entered.
+
 = 3.0.8.5 =
 * Fixed: Cookie issue
 

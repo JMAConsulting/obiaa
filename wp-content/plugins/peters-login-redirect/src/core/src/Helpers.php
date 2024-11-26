@@ -124,7 +124,7 @@ class Helpers
     {
         $variable_value = apply_filters('rul_replace_variable', false, $variable, $user);
 
-        if ( ! $variable_value) {
+        if (!$variable_value) {
             // Return the permalink of the post ID
             if (0 === strpos($variable, 'postid-')) {
                 $post_id   = str_replace('postid-', '', $variable);
@@ -137,12 +137,12 @@ class Helpers
                     case 'user_id':
                         $variable_value = absint($user->ID);
                         break;
-                    // Returns the current user's username (only use this if you know they're logged in)
+                        // Returns the current user's username (only use this if you know they're logged in)
                     case 'username':
                         $variable_value = rawurlencode($user->user_login);
                         break;
-                    // Returns the current user's author slug aka nickname as used in URLs
-                    // sanitize_title should not be required here since it was already done on insert
+                        // Returns the current user's author slug aka nickname as used in URLs
+                        // sanitize_title should not be required here since it was already done on insert
                     case 'userslug':
                     case 'user_slug':
                         $variable_value = $user->user_nicename;
@@ -154,8 +154,8 @@ class Helpers
                     case 'website_url':
                         $variable_value = home_url();
                         break;
-                    // Returns the login referrer in order to redirect back to the same page
-                    // Note that this will not work if the referrer is the same as the login processor (otherwise in a standard setup you'd redirect to the login form)
+                        // Returns the login referrer in order to redirect back to the same page
+                        // Note that this will not work if the referrer is the same as the login processor (otherwise in a standard setup you'd redirect to the login form)
                     case 'http_referer':
                         $referer        = wp_get_referer();
                         $variable_value = (false != $referer) ? $referer : '';
@@ -179,14 +179,14 @@ class Helpers
 
         preg_match_all("/\{\{(.*?)\}\}/is", $string, $out2);
 
-        if ( ! empty($out[0])) {
+        if (!empty($out[0])) {
             foreach ($out[0] as $instance => $full_match) {
                 $replaced_variable = self::rul_get_variable($out[1][$instance], $user);
                 $string            = str_replace($full_match, $replaced_variable, $string);
             }
         }
 
-        if ( ! empty($out2[0])) {
+        if (!empty($out2[0])) {
             foreach ($out2[0] as $instance => $full_match) {
                 $replaced_variable = self::rul_get_variable($out2[1][$instance], $user);
                 $string            = str_replace($full_match, $replaced_variable, $string);
@@ -232,7 +232,7 @@ class Helpers
             }
         }
 
-        if ( ! $setting) return $rul_settings;
+        if (!$setting) return $rul_settings;
 
         if ($setting && isset($rul_settings[$setting])) return $rul_settings[$setting];
 
@@ -243,7 +243,7 @@ class Helpers
     {
         global $wpdb;
 
-        if ( ! self::is_run_core_rules_before_others()) {
+        if (!self::is_run_core_rules_before_others()) {
 
             $rul_custom_redirect = apply_filters('rul_before_user', false, $redirect_to, $requested_redirect_to, $user);
 
@@ -255,9 +255,9 @@ class Helpers
         // Check for a redirect rule for this user
         $rul_user = $wpdb->get_row('SELECT id, rul_url FROM ' . PTR_LOGINWP_DB_TABLE . ' WHERE rul_type = \'user\' AND rul_value = \'' . $user_login . '\' LIMIT 1', ARRAY_A);
 
-        if ( ! empty($rul_user['rul_url']) && self::first_time_logic_check($rul_user['id'], $user)) {
+        if (!empty($rul_user['rul_url']) && self::first_time_logic_check($rul_user['id'], $user)) {
             $url = self::rul_replace_variable($rul_user['rul_url'], $user);
-            if ( ! empty($url)) return $url;
+            if (!empty($url)) return $url;
         }
 
         $rul_custom_redirect = apply_filters('rul_before_role', false, $redirect_to, $requested_redirect_to, $user);
@@ -267,17 +267,17 @@ class Helpers
         // Check for a redirect rule that matches this user's role
         $rul_roles = $wpdb->get_results('SELECT id, rul_value, rul_url FROM ' . PTR_LOGINWP_DB_TABLE . ' WHERE rul_type = \'role\' ORDER BY rul_order, rul_value', OBJECT);
 
-        if ( ! empty($rul_roles)) {
+        if (!empty($rul_roles)) {
 
             foreach ($rul_roles as $rul_role) {
 
                 if (
-                    ! empty($rul_role->rul_url) &&
+                    !empty($rul_role->rul_url) &&
                     isset($user->{$wpdb->prefix . 'capabilities'}[$rul_role->rul_value]) &&
                     self::first_time_logic_check($rul_role->id, $user)
                 ) {
                     $url = self::rul_replace_variable($rul_role->rul_url, $user);
-                    if ( ! empty($url)) return $url;
+                    if (!empty($url)) return $url;
                 }
             }
         }
@@ -293,12 +293,12 @@ class Helpers
 
             foreach ($rul_levels as $rul_level) {
                 if (
-                    ! empty($rul_level->rul_url) &&
+                    !empty($rul_level->rul_url) &&
                     self::redirect_current_user_can($rul_level->rul_value, $user) &&
                     self::first_time_logic_check($rul_level->id, $user)
                 ) {
                     $url = self::rul_replace_variable($rul_level->rul_url, $user);
-                    if ( ! empty($url)) return $url;
+                    if (!empty($url)) return $url;
                 }
             }
         }
@@ -320,7 +320,7 @@ class Helpers
 
             $url = self::rul_replace_variable($rul_all, $user);
 
-            if ( ! empty($url)) return $url;
+            if (!empty($url)) return $url;
         }
 
         return $redirect_to;
@@ -337,14 +337,17 @@ class Helpers
         static $cache = [];
 
         $cache_key = sprintf('%s_%s', $rule_id, $user->ID);
+        $cache_user_key = sprintf('%s', $user->ID);
 
-        if ( ! isset($cache[$cache_key])) {
+        if (!isset($cache[$cache_key])) {
 
             $cache[$cache_key] = true;
 
             $val = self::get_meta($rule_id, self::FIRST_LOGIN_DB_KEY);
 
             if ('true' == loginwp_var($val, 'value')) {
+
+                if (isset($cache[$cache_user_key])) return $cache[$cache_key];
 
                 $cache[$cache_key] = false;
 
@@ -355,6 +358,7 @@ class Helpers
 
                     if (get_user_meta($user->ID, 'loginwp_first_time_login_flag', true) != 'yes') {
                         $cache[$cache_key] = true;
+                        $cache[$cache_user_key] = true;
                         update_user_meta($user->ID, 'loginwp_first_time_login_flag', 'yes');
                     }
                 }
@@ -380,14 +384,14 @@ class Helpers
         // Check for a redirect rule for this user
         $rul_user = $wpdb->get_row('SELECT id, rul_url_logout FROM ' . PTR_LOGINWP_DB_TABLE . ' WHERE rul_type = \'user\' AND rul_value = \'' . $user_login . '\' LIMIT 1', ARRAY_A);
 
-        if ( ! empty($rul_user['rul_url_logout']) && self::first_time_logic_check($rul_user['id'], $user)) {
+        if (!empty($rul_user['rul_url_logout']) && self::first_time_logic_check($rul_user['id'], $user)) {
             $url = self::rul_replace_variable($rul_user['rul_url_logout'], $user);
-            if ( ! empty($url)) return $url;
+            if (!empty($url)) return $url;
         }
 
         $rul_custom_redirect = apply_filters('rul_before_role_logout', false, $requested_redirect_to, $user);
 
-        if ( ! empty($rul_custom_redirect)) return self::rul_replace_variable($rul_custom_redirect, $user);
+        if (!empty($rul_custom_redirect)) return self::rul_replace_variable($rul_custom_redirect, $user);
 
         // Check for a redirect rule that matches this user's role
         $rul_roles = $wpdb->get_results('SELECT id, rul_value, rul_url_logout FROM ' . PTR_LOGINWP_DB_TABLE . ' WHERE rul_type = \'role\' ORDER BY rul_order, rul_value', OBJECT);
@@ -403,7 +407,7 @@ class Helpers
 
                     $url = self::rul_replace_variable($rul_role->rul_url_logout, $user);
 
-                    if ( ! empty($url)) return $url;
+                    if (!empty($url)) return $url;
                 }
             }
         }
@@ -424,7 +428,7 @@ class Helpers
                 ) {
                     $url = self::rul_replace_variable($rul_level->rul_url_logout, $user);
 
-                    if ( ! empty($url)) return $url;
+                    if (!empty($url)) return $url;
                 }
             }
         }
@@ -440,7 +444,7 @@ class Helpers
 
             $url = self::rul_replace_variable($rul_all, $user);
 
-            if ( ! empty($url)) return $url;
+            if (!empty($url)) return $url;
         }
 
         return false;
@@ -452,13 +456,13 @@ class Helpers
 
         static $cache = [];
 
-        if ( ! isset($cache[$rule_id])) {
+        if (!isset($cache[$rule_id])) {
 
             $table = PTR_LOGINWP_DB_TABLE;
 
             $value = $wpdb->get_var($wpdb->prepare("SELECT meta_data FROM $table WHERE id = %d", $rule_id));
 
-            $cache[$rule_id] = ! empty($value) && loginwp_is_json($value) ? \json_decode($value, true) : [];
+            $cache[$rule_id] = !empty($value) && loginwp_is_json($value) ? \json_decode($value, true) : [];
         }
 
         return $cache[$rule_id];
