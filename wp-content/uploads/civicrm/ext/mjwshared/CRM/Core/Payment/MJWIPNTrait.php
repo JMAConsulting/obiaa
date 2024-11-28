@@ -303,7 +303,7 @@ trait CRM_Core_Payment_MJWIPNTrait {
    *
    * @param array $repeatContributionParams
    *
-   * @return int
+   * @return int The new Contribution ID
    * @throws \CRM_Core_Exception
    * @throws \Civi\Payment\Exception\PaymentProcessorException
    */
@@ -387,6 +387,8 @@ trait CRM_Core_Payment_MJWIPNTrait {
    *
    * @throws \CRM_Core_Exception
    * @throws \Civi\Payment\Exception\PaymentProcessorException
+   *
+   * @deprecated Was used in Stripe until 6.11
    */
   private function updateContribution($params) {
     $this->checkRequiredParams('updateContribution', ['contribution_id'], $params);

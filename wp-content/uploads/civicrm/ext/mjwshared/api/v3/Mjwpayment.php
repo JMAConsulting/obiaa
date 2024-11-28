@@ -134,6 +134,7 @@ function civicrm_api3_mjwpayment_get_contribution($params) {
  */
 function _civicrm_api3_mjwpayment_get_payment_spec(&$params) {
   _civicrm_api3_payment_get_spec($params);
+
 }
 
 /**

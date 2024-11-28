@@ -3,7 +3,8 @@
 use CRM_Mjwshared_ExtensionUtil as E;
 use Civi\Test\HeadlessInterface;
 use Civi\Test\HookInterface;
-use Civi\Test\TransactionalInterface;
+
+require_once(__DIR__ . '/../../../../../CRM/Core/Payment/MJWTrait.php');
 
 /**
  * Test trait functionalty
@@ -19,7 +20,7 @@ use Civi\Test\TransactionalInterface;
  *
  * @group headless
  */
-class CRM_Core_Payment_MJWTraitTest extends \PHPUnit\Framework\TestCase implements HeadlessInterface, HookInterface, TransactionalInterface {
+class CRM_Core_Payment_MJWTraitTest extends CiviUnitTestCase implements HeadlessInterface, HookInterface {
 
   public function setUpHeadless() {
     // Civi\Test has many helpers, like install(), uninstall(), sql(), and sqlFile().
@@ -29,11 +30,13 @@ class CRM_Core_Payment_MJWTraitTest extends \PHPUnit\Framework\TestCase implemen
       ->apply();
   }
 
-  public function setUp() {
+  public function setUp(): void {
     parent::setUp();
   }
 
-  public function tearDown() {
+  public function tearDown(): void {
+    $this->quickCleanUpFinancialEntities();
+    $this->quickCleanup(['civicrm_contact', 'civicrm_email']);
     parent::tearDown();
   }
 
@@ -46,17 +49,16 @@ class CRM_Core_Payment_MJWTraitTest extends \PHPUnit\Framework\TestCase implemen
 
     // First test selection logic when emails are provided in the input array.
     $emails = [
-      "email" => 'other@example.com',
-      "email-Primary" => 'primary@example.com',
+      'email' => 'other@example.com',
+      'email-Primary' => 'primary@example.com',
       "email-$billingLocationId" => 'billing@example.com',
     ];
     $this->assertEquals('billing@example.com',
       $t->getBillingEmail($emails, NULL)
     );
 
-
     array_pop($emails);
-    $this->assertEquals('primary@example.com',
+    $this->assertEquals('other@example.com',
       $t->getBillingEmail($emails, NULL)
     );
 
@@ -66,13 +68,13 @@ class CRM_Core_Payment_MJWTraitTest extends \PHPUnit\Framework\TestCase implemen
     );
 
     // Test that without a contact nor emails, we return null.
-    $this->assertNull($t->getBillingEmail([], NULL));
+    $this->assertEmpty($t->getBillingEmail([], NULL));
 
     // Next test selection logic when emails are not in the input array.
     $contact_id = civicrm_api3('Contact', 'create', ['contact_type' => 'Individual', 'display_name' => 'test contact'])['id'];
 
     // It should return NULL for a contact that has no emails.
-    $this->assertNull($t->getBillingEmail([], $contact_id));
+    $this->assertEmpty($t->getBillingEmail([], $contact_id));
 
     // It should be able to find a single email.
     $email_id_1 = civicrm_api3('Email', 'create', [
@@ -89,7 +91,7 @@ class CRM_Core_Payment_MJWTraitTest extends \PHPUnit\Framework\TestCase implemen
       'contact_id' => $contact_id,
       'email' => 'another@example.com',
     ])['id'];
-    $this->assertRegexp(
+    $this->assertMatchesRegularExpression(
       '/^(an)?other@example.com$/',
       $t->getBillingEmail([], $contact_id),
       'Failed looking up an email for a contact that has more than one.'
@@ -124,5 +126,5 @@ class CRM_Core_Payment_MJWTraitTest extends \PHPUnit\Framework\TestCase implemen
 }
 
 class TheTrait {
-  use CRM_Core_Payment_MJWTrait;
+  use \CRM_Core_Payment_MJWTrait;
 }

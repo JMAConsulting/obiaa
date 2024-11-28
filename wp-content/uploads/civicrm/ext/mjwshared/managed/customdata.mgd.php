@@ -1,7 +1,7 @@
 <?php
 use CRM_Mjwshared_ExtensionUtil as E;
 
-// This enables custom fields for Grant entities
+// This enables custom fields for FinancialTrxn entities
 return [
   [
     'name' => 'CustomGroup_Payment_details',
