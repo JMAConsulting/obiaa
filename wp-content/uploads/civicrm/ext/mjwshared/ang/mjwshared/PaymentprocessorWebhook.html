@@ -38,6 +38,25 @@
               class="crm-form-text"
               />
           </div>
+
+          <div crm-ui-field="{name: 'myForm.identifier', title: ts('Search identifier')}">
+            <input
+                crm-ui-id="myForm.identifier"
+                name="identifier"
+                ng-model="$ctrl.identifierFilter"
+                class="crm-form-text"
+                />
+          </div>
+
+          <div crm-ui-field="{name: 'myForm.raw', title: ts('Search raw data')}">
+            <input
+              crm-ui-id="myForm.raw"
+              name="raw"
+              ng-model="$ctrl.rawFilter"
+              class="crm-form-text"
+              />
+          </div>
+
         </div>
       </div>
 

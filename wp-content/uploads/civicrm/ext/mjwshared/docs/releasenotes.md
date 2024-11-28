@@ -23,10 +23,10 @@ Releases use the following numbering system:
 ## Release 1.3 (2024-07-17)
 
 * Add new API4 functions:
-  * ContributionRecur.updateAmountOnRecurMJW
-  * Membership.LinkToRecurMJW
-  * Membership.UnlinkFromRecurMJW
-  * PriceFieldValue.GetDefaultPriceFieldValueForContributionMJW
+  * ContributionRecur.updateAmountOnRecurMJW 
+  * Membership.LinkToRecurMJW 
+  * Membership.UnlinkFromRecurMJW 
+  * PriceFieldValue.GetDefaultPriceFieldValueForContributionMJW 
   * PriceFieldValue.GetDefaultPriceFieldValueForMembershipMJW
   * PaymentMJW.create
 
