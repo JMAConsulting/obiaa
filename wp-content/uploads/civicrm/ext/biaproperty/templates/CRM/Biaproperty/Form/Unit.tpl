@@ -1,7 +1,6 @@
 {crmScope extensionKey='biaproperty'}
 {if $action eq 8}
   {* Are you sure to delete form *}
-  <h3>{ts}Delete Unit{/ts}</h3>
   <div class="crm-block crm-form-block">
     <div class="crm-section">{ts}Are you sure you wish to delete this unit?{/ts}</div>
   </div>
