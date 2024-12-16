@@ -15,15 +15,23 @@ class CRM_Obiaareport_Form_Report_EmploymentReport extends CRM_Report_Form {
   public $optimisedForOnlyFullGroupBy = FALSE;
 
   public function __construct() {
-    $currentQuater = ceil(date("m", time())/3);
+    $currentMonth = (int) date('m');
     $season = [
       1 => 'Winter_Seasonal_Workers',
-      2 => 'Spring_Seasonal_Workers',
-      3 => 'Summer_Seasonal_Workers',
-      4 => 'Fall_Seasonal_Workers',
+      2 => 'Winter_Seasonal_Workers',
+      3 => 'Spring_Seasonal_Workers',
+      4 => 'Spring_Seasonal_Workers',
+      5 => 'Spring_Seasonal_Workers',
+      6 => 'Summer_Seasonal_Workers',
+      7 => 'Summer_Seasonal_Workers',
+      8 => 'Summer_Seasonal_Workers',
+      9 => 'Fall_Seasonal_Workers',
+      10 => 'Fall_Seasonal_Workers',
+      11 => 'Fall_Seasonal_Workers',
+      12 => 'Winter_Seasonal_Workers',
     ];
 
-    $cfFilter = \Civi\Api4\CustomField::get()->addWhere('name', '=', $season[$currentQuater])->execute()->first();
+    $cfFilter = \Civi\Api4\CustomField::get()->addWhere('name', '=', $season[$currentMonth])->execute()->first();
     $this->_customFieldColumnName = $cfFilter['column_name'];
     $this->_columns = array(
       'civicrm_unit' => array(
