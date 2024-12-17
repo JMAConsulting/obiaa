@@ -20,7 +20,7 @@
  * @property string $source_record_id 
  * @property string $source_record 
  */
-class CRM_Biaproperty_DAO_Unit extends CRM_Biaproperty_DAO_Base {
+class CRM_Biaproperty_DAO_Unit extends CRM_Core_DAO_Base {
 
   /**
    * Required by older versions of CiviCRM (<5.74).

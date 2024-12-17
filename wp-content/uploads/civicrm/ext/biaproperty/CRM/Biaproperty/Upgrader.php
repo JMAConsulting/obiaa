@@ -309,6 +309,30 @@ class CRM_Biaproperty_Upgrader extends CRM_Extension_Upgrader_Base {
     return TRUE;
   }
 
+  public function upgrade_2207(): bool {
+    $this->ctx->log->info('Apply Update to the Contact Unit Search Display to add delete link');
+    $searchDisplay = \Civi\Api4\SearchDisplay::get(FALSE)->addWhere('saved_search_id', '=', 18)->execute()->first();
+    foreach ($searchDisplay['settings']['columns'] as $key => $column) {
+      if (isset($column['links'])) {
+        $searchDisplay['settings']['columns'][$key]['links'][] = [
+          'task' => '',
+          'entity' => '',
+          'join' => '',
+          'target' => 'crm-popup',
+          'icon' => 'fa-trash-can',
+          'text' => E::ts('Delete Unit'),
+          'style' => 'default',
+          'path' => 'civicrm/unit/form?&reset=1&action=delete&context=contactUnit&id=[id]&bid=[GROUP_CONCAT_Unit_UnitBusiness_unit_id_01_UnitBusiness_Contact_business_id_01_id]',
+          'action' => '',
+          'condition' => [],
+        ];
+      }
+    }
+    \Civi\Api4\SearchDisplay::update(FALSE)->addValue('settings', $searchDisplay['settings'])->addWhere('id', '=', $searchDisplay['id'])->execute();
+    return TRUE;
+  }
+
+
   /**
    * Example: Run an external SQL script.
    *
