@@ -9,9 +9,9 @@ use Civi\Api4\Unit;
 
 class CRM_Biaproperty_Utils {
 
-  public static function closeBusiness() {
-    $bid = CRM_Utils_Type::escape($_GET['bid'], 'Positive');
-    $uid = CRM_Utils_Type::escape($_GET['uid'], 'Positive', FALSE);
+  public static function closeBusiness($bid, $uid, $date = NULL) {
+//    $bid = CRM_Utils_Type::escape($_GET['bid'], 'Positive');
+//    $uid = CRM_Utils_Type::escape($_GET['uid'], 'Positive', FALSE);
     if (!$bid) {
       CRM_Core_Error::statusBounce(ts('Missing contact ID'));
     }
@@ -30,6 +30,7 @@ class CRM_Biaproperty_Utils {
 
       Activity::create(FALSE)
         ->addValue('activity_type_id:name', 'Business closed')
+        ->addValue('activity_date_time', date('YmdHis', strtotime($date)))
         ->addValue('target_contact_id', $bid)
         ->addValue('assignee_contact_id', $bid)
         ->addValue('source_contact_id', CRM_Core_Session::getLoggedInContactID())
@@ -46,7 +47,8 @@ class CRM_Biaproperty_Utils {
         ->execute()->first()['contact_sub_type:name'];
       unset($cts[array_search('Members_Businesses_', $cts)]);
       Contact::update(FALSE)
-        ->addValue('id', $bid)
+        ->addWhere('id', '=', $bid)
+        ->addValue('Business_Details.Close_Date', $date)
         ->addValue('contact_sub_type', $cts)
         ->execute();
     }

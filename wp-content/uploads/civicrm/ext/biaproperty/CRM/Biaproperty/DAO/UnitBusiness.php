@@ -12,7 +12,7 @@
  * @property string $unit_id 
  * @property string $business_id 
  */
-class CRM_Biaproperty_DAO_UnitBusiness extends CRM_Biaproperty_DAO_Base {
+class CRM_Biaproperty_DAO_UnitBusiness extends CRM_Core_DAO_Base {
 
   /**
    * Required by older versions of CiviCRM (<5.74).

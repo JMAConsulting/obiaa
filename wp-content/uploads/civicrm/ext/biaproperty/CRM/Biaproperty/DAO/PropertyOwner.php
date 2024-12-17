@@ -13,7 +13,7 @@
  * @property string $owner_id 
  * @property bool|string $is_voter 
  */
-class CRM_Biaproperty_DAO_PropertyOwner extends CRM_Biaproperty_DAO_Base {
+class CRM_Biaproperty_DAO_PropertyOwner extends CRM_Core_DAO_Base {
 
   /**
    * Required by older versions of CiviCRM (<5.74).
