@@ -115,13 +115,17 @@ class CRM_Obiaareport_Form_Report_EmploymentReport extends CRM_Report_Form {
       $total = 0;
       $newRows[$key] = ['civicrm_unit_emp_range' => '<b>' . $label . '</b>'];
       foreach ($rows as $row) {
+        //this is for full time employee where emp range might be blank
+        if (empty($row['civicrm_unit_emp_range']) && !empty($row['civicrm_unit_full_time_employees'])) {
+          $row['civicrm_unit_emp_range'] = array_search($row['civicrm_unit_full_time_employees'], $options);
+        }
         if (!empty($row['civicrm_unit_emp_range']) && isset($row['civicrm_unit_' . $row['civicrm_unit_emp_range']])) {
           if ($key == 'civicrm_unit_number'){
             $newRows[$key]['civicrm_unit_' . $row['civicrm_unit_emp_range']] =  (int) $row['civicrm_unit_emp_count'];
             $total += (int) $row['civicrm_unit_emp_count'];
           }
           else {
-            $newRows[$key]['civicrm_unit_' . $row['civicrm_unit_emp_range']] = (($options[$row['civicrm_unit_emp_range']] + $row['full_time_employees']) * $row['civicrm_unit_emp_count']) + ($row['civicrm_unit_sole_proprietor_58'] ?? 0);
+            $newRows[$key]['civicrm_unit_' . $row['civicrm_unit_emp_range']] = (($options[$row['civicrm_unit_emp_range']] + $row['civicrm_unit_full_time_employees']) * $row['civicrm_unit_emp_count']) + ($row['civicrm_unit_sole_proprietor_58'] ?? 0);
             $total += $newRows[$key]['civicrm_unit_' . $row['civicrm_unit_emp_range']];
           }
         }
