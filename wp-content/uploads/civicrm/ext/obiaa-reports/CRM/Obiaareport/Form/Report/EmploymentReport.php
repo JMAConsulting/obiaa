@@ -46,7 +46,7 @@ class CRM_Obiaareport_Form_Report_EmploymentReport extends CRM_Report_Form {
             'required' => TRUE,
             'no_display' => TRUE,
             'title' => E::ts('Employment Count'),
-            'dbAlias' => 'COUNT(DISTINCT cg.entity_id)',
+            'dbAlias' => 'cg.entity_id',
           ),
           'sole_proprietor_58' => array(
             'required' => TRUE,
@@ -97,7 +97,7 @@ class CRM_Obiaareport_Form_Report_EmploymentReport extends CRM_Report_Form {
   }
 
   public function groupBy() {
-    $this->_groupBy = 'GROUP BY ov.label';
+    $this->_groupBy = 'GROUP BY ov.label, cg.entity_id';
   }
 
   public function alterDisplay(&$rows) {
@@ -121,12 +121,12 @@ class CRM_Obiaareport_Form_Report_EmploymentReport extends CRM_Report_Form {
         }
         if (!empty($row['civicrm_unit_emp_range']) && isset($row['civicrm_unit_' . $row['civicrm_unit_emp_range']])) {
           if ($key == 'civicrm_unit_number'){
-            $newRows[$key]['civicrm_unit_' . $row['civicrm_unit_emp_range']] =  (int) $row['civicrm_unit_emp_count'];
-            $total += (int) $row['civicrm_unit_emp_count'];
+            $newRows[$key]['civicrm_unit_' . $row['civicrm_unit_emp_range']] += (int) $row['civicrm_unit_emp_count'] ?? 0;
+            $total += (int) $row['civicrm_unit_emp_count'] ?? 0;
           }
           else {
-            $newRows[$key]['civicrm_unit_' . $row['civicrm_unit_emp_range']] = (($options[$row['civicrm_unit_emp_range']] + $row['civicrm_unit_full_time_employees']) * $row['civicrm_unit_emp_count']) + ($row['civicrm_unit_sole_proprietor_58'] ?? 0);
-            $total += $newRows[$key]['civicrm_unit_' . $row['civicrm_unit_emp_range']];
+            $newRows[$key]['civicrm_unit_' . $row['civicrm_unit_emp_range']] += (($options[$row['civicrm_unit_emp_range']] + $row['civicrm_unit_full_time_employees']) * $row['civicrm_unit_emp_count']) + ($row['civicrm_unit_sole_proprietor_58'] ?? 0);
+            $total += (($options[$row['civicrm_unit_emp_range']] + $row['civicrm_unit_full_time_employees']) * $row['civicrm_unit_emp_count']) + ($row['civicrm_unit_sole_proprietor_58'] ?? 0);
           }
         }
       }
