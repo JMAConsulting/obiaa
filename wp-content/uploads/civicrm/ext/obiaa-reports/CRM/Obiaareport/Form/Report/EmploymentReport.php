@@ -46,7 +46,7 @@ class CRM_Obiaareport_Form_Report_EmploymentReport extends CRM_Report_Form {
             'required' => TRUE,
             'no_display' => TRUE,
             'title' => E::ts('Employment Count'),
-            'dbAlias' => 'cg.entity_id',
+            'dbAlias' => 'COUNT(DISTINCT cg.entity_id)',
           ),
           'sole_proprietor_58' => array(
             'required' => TRUE,
