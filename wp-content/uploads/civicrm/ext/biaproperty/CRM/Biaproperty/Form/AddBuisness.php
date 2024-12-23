@@ -57,7 +57,7 @@ class CRM_Biaproperty_Form_AddBuisness extends CRM_Core_Form {
         CRM_Utils_System::redirect(CRM_Utils_System::url('civicrm/contact/view',  ['reset' => 1, 'cid' => $this->_bid, 'selectedChild' => 'afsearchUnit1']));
       }
       if (!empty($this->_bid)) {
-        $subTypes = Contact::get(FALSE)->addSelect('contact_sub_type:label')->addWhere('id', '=', $this->_bid)->execute()->first()['contact_sub_type:label'];
+        $subTypes = Contact::get(FALSE)->addSelect('contact_sub_type:label')->addWhere('id', '=', $this->_bid)->execute()->first()['contact_sub_type:label'] ?? [];
         if (in_array('BIA Staff', $subTypes) || in_array('Government Staff/Member', $subTypes)) {
           CRM_Core_Error::statusBounce(E::ts('You cannot choose business contact of type Staff or Government Staff/Member'));
         }
@@ -84,7 +84,7 @@ class CRM_Biaproperty_Form_AddBuisness extends CRM_Core_Form {
         }
       }
       if (!empty($fields['business_id'])) {
-         $subTypes = Contact::get(FALSE)->addSelect('contact_sub_type:label')->addWhere('id', '=', $fields['business_id'])->execute()->first()['contact_sub_type:label'];
+         $subTypes = Contact::get(FALSE)->addSelect('contact_sub_type:label')->addWhere('id', '=', $fields['business_id'])->execute()->first()['contact_sub_type:label'] ?? [];
          if (in_array('BIA Staff', $subTypes) || in_array('Government Staff/Member', $subTypes)) {
            $errors['business_id'] = E::ts('You cannot choose business contact of type Staff or Government Staff/Member');
          }
