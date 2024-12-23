@@ -97,7 +97,11 @@ class CRM_Obiaareport_Form_Report_EmploymentReport extends CRM_Report_Form {
   }
 
   public function groupBy() {
-    $this->_groupBy = 'GROUP BY ov.label, cg.entity_id';
+    $this->_groupBy = 'GROUP BY cg.entity_id';
+  }
+
+  public function limit($rowCount = NULL) {
+    return parent::limit(CRM_Core_DAO::singleValueQuery("SELECT COUNT(*) FROM civicrm_value_business_deta_5"));
   }
 
   public function alterDisplay(&$rows) {
