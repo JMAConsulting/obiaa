@@ -25,10 +25,23 @@ class CRM_Biaproperty_Form_CloseBusiness extends CRM_Core_Form {
 
     $this->_bid = CRM_Utils_Request::retrieve('bid', 'String', $this);
     $this->_uid = CRM_Utils_Request::retrieve('uid', 'String', $this);
+    CRM_Utils_System::setTitle(E::ts('Close business of %1', [1 => CRM_Contact_BAO_Contact::displayName($this->_bid)]));
   }
 
   public function buildQuickForm() {
     $this->add('datepicker', 'bia_closing_date', E::ts('Close in BIA Date'), [], TRUE, ['time' => FALSE]);
+
+    //default closing date to latest closing business activity date if any or current date
+    $activityDateTime = \Civi\Api4\Activity::get(FALSE)
+      ->addSelect('activity_date_time')
+      ->addWhere('activity_type_id:name', '=', 'Business closed')
+      ->addWhere('target_contact_id', '=', $this->_bid)
+      ->addOrderBy('id', 'DESC')
+      ->execute()
+      ->first()['activity_date_time'] ?? date('Y-m-d H:i:s');
+    $defaults = ['bia_closing_date' => $activityDateTime];
+    $this->setDefaults($defaults);
+
     $this->assign('elementNames', $this->getRenderableElementNames());
     $this->addButtons([
         [
