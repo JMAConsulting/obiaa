@@ -10,7 +10,6 @@ use CRM_Biaproperty_ExtensionUtil as E;
  * @see https://docs.civicrm.org/dev/en/latest/framework/api-architecture/
  */
 function _civicrm_api3_job_Geocodeunitaddress_spec(&$spec) {
-  $spec['magicword']['api.required'] = 1;
 }
 
 /**
@@ -26,20 +25,13 @@ function _civicrm_api3_job_Geocodeunitaddress_spec(&$spec) {
  * @throws CRM_Core_Exception
  */
 function civicrm_api3_job_Geocodeunitaddress($params) {
-  if (array_key_exists('magicword', $params) && $params['magicword'] == 'sesame') {
-    $returnValues = array(
-      // OK, return several data rows
-      12 => ['id' => 12, 'name' => 'Twelve'],
-      34 => ['id' => 34, 'name' => 'Thirty four'],
-      56 => ['id' => 56, 'name' => 'Fifty six'],
-    );
-    // ALTERNATIVE: $returnValues = []; // OK, success
-    // ALTERNATIVE: $returnValues = ["Some value"]; // OK, return a single value
+  $gc = new CRM_Biaproperty_GeocodeAddress($params);
 
-    // Spec: civicrm_api3_create_success($values = 1, $params = [], $entity = NULL, $action = NULL)
-    return civicrm_api3_create_success($returnValues, $params, 'Job', 'Geocodeunitaddress');
+  $result = $gc->run();
+  if ($result['is_error'] == 0) {
+    return civicrm_api3_create_success($result['messages']);
   }
   else {
-    throw new CRM_Core_Exception(/*error_message*/ 'Everyone knows that the magicword is "sesame"', /*error_code*/ 'magicword_incorrect');
+    return civicrm_api3_create_error($result['messages']);
   }
 }
