@@ -8,7 +8,7 @@ use CRM_CiviMobileAPI_ExtensionUtil as E;
  * @return array
  * @throws api_Exception
  */
-function civicrm_api3_civi_mobile_participant_payment_link_get($params) {
+function civicrm_api3_civi_mobile_participant_link_get($params) {
   $result[] = (new CRM_CiviMobileAPI_Api_CiviMobileParticipantLink_Get($params))->getResult();
   return civicrm_api3_create_success($result);
 }
@@ -16,7 +16,7 @@ function civicrm_api3_civi_mobile_participant_payment_link_get($params) {
 /**
  * @param $params
  */
-function _civicrm_api3_civi_mobile_participant_payment_link_get_spec(&$params) {
+function _civicrm_api3_civi_mobile_participant_link_get_spec(&$params) {
   $params['event_id'] = [
     'title' => 'Event id',
     'description' => E::ts('Event id'),

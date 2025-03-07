@@ -10,14 +10,25 @@
                 <td>
                     <div>
                         {$form.civimobile_openai_secret_key.html}
-                        {if $form.civimobile_openai_secret_key.description}
-                            <br/>
-                            <span class="description">{$form.civimobile_openai_secret_key.description}</span>
-                        {/if}
                     </div>
                     <div>
                         <p class="description">
-                            {$civiAiMessage}
+                            {ts}To use ChatGPT you must register at
+                                <a href="https://platform.openai.com/account/api-keys" target="_blank">openai.com</a>
+                                and create your own Secret Key'{/ts}
+                        </p>
+                    </div>
+                </td>
+            </tr>
+            <tr class="crm-group-form-block-isReserved">
+                <td class="label">{$form.civimobile_openai_model.label}</td>
+                <td>
+                    <div>
+                        {$form.civimobile_openai_model.html}
+                    </div>
+                    <div>
+                        <p class="description">
+                            {ts}Type your model name in format like this <strong>gpt-4o-mini</strong>{/ts}
                         </p>
                     </div>
                 </td>

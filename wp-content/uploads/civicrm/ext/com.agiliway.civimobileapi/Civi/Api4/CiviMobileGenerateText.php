@@ -5,22 +5,16 @@ namespace Civi\Api4;
 use CRM_Utils_Type;
 use CRM_CiviMobileAPI_ExtensionUtil as E;
 
-class CiviMobileGenerateEventDescription extends Generic\DAOEntity {
+class CiviMobileGenerateText extends Generic\DAOEntity {
 
   public static function getFields($checkPermissions = False) {
     return (new Generic\BasicGetFieldsAction(__CLASS__, __FUNCTION__, function ($getFieldsAction) {
       return [
         [
-          'title' => E::ts('Event title'),
-          'name' => 'title',
-          'data_type' => CRM_Utils_Type::T_STRING,
-          'required' => true
-        ],
-        [
-          'title' => E::ts('Event type'),
-          'name' => 'event_type',
-          'data_type' => CRM_Utils_Type::T_STRING,
-          'required' => true
+          'title' => E::ts('Params'),
+          'name' => 'params',
+          'data_type' => CRM_Utils_Type::T_TEXT,
+          'required' => false
         ],
         [
           'title' => E::ts('User input'),
@@ -33,7 +27,7 @@ class CiviMobileGenerateEventDescription extends Generic\DAOEntity {
   }
 
   public static function create($checkPermissions = False) {
-    return (new Action\CiviMobileGenerateEventDescription\Create(__CLASS__, __FUNCTION__));
+    return (new Action\CiviMobileGenerateText\Create(__CLASS__, __FUNCTION__));
   }
   
   public static function permissions() {

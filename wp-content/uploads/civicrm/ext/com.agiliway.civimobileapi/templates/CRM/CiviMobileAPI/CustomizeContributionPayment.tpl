@@ -14,6 +14,7 @@
       
     $('#content').siblings().hide();
     $('#content').parents().siblings().hide();
+    $('#crm-main-content-wrapper').parents().siblings().hide();
     $('.crm-public-footer').hide();
     $('.crm-section.crm-socialnetwork.help').hide();
     $('#printer-friendly').hide();
@@ -37,6 +38,10 @@
 
   <style>
     @media only screen and (max-width: 767px) {
+      :root {
+        --button-color: {/literal}{$buttonColor}{literal};
+      }
+
       body {
         font-size: 16px;
         line-height: 1.2;
@@ -172,13 +177,13 @@
       height: 35px;
     }
     #page .crm-submit-buttons .crm-button {
-      background: #5589B7;
+      background: var(--button-color);
       color: white;
       flex-grow: 1;
       display: flex;
       align-items: center;
       justify-content: center;
-      border: 2px solid #5589B7;
+      border: 2px solid var(--button-color);
     }
     #page .crm-submit-buttons .crm-button input {
       width: 100%;
@@ -193,9 +198,18 @@
     }
     #page .crm-submit-buttons .crm-button.crm-button-type-back {
       background: none;
-      color: #5589B7;
+      color: var(--button-color);
     }
     #page .crm-submit-buttons .crm-button .crm-i {
+      display: none;
+    }
+
+    #crm-container.crm-public #premiums-listings {
+      min-width: auto;
+      width: 100%;
+    }
+
+    .crm-not-you-message {
       display: none;
     }
   </style>

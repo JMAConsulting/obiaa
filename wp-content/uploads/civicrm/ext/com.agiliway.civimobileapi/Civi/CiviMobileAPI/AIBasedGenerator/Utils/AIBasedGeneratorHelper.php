@@ -10,14 +10,58 @@ class AIBasedGeneratorHelper {
 
   const OPENAI_URL = 'https://api.openai.com/v1/chat/completions';
 
-  public static function generate($title = '', $type = '', $userInputAndData = []) {
+  public static function generate($params = '', $userInputAndData = []) {
 
     $conversation = [];
 
-    if (!empty($title) && !empty($type)) {
+    $generateType = $params['generateType'];
+    $campaignText = !empty($params['campaign']) ? ", which is part of the '{$params['campaign']}' campaign" : "";
+    $message = 'Generate text in format for CKEDITOR for' ;
+    $plainMessage = 'Generate plain text without markdown for';
+    $betterMailingPrompt = 'Add styles to html elements itself to have proper support for mailing services and create more modern look.';
+
+    if ($generateType == 'event-description' && !empty($params['title']) && !empty($params['type'])) {
+      $message .= "'{$params['title']}' {$params['type']} event description.";
+    }
+    else if ($generateType == 'petition-introduction' && !empty($params['title'])) {
+      $message .= "an introduction for the petition titled '{$params['title']}'{$campaignText}.";
+    }
+    else if ($generateType == 'thank-you-message' && !empty($params['title']) && !empty($params['thank_you_title'])) {
+      $message .= "a thank-you message for the petition titled '{$params['title']}'{$campaignText}. The thank-you title is '{$params['thank_you_title']}'.";
+    }
+    else if ($generateType == 'survey-instructions' && !empty($params['title']) && !empty($params['activity_type'])) {
+      $message .= "survey instructions for interviewers for the survey titled '{$params['title']}'{$campaignText}. The survey activity type is '{$params['activity_type']}'.";
+    }
+    else if ($generateType == 'campaign-goals' && !empty($params['title']) && !empty($params['type'])) {
+      $message .= "campaign goals for '{$params['title']}' campaign with the campaign type '{$params['campaign_type']}'.";
+    }
+    else if ($generateType == 'campaign-description' && !empty($params['title']) && !empty($params['type'])) {
+      $message = "$plainMessage campaign description for title '{$params['title']}' with the campaign type '{$params['campaign_type']}'.";
+    }
+    else if (($generateType == 'mailing-html' || $generateType == 'contact-mail-html') && !empty($params['subject'])) {
+      $message .= "new mailing with subject '{$params['subject']}'. $betterMailingPrompt";
+    }
+    else if (($generateType == 'mailing-plain-text' || $generateType == 'contact-mail-plain-text') && !empty($params['subject'])) {
+      $message = "$plainMessage new mailing with subject '{$params['subject']}'.";
+    }
+    else if ($generateType == 'message-template-html' && !empty($params['title'])) {
+      $message .= "new message template for title '{$params['title']}'";
+      if ($params['subject']) {
+        $message .= " and subject '{$params['subject']}'.";
+      }
+      $message .= $betterMailingPrompt;
+    }
+    else if ($generateType == 'message-template-plain-text' && !empty($params['title'])) {
+      $message = "$plainMessage new message template for title '{$params['title']}'";
+      if ($params['subject']) {
+        $message .= " and subject '{$params['subject']}'.";
+      }
+    }
+
+    if (!empty($generateType)) {
       $conversation[] = [
         'role' => 'user',
-        'content' => "Generate text for '$title' $type event description."
+        'content' => $message . 'Do not add any instructions how to use it'
       ];
     }
 
@@ -28,7 +72,7 @@ class AIBasedGeneratorHelper {
     }
 
     $postFields = [
-      'model' => 'gpt-3.5-turbo',
+      'model' => Civi::settings()->get('civimobile_openai_model'),
       'messages' => $conversation,
     ];
 

@@ -322,6 +322,34 @@ class CRM_CiviMobileAPI_Page_PublicApi_Api extends CRM_CiviMobileAPI_Page_Public
       ]
     ],
     [
+      'entityName' => 'CiviMobileParticipantLink',
+      'availableActions' => [
+        [
+          'actionName' => 'get',
+          'actionPermissions' => ['view event info', 'register for events'],
+          'availableParams' => [
+            'event_id',
+            'contact_id',
+            'price_set',
+            'first_name',
+            'last_name',
+            'email',
+          ],
+          'availableReturnFields' => [
+            'link',
+            'participantPublicKey'
+          ],
+          'middleware' => [
+            [
+              'class' => 'CRM_CiviMobileAPI_Page_PublicApi_Middleware',
+              'method' => 'isAllowPublicInfoApi',
+            ],
+          ],
+          'transforms' => []
+        ]
+      ]
+    ],
+    [
       'entityName' => 'CiviMobileEventSession',
       'availableActions' => [
         [

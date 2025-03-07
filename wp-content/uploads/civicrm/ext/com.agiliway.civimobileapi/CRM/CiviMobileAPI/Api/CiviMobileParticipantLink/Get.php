@@ -2,7 +2,7 @@
 
 use CRM_CiviMobileAPI_ExtensionUtil as E;
 
-class CRM_CiviMobileAPI_Api_CiviMobileParticipantPaymentLink_Get extends CRM_CiviMobileAPI_Api_CiviMobileBase {
+class CRM_CiviMobileAPI_Api_CiviMobileParticipantLink_Get extends CRM_CiviMobileAPI_Api_CiviMobileBase {
 
   /**
    * @return array
@@ -23,6 +23,28 @@ class CRM_CiviMobileAPI_Api_CiviMobileParticipantPaymentLink_Get extends CRM_Civ
       if (!CRM_CiviMobileAPI_BAO_CivimobileEventPaymentInfo::deleteByHash($tmpData['cmb_hash'])) {
         throw new api_Exception(E::ts('Previous Payment cannot be deleted (hash=%1). Please complete payment', [1 => $tmpData['cmb_hash']]), 'participant_previous_payment_not_completed');
       }
+    }
+
+    $isSameEmail = civicrm_api4('Participant', 'get', [
+      'select' => [
+        '*',
+      ],
+      'join' => [
+        ['Email AS email', 'LEFT', ['contact_id', '=', 'email.contact_id']],
+      ],
+      'where' => [
+        ['event_id', '=', $this->validParams['event_id']],
+        ['email.email', '=', $this->validParams['email']],
+        ['event_id.allow_same_participant_emails', '=', FALSE]
+      ],
+      'groupBy' => [
+        'id',
+      ],
+      'checkPermissions' => FALSE,
+    ])->count();
+
+    if ($isSameEmail) {
+      throw new api_Exception(E::ts('User with same email already registered'), 'participant_with_same_email_exist');
     }
 
     if (!$this->validParams['contact_id']) {
@@ -106,22 +128,24 @@ class CRM_CiviMobileAPI_Api_CiviMobileParticipantPaymentLink_Get extends CRM_Civ
       }
     }
 
-    $priceSetId = CRM_Price_BAO_PriceSet::getFor(CRM_Event_BAO_Event::getTableName(), $eventId);
-    if (empty($priceSetId)) {
-      throw new api_Exception(E::ts('Can not get price set assigned to event.'), 'event_empty_price_set');
-    }
+    if (!empty($params['price_set'])) {
+      $priceSetId = CRM_Price_BAO_PriceSet::getFor(CRM_Event_BAO_Event::getTableName(), $eventId);
+      if (empty($priceSetId)) {
+        throw new api_Exception(E::ts('Can not get price set assigned to event.'), 'event_empty_price_set');
+      }
 
-    $priceSet = $this->getPriceSet($priceSetId);
-    if (empty($priceSet)) {
-      throw new api_Exception(E::ts('Can not get price set assigned to event.'), 'event_empty_price_set');
-    }
+      $priceSet = $this->getPriceSet($priceSetId);
+      if (empty($priceSet)) {
+        throw new api_Exception(E::ts('Can not get price set assigned to event.'), 'event_empty_price_set');
+      }
 
-    $priceSetFields = CRM_CiviMobileAPI_Utils_PriceSet::getFields($priceSetId);
-    if (empty($priceSetFields) && empty($priceSetFields['values'])) {
-      throw new api_Exception(E::ts('Can not get price set fields assigned to event.'), 'event_empty_price_set_fields');
-    }
+      $priceSetFields = CRM_CiviMobileAPI_Utils_PriceSet::getFields($priceSetId);
+      if (empty($priceSetFields) && empty($priceSetFields['values'])) {
+        throw new api_Exception(E::ts('Can not get price set fields assigned to event.'), 'event_empty_price_set_fields');
+      }
 
-    $this->validatePriceSetItems($selPriceSet, $priceSetFields['values']);
+      $this->validatePriceSetItems($selPriceSet, $priceSetFields['values']);
+    }
 
     return [
       'event_id' => $eventId,

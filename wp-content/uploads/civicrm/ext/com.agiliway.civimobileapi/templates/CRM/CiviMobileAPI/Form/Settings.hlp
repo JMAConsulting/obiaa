@@ -68,6 +68,9 @@
 {htxt id="is-allow-reset_password-help"}
   <p>{ts}By checking the checkbox you will allow reset password functionality in the mobile application.{/ts}</p>
 {/htxt}
+{htxt id="event-registration-button-color-help"}
+  <p>{ts}Here you can set the color for buttons that will be used during event registration in the CiviMobile app.{/ts}</p>
+{/htxt}
 
 {htxt id="push-notifications-messages-help-title"}
 {ts}Push notification Lifetime{/ts}

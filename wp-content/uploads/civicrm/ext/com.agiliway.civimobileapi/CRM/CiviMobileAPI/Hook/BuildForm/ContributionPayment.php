@@ -52,6 +52,7 @@ class CRM_CiviMobileAPI_Hook_BuildForm_ContributionPayment {
       $absURL = Civi::paths()->getUrl('[civicrm.root]/', 'absolute');
 
       $template->assign('absURL', $absURL);
+      $template->assign('buttonColor', (!empty(Civi::settings()->get('civimobile_event_registration_button_color'))) ? Civi::settings()->get('civimobile_event_registration_button_color') : "#5589B7");
 
       CRM_Core_Region::instance('page-body')->add([
         'template' => CRM_CiviMobileAPI_ExtensionUtil::path() . '/templates/CRM/CiviMobileAPI/CustomizeContributionPayment.tpl',

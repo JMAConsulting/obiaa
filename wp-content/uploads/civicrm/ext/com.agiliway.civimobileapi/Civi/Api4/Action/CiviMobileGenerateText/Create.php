@@ -1,6 +1,6 @@
 <?php
 
-namespace Civi\Api4\Action\CiviMobileGenerateEventDescription;
+namespace Civi\Api4\Action\CiviMobileGenerateText;
 
 
 use API_Exception;
@@ -16,13 +16,10 @@ class Create extends DAOCreateAction {
    * @return Result
    */
   public function _run(Result $result) {
-
-    $title = $this->getParams()['values']['title'];
-    $type = $this->getParams()['values']['type'];
-
-    $userInputAndData = $this->getParams()['values']['userInputAndData'];
-
-    $result[] = (new AIBasedGeneratorHelper())->generate($title, $type, $userInputAndData);
+    $result[] = (new AIBasedGeneratorHelper())->generate(
+      $this->getParams()['values']['params'],
+      $this->getParams()['values']['userInputAndData']
+    );
 
     return $result;
   }

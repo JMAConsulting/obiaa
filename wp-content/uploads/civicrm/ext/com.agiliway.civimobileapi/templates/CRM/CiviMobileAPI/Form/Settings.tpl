@@ -302,6 +302,15 @@
 
         </td>
       </tr>
+      <tr class="crm-group-form-block-isReserved">
+        <td class="label">{$form.civimobile_event_registration_button_color.label} {help id="event-registration-button-color-help"}</td>
+        <td>
+          <div style="display: flex; gap: 10px;">
+              {$form.civimobile_event_registration_button_color.html}
+              <input type="color" id="colorPicker" style="height: auto;" value="{$form.civimobile_event_registration_button_color.value}">
+          </div>
+        </td>
+      </tr>
       </tbody>
     </table>
   </div>
@@ -337,13 +346,16 @@
         }
 
         function handleFirebaseKey() {
-            var firebaseKey = $("input[name='civimobile_firebase_key']");
+            var firebaseKey = $("textarea[name='civimobile_firebase_key']");
             var serverKey = $("input[name='civimobile_server_key']");
+            var validateServerKey = $("button[name='_qf_Settings_submit']");
             if ($("input[name='civimobile_is_custom_app']:checked").val() != 1) {
                 firebaseKey.closest('tr').hide();
+                validateServerKey.show();
                 serverKey.closest('tr').show();
             } else {
                 serverKey.closest('tr').hide();
+                validateServerKey.hide();
                 firebaseKey.closest('tr').show();
             }
         }
@@ -390,6 +402,15 @@
             $(".itemsToShow").html(shownItems.join(", "));
         }
 
+    });
+    
+    CRM.$(function($) {
+      let initialColor = $('input[name="civimobile_event_registration_button_color"]').val();
+      $('#colorPicker').val(initialColor);
+
+      $('#colorPicker').on('input change', function() {
+        $('input[name="civimobile_event_registration_button_color"]').val($(this).val());
+      });
     });
 </script>
 {/literal}

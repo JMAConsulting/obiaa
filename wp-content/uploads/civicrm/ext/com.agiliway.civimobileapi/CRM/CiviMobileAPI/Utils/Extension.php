@@ -114,11 +114,7 @@ class CRM_CiviMobileAPI_Utils_Extension {
    * @return bool
    */
   public static function hasExtensionRightFolderName() {
-    $infoFilePath = CRM_Core_Config::singleton()->extensionsDir . CRM_CiviMobileAPI_ExtensionUtil::LONG_NAME . '/civimobileapi.php';
-    if (file_exists($infoFilePath)) {
-      return TRUE;
-    }
-    return FALSE;
+    return file_exists(E::path('civimobileapi.php'));
   }
 
   /**
