@@ -178,23 +178,33 @@ function civimobileapi_civicrm_alterAPIPermissions($entity, $action, &$params, &
 function civimobileapi_civicrm_pageRun(&$page) {
   civimobile_add_qr_popup();
 
+
   $pageName = $page->getVar('_name');
-  if ($pageName == 'CRM_Event_Page_EventInfo') {
-    if (CRM_CiviMobileAPI_Utils_Agenda_AgendaConfig::isAgendaActiveForEvent(CRM_Utils_Request::retrieve('id', 'Positive'))) {
-      $sessionsValues = CRM_CiviMobileAPI_Utils_Agenda_SessionSchedule::getEventSessionsValues(CRM_Utils_Request::retrieve('id', 'Positive'));
-      if (!empty($sessionsValues)) {
-        $smarty = CRM_Core_Smarty::singleton();
-        $smarty->assign('session_schedule_data', json_encode(CRM_CiviMobileAPI_Utils_Agenda_SessionSchedule::getSessionScheduleData(CRM_Utils_Request::retrieve('id', 'Positive'))));
-        CRM_Core_Region::instance('page-body')->add([
-          'template' => CRM_CiviMobileAPI_ExtensionUtil::path() . '/templates/CRM/CiviMobileAPI/Form/SessionSchedule.tpl',
-        ]);
+
+  if($pageName == 'Civi\Angular\Page\Main') {
+    civimobile_add_generate_description_popup();
+  }
+  else if ($pageName == 'CRM_Event_Page_EventInfo') {
+    $session = CRM_Core_Session::singleton();
+    if ($session->get('cmbHash')) {
+      CRM_CiviMobileAPI_Hook_BuildForm_Register::customizeEventRegistration();
+    }
+    else {
+      if (CRM_CiviMobileAPI_Utils_Agenda_AgendaConfig::isAgendaActiveForEvent(CRM_Utils_Request::retrieve('id', 'Positive'))) {
+        $sessionsValues = CRM_CiviMobileAPI_Utils_Agenda_SessionSchedule::getEventSessionsValues(CRM_Utils_Request::retrieve('id', 'Positive'));
+        if (!empty($sessionsValues)) {
+          $smarty = CRM_Core_Smarty::singleton();
+          $smarty->assign('session_schedule_data', json_encode(CRM_CiviMobileAPI_Utils_Agenda_SessionSchedule::getSessionScheduleData(CRM_Utils_Request::retrieve('id', 'Positive'))));
+          CRM_Core_Region::instance('page-body')->add([
+            'template' => CRM_CiviMobileAPI_ExtensionUtil::path() . '/templates/CRM/CiviMobileAPI/Form/SessionSchedule.tpl',
+          ]);
+        }
       }
     }
   }
-
-  if ($pageName == 'CRM_Event_Page_ManageEvent') {
+  else if ($pageName == 'CRM_Event_Page_ManageEvent') {
     $smarty = CRM_Core_Smarty::singleton();
-    foreach ($smarty->_tpl_vars["rows"] as $key => &$row) {
+    foreach ($smarty->get_template_vars()["rows"] as $key => &$row) {
       if ($key == 'tab') {
         continue;
       }
@@ -238,6 +248,17 @@ function civimobile_add_qr_popup() {
       ]);
     }
   }
+}
+
+/**
+ * Adds generate description popup to page-body
+ */
+function civimobile_add_generate_description_popup() {
+  $templatePath = realpath(dirname(__FILE__) . "/templates");
+
+  CRM_Core_Region::instance('page-footer')->add([
+    'template' => "{$templatePath}/CRM/CiviMobileAPI/generate-description-popup.tpl"
+  ]);
 }
 
 /**
@@ -469,6 +490,11 @@ function civimobileapi_civicrm_permission(&$permissionList) {
     'label' => $permissionsPrefix . 'CiviMobile ChatGPT access',
     'description' => E::ts("Allows to send requests to ChatGPT"),
   ];
+  
+  $permissionList['CiviMobile view all events'] = [
+    'label' => $permissionsPrefix . 'CiviMobile view all events',
+    'description' => E::ts("View all events including not public for authenticated user"),
+  ];
 
 }
 
@@ -607,8 +633,7 @@ function civimobileapi_civicrm_buildForm($formName, &$form) {
       'template' => CRM_CiviMobileAPI_ExtensionUtil::path() . '/templates/CRM/CiviMobileAPI/Block/IsAllowMobileRegistration.tpl'
     ]);
   }
-
-  if ($formName == 'CRM_Event_Form_ManageEvent_EventInfo') {
+  else if ($formName == 'CRM_Event_Form_ManageEvent_EventInfo') {
     if ($form->getAction() == CRM_Core_Action::ADD) {
       $templatePath = realpath(dirname(__FILE__) . "/templates");
 
@@ -631,8 +656,24 @@ function civimobileapi_civicrm_buildForm($formName, &$form) {
       'style' => '.custom-group-' . CRM_CiviMobileAPI_Install_Entity_CustomGroup::ALLOW_MOBILE_REGISTRATION . ' { display:none;}'
     ]);
   }
-
-  if ($formName == 'CRM_Event_Form_Participant' && $form->getAction() == CRM_Core_Action::ADD) {
+  else if ($formName == 'CRM_Campaign_Form_Petition' && !empty($form->urlPath) && $form->urlPath[2] == 'add') {
+      civimobile_add_generate_description_popup();
+  }
+  else if ($formName == 'CRM_Campaign_Form_Campaign') {
+    if (!empty($form->urlPath) && $form->urlPath[2] == 'add') {
+      civimobile_add_generate_description_popup();
+  }
+  else if ($formName == 'CRM_Admin_Form_MessageTemplates' && $form->getAction() == CRM_Core_Action::ADD) {
+      civimobile_add_generate_description_popup();
+  }
+  else if ($formName == 'CRM_Campaign_Form_Survey_Main' && $form->getAction() == CRM_Core_Action::ADD) {
+      civimobile_add_generate_description_popup();
+    }
+  }
+  else if ($formName == 'CRM_Contact_Form_Task_Email' && $form->getAction() == CRM_Core_Action::ADD) {
+    civimobile_add_generate_description_popup();
+  }
+  else if ($formName == 'CRM_Event_Form_Participant' && $form->getAction() == CRM_Core_Action::ADD) {
     $elementName = 'send_receipt';
     if ($form->elementExists($elementName)) {
       $element = $form->getElement($elementName);
@@ -667,28 +708,82 @@ function civimobileapi_civicrm_alterBadge(&$labelName, &$label, &$format, &$part
   }
 }
 
+function civimobileapi_civicrm_alterAngular($angular) {
+  $angular->add(\Civi\Angular\ChangeSet::create('civimobile-new-email-autogenerate')
+    ->alterHtml('~/crmMailing/EditMailingCtrl/2step.html', function(phpQueryObject $doc) {
+
+      $hasChatGptAccess = CRM_Core_Permission::check('CiviMobile ChatGPT access');
+      $additionalInfo = '<a class="helpicon" onclick="handleAutogenerateHelp()"></a>';
+
+      if ($hasChatGptAccess) {
+        $buttonHtml = getTextGenerationButton('mailing-html');
+        $buttonPlainText = getTextGenerationButton('mailing-plain-text');
+
+        $elements = $doc->find('div[crm-ui-accordion]');
+        $elements->eq(0)->prepend($buttonHtml . $additionalInfo);
+        $elements->eq(1)->prepend($buttonPlainText . $additionalInfo);
+      }
+    })
+  );
+}
+
 function civimobileapi_civicrm_alterContent(&$content, $context, $tplName, &$object) {
   if ($context == "form") {
+    $hasChatGptAccess = CRM_Core_Permission::check('CiviMobile ChatGPT access');
+    $additionalInfo = '<a class="helpicon" href="#" onclick="handleAutogenerateHelp()"></a>';
+
     if ($tplName == "CRM/Event/Form/ManageEvent/Location.tpl") {
       if (CRM_CiviMobileAPI_Utils_Agenda_AgendaConfig::isAgendaActiveForEvent($object->_id)) {
         $content = "<div class='status'>If you change the location for an event, all venues will be deleted from sessions.</div>" . $content;
       }
     }
-    if ($tplName == "CRM/Event/Form/ManageEvent/EventInfo.tpl") {
-      if (CRM_Core_Permission::check('CiviMobile ChatGPT access')) {
-        $isEmptyChatGptSecretKey = empty(Civi::settings()->get('civimobile_openai_secret_key'));
-        
-        $additionalInfo = '<a class="helpicon" href="#" onclick="CRM.help(ts(\'Autogenerate option\'), ts(\'Autogenerate option will give you opportunity to create Event description using extended AI functionality. Fill out required fields and press Autogenerate button. If you need, you can edit generated text in pop-up. If you are satisfied with result, save text and it will appear in your Event description\'))"></a>';
-        $buttonHtml = '<button id="generate-description" type="button" ' . ($isEmptyChatGptSecretKey ? 'disabled' : '') . '><i class="crm-i fa-spinner"></i> Autogenerate</button><span> </span>';
+    else if ($tplName == "CRM/Event/Form/ManageEvent/EventInfo.tpl") {
+      if ($hasChatGptAccess) {
+        $buttonHtml = getTextGenerationButton('event-description');
         
         $content = str_replace('<label for="description">Complete Description</label>', $buttonHtml . $additionalInfo . '<label for="summary">Event Description</label>', $content);
       }
-
-      if (CRM_CiviMobileAPI_Utils_Agenda_AgendaConfig::isAgendaActiveForEvent($object->_id)) {
+      else if (CRM_CiviMobileAPI_Utils_Agenda_AgendaConfig::isAgendaActiveForEvent($object->_id)) {
         $content = "<div class='status'>If you change the date, some event sessions may stop displaying.</div>" . $content;
       }
     }
+    else if ($tplName == "CRM/Campaign/Form/Petition.tpl" && $hasChatGptAccess) {
+      $buttonHtmlIntroduction = getTextGenerationButton('petition-introduction');
+      $buttonHtmlThankYouMessage = getTextGenerationButton('thank-you-message');
+      
+      $content = str_replace('<label for="instructions">Introduction</label>', $buttonHtmlIntroduction . $additionalInfo . '<label for="summary">Petition Introduction</label>', $content);
+      $content = str_replace('<label for="thankyou_text">Thank-you Message</label>', $buttonHtmlThankYouMessage . $additionalInfo . '<label for="summary">Petition Thank-you Message</label>', $content);
+    }
+    else if ($tplName == "CRM/Campaign/Form/Survey/Main.tpl"  && $hasChatGptAccess) {
+      $buttonHtml = getTextGenerationButton('survey-instructions');
+      
+      $content = str_replace('<label for="instructions">Instructions for interviewers</label>', $buttonHtml . $additionalInfo . '<label for="summary">Survey Instructions for interviewers</label>', $content);
+    }
+    else if ($tplName == "CRM/Campaign/Form/Campaign.tpl"  && $hasChatGptAccess) {
+      $buttonGoalsText = getTextGenerationButton('campaign-goals');
+      $buttonHtmlDescription = getTextGenerationButton('campaign-description');
+      
+      $content = str_replace('<label for="goal_general">Campaign Goals</label>', $buttonGoalsText . $additionalInfo . '<label for="summary">Campaign Goals</label>', $content);
+      $content = str_replace('<label for="description">Description</label>', $buttonHtmlDescription . $additionalInfo . '<label for="summary">Campaign Description</label>', $content);
+    }
+    else if ($tplName == "CRM/Admin/Form/MessageTemplates.tpl"  && $hasChatGptAccess) {
+      $buttonHtml = getTextGenerationButton('message-template-html');
+      $buttonPlainText = getTextGenerationButton('message-template-plain-text');
+      $content = preg_replace('/<div class="crm-accordion-body">/', '<div class="crm-accordion-body" id="message-template-html">' . $buttonHtml . $additionalInfo, $content, 1);
+      $content = preg_replace('/<div class="crm-accordion-body">/', '<div class="crm-accordion-body" id="message-template-plain-text">' . $buttonPlainText . $additionalInfo, $content, 1);
+    }
+    else if ($tplName == "CRM/Contact/Form/Task/Email.tpl"  && $hasChatGptAccess) {
+      $buttonHtml = getTextGenerationButton('contact-mail-html');
+      $buttonPlainText = getTextGenerationButton('contact-mail-plain-text');
+      $content = preg_replace('/<div class="crm-accordion-body">/', '<div class="crm-accordion-body" id="contact-mail-html">' . $buttonHtml . $additionalInfo, $content, 1);
+      $content = preg_replace('/<div class="crm-accordion-body">/', '<div class="crm-accordion-body" id="contact-mail-plain-text">' . $buttonPlainText . $additionalInfo, $content, 1);
+    }
   }
+}
+
+function getTextGenerationButton(string $generateType) {
+  $isEmptyChatGptSettings = empty(Civi::settings()->get('civimobile_openai_secret_key') || Civi::settings()->get('civimobile_openai_model'));
+  return '<button class="generate-text-button" data-generate-type="' . $generateType . '" type="button" ' . ($isEmptyChatGptSettings ? 'disabled' : '') . '><i class="crm-i fa-spinner"></i> Autogenerate</button><span> </span>';
 }
 
 function civimobileapi_civicrm_postSave_civicrm_activity($dao) {

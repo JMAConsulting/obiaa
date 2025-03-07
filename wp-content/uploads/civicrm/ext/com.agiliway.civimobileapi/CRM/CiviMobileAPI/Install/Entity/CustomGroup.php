@@ -89,7 +89,10 @@ class CRM_CiviMobileAPI_Install_Entity_CustomGroup extends CRM_CiviMobileAPI_Ins
    * @param $entityId
    */
   protected function disable($entityId) {
-    CRM_Core_BAO_CustomGroup::setIsActive((int) $entityId, 0);
+    \Civi\Api4\CustomGroup::update()
+      ->addValue('is_active', 0)
+      ->addWhere('id', '=', $entityId)
+      ->execute();
   }
 
   /**
@@ -98,7 +101,10 @@ class CRM_CiviMobileAPI_Install_Entity_CustomGroup extends CRM_CiviMobileAPI_Ins
    * @param $entityId
    */
   protected function enable($entityId) {
-    CRM_Core_BAO_CustomGroup::setIsActive((int) $entityId, 1);
+    \Civi\Api4\CustomGroup::update()
+      ->addValue('is_active', 1)
+      ->addWhere('id', '=', $entityId)
+      ->execute();
   }
 
 }

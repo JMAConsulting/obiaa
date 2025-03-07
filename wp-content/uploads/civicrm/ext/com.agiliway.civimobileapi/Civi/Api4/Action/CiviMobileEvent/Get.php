@@ -16,6 +16,10 @@ class Get extends BasicGetAction {
 
     $params = $this->getParams();
     $params['checkPermissions'] = FALSE;
+    
+    if (!CRM_Core_Permission::check('CiviMobile view all events')) {
+      $params['where'][] = ['is_public', '=', TRUE];
+    }
 
     if (!$hasPermissionsToViewAllEvents && !empty($contactId)) {
       $params['where'][] = ['gc.contact_id', '=', $contactId];

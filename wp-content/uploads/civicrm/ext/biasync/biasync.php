@@ -118,7 +118,9 @@ function biasync_civicrm_post(string $op, string $objectName, int $objectId, &$o
       ->execute();
   }
   if ($objectName === 'Unit' && in_array($op, $modified)) {
-    $objectRef->find(TRUE);
+    if ($op != 'delete') {
+      $objectRef->find(TRUE);
+    }
     PropertyLog::save(FALSE)
       ->addRecord(['property_id' => $objectRef->property_id, 'is_synced' => 0])
       ->setMatch(['property_id'])

@@ -332,7 +332,6 @@ class CRM_Biaproperty_Upgrader extends CRM_Extension_Upgrader_Base {
     return TRUE;
   }
 
-
   /**
    * Example: Run an external SQL script.
    *

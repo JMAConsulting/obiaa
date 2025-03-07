@@ -18,8 +18,7 @@ class CRM_CiviMobileAPI_Page_PublicSettings extends CRM_Core_Page {
 
       $currentCMS = CRM_CiviMobileAPI_Utils_CmsUser::getInstance()->getSystem();
       if ($currentCMS == CRM_CiviMobileAPI_Utils_CmsUser::CMS_DRUPAL7) {
-        module_load_include('pages.inc', 'user');
-        user_logout_current_user();
+        session_destroy();
       }
 
       $settings = [

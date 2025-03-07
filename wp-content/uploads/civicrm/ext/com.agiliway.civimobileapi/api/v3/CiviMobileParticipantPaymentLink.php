@@ -9,7 +9,7 @@ use CRM_CiviMobileAPI_ExtensionUtil as E;
  * @throws api_Exception
  */
 function civicrm_api3_civi_mobile_participant_payment_link_get($params) {
-  $result[] = (new CRM_CiviMobileAPI_Api_CiviMobileParticipantPaymentLink_Get($params))->getResult();
+  $result[] = (new CRM_CiviMobileAPI_Api_CiviMobileParticipantLink_Get($params))->getResult();
   return civicrm_api3_create_success($result);
 }
 
@@ -32,7 +32,7 @@ function _civicrm_api3_civi_mobile_participant_payment_link_get_spec(&$params) {
     'title' => 'Price Set',
     'description' => E::ts('Price Set'),
     'type' => CRM_Utils_Type::T_STRING,
-    'api.required' => 1,
+    'api.required' => 0,
   ];
   $params['first_name'] = [
     'title' => 'First Name',

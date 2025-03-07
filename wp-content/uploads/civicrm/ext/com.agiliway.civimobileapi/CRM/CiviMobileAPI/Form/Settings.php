@@ -81,6 +81,7 @@ class CRM_CiviMobileAPI_Form_Settings extends CRM_Core_Form {
     } elseif (!empty($params['_qf_Settings_upload'])) {
       $this->addFormRule([CRM_CiviMobileAPI_Form_Settings::class, 'validateNewsSettings']);
       $this->addFormRule([CRM_CiviMobileAPI_Form_Settings::class, 'validatePushNotificationSettings']);
+      $this->addFormRule([CRM_CiviMobileAPI_Form_Settings::class, 'validateEventButtonColor']);
     }
   }
 
@@ -112,6 +113,13 @@ class CRM_CiviMobileAPI_Form_Settings extends CRM_Core_Form {
     }
     if ($values["civimobile_push_notification_lifetime"] > 90) {
       $errors["civimobile_push_notification_lifetime"] = E::ts('Value cannot be greater than 90!');
+    }
+    return empty($errors) ? TRUE : $errors;
+  }
+  
+  public static function validateEventButtonColor($values) {
+    if (!CRM_Utils_Rule::color($values["civimobile_event_registration_button_color"])) {
+      $errors["civimobile_event_registration_button_color"] = E::ts('Please enter a valid 6-digit hex color code (e.g., #RRGGBB).');
     }
     return empty($errors) ? TRUE : $errors;
   }
@@ -172,10 +180,11 @@ class CRM_CiviMobileAPI_Form_Settings extends CRM_Core_Form {
     $this->addElement('checkbox', 'civimobile_is_allow_reset_password', E::ts('Show Reset password'));
     $this->addElement('checkbox', 'civimobile_is_showed_news', E::ts('Show News'));
     $this->addElement('text', 'civimobile_news_rss_feed_url', E::ts('News RSS feed URL'));
-    $this->addElement('text', 'civimobile_firebase_key', E::ts('Firebase key'));
+    $this->add('textarea', 'civimobile_firebase_key', E::ts('Firebase key'), ['cols' => 100, 'rows' => 10]);
     $this->addElement('checkbox', 'civimobile_is_custom_app', E::ts('Do you have custom application?'));
     $this->addElement('checkbox', 'civimobile_is_disallowed_event_participant_registration_overlap', E::ts('Do you want disallow registration on events at same date?'));
     $this->addElement('text', 'civimobile_push_notification_lifetime', E::ts('Life time for push notification messages'));
+    $this->addElement('text', 'civimobile_event_registration_button_color', E::ts('Set the button color for event registration'));
 
     if (CRM_Core_Config::singleton()->userSystem->isUserRegistrationPermitted()) {
       $this->addElement('checkbox', 'civimobile_is_allow_registration', E::ts('Allow registration'));
@@ -237,6 +246,9 @@ class CRM_CiviMobileAPI_Form_Settings extends CRM_Core_Form {
       if (!isset($params['civimobile_is_disallowed_event_participant_registration_overlap'])) {
         $params['civimobile_is_disallowed_event_participant_registration_overlap'] = 0;
       }
+      if (!isset($params['civimobile_event_registration_button_color'])) {
+        $params['civimobile_event_registration_button_color'] = "#5589B7";
+      }
 
       Civi::settings()->set('civimobile_is_custom_app', $params['civimobile_is_custom_app']);
       Civi::settings()->set('civimobile_is_disallowed_event_participant_registration_overlap', $params['civimobile_is_disallowed_event_participant_registration_overlap']);
@@ -250,6 +262,7 @@ class CRM_CiviMobileAPI_Form_Settings extends CRM_Core_Form {
       Civi::settings()->set('civimobile_news_rss_feed_url', $params['civimobile_news_rss_feed_url']);
       Civi::settings()->set("civimobile_push_notification_lifetime", $params['civimobile_push_notification_lifetime']);
       Civi::settings()->set("civimobile_is_allow_registration", $params['civimobile_is_allow_registration']);
+      Civi::settings()->set("civimobile_event_registration_button_color", $params['civimobile_event_registration_button_color']);
 
       CRM_Core_Session::singleton()->setStatus(E::ts('CiviMobile settings updated'), E::ts('CiviMobile Settings'), 'success');
     }
@@ -276,6 +289,7 @@ class CRM_CiviMobileAPI_Form_Settings extends CRM_Core_Form {
     $defaults['civimobile_push_notification_lifetime'] = isset($pushNotificationLifetime)
       ? (int)$pushNotificationLifetime : CRM_CiviMobileAPI_BAO_PushNotificationMessages::LIFE_TIME_IN_DAYS;
     $defaults['civimobile_is_allow_registration'] = Civi::settings()->get('civimobile_is_allow_registration');
+    $defaults['civimobile_event_registration_button_color'] = (!empty(Civi::settings()->get('civimobile_event_registration_button_color'))) ? Civi::settings()->get('civimobile_event_registration_button_color') : "#5589B7";
 
     return $defaults;
   }

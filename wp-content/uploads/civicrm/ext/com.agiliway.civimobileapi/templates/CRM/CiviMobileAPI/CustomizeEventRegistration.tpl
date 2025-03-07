@@ -13,8 +13,9 @@
     cj("head").append('<link rel="stylesheet" type="text/css" href="{/literal}{$absURL}{literal}/css/civicrm.css"/>');
 
     cj('#Register').parents().siblings().hide();
-    cj('#Participant_1').parents().siblings().hide();
-    cj('#Participant_2').parents().siblings().hide();
+    cj('#crm-main-content-wrapper').parents().siblings().hide();
+    cj('#civicrm-footer').hide();
+    cj('[id^="Participant_"]').parents().siblings().hide();
     cj('#Confirm').parents().siblings().hide();
     cj('#ThankYou').parents().siblings().hide();
     cj('#Register').find('#priceset, #priceset *').hide();
@@ -166,13 +167,13 @@
       height: 35px;
     }
     #page .crm-submit-buttons .crm-button {
-      background: #5589B7;
+      background: {/literal}{$eventButtonColor}{literal};
       color: white;
       flex-grow: 1;
       display: flex;
       align-items: center;
       justify-content: center;
-      border: 2px solid #5589B7;
+      border: 2px solid {/literal}{$eventButtonColor}{literal};
     }
     #page .crm-submit-buttons .crm-button input {
       width: 100%;
@@ -187,7 +188,7 @@
     }
     #page .crm-submit-buttons .crm-button.crm-button-type-back {
       background: none;
-      color: #5589B7;
+      color: {/literal}{$eventButtonColor}{literal};
     }
     #page .crm-submit-buttons .crm-button .crm-i {
       display: none;

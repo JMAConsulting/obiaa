@@ -119,7 +119,7 @@ class CRM_CiviMobileAPI_Hook_BuildForm_Register {
     ];
 
     if (in_array($formName, $customizeForms)) {
-      $this->customizeEventRegistration();
+      self::customizeEventRegistration();
     }
   }
 
@@ -128,7 +128,7 @@ class CRM_CiviMobileAPI_Hook_BuildForm_Register {
    *
    * @throws CRM_Core_Exception
    */
-  private function customizeEventRegistration() {
+  public static function customizeEventRegistration() {
     $session = CRM_Core_Session::singleton();
     $cmbHash = ($session->get('cmbHash')) ? $session->get('cmbHash') : CRM_Utils_Request::retrieve('cmbHash', 'String');
 
@@ -144,6 +144,7 @@ class CRM_CiviMobileAPI_Hook_BuildForm_Register {
       $template->assign('isDrupal6', $currentCMS == CRM_CiviMobileAPI_Utils_CmsUser::CMS_DRUPAL6);
       $template->assign('isWordpress', $currentCMS == CRM_CiviMobileAPI_Utils_CmsUser::CMS_WORDPRESS);
       $template->assign('isJoomla', $currentCMS == CRM_CiviMobileAPI_Utils_CmsUser::CMS_JOOMLA);
+      $template->assign('eventButtonColor', (!empty(Civi::settings()->get('civimobile_event_registration_button_color'))) ? Civi::settings()->get('civimobile_event_registration_button_color') : "#5589B7");
 
       CRM_Core_Region::instance('page-body')->add([
         'template' => CRM_CiviMobileAPI_ExtensionUtil::path() . '/templates/CRM/CiviMobileAPI/CustomizeEventRegistration.tpl',

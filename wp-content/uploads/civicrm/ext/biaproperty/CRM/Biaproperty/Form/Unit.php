@@ -78,7 +78,8 @@ class CRM_Biaproperty_Form_Unit extends CRM_Core_Form {
       $this->_pid = $this->_unit['property_id'];
       CRM_Utils_System::setTitle(E::ts('%1 Unit %2', [
         1 => ($this->_action == CRM_Core_Action::DELETE) ? 'Delete' : 'Edit',
-	2 => (!empty($this->_unit['address.street_unit']) ? '#' . $this->_unit['address.street_unit'] . ' - ' : '') . $this->_unit['address.street_address']]));
+        2 => (!empty($this->_unit['address.street_unit']) ? '#' . $this->_unit['address.street_unit'] . ' - ' : '') . $this->_unit['address.street_address'],
+      ]));
       $this->assign('unit', $this->_unit);
       if ($context === 'propertyView') {
         $property = Property::get()->addWhere('id', '=', $this->_pid)->execute()->first();
@@ -293,9 +294,7 @@ class CRM_Biaproperty_Form_Unit extends CRM_Core_Form {
     if ($this->_action == CRM_Core_Action::DELETE) {
       civicrm_api4('Address', 'delete', ['where' => [['id', '=', $this->_unit['address_id']]], 'checkPermissions' => FALSE]);
       civicrm_api4('Unit', 'delete', ['where' => [['id', '=', $this->_id]]]);
-      $count = civicrm_api4('Unit', 'get', ['where' => [['address_id', '=', $this->_unit['address_id']], ['id', '!=', $this->_id]]])->count();
-      $unit =  (!empty($this->_unit['address.street_unit']) ? '#' . $this->_unit['address.street_unit'] . ' - ' : '') . $this->_unit['address.street_address'];
-      CRM_Core_Session::setStatus(E::ts('Removed Unit - %1', [1 => $unit]), '', 'success');
+      CRM_Core_Session::setStatus(E::ts('Removed Unit - %1', [1 => (!empty($this->_unit['address.street_unit']) ? '#' . $this->_unit['address.street_unit'] . ' - ' : '') . $this->_unit['address.street_address']], '', 'success'));
     }
     else {
       $action = empty($this->_id) ? 'create' : 'update';

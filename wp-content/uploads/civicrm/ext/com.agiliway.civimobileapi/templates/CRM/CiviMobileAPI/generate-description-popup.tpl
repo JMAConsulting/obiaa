@@ -20,7 +20,7 @@
             <button type="button" class="ui-button ui-corner-all ui-widget" id="regenerate-description">
                 <span class="ui-button-icon-space"> </span> {ts domain="com.agiliway.civimobileapi"}Generate{/ts}
             </button>
-            <a class="helpicon" href="#"
+            <a class="helpicon"
                onclick="handleHelpOnClick()"></a>
         </div>
     </div>
@@ -67,16 +67,20 @@
 
 {literal}
 <script>
-
     function handleHelpOnClick() {
-        CRM.help("Regenerate option", "Type additional criteria for text generation such as 'add more about location' or 'include information about the speaker'. If you are satisfied with the result, hit 'Save description'. After entering new criteria, you should press the 'Generate' button. Pressing Generate with a blank field will wipe out text.")
+        CRM.help(ts("Regenerate option"), ts("Type additional criteria for text generation such as 'add more about location' or 'include information about the speaker'. If you are satisfied with the result, hit 'Save description'. After entering new criteria, you should press the 'Generate' button. Pressing Generate with a blank field will wipe out text."))
+    }
+
+    function handleAutogenerateHelp() {
+        CRM.help(ts('Autogenerate option'), ts('Autogenerate option will give you opportunity to create description using extended AI functionality. Fill out required fields and press Autogenerate button. If you need, you can edit generated text in pop-up. If you are satisfied with result, save text and it will appear in your description field'));
     }
 
     CRM.$(function ($) {
-
         const descriptionPopup = $('#description-generation-popup');
         const resultWindow = $('#result-window');
         const userInputWindow = $('#user-input-window');
+        let generateType = {};
+        let requireParams = '';
 
         let isResultWindowEmpty = true;
 
@@ -99,78 +103,250 @@
             hidePopup();
         });
 
-        $('#generate-description').on('click', function () {
-            const titleValue = $('.crm-event-manage-eventinfo-form-block-title input[name="title"]').val();
-            const typeValueId = $('.crm-event-manage-eventinfo-form-block-event_type_id #event_type_id').val();
+        $(document).on('click', '.generate-text-button', function() {
+            generateType = $(this).data('generate-type');
+            generateText();
+        });
+
+        $('#regenerate-description').on('click', function () {
+            generateText();
+        });
+
+        function generateText() {
+            let aiParams = {
+                generateType,
+            };
+
+            if (generateType === 'event-description') {
+                requireParams = '"Title", "Type" ';
+
+                aiParams = {
+                    ...aiParams,
+                    title: $('.crm-event-manage-eventinfo-form-block-title input[name="title"]').val(),
+                    type:
+                        $('.crm-event-manage-eventinfo-form-block-event_type_id #event_type_id').val() ?
+                            $('.crm-event-manage-eventinfo-form-block-event_type_id #event_type_id :selected').text() : null,
+                }
+            }
+            else if (generateType === 'petition-introduction') {
+                requireParams = '"Title", "Campaign" is optional ';
+
+                aiParams = {
+                    ...aiParams,
+                    title: $('.crm-campaign-survey-form-block-title input[name="title"]').val(),
+                };
+
+                let campaign = $('.crm-campaign-survey-form-block-campaign_id #campaign_id').val() ?
+                    $('.crm-campaign-survey-form-block-campaign_id #s2id_campaign_id .select2-chosen').text() : null;
+
+                if (campaign) {
+                    aiParams.campaign = campaign;
+                }
+            }
+            else if (generateType === 'thank-you-message') {
+                requireParams = '"Title", "Thank you title", "Campaign" is optional ';
+
+                aiParams = {
+                    ...aiParams,
+                    title: $('.crm-campaign-survey-form-block-title input[name="title"]').val(),
+                    thank_you_title: $('.crm-campaign-survey-form-block-thankyou_title input[name="thankyou_title"]').val(),
+                };
+
+                let campaign = $('.crm-campaign-survey-form-block-campaign_id #campaign_id').val() ?
+                    $('.crm-campaign-survey-form-block-campaign_id #s2id_campaign_id .select2-chosen').text() : null;
+
+                if (campaign) {
+                    aiParams.campaign = campaign;
+                }
+            }
+            else if (generateType === 'survey-instructions') {
+                requireParams = '"Title", "Activity Type", "Campaign" is optional ';
+
+                aiParams = {
+                    ...aiParams,
+                    title: $('.crm-campaign-survey-main-form-block-title input[name="title"]').val(),
+                    activity_type:
+                        $('.crm-campaign-survey-main-form-block-activity_type_id #activity_type_id').val() ?
+                            $('.crm-campaign-survey-main-form-block-activity_type_id #s2id_activity_type_id .select2-chosen').text() : null,
+                };
+
+                let campaign = $('.crm-campaign-survey-main-form-block-campaign_id #campaign_id').val() ?
+                    $('.crm-campaign-survey-main-form-block-campaign_id #s2id_campaign_id .select2-chosen').text() : null;
+
+                if (campaign) {
+                    aiParams.campaign = campaign;
+                }
+            }
+            else if (generateType === 'campaign-goals' || generateType === 'campaign-description') {
+                requireParams = '"Title", "Campaign Type" ';
+
+                aiParams = {
+                    ...aiParams,
+                    title: $('.crm-campaign-form-block-title input[name="title"]').val(),
+                    type:
+                        $('.crm-campaign-form-block-campaign_type_id #campaign_type_id').val() ?
+                            $('.crm-campaign-form-block-campaign_type_id #campaign_type_id :selected').text() : null,
+                };
+            }
+            else if (generateType === 'mailing-plain-text' || generateType === 'mailing-html') {
+                requireParams = '"Subject" ';
+
+                aiParams = {
+                    ...aiParams,
+                    subject: $('input[name="subject"].crm-form-text').val(),
+                };
+            }
+            else if (generateType === 'message-template-html' || generateType === 'message-template-plain-text') {
+                requireParams = '"Message Title", "Message Subject" is optional ';
+
+                aiParams = {
+                    ...aiParams,
+                    title: $('input[name="msg_title"].crm-form-text').val(),
+                };
+
+                let subject = $('input[name="msg_subject"].crm-form-text').val();
+
+                if (subject) {
+                    aiParams = {...aiParams, subject};
+                }
+            }
+            else if (generateType === 'contact-mail-html' || generateType === 'contact-mail-plain-text') {
+                requireParams = '"Message Subject"';
+
+                aiParams = {
+                    ...aiParams,
+                    subject: $('input[name="subject"].crm-form-text').val(),
+                };
+            }
+
+            let userInputAndData = [];
+
+            if(userInputWindow.val()){
+                const userInput = userInputWindow.val();
+                const generatedData = resultWindow.html();
+                const storedGeneratedData = {
+                    role: 'assistant',
+                    content: generatedData
+                };
+
+                const userRequest = {
+                    role: 'user',
+                    content: userInput
+                };
+
+                userInputAndData.push(storedGeneratedData, userRequest)
+            }
 
             showLoading();
 
-            if (typeValueId && titleValue) {
-                const typeValue = $('.crm-event-manage-eventinfo-form-block-event_type_id #event_type_id :selected').text();
+            let isObjectHasEmptyParams = Object.values(aiParams).some((x) => x === null || x === '');
+
+            if (!isObjectHasEmptyParams) {
                 descriptionPopup.show();
 
                 if (!isResultWindowEmpty) {
-                    CKEDITOR.instances['description'].setData('');
+                    if (generateType === 'event-description') {
+                        CKEDITOR.instances['description'].setData('');
+                    }
+                    else if (generateType === 'petition-introduction') {
+                        CKEDITOR.instances['instructions'].setData('');
+                    }
+                    else if (generateType === 'thank-you-message') {
+                        CKEDITOR.instances['thankyou_text'].setData('');
+                    }
+                    else if (generateType === 'survey-instructions') {
+                        CKEDITOR.instances['instructions'].setData('');
+                    }
+                    else if (generateType === 'campaign-goals') {
+                        CKEDITOR.instances['goal_general'].setData('');
+                    }
+                    else if (generateType === 'campaign-description') {
+                        $('#description').val('')
+                    }
+                    else if (generateType === 'mailing-html') {
+                        CKEDITOR.instances['crmUiId_1'].setData('');
+                    }
+                    else if (generateType === 'mailing-plain-text') {
+                        $('#crmUiId_2').val('')
+                    }
+                    else if (generateType === 'message-template-html') {
+                        CKEDITOR.instances['msg_html'].setData('');
+                    }
+                    else if (generateType === 'message-template-plain-text') {
+                        $('#msg_text').val('')
+                    }
+                    else if (generateType === 'contact-mail-html') {
+                        CKEDITOR.instances['html_message'].setData('');
+                    }
+                    else if (generateType === 'contact-mail-plain-text') {
+                        $('#text_message').val('')
+                    }
                 }
 
-                CRM.api4('CiviMobileGenerateEventDescription', 'create', {
+                CRM.api4('CiviMobileGenerateText', 'create', {
                     checkPermissions: false,
                     values: {
-                        'title': titleValue,
-                        'type': typeValue
+                        params: aiParams,
+                        userInputAndData: userInputAndData,
                     },
                 }).then(function (result) {
-                    if (result && result[0] && result[0]['choices'] && result[0]['choices'][0] && result[0]['choices'][0]['message'] && result[0]['choices'][0]['message']['content']) {
-                        const generatedData = result[0]['choices'][0]['message']['content'];
-                        resultWindow.html('<h3 class="title">{/literal}{ts escape='js'}Generated description{/ts}{literal}:</h3>' + '<p class="generated-text-description">' + generatedData + '</p>');
+                    let generatedData = result?.[0]?.choices?.[0]?.message?.content;
+                    if (generatedData) {
+                        generatedData = generatedData.replace('```html', '');
+                        generatedData = generatedData.replace('```', '');
+                        resultWindow.html('<p class="generated-text-description">' + generatedData + '</p>');
                         isResultWindowEmpty = false;
                     } else {
+                        clearFields();
                         descriptionPopup.hide();
                         CRM.alert({/literal}'{ts escape="js"}Invalid API key. Please check your key.{/ts}', '{ts escape="js"}Error{/ts}'{literal}, 'error');
                     }
                 }, function () {
-                    CRM.alert(ts('Something went wrong.'), ts('Description can\'t be generated'), 'error');
+                    CRM.alert(ts('Something went wrong.'), ts('Text can\'t be generated'), 'error');
                 });
             } else {
-                CRM.alert({/literal}'{ts escape="js"}Please, enter title and type for the event{/ts}', '{ts escape="js"}Warning{/ts}'{literal}, 'alert');
+                CRM.alert(ts('Please, enter the following required fields: ' + requireParams), ts('Warning'), 'alert');
             }
-        });
-
-        $('#regenerate-description').on('click', function () {
-            const userInputAndData = [];
-
-            const userInput = userInputWindow.val();
-            const generatedData = resultWindow.text();
-            const storedGeneratedData = {
-                role: 'assistant',
-                content: generatedData
-            };
-
-            const userRequest = {
-                role: 'user',
-                content: userInput
-            };
-
-            showLoading();
-
-            userInputAndData.push(storedGeneratedData, userRequest)
-
-            CRM.api4('CiviMobileGenerateEventDescription', 'create', {
-                checkPermissions: false,
-                values: {
-                    'userInputAndData': userInputAndData
-                }
-            }).then(function (result) {
-                clearFields();
-                resultWindow.html('<h3 class="title">{/literal}{ts escape='js'}Generated description{/ts}{literal}:</h3>' + '<p class="generated-text-description">' + result[0]['choices'][0]['message']['content'] + '</p>');
-            }, function () {
-                CRM.alert(ts('Something went wrong.'), ts('Description can\'t be generated'), 'error');
-            });
-        });
+        }
 
         $('#save-description').on('click', function () {
-            const description = resultWindow.text();
-            CKEDITOR.instances['description'].insertText(description);
+            const description = resultWindow.html();
+            if (generateType === 'event-description') {
+                CKEDITOR.instances['description'].insertHtml(description);
+            }
+            else if (generateType === 'petition-introduction') {
+                CKEDITOR.instances['instructions'].insertHtml(description);
+            }
+            else if (generateType === 'thank-you-message') {
+                CKEDITOR.instances['thankyou_text'].insertHtml(description);
+            }
+            else if (generateType === 'survey-instructions') {
+                CKEDITOR.instances['instructions'].insertHtml(description);
+            }
+            else if (generateType === 'campaign-goals') {
+                CKEDITOR.instances['goal_general'].insertHtml(description);
+            }
+            else if (generateType === 'campaign-description') {
+                $('#description').val(resultWindow.text())
+            }
+            else if (generateType === 'mailing-html') {
+                CKEDITOR.instances['crmUiId_1'].insertHtml(description);
+            }
+            else if (generateType === 'mailing-plain-text') {
+                $('#crmUiId_2').val(resultWindow.text())
+            }
+            else if (generateType === 'message-template-html') {
+                CKEDITOR.instances['msg_html'].insertHtml(description);
+            }
+            else if (generateType === 'message-template-plain-text') {
+                $('#msg_text').val(resultWindow.text())
+            }
+            else if (generateType === 'contact-mail-html') {
+                CKEDITOR.instances['html_message'].insertHtml(description);
+            }
+            else if (generateType === 'contact-mail-plain-text') {
+                $('#text_message').val(resultWindow.text())
+            }
             clearFields();
             hidePopup();
         });

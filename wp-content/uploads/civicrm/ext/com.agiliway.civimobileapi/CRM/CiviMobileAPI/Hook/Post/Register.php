@@ -27,6 +27,8 @@ class CRM_CiviMobileAPI_Hook_Post_Register {
               'id' => $objectId,
               $publicKeyFieldId => $tmpData['public_key']
             ]);
+
+            $session->set('cmbHash');
             return TRUE;
           }
           catch (CiviCRM_API3_Exception $e) {

@@ -41,7 +41,7 @@ class ActivityPushNotification extends BasePushNotification {
   
     $data = [
       'entity' => $this->entity,
-      'id' => $this->id,
+      'id' => strval($this->id),
       'body' => $message
     ];
 
