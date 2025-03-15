@@ -86,6 +86,7 @@ function mtnc_register_settings()
         $lib_options['heading'] = isset($_POST['lib_options']['heading'])?sanitize_text_field(wp_unslash($_POST['lib_options']['heading'])):'';
         $lib_options['description'] = isset($_POST['lib_options']['description'])?wp_kses_post(wp_unslash($_POST['lib_options']['description'])):'';
         $lib_options['footer_text'] = isset($_POST['lib_options']['footer_text'])?sanitize_text_field(wp_unslash($_POST['lib_options']['footer_text'])):'';
+        $lib_options['show_some_love'] = isset($_POST['lib_options']['show_some_love'])?true:false;
         $lib_options['is_login'] = isset($_POST['lib_options']['is_login'])?true:false;
         $lib_options['logo_width'] = isset($_POST['lib_options']['logo_width'])?sanitize_text_field(wp_unslash($_POST['lib_options']['logo_width'])):220;
         $lib_options['logo_height'] = isset($_POST['lib_options']['logo_height'])?sanitize_text_field(wp_unslash($_POST['lib_options']['logo_height'])):'';

@@ -43,7 +43,7 @@ function groups_admin_groups() {
 	global $wpdb;
 
 	$output = '';
-	$today = date( 'Y-m-d', time() );
+	$today = date( 'Y-m-d', time() ); // phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
 
 	if ( !Groups_User::current_user_can( GROUPS_ADMINISTER_GROUPS ) ) {
 		wp_die( esc_html__( 'Access denied.', 'groups' ) );
@@ -61,6 +61,7 @@ function groups_admin_groups() {
 				} else {
 					$group = Groups_Group::read( $group_id );
 					Groups_Admin::add_message( sprintf(
+						/* translators: group name */
 						__( 'The <em>%s</em> group has been created.', 'groups' ),
 						$group->name ? stripslashes( wp_filter_nohtml_kses( $group->name ) ) : ''
 					) );
@@ -68,10 +69,11 @@ function groups_admin_groups() {
 				break;
 			case 'edit' :
 				if ( !( $group_id = groups_admin_groups_edit_submit() ) ) {
-					return groups_admin_groups_edit( $_POST['group-id-field'] );
+					return groups_admin_groups_edit( $_POST['group-id-field'] ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 				} else {
 					$group = Groups_Group::read( $group_id );
 					Groups_Admin::add_message( sprintf(
+						/* translators: group name */
 						__( 'The <em>%s</em> group has been updated.', 'groups' ),
 						$group->name ? stripslashes( wp_filter_nohtml_kses( $group->name ) ) : ''
 					) );
@@ -84,26 +86,26 @@ function groups_admin_groups() {
 				break;
 			// bulk actions on groups: add capabilities, remove capabilities, remove groups
 			case 'groups-action' :
-				if ( wp_verify_nonce( $_POST[GROUPS_ADMIN_GROUPS_ACTION_NONCE], 'admin' ) ) {
-					$group_ids = isset( $_POST['group_ids'] ) ? $_POST['group_ids'] : null;
+				if ( wp_verify_nonce( $_POST[GROUPS_ADMIN_GROUPS_ACTION_NONCE], 'admin' ) ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+					$group_ids = isset( $_POST['group_ids'] ) ? $_POST['group_ids'] : null; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 					$bulk_action = null;
 					if ( isset( $_POST['bulk'] ) ) {
-						$bulk_action = $_POST['bulk-action'];
+						$bulk_action = $_POST['bulk-action']; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 					}
 					if ( is_array( $group_ids ) && ( $bulk_action !== null ) ) {
 						foreach ( $group_ids as $group_id ) {
 							switch ( $bulk_action ) {
 								case 'add-capability' :
-									$capabilities_id = isset( $_POST['capability_id'] ) ? $_POST['capability_id'] : null;
-									if ( $capabilities_id !== null ) {
+									$capabilities_id = isset( $_POST['capability_id'] ) ? $_POST['capability_id'] : null; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+									if ( $capabilities_id !== null && is_array( $_POST['capability_id'] ) ) {
 										foreach ( $capabilities_id as $capability_id ) {
 											Groups_Group_Capability::create( array( 'group_id' => $group_id, 'capability_id' => $capability_id ) );
 										}
 									}
 									break;
 								case 'remove-capability' :
-									$capabilities_id = isset( $_POST['capability_id'] ) ? $_POST['capability_id'] : null;
-									if ( $capabilities_id !== null ) {
+									$capabilities_id = isset( $_POST['capability_id'] ) ? $_POST['capability_id'] : null; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+									if ( $capabilities_id !== null && is_array( $_POST['capability_id'] ) ) {
 										foreach ( $capabilities_id as $capability_id ) {
 											Groups_Group_Capability::delete( $group_id, $capability_id );
 										}
@@ -131,12 +133,12 @@ function groups_admin_groups() {
 				break;
 			case 'edit' :
 				if ( isset( $_GET['group_id'] ) ) {
-					return groups_admin_groups_edit( $_GET['group_id'] );
+					return groups_admin_groups_edit( $_GET['group_id'] ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 				}
 				break;
 			case 'remove' :
 				if ( isset( $_GET['group_id'] ) ) {
-					return groups_admin_groups_remove( $_GET['group_id'] );
+					return groups_admin_groups_remove( $_GET['group_id'] ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 				}
 				break;
 		}
@@ -150,7 +152,7 @@ function groups_admin_groups() {
 		isset( $_POST['group_id'] ) ||
 		isset( $_POST['group_name'] )
 	) {
-		if ( !wp_verify_nonce( $_POST[GROUPS_ADMIN_GROUPS_FILTER_NONCE], 'admin' ) ) {
+		if ( !wp_verify_nonce( $_POST[GROUPS_ADMIN_GROUPS_FILTER_NONCE], 'admin' ) ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 			wp_die( esc_html__( 'Access denied.', 'groups' ) );
 		}
 	}
@@ -167,7 +169,7 @@ function groups_admin_groups() {
 	} else if ( isset( $_POST['submitted'] ) ) {
 		// filter by name
 		if ( !empty( $_POST['group_name'] ) ) {
-			$group_name = $_POST['group_name'];
+			$group_name = sanitize_text_field( $_POST['group_name'] );
 			Groups_Options::update_user_option( 'groups_group_name', $group_name );
 		}
 		// filter by group id
@@ -181,18 +183,18 @@ function groups_admin_groups() {
 	}
 
 	if ( isset( $_POST['row_count'] ) ) {
-		if ( !wp_verify_nonce( $_POST[GROUPS_ADMIN_GROUPS_NONCE_1], 'admin' ) ) {
+		if ( !wp_verify_nonce( $_POST[GROUPS_ADMIN_GROUPS_NONCE_1], 'admin' ) ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 			wp_die( esc_html__( 'Access denied.', 'groups' ) );
 		}
 	}
 
 	if ( isset( $_POST['paged'] ) ) {
-		if ( !wp_verify_nonce( $_POST[GROUPS_ADMIN_GROUPS_NONCE_2], 'admin' ) ) {
+		if ( !wp_verify_nonce( $_POST[GROUPS_ADMIN_GROUPS_NONCE_2], 'admin' ) ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 			wp_die( esc_html__( 'Access denied.', 'groups' ) );
 		}
 	}
 
-	$current_url = ( is_ssl() ? 'https://' : 'http://' ) . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+	$current_url = ( is_ssl() ? 'https://' : 'http://' ) . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 	$current_url = remove_query_arg( 'paged', $current_url );
 	$current_url = remove_query_arg( 'action', $current_url );
 	$current_url = remove_query_arg( 'group_id', $current_url );
@@ -238,7 +240,7 @@ function groups_admin_groups() {
 		$paged = 0;
 	}
 
-	$orderby = isset( $_GET['orderby'] ) ? $_GET['orderby'] : null;
+	$orderby = isset( $_GET['orderby'] ) ? $_GET['orderby'] : null; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 	switch ( $orderby ) {
 		case 'group_id' :
 		case 'name' :
@@ -248,7 +250,7 @@ function groups_admin_groups() {
 			$orderby = 'name';
 	}
 
-	$order = isset( $_GET['order'] ) ? $_GET['order'] : null;
+	$order = isset( $_GET['order'] ) ? $_GET['order'] : null; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 	switch ( $order ) {
 		case 'asc' :
 		case 'ASC' :
@@ -280,8 +282,8 @@ function groups_admin_groups() {
 		$filters = '';
 	}
 
-	$count_query = $wpdb->prepare( "SELECT COUNT(*) FROM $group_table $filters", $filter_params );
-	$count  = $wpdb->get_var( $count_query );
+	$count_query = $wpdb->prepare( "SELECT COUNT(*) FROM $group_table $filters", $filter_params ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+	$count  = $wpdb->get_var( $count_query ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 	if ( $count > $row_count ) {
 		$paginate = true;
 	} else {
@@ -296,13 +298,12 @@ function groups_admin_groups() {
 	}
 
 	$query = $wpdb->prepare(
-		"SELECT * FROM $group_table
-		$filters
-		ORDER BY $orderby $order
-		LIMIT $row_count OFFSET $offset",
+		// nosemgrep: audit.php.wp.security.sqli.input-in-sinks
+		"SELECT * FROM $group_table $filters ORDER BY $orderby $order LIMIT $row_count OFFSET $offset", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
 		$filter_params
 	);
-	$results = $wpdb->get_results( $query, OBJECT );
+	// nosemgrep: audit.php.wp.security.sqli.input-in-sinks
+	$results = $wpdb->get_results( $query, OBJECT ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 
 	$column_display_names = array(
 		'group_id'     => __( 'ID', 'groups' ),
@@ -360,6 +361,7 @@ function groups_admin_groups() {
 	$group_capability_table = _groups_get_tablename( "group_capability" );
 
 	// capabilities select
+	// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 	$capabilities = $wpdb->get_results( "SELECT * FROM $capability_table ORDER BY capability" );
 	$capabilities_select = sprintf(
 		'<select class="select capability" name="capability_id[]" multiple="multiple" placeholder="%s" data-placeholder="%s">',
@@ -569,5 +571,5 @@ function groups_admin_groups() {
 	$output .= '</div>'; // .groups-overview
 	$output .= '</div>'; // .manage-groups
 
-	echo $output;
+	echo $output; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 } // function groups_admin_groups()

@@ -191,8 +191,8 @@ class Groups_Access_Meta_Boxes_Legacy {
 			$post_type_object = get_post_type_object( $post_type );
 			$labels = isset( $post_type_object->labels ) ? $post_type_object->labels : null;
 			if ( $labels !== null ) {
-				if ( isset( $labels->singular_name ) )  {
-					$post_singular_name = __( $labels->singular_name );
+				if ( isset( $labels->singular_name ) ) {
+					$post_singular_name = $labels->singular_name; // this is already translated
 				}
 			}
 		}
@@ -227,6 +227,7 @@ class Groups_Access_Meta_Boxes_Legacy {
 						}
 						if ( count( $group_names ) > 0 ) {
 							$label_title = sprintf(
+								/* translators: 1: group 2: post type name */
 								_n(
 									'Members of the %1$s group can access this %2$s through this capability.',
 									'Members of the %1$s groups can access this %2$s through this capability.',
@@ -267,14 +268,15 @@ class Groups_Access_Meta_Boxes_Legacy {
 			$output .= '</div>';
 
 			$output .= '<p class="description">';
-			$output .= sprintf( __( "Only groups or users that have one of the selected capabilities are allowed to read this %s.", 'groups' ), $post_singular_name );
+			/* translators: group name */
+			$output .= sprintf( esc_html__( "Only groups or users that have one of the selected capabilities are allowed to read this %s.", 'groups' ), esc_html( $post_singular_name ) );
 			$output .= '</p>';
 
 			$output .= '<p class="description">';
 			$output .= sprintf( '<label title="%s">', __( 'Click to toggle the display of groups that grant the capabilities.', 'groups' ) );
 			$output .= sprintf( '<input id="access-show-groups" type="checkbox" name="%s" %s />', esc_attr( self::SHOW_GROUPS ), $show_groups ? ' checked="checked" ' : '' );
 			$output .= ' ';
-			$output .= __( 'Show groups', 'groups' );
+			$output .= esc_html__( 'Show groups', 'groups' );
 			$output .= '</label>';
 			$output .= '</p>';
 			$output .= '<script type="text/javascript">';
@@ -287,7 +289,7 @@ class Groups_Access_Meta_Boxes_Legacy {
 			$output .= '</script>';
 		} else {
 			$output .= '<p class="description">';
-			$output .= sprintf( __( 'You cannot set any access restrictions.', 'groups' ), $post_singular_name );
+			$output .= esc_html__( 'You cannot set any access restrictions.', 'groups' );
 			$style = 'cursor:help;vertical-align:middle;';
 			if ( current_user_can( GROUPS_ADMINISTER_OPTIONS ) ) {
 				$style = 'cursor:pointer;vertical-align:middle;';
@@ -323,7 +325,7 @@ class Groups_Access_Meta_Boxes_Legacy {
 			$output .= '</script>';
 		}
 
-		echo $output;
+		echo $output; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	}
 
 	/**
@@ -372,8 +374,8 @@ class Groups_Access_Meta_Boxes_Legacy {
 			if ( $post_type_object && $post_type != 'attachment' ) {
 				$post_types_option = Groups_Options::get_option( Groups_Post_Access_Legacy::POST_TYPES, array() );
 				if ( !isset( $post_types_option[$post_type]['add_meta_box'] ) || $post_types_option[$post_type]['add_meta_box'] ) {
-					if ( isset( $_POST[self::NONCE] ) && wp_verify_nonce( $_POST[self::NONCE], self::SET_CAPABILITY ) ) {
-						$post_type = isset( $_POST['post_type'] ) ? $_POST['post_type'] : null;
+					if ( isset( $_POST[self::NONCE] ) && wp_verify_nonce( $_POST[self::NONCE], self::SET_CAPABILITY ) ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+						$post_type = isset( $_POST['post_type'] ) ? $_POST['post_type'] : null; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 						if ( $post_type !== null ) {
 							// See http://codex.wordpress.org/Function_Reference/current_user_can 20130119 WP 3.5
 							// "... Some capability checks (like 'edit_post' or 'delete_page') require this [the post ID] be provided."
@@ -399,8 +401,8 @@ class Groups_Access_Meta_Boxes_Legacy {
 								if ( current_user_can( GROUPS_ADMINISTER_GROUPS ) ) {
 									if ( !empty( $_POST['quick-group-capability'] ) ) {
 										$creator_id = get_current_user_id();
-										$datetime	= date( 'Y-m-d H:i:s', time() );
-										$name		= ucfirst( strtolower( trim( $_POST['quick-group-capability'] ) ) );
+										$datetime   = date( 'Y-m-d H:i:s', time() ); // phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
+										$name       = ucfirst( strtolower( trim( $_POST['quick-group-capability'] ) ) ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 										if ( strlen( $name ) > 0 ) {
 											// create or obtain the group
 											if ( $group = Groups_Group::read_by_name( $name ) ) {
@@ -559,6 +561,7 @@ class Groups_Access_Meta_Boxes_Legacy {
 							}
 							if ( count( $group_names ) > 0 ) {
 								$label_title = sprintf(
+									/* translators: 1: group 2: post type name */
 									_n(
 										'Members of the %1$s group can access this %2$s through this capability.',
 										'Members of the %1$s groups can access this %2$s through this capability.',
@@ -590,7 +593,8 @@ class Groups_Access_Meta_Boxes_Legacy {
 				$output .= '</div>';
 
 				$output .= '<p class="description">';
-				$output .= sprintf( __( "Only groups or users that have one of the selected capabilities are allowed to read this %s.", 'groups' ), $post_singular_name );
+				/* translators: group name */
+				$output .= sprintf( esc_html__( "Only groups or users that have one of the selected capabilities are allowed to read this %s.", 'groups' ), esc_html( $post_singular_name ) );
 				$output .= '</p>';
 
 				$form_fields['groups_access'] = array(

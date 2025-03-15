@@ -3,25 +3,25 @@ Contributors: lukeseager, freemius
 Donate link: 
 Tags: login, active logins, sessions, session management
 Requires at least: 5.0
-Tested up to: 6.6.2
-Stable tag: 2.1.2
+Tested up to: 6.7.1
+Stable tag: 2.1.4
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Persistent Login keeps users logged into your website securely, unless they explicitly log out. Also limit the number of active logins users are allowed to have at one time.
+Persistent Login keeps users logged into your website, limits the number of active logins allowed at one time and alerts users of new logins.
 
 == Description ==
 
-Persistent Login is a simple plugin that keeps users logged into your website unless they explicitly choose to log-out. 
+## Keep wordpress users logged in forever with Persistent Login
 
-You can also limit the number of active login sessions your users are allowed to have at one time.
+Persistent Login keeps users logged into your website unless they explicitly choose to log-out. It allows you to limit the number of active logins each user can have, and it alerts users of logins from new devices.
 
-It requires no set-up, just install and save your users time by keeping them logged into your website securely, avoiding the annoyance of forgetting usernames & passwords.
+Persistent Login requires little set-up, just install and save your users time by keeping them logged into your website securely, avoiding the annoyance of forgetting usernames & passwords.
 
 For added security, users can visit their Profile page in the WP Admin area to see how many sessions they have, what device was used and when they were last active. The user can choose to end any session with the click of a button.
 
-## Persistent Login Features
+## Persistent Login 
 * Selects the 'Remember Me' box by default. 
   * If left checked, users will be kept logged in for 1 year
 * Each time a user revisits your website, their login is extended to 1 year again
@@ -35,20 +35,12 @@ For added security, users can visit their Profile page in the WP Admin area to s
 * Option to limit the number of active logins to 1 per user
 * New logins can be blocked, or the users oldest login ended automatically
 
-## NEW: Login History
+## Login History
 * Notify users of logins from new devices for improved security
 * Set your own email notification message that is sent to users
 
 ### Top Tip
 Once the plugin is installed, click the **End all Sessions** button on the plugin settings page to encourage users to login again and be kept logged in forever!
-
-### Supported Plugins
-* PeepSo
-* Theme My Login
-* Ultimate Member
-* Ultimate Member - Terms and Conditions Extension
-
-These plugins are supported out of the box. No hassle and no settings to change!
 
 ### Note
 This plugin honours the 'Remember Me' checkbox. It is checked by default, but if it is unchecked the user won't be remembered.
@@ -65,14 +57,19 @@ The premium plan offers the following features:
 * Session management for users: Users can see all logins. Block Editor and Shortcode support
 * Session management for admins: End any users session from the admin area quickly and easily
 * Priority Support direct from within WP admin
-* Support for WooCommerce Social Login
-* Support for Ultimate Member Social Login Extension
-* Support for Nextend Social Login
 
 ##### Premium Active Login Features
 * Control which roles have active login limits applied
 * Select exactly how many active logins users are allowed
 * When the limit is reached: Auto-logout oldest login, let the user decide which session to end, or block the login.
+
+## Stop users being logged out of WordPress
+
+Stop users being logged out of WordPress with Persistent Login plugin. Ensure extended login sessions, reduce frustration for administrators and visitors. By keeping users active, Persistent Login improves user experience, lowers bounce rates, and prevents disruptions. 
+
+This plugin integrates seamlessly with WordPress to optimise session management without compromising security. Configure your preferences and let the plugin handle everything. You can customise durations for persistent logins and minimise repeated authentication prompts. 
+
+Ultimately, this tool streamlines WordPress operations, ensures convenience, and provides peace of mind. Stop users being logged out of WordPress by installing  today and gain uninterrupted access to your website.
 
 == Installation ==
 
@@ -161,6 +158,14 @@ Visit [persistentlogin.com](https://persistentlogin.com) to learn more.
 5. Active Login settings (premium)
 
 == Changelog == 
+
+= 2.1.4 =
+* Fix: Fixed issue with DISBALE_WP_CRON constant check causing an error on the settings page.
+
+= 2.1.3 = 
+* Namespacing onMailError function to avoid conflicts with other plugins. Renamed to wppl_on_mail_error_log.
+* Adding check for WP Cron to ensure it is running.
+* Updating Freemius SDK to latest version.
 
 = 2.1.2 =
 * Feature: Added option to set a subject for the login history email notification.

@@ -105,7 +105,7 @@ class Groups_Admin_Post_Columns {
 	public static function columns( $column_headers ) {
 		$column_headers[self::GROUPS] = sprintf(
 			'<span title="%s">%s</span>' .
-			' <span style="float: unset; font-size: inherit; vertical-align: middle; line-height: inherit; font-weight: normal;" class="dashicons dashicons-lock"></span>',
+			' <span style="float: unset; font-size: inherit; line-height: inherit; font-weight: normal;" class="dashicons dashicons-lock"></span>',
 			esc_attr__( 'One or more groups granting access to entries.', 'groups' ),
 			esc_html_x( 'Groups', 'Column header', 'groups' )
 		);
@@ -117,8 +117,6 @@ class Groups_Admin_Post_Columns {
 	 *
 	 * @param string $column_name
 	 * @param int $post_id
-	 *
-	 * @return string custom column content
 	 */
 	public static function custom_column( $column_name, $post_id ) {
 		$output = '';
@@ -154,11 +152,11 @@ class Groups_Admin_Post_Columns {
 											$edit_term_link = self::get_edit_term_link( $term->term_id, $term->taxonomy );
 											$taxonomy_label = '';
 											if ( $taxonomy = get_taxonomy( $term->taxonomy ) ) {
-												$taxonomy_label = isset( $taxonomy->label ) ? __( $taxonomy->label ) : '';
+												$taxonomy_label = isset( $taxonomy->label ) ? $taxonomy->label : ''; // $taxonomy->label is already translated
 												$labels = isset( $taxonomy->labels ) ? $taxonomy->labels : null;
 												if ( $labels !== null ) {
-													if ( isset( $labels->singular_name ) )  {
-														$taxonomy_label = __( $labels->singular_name );
+													if ( isset( $labels->singular_name ) ) {
+														$taxonomy_label = $labels->singular_name; // this is already translated
 													}
 												}
 											}
@@ -194,7 +192,7 @@ class Groups_Admin_Post_Columns {
 				}
 				break;
 		}
-		echo $output;
+		echo $output; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	}
 
 	/**

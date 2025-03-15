@@ -10,7 +10,7 @@
  *
  * Plugin Name:       User Switching
  * Description:       Instant switching between user accounts in WordPress
- * Version:           1.9.0
+ * Version:           1.9.1
  * Plugin URI:        https://wordpress.org/plugins/user-switching/
  * Author:            John Blackbourn
  * Author URI:        https://johnblackbourn.com
@@ -65,8 +65,8 @@ final class user_switching {
 		add_action( 'plugins_loaded', [ $this, 'action_plugins_loaded' ], 1 );
 		add_action( 'init', [ $this, 'action_init' ] );
 		add_action( 'all_admin_notices', [ $this, 'action_admin_notices' ], 1 );
-		add_action( 'wp_logout', 'user_switching_clear_olduser_cookie' );
-		add_action( 'wp_login', 'user_switching_clear_olduser_cookie' );
+		add_action( 'wp_logout', 'user_switching_clear_olduser_cookie', 10, 0 );
+		add_action( 'wp_login', 'user_switching_clear_olduser_cookie', 10, 0 );
 
 		// Nice-to-haves:
 		add_filter( 'ms_user_row_actions', [ $this, 'filter_user_row_actions' ], 10, 2 );
