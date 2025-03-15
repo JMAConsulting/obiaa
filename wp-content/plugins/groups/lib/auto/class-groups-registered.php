@@ -51,11 +51,12 @@ class Groups_Registered {
 		if ( $group_id ) {
 			$user_group_table = _groups_get_tablename( 'user_group' );
 			$query = $wpdb->prepare(
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 				"INSERT IGNORE INTO $user_group_table " .
 				"SELECT ID, %d FROM $wpdb->users",
 				Groups_Utility::id( $group_id )
 			);
-			$rows = $wpdb->query( $query );
+			$rows = $wpdb->query( $query ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 		}
 	}
 
@@ -64,9 +65,9 @@ class Groups_Registered {
 	 */
 	public static function init() {
 
-		// For translation of the "Registered" group(s)
-		__( 'Registered', 'groups' );
-		
+		// @since 3.3.1
+		add_action( 'init', array( __CLASS__, 'wp_init' ) );
+
 		// When a blog is added, create a new "Registered" group for that blog.
 		add_action( 'wpmu_new_blog', array( __CLASS__, 'wpmu_new_blog' ), 10, 2 );
 
@@ -82,6 +83,17 @@ class Groups_Registered {
 		add_action( 'add_user_to_blog', array( __CLASS__, 'add_user_to_blog' ), 10, 3 );
 
 		// Note : When a user is removed from a blog it's handled from core.
+	}
+
+	/**
+	 * Hooked on the init action.
+	 *
+	 * @since 3.3.1
+	 */
+	public static function wp_init() {
+		// For translation of the "Registered" group(s)
+		// @since 3.3.1 postponed to after the init action fired
+		__( 'Registered', 'groups' );
 	}
 
 	/**
@@ -177,7 +189,7 @@ class Groups_Registered {
 		// created the tables and all users of the new blog are added to
 		// that blog's "Registered" group.
 		$group_table = _groups_get_tablename( 'group' );
-		if ( $wpdb->get_var( "SHOW TABLES LIKE '" . $group_table . "'" ) == $group_table ) {
+		if ( $wpdb->get_var( "SHOW TABLES LIKE '" . $group_table . "'" ) == $group_table ) { // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 			$registered_group = Groups_Group::read_by_name( self::REGISTERED_GROUP_NAME );
 			if ( !$registered_group ) {
 				$registered_group_id = Groups_Group::create( array( 'name' => self::REGISTERED_GROUP_NAME ) );

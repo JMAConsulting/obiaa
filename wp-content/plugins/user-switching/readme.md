@@ -1,6 +1,6 @@
 # User Switching
 
-Stable tag: 1.9.0  
+Stable tag: 1.9.1  
 Tested up to: 6.7  
 License: GPL v2 or later  
 Tags: users, user switching, fast user switching, multisite, woocommerce  
@@ -85,7 +85,7 @@ User Switching should adhere to Web Content Accessibility Guidelines (WCAG) 2.0 
 
 ### Does this plugin work with PHP 8?
 
-Yes, it's actively tested and working up to PHP 8.3.
+Yes, it's actively tested and working up to PHP 8.4.
 
 ### What does "Switch off" mean?
 
@@ -345,9 +345,15 @@ In addition, User Switching respects the following filters from WordPress core w
 
 ## Changelog ##
 
+### 1.9.1 (5 December 2024) ###
+
+* Fixes the `wp_login` and `wp_logout` parameter usage which could cause a fatal error when passed an unexpected value.
+
 ### 1.9.0 (21 November 2024) ###
 
 * Introduces a confirmation message when a user attempts to switch into an account which somebody else is already switched into. Helpful for teams of support engineers who switch into customer accounts.
+* Confirms support for WordPress 6.7.
+* Confirms support for PHP 8.4.
 * Various code quality improvements.
 
 ### 1.8.0 (22 July 2024) ###
@@ -357,9 +363,9 @@ In addition, User Switching respects the following filters from WordPress core w
 
 ### 1.7.3 (21 February 2024) ###
 
-* Confirm support for PHP 8.3
-* Fix compatibility with BuddyPress version 12
-* Add configuration for the Live Preview feature on wordpress.org
+* Confirms support for PHP 8.3
+* Fixes compatibility with BuddyPress version 12
+* Adds configuration for the Live Preview feature on wordpress.org
 
 
 ### 1.7.2 (16 November 2023) ###
@@ -395,11 +401,6 @@ In addition, User Switching respects the following filters from WordPress core w
 * Fix some issues that could lead to PHP errors given a malformed cookie.
 * Fix documentation.
 
-
-### 1.5.6 (18 September 2020) ###
-
-* Add a class to the table row on the user edit screen.
-* Updated docs.
 
 ### Earlier versions ###
 

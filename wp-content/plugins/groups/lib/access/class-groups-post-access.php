@@ -183,7 +183,7 @@ class Groups_Post_Access {
 		if ( isset( $post->ID ) && !self::user_can_read_post( $post->ID ) ) {
 			$response = array(
 				'code' => 'rest_post_invalid_id',
-				'message' => __( 'Invalid post ID.' ),
+				'message' => __( 'Invalid post ID.' ), // phpcs:ignore WordPress.WP.I18n.MissingArgDomain
 				'data' => array( 'status' => 404 )
 			);
 		}
@@ -685,7 +685,7 @@ class Groups_Post_Access {
 		if ( $capability !== null ) {
 			_doing_it_wrong(
 				__CLASS__ . '::' . __METHOD__,
-				__( 'You should use Groups_Post_Access_Legacy::create() to pass a capability restriction instead.', 'groups' ),
+				__( 'You should use Groups_Post_Access_Legacy::create() to pass a capability restriction instead.', 'groups' ), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 				'2.0.0'
 			);
 		}
@@ -826,7 +826,7 @@ class Groups_Post_Access {
 	public static function get_read_post_capabilities( $post_id ) {
 		_doing_it_wrong(
 			__CLASS__ . '::' . __METHOD__,
-			__( 'This method is deprecated. You should use Groups_Post_Access_Legacy::get_read_post_capabilities() to retrieve the capabilities instead.', 'groups' ),
+			__( 'This method is deprecated. You should use Groups_Post_Access_Legacy::get_read_post_capabilities() to retrieve the capabilities instead.', 'groups' ), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 			'2.0.0'
 		);
 
@@ -938,6 +938,8 @@ class Groups_Post_Access {
 	 * @see Groups_Post_Access::purge_count_posts_cached()
 	 */
 	public static function wp_count_posts( $counts, $type, $perm ) {
+		// @since 3.3.1 remove temporarily to avoid potential infinite recursion https://github.com/itthinx/groups/pull/160
+		remove_filter( 'wp_count_posts', array( __CLASS__, 'wp_count_posts' ), 10 );
 		if ( !empty( $type ) && is_string( $type ) && self::handles_post_type( $type ) ) {
 			$sub_group = Groups_Cache::get_group( '' );
 			// @since 2.20.0 cached per post type gathering counts per subgroup
@@ -987,6 +989,7 @@ class Groups_Post_Access {
 				Groups_Cache::set( self::COUNT_POSTS . '_' . $type, $type_counts, self::CACHE_GROUP );
 			}
 		}
+		add_filter( 'wp_count_posts', array( __CLASS__, 'wp_count_posts' ), 10, 3 ); // @since 3.3.1 reestablish filter for next use
 		return $counts;
 	}
 
@@ -1248,6 +1251,7 @@ class Groups_Post_Access {
 				add_filter( 'get_terms', array( __CLASS__, 'get_terms' ), 10, 4 );
 			}
 		}
+		return $cat_args;
 	}
 
 	/**
@@ -1275,6 +1279,7 @@ class Groups_Post_Access {
 				add_filter( 'get_terms', array( __CLASS__, 'get_terms' ), 10, 4 );
 			}
 		}
+		return $cat_args;
 	}
 
 	/**

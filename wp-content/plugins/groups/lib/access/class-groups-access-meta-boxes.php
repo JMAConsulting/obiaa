@@ -194,7 +194,7 @@ class Groups_Access_Meta_Boxes {
 			$labels = isset( $post_type_object->labels ) ? $post_type_object->labels : null;
 			if ( $labels !== null ) {
 				if ( isset( $labels->singular_name ) ) {
-					$post_singular_name = __( $labels->singular_name );
+					$post_singular_name = $labels->singular_name; // // this is already translated
 				}
 			}
 		}
@@ -212,6 +212,7 @@ class Groups_Access_Meta_Boxes {
 			$groups_read = Groups_Post_Access::get_read_group_ids( $post_id );
 
 			$read_help = sprintf(
+				/* translators: 1: post type name 2: post type name 3: post type name */
 				__( 'You can restrict the visibility of this %1$s to group members. Choose one or more groups that are allowed to read this %2$s. If no groups are chosen, the %3$s is visible to anyone.', 'groups' ),
 				$post_singular_name,
 				$post_singular_name,
@@ -251,6 +252,7 @@ class Groups_Access_Meta_Boxes {
 			);
 			$output .= '<p class="description">';
 			$output .= sprintf(
+				/* translators: post type name */
 				esc_html__( 'Restricts the visibility of this %s to members of the chosen groups.', 'groups' ),
 				esc_html( $post_singular_name )
 			);
@@ -277,7 +279,7 @@ class Groups_Access_Meta_Boxes {
 
 		$output = apply_filters( 'groups_access_meta_boxes_groups', $output, $object, $box );
 
-		echo $output;
+		echo $output; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	}
 
 	/**
@@ -333,8 +335,8 @@ class Groups_Access_Meta_Boxes {
 				if ( !isset( $post_types_option[$post_type]['add_meta_box'] ) || $post_types_option[$post_type]['add_meta_box'] ) {
 
 					if ( self::user_can_restrict() ) {
-						if ( isset( $_POST[self::NONCE] ) && wp_verify_nonce( $_POST[self::NONCE], self::SET_GROUPS ) ) {
-							$post_type = isset( $_POST['post_type'] ) ? $_POST['post_type'] : null;
+						if ( isset( $_POST[self::NONCE] ) && wp_verify_nonce( $_POST[self::NONCE], self::SET_GROUPS ) ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+							$post_type = isset( $_POST['post_type'] ) ? sanitize_text_field( $_POST['post_type'] ) : null;
 							if ( $post_type !== null ) {
 
 								// See http://codex.wordpress.org/Function_Reference/current_user_can 20130119 WP 3.5
@@ -364,7 +366,7 @@ class Groups_Access_Meta_Boxes {
 										$user_group_ids_deep[] = $group->group_id;
 									}
 									$group_ids = array();
-									$submitted_group_ids = !empty( $_POST[self::GROUPS_READ] ) && is_array( $_POST[self::GROUPS_READ] ) ? $_POST[self::GROUPS_READ] : array();
+									$submitted_group_ids = !empty( $_POST[self::GROUPS_READ] ) && is_array( $_POST[self::GROUPS_READ] ) ? $_POST[self::GROUPS_READ] : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 
 									// assign requested groups and create and assign new groups if allowed
 									foreach( $submitted_group_ids as $group_id ) {
@@ -375,7 +377,7 @@ class Groups_Access_Meta_Boxes {
 										} else {
 											if ( Groups_User::current_user_can( GROUPS_ADMINISTER_GROUPS ) ) {
 												$creator_id = get_current_user_id();
-												$datetime   = date( 'Y-m-d H:i:s', time() );
+												$datetime   = date( 'Y-m-d H:i:s', time() ); // phpcs:ignore  WordPress.DateTime.RestrictedFunctions.date_date
 												$name       = ucwords( strtolower( trim( preg_replace( '/\s+/', ' ', $group_id ) ) ) );
 												if ( strlen( $name ) > 0 ) {
 													if ( !( $group = Groups_Group::read_by_name( $name ) ) ) {
@@ -496,6 +498,7 @@ class Groups_Access_Meta_Boxes {
 				$output .= esc_html__( 'The attachment page is restricted to authorized users, but due to technical limitations, the file can still be accessed directly via its URL.', 'groups' );
 				$output .= ' ';
 				$output .= sprintf(
+					/* translators: extension name */
 					esc_html__( 'Please use %s for files that require complete protection.', 'groups' ),
 					'<a href="https://www.itthinx.com/shop/groups-file-access/" target="_blank">Groups File Access</a>'
 				);
