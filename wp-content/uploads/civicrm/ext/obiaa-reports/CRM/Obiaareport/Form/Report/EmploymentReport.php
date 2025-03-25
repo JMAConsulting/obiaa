@@ -90,6 +90,7 @@ class CRM_Obiaareport_Form_Report_EmploymentReport extends CRM_Report_Form {
     $this->_from = "
   FROM civicrm_value_business_deta_5 cg
   LEFT JOIN civicrm_value_membership_st_12 member ON member.entity_id = cg.entity_id
+  INNER JOIN civicrm_contact cc ON cc.id = cg.entity_id AND cc.is_deleted = 0
   LEFT JOIN civicrm_option_value ov ON ov.value = cg.{$this->_customFieldColumnName}
     LEFT  JOIN civicrm_option_group AS og
                         ON og.id = ov.option_group_id AND og.name = 'business_category_employees_at_'
@@ -127,6 +128,7 @@ class CRM_Obiaareport_Form_Report_EmploymentReport extends CRM_Report_Form {
           if ($key == 'civicrm_unit_number'){
             $newRows[$key]['civicrm_unit_' . $row['civicrm_unit_emp_range']] += (int) $row['civicrm_unit_emp_count'] ?? 0;
             $total += (int) $row['civicrm_unit_emp_count'] ?? 0;
+
           }
           else {
             $newRows[$key]['civicrm_unit_' . $row['civicrm_unit_emp_range']] += (($options[$row['civicrm_unit_emp_range']] + $row['civicrm_unit_full_time_employees']) * $row['civicrm_unit_emp_count']) + ($row['civicrm_unit_sole_proprietor_58'] ?? 0);
@@ -136,6 +138,7 @@ class CRM_Obiaareport_Form_Report_EmploymentReport extends CRM_Report_Form {
       }
       $newRows[$key]['civicrm_unit_total'] = $total;
     }
+
     $rows = $newRows;
     foreach (array_keys($this->_columnHeaders) as $header) {
       foreach ($rows as $key => $row) {
