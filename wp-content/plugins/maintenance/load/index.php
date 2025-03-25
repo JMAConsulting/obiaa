@@ -67,7 +67,7 @@ $bunny_fonts = mtnc_add_bunny_fonts();
 	<link rel="profile" href="http://gmpg.org/xfn/11" />
 	<link rel="pingback" href="<?php echo esc_url( get_bloginfo( 'pingback_url' ) ); ?>" />
 	<?php do_action( 'load_custom_style' ); ?>
-	<?php do_action( 'add_gg_analytics_code' ); ?>
+    <?php do_action( 'add_gg_analytics_code' ); ?>
 
     <?php
     if (mtnc_is_weglot_setup()) {
@@ -123,7 +123,7 @@ $bunny_fonts = mtnc_add_bunny_fonts();
 				?>
 				<source media="(max-width: 100vh)" srcset="<?php echo esc_url( $bg_image_portrait ); ?>">
 			<?php endif; ?>
-			<img src="<?php echo esc_url( $body_bg ); ?>">
+			<img class="skip-lazy" src="<?php echo esc_url( $body_bg ); ?>">
 		</picture>
 	<?php endif; ?>
 </div>

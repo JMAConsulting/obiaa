@@ -36,6 +36,7 @@ class Groups_Admin_Welcome {
 		add_action( 'admin_head', array( __CLASS__, 'admin_head' ) );
 		add_action( 'admin_init', array( __CLASS__, 'admin_init' ) );
 		add_filter( 'plugin_row_meta', array( __CLASS__, 'plugin_row_meta' ), 10, 2 );
+		add_action( 'admin_notices', array( __CLASS__, 'admin_notices' ) );
 	}
 
 	/**
@@ -59,6 +60,41 @@ class Groups_Admin_Welcome {
 	}
 
 	/**
+	 * Output admin notices.
+	 *
+	 * @since 3.3.1
+	 */
+	public static function admin_notices() {
+		$is_updated_legacy = get_transient( 'groups_plugin_updated_legacy' );
+		if ( $is_updated_legacy ) {
+			$message = '<p>';
+			$message .= '<strong>';
+			$message .= esc_html__( 'Important', 'groups' );
+			$message .= '</strong>';
+			$message .= ' ';
+			$message .= esc_html__( 'It seems that you have updated from Groups 1.x where access restrictions were based on capabilities.', 'groups' );
+			$message .= '</p>';
+			$message .= '<p>';
+			$message .= sprintf(
+				/* translators: 1: opening tag 2: closing tag */
+				esc_html__( 'Please make sure to read the %1$sMigration Guide%2$s.', 'groups' ),
+				'<a href="https://docs.itthinx.com/document/groups/migration-guide/">',
+				'</a>'
+			);
+			$message .= '</p>';
+			wp_admin_notice(
+				$message,
+				array(
+					'type'               => 'info',
+					'dismissible'        => true,
+					'additional_classes' => array( 'inline', 'notice-alt' ),
+					'attributes'         => array( 'data-slug' => 'plugin-slug' )
+				)
+			);
+		}
+	}
+
+	/**
 	 * Checks if the welcome screen should be shown and redirected to.
 	 */
 	public static function admin_init() {
@@ -68,13 +104,14 @@ class Groups_Admin_Welcome {
 			isset( $_GET['groups-welcome-dismiss'] ) &&
 			isset( $_GET['_groups_welcome_nonce'] )
 		) {
-			if ( wp_verify_nonce( $_GET['_groups_welcome_nonce'], 'groups_welcome_dismiss' ) ) {
+			if ( wp_verify_nonce( $_GET['_groups_welcome_nonce'], 'groups_welcome_dismiss' ) ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 				Groups_Options::update_user_option( 'groups-welcome-dismiss', $groups_version );
 			}
 		}
 		$groups_welcome_dismiss = Groups_Options::get_user_option( 'groups-welcome-dismiss', '' );
 		if ( version_compare( $groups_version, $groups_welcome_dismiss ) > 0 ) {
-			if ( get_transient( 'groups_plugin_activated' ) || get_transient( 'groups_plugin_updated_legacy' ) ) {
+			// @see Groups_Controller::activate()
+			if ( get_transient( 'groups_plugin_activated' ) ) {
 				$doing_ajax = defined( 'DOING_AJAX' ) && DOING_AJAX;
 				$doing_cron = defined( 'DOING_CRON' ) && DOING_CRON;
 				// we'll delete the transients in the welcome screen handler
@@ -83,12 +120,14 @@ class Groups_Admin_Welcome {
 					!$doing_cron &&
 					( empty( $_GET['page'] ) || $_GET['page'] !== 'groups-welcome' ) &&
 					!is_network_admin() &&
-					!isset( $_GET['activate-multi'] ) &&
 					Groups_User::current_user_can( GROUPS_ACCESS_GROUPS ) &&
 					apply_filters( 'groups_welcome_show', true )
 				) {
 					wp_safe_redirect( admin_url( 'index.php?page=groups-welcome' ) );
 					exit;
+				} else {
+					// @since 3.3.1 remove the transient as we don't want to trigger a redirect in any other case than direct activation of the Groups plugin
+					delete_transient( 'groups_plugin_activated' );
 				}
 			}
 		}
@@ -126,7 +165,9 @@ class Groups_Admin_Welcome {
 		wp_enqueue_style( 'groups_admin' );
 
 		delete_transient( 'groups_plugin_activated' );
-		$legacy_update = get_transient( 'groups_plugin_updated_legacy' );
+		// As of Groups 3.3.1 this transient does not trigger a redirect to the welcome screen.
+		// Instead, an admin notice pointing to the migration guide is displayed for as long as the transient has not expired.
+		// We still delete the transient here as we are displaying the welcome screen, and the notice will be visible on top of it.
 		delete_transient( 'groups_plugin_updated_legacy' );
 
 		echo '<div class="groups-welcome-panel">';
@@ -137,6 +178,7 @@ class Groups_Admin_Welcome {
 		printf( '<img class="groups-welcome-icon" width="64" height="64" src="%s"/>', esc_attr( GROUPS_PLUGIN_URL . 'images/groups-256x256.png' ) );
 
 		echo '<h1>';
+		/* translators: version number */
 		printf( esc_html__( 'Welcome to Groups %s', 'groups' ), esc_html( $groups_version ) );
 		echo '</h1>';
 
@@ -150,18 +192,6 @@ class Groups_Admin_Welcome {
 		echo '<p class="headline">';
 		esc_html_e( 'Thanks for using Groups! We have made it even easier to protect your content and hope you like it :)', 'groups' );
 		echo '</p>';
-
-		if ( $legacy_update ) {
-			echo '<p class="important">';
-			echo '<strong>';
-			esc_html_e( 'Important', 'groups' );
-			echo '</strong>';
-			echo '<br/><br/>';
-			esc_html_e( 'It seems that you have updated from Groups 1.x where access restrictions were based on capabilities.', 'groups' );
-			echo '<br/>';
-			printf( wp_kses_post( __( 'Please make sure to read the notes on <strong>Switching to Groups %s</strong> below.', 'groups' ) ), esc_html( $groups_version ) );
-			echo '</p>';
-		}
 
 		echo '<h2>';
 		esc_html_e( "What's New?", 'groups' );
