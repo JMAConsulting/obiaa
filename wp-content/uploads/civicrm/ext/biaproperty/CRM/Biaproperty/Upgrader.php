@@ -332,6 +332,100 @@ class CRM_Biaproperty_Upgrader extends CRM_Extension_Upgrader_Base {
     return TRUE;
   }
 
+  public function upgrade_2208(): bool {
+  $this->ctx->log->info('Add Activity Type - Incident Type and custom group incident details');
+    $activityTypeID = \Civi\Api4\OptionValue::save(FALSE)
+      ->addRecord([
+        'option_group_id' => 2,
+        'label' => E::ts('Incidents'),
+        'name' => 'Incidents',
+        'grouping' => NULL,
+        'filter' => 0,
+        'is_default' => FALSE,
+        'is_active' => TRUE,
+    ])->setMatch(['name'])->execute()->first()['value'];
+    
+    $customGroupID = \Civi\Api4\CustomGroup::save(FALSE)
+      ->addRecord([
+        'name' => 'Incident_Details',
+        'title' => E::ts('Incident Details'),
+        'extends' => 'Activity',
+        'extends_entity_column_id' => NULL,
+        'extends_entity_column_value' => [$activityTypeID],
+        'style' => 'Inline',
+        'is_active' => TRUE,
+        'created_date' => date('YmdHis'),
+        'is_public' => TRUE,
+    ])->setMatch(['name'])->execute()->first()['id'];
+    
+    $optionGroupID = \Civi\Api4\OptionGroup::save(FALSE)
+      ->addRecord([
+        'name' => 'Incident_Details_Incident_Type',
+        'title' => E::ts('Incident Details :: Incident Type'),
+        'description' => NULL,
+        'data_type' => 'String',
+        'is_reserved' => FALSE,
+        'is_active' => TRUE,
+        'is_locked' => FALSE,
+        'option_value_fields' => [
+          'name',
+          'label',
+          'description',
+        ],
+    ])->setMatch(['name'])->execute()->first()['id'];
+    
+    \Civi\Api4\OptionValue::save(FALSE)
+      ->addRecord([
+        'option_group_id' => $optionGroupID,
+        'label' => E::ts('Break in'),
+        'name' => 'Break_in',
+        'is_active' => TRUE,
+    ])->setMatch(['name'])->execute();
+    
+    $customFieldID = \Civi\Api4\CustomField::save(FALSE)
+      ->addRecord([
+         'custom_group_id' => $customGroupID,
+         'name' => 'Incident_Type',
+         'label' => E::ts('Incident Type'),
+         'data_type' => 'String',
+         'html_type' => 'Select',
+         'default_value' => NULL,
+         'is_required' => FALSE,
+         'is_searchable' => FALSE,
+         'is_search_range' => FALSE,
+         'is_active' => TRUE,
+         'is_view' => FALSE,
+         'text_length' => 255,
+         'note_columns' => 60,
+         'note_rows' => 4,
+         'option_group_id' => $optionGroupID,
+         'serialize' => 0,
+         'filter' => NULL,
+         'in_selector' => FALSE,
+         'fk_entity' => NULL,
+         'fk_entity_on_delete' => 'set_null',
+    ])->setMatch(['name'])->execute()->first()['id'];
+    
+    \Civi\Api4\Navigation::save(FALSE)
+      ->addRecord([
+        'domain_id' => 1,
+        'label' => E::ts('Incident Types'),
+        'name' => 'Add Incident Type',
+        'url' => sprintf('/wp-admin/admin.php?page=CiviCRM&q=civicrm/admin/custom/group/field/option&reset=1&action=browse&gid=%s&fid=%s', $customGroupID, $customFieldID),
+        'icon' => 'crm-i fa-triangle-exclamation',
+        'permission' => [
+          'access CiviCRM',
+        ],
+        'permission_operator' => 'AND',
+        'parent_id:name' => 'BIA Administration',
+        'is_active' => TRUE,
+        'has_separator' => 0,
+        'weight' => 1,
+      ])->setMatch(['name'])->execute();
+
+    return TRUE;
+}
+
   /**
    * Example: Run an external SQL script.
    *
