@@ -6,6 +6,17 @@ use CRM_Obiaatemplate_ExtensionUtil as E;
  */
 class CRM_Obiaatemplate_Upgrader extends CRM_Extension_Upgrader_Base {
 
+  public function upgrade_1100(): bool {
+    $this->ctx->log->info('Applying update 1100 correct OBIAA template');
+    $baseUrl = CRM_Core_Config::signleton()->userFrameworkBaseURL;
+    civicrm_api3('MosaicoTemplate', 'replaceurls', [
+     'from_url' => "wpmaster.localhost",
+     'to_url' => parse_url($baseUrl, PHP_URL_HOST),
+    ]);
+
+    return TRUE;
+  }
+
   // By convention, functions that look like "function upgrade_NNNN()" are
   // upgrade tasks. They are executed in order (like Drupal's hook_update_N).
 
