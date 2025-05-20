@@ -6,9 +6,9 @@ use CRM_Obiaatemplate_ExtensionUtil as E;
  */
 class CRM_Obiaatemplate_Upgrader extends CRM_Extension_Upgrader_Base {
 
-  public function upgrade_1100(): bool {
+  public function upgrade_1200(): bool {
     $this->ctx->log->info('Applying update 1100 correct OBIAA template');
-    $baseUrl = CRM_Core_Config::signleton()->userFrameworkBaseURL;
+    $baseUrl = CRM_Core_Config::singleton()->userFrameworkBaseURL;
     civicrm_api3('MosaicoTemplate', 'replaceurls', [
      'from_url' => "wpmaster.localhost",
      'to_url' => parse_url($baseUrl, PHP_URL_HOST),
