@@ -10,7 +10,6 @@ foreach ($importEntities as $importEntity) {
     $fields = array_merge(['_id' => TRUE, '_status' => TRUE, '_entity_id' => TRUE, '_status_message' => TRUE], Import::getFieldsForUserJobID($importEntity['user_job_id'], FALSE));
   }
   catch (CRM_Core_Exception $e) {
-    CRM_Core_Error::debug_var('e', $e);    
     continue;
   }
   $fields['_entity_id']['link'] = [
@@ -90,7 +89,7 @@ foreach ($importEntities as $importEntity) {
       'dataType' => $field['data_type'] ?? 'String',
       'label' => $field['title'] ?? $field['label'],
       'sortable' => TRUE,
-      'editable' => strpos($field['name'], '_') !== 0,
+      'editable' => !str_starts_with($field['name'], '_'),
       'link' => $field['link'] ?? NULL,
     ];
   }
