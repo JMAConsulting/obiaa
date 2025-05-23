@@ -25,7 +25,7 @@ class CRM_CiviMobileAPI_ApiWrapper_ContributionPage implements API_Wrapper {
    * @return array
    */
   public function toApiOutput($apiRequest, $result) {
-    if (is_mobile_request()) {
+    if (CRM_CiviMobileAPI_Hook_Utils::is_mobile_request()) {
       if (!empty($result['values'])) {
         foreach ($result['values'] as &$contributionPage) {
           $contributionPage['page_URL'] = CRM_CiviMobileAPI_Utils_CiviCRM::getContributionPageUrl($contributionPage['id']);

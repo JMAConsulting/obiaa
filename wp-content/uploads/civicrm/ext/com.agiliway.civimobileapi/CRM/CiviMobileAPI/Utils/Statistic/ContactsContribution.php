@@ -146,15 +146,11 @@ class CRM_CiviMobileAPI_Utils_Statistic_ContactsContribution {
   public function getPaymentInstrumentId($paymentInstrumentsParam) {
     $paymentInstrumentsId = [];
 
-    try {
-      $paymentInstruments = civicrm_api3('OptionValue', 'get', [
-        'sequential' => 1,
-        'return' => ["name", "value"],
-        'option_group_id' => "payment_instrument",
-      ])['values'];
-    } catch (CiviCRM_API3_Exception $e) {
-      return [];
-    }
+    $paymentInstruments = civicrm_api4('OptionValue', 'get', [
+      'select' => ['name', 'value'],
+      'where' => [['option_group_id:name', '=', 'payment_instrument']],
+      'checkPermissions' => FALSE,
+    ])->getArrayCopy();
 
     if (!empty($paymentInstruments)) {
       foreach ($paymentInstruments as $paymentInstrument) {
@@ -178,13 +174,9 @@ class CRM_CiviMobileAPI_Utils_Statistic_ContactsContribution {
   public function getFinancialTypeId($financialTypesParam) {
     $financialTypesId = [];
 
-    try {
-      $financialTypes = civicrm_api3('FinancialType', 'get', [
-        'sequential' => 1,
-      ])['values'];
-    } catch (CiviCRM_API3_Exception $e) {
-      return [];
-    }
+    $financialTypes = civicrm_api4('FinancialType', 'get', [
+      'checkPermissions' => FALSE,
+    ])->getArrayCopy();
 
     if (!empty($financialTypes)) {
       foreach ($financialTypes as $financialType) {
@@ -208,15 +200,11 @@ class CRM_CiviMobileAPI_Utils_Statistic_ContactsContribution {
   public function getContributionStatusId($contributionStatusesParam) {
     $contributionStatusId = [];
 
-    try {
-      $contributionStatuses = civicrm_api3('OptionValue', 'get', [
-        'sequential' => 1,
-        'return' => ["name", "value"],
-        'option_group_id' => "contribution_status",
-      ])['values'];
-    } catch (CiviCRM_API3_Exception $e) {
-      return [];
-    }
+    $contributionStatuses = civicrm_api4('OptionValue', 'get', [
+      'select' => ['name', 'value'],
+      'where' => [['option_group_id:name', '=', 'contribution_status']],
+      'checkPermissions' => FALSE,
+    ])->getArrayCopy();
 
     if (!empty($contributionStatuses)) {
       foreach ($contributionStatuses as $contributionStatus) {

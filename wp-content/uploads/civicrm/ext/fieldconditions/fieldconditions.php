@@ -124,19 +124,19 @@ function fieldconditions_civicrm_buildForm($formName, &$form) {
   }
 
   if (!empty($maps)) {
-    if (empty(CRM_Utils_Request::retrieveValue('snippet', 'String'))) {
-      Civi::resources()->addVars('fieldconditions', [
-        'maps' => $maps,
-      ]);
-
-      Civi::resources()->addScriptFile('coop.symbiotic.fieldconditions', 'fieldconditions.js');
-    }
-    else {
+    if (CRM_Utils_Request::retrieveValue('snippet', 'String') == 4) {
       // Ex: loading a new address
       // We have to do a workaround using alterContent because Address.tpl does not
       // invoke any relevant crmRegion where we could inject JS.
       global $fieldconditions_maps;
       $fieldconditions_maps = $maps;
+    }
+    else {
+      Civi::resources()->addVars('fieldconditions', [
+        'maps' => $maps,
+      ]);
+
+      Civi::resources()->addScriptFile('coop.symbiotic.fieldconditions', 'fieldconditions.js');
     }
   }
 }
@@ -186,5 +186,20 @@ function fieldconditions_civicrm_alterContent(&$content, $context, $tplName, &$o
         </script>
       ';
     }
+  }
+}
+
+/**
+ * Implements hook_civicrm_advimport_helpers()
+ */
+function fieldconditions_civicrm_advimport_helpers(&$helpers) {
+  $fieldConditions = \Civi\Api4\FieldCondition::get(FALSE)->execute();
+
+  foreach ($fieldConditions as $fieldCondition) {
+    $helpers[] = [
+      'class' => 'CRM_Fieldconditions_Advimport_Generic',
+      'label' => E::ts('Field Conditions: %1', [1 => $fieldCondition['name']]),
+      'fieldcondition_id' => $fieldCondition['id'],
+    ];
   }
 }

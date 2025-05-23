@@ -14,15 +14,15 @@ class CRM_CiviMobileAPI_Utils_OptionValue {
    * @return array|bool
    */
   public static function getId($optionGroupName, $optionValueName) {
-    try {
-      $optionValue = civicrm_api3('OptionValue', 'getsingle', [
-        'sequential' => 1,
-        'option_group_id' => $optionGroupName,
-        'name' => $optionValueName
-      ]);
-    } catch (CiviCRM_API3_Exception $e) {
-      return false;
-    }
+    $optionValue = civicrm_api4('OptionValue', 'get', [
+      'select' => ['id'],
+      'where' => [
+        ['option_group_id:name', '=', $optionGroupName],
+        ['name', '=', $optionValueName],
+      ],
+      'limit' => 1,
+      'checkPermissions' => FALSE,
+    ])->first();
 
     return !empty($optionValue['id']) ? $optionValue['id'] : false;
   }
@@ -40,19 +40,19 @@ class CRM_CiviMobileAPI_Utils_OptionValue {
       return [];
     }
 
-    $params =  [
-      'sequential' => 1,
-      'option_group_id' => $optionGroupId,
-      'options' => ['sort' => "label asc", 'limit' => 0],
-    ];
+    $whereParams = [['option_group_id', '=', $optionGroupId]];
 
-    try {
-      $optionValue = civicrm_api3('OptionValue', 'get', array_merge($params, $extraParams));
-    } catch (CiviCRM_API3_Exception $e) {
-      return [];
+    foreach ($extraParams as $key => $extraParam) {
+      $whereParams[] = [$key, '=', $extraParam];
     }
 
-    return !empty($optionValue['values']) ? $optionValue['values'] : [];
+    return civicrm_api4('OptionValue', 'get', [
+      'where' => $whereParams,
+      'orderBy' => [
+        'label' => 'ASC',
+      ],
+      'checkPermissions' => FALSE,
+    ])->getArrayCopy();
   }
 
 }

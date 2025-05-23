@@ -39,14 +39,15 @@ class CRM_CiviMobileAPI_Utils_File {
    * @return bool
    */
   public static function getContactAvatarFileName($contactId) {
-    try {
-      $linkToAvatar = civicrm_api3('Contact', 'getvalue', array(
-        'return' => "image_URL",
-        'id' => $contactId,
-      ));
-    } catch (CiviCRM_API3_Exception $e) {
-      return false;
-    }
+    $linkToAvatar = civicrm_api4('Contact', 'get', [
+      'select' => [
+        'image_URL',
+      ],
+      'where' => [
+        ['id', '=', $contactId],
+      ],
+      'checkPermissions' => FALSE,
+    ])->first()['image_URL'];
 
     $linkToAvatar = htmlspecialchars_decode($linkToAvatar, ENT_NOQUOTES);
     $urlQuery = parse_url($linkToAvatar, PHP_URL_QUERY);

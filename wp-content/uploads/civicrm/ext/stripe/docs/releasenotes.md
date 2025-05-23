@@ -9,6 +9,12 @@ Releases use the following numbering system:
 
 * **[BC]**: Items marked with [BC] indicate a breaking change that will require updates to your code if you are using that code in your extension.
 
+## Release 6.11.4 (2025-01-05)
+
+* Support [Bancontact](https://stripe.com/payment-method/bancontact) for Stripe Checkout.
+* Add subscription status 'paused' mapped to 'Pending'.
+* Add `current_period_start` to `getObjectParam()` for subscriptions.
+
 ## Release 6.11.3 (2024-10-13)
 
 * Upgrade to EntityFrameworkV2

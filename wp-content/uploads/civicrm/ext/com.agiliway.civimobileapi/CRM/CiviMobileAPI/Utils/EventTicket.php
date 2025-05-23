@@ -43,14 +43,14 @@ class CRM_CiviMobileAPI_Utils_EventTicket {
     $qrCodeInfo = CRM_CiviMobileAPI_Utils_ParticipantQrCode::getQrCodeInfo($participant['id']);
 
     if ($event['is_monetary'] == 1) {
-      $currency = CRM_Utils_Money::format($participant['participant_fee_amount'], $participant['participant_fee_currency']);
+      $currency = CRM_Utils_Money::format($participant['fee_amount'], $participant['fee_currency']);
     }
 
     return [
       'participant_contact_display_name' => $participantContactDisplayName,
-      'participant_status_name' => !empty($participant['participant_status']) ? E::ts($participant['participant_status']) : '',
-      'participant_role_name' => !empty($participant['participant_role']) ? E::ts($participant['participant_role']) : '',
-      'participant_fee_amount' => !empty($participant['participant_fee_amount']) ? $participant['participant_fee_amount'] : '0',
+      'participant_status_name' => !empty($participant['status_id:name']) ? E::ts($participant['status_id:name']) : '',
+      'participant_role_name' => !empty($participant['role_id:name']) ? E::ts($participant['role_id:name'][0]) : '',
+      'participant_fee_amount' => !empty($participant['fee_amount']) ? $participant['fee_amount'] : '0',
       'participant_fee_amount_currency' => !empty($currency) ? $currency : '',
       'event_name' => $event['event_title'],
       'event_start_date' => !empty($event['event_start_date']) ? $event['event_start_date'] : '',

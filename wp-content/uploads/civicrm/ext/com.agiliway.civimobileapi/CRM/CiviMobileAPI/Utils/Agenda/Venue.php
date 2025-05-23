@@ -49,14 +49,13 @@ class CRM_CiviMobileAPI_Utils_Agenda_Venue {
    * @return string|bool
    */
   public static function getLocaleId($eventId) {
-    try {
-      $event = civicrm_api3('Event', 'getsingle', [
-        'return' => ["loc_block_id"],
-        'id' => $eventId,
-      ]);
-    } catch (CiviCRM_API3_Exception $e) {
-      return FALSE;
-    }
+    $event = civicrm_api4('Event', 'get', [
+      'select' => ['loc_block_id'],
+      'where' => [
+        ['id', '=', $eventId],
+      ],
+      'checkPermissions' => FALSE,
+    ])->first();
 
     if (empty($event['loc_block_id'])) {
       return FALSE;
@@ -112,11 +111,23 @@ class CRM_CiviMobileAPI_Utils_Agenda_Venue {
         'longitude' => '',
       ];
     }
-    $addressId = civicrm_api3('LocBlock', 'getsingle', [
-      'return' => ["address_id"],
-      'id' => $params['location_id'],
-    ])['address_id'];
-    $locationAddressData = civicrm_api3('Address', 'getsingle', ['id' => $addressId]);
+    $addressId = civicrm_api4('LocBlock', 'get', [
+      'select' => [
+        'address_id',
+      ],
+      'where' => [
+        ['id', '=', $params['location_id']],
+      ],
+      'checkPermissions' => FALSE,
+    ])->first()['address_id'];
+
+    $locationAddressData = civicrm_api4('Address', 'get', [
+      'where' => [
+        ['id', '=', $addressId],
+      ],
+      'checkPermissions' => FALSE,
+    ])->first();
+
     $venueAddressData = $locationAddressData;
     $venueAddressData['street_address'] = $params['address'];
     unset($venueAddressData['geo_code_1'], $venueAddressData['geo_code_2']);

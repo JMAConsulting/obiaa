@@ -136,17 +136,27 @@ class CRM_CiviMobileAPI_Utils_CaseRole {
    * @throws \CiviCRM_API3_Exception
    */
   private function getContactImageUrl($contactId) {
-    return civicrm_api3('Contact', 'getvalue', [
-      'return' => "image_URL",
-      'id' => $contactId,
-    ]);
+    return civicrm_api4('Contact', 'get', [
+      'select' => [
+        'image_URL',
+      ],
+      'where' => [
+        ['id', '=', $contactId],
+      ],
+      'checkPermissions' => FALSE,
+    ])->first()['image_URL'];
   }
 
   public function getContactType($contactId) {
-    return civicrm_api3('Contact', 'getvalue', [
-      'return' => "contact_type",
-      'id' => $contactId,
-    ]);
+    return civicrm_api4('Contact', 'get', [
+      'select' => [
+        'contact_type',
+      ],
+      'where' => [
+        ['id', '=', $contactId],
+      ],
+      'checkPermissions' => FALSE,
+    ])->first()['contact_type'];
   }
 
   /**
@@ -295,13 +305,15 @@ class CRM_CiviMobileAPI_Utils_CaseRole {
    * @throws \CiviCRM_API3_Exception
    */
   private function getRelationTypeId($direction, $relationTitle) {
-    $result = civicrm_api3('RelationshipType', 'get', [
-      'sequential' => 1,
-      'return' => ["id"],
-      "name$direction" => $relationTitle,
-    ]);
-
-    return $result['values'][0]['id'];
+    return civicrm_api4('RelationshipType', 'get', [
+      'select' => [
+        'id',
+      ],
+      'where' => [
+        ["name$direction", '=', $relationTitle],
+      ],
+      'checkPermissions' => FALSE,
+    ])->first()['id'];
   }
 
 }

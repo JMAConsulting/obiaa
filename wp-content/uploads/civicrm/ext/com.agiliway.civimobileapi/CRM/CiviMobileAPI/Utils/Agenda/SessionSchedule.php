@@ -54,16 +54,22 @@ class CRM_CiviMobileAPI_Utils_Agenda_SessionSchedule {
    * @return array
    */
   private static function getStartAndEndTime($eventId) {
-    $eventData = civicrm_api3('Event', 'getsingle', ['id' => $eventId]);
-    $startTime = $eventData['event_start_date'];
-    if (empty($eventData['event_end_date'])) {
+    $eventData = civicrm_api4('Event', 'get', [
+      'where' => [
+        ['id', '=', $eventId],
+      ],
+      'checkPermissions' => FALSE,
+    ])->first();
+
+    $startTime = $eventData['start_date'];
+    if (empty($eventData['end_date'])) {
       $sessionsData = self::getEventSessionsValues($eventId);
       foreach ($sessionsData as $sessionData) {
         $endTimes[] = $sessionData['end_time'];
       }
       $endTime = date('Y-m-d H:i:s', max(array_map('strtotime', $endTimes)));
     } else {
-      $endTime = $eventData['event_end_date'];
+      $endTime = $eventData['end_date'];
     }
 
     return [
@@ -78,9 +84,12 @@ class CRM_CiviMobileAPI_Utils_Agenda_SessionSchedule {
    * @return array
    */
   private static function getTimeTypeArray() {
-    $timeSetting = civicrm_api3('Setting', 'getsingle', [
-      'return' => ["dateformatTime"],
-    ])['dateformatTime'];
+    $timeSetting = civicrm_api4('Setting', 'get', [
+      'select' => [
+        'dateformatTime',
+      ],
+      'checkPermissions' => FALSE,
+    ])->first()['value'];
 
     $timesArray12 = [
       '12:00 AM', '01:00 AM', '02:00 AM', '03:00 AM', '04:00 AM', '05:00 AM',
@@ -134,10 +143,12 @@ class CRM_CiviMobileAPI_Utils_Agenda_SessionSchedule {
    * @return mixed
    */
   private static function isPopup(){
-    return civicrm_api3('Setting', 'getsingle', [
-      'sequential' => 1,
-      'return' => ["ajaxPopupsEnabled"],
-    ])["ajaxPopupsEnabled"];
+    return civicrm_api4('Setting', 'get', [
+      'select' => [
+        'ajaxPopupsEnabled',
+      ],
+      'checkPermissions' => FALSE,
+    ])->first()['value'];
   }
 
   /**

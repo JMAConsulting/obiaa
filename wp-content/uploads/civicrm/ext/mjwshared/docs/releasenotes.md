@@ -9,6 +9,22 @@ Releases use the following numbering system:
 
 * **[BC]**: Items marked with [BC] indicate a breaking change that will require updates to your code if you are using that code in your extension.
 
+## Release 1.4.0 (2025-04-04)
+
+* Add SearchKit-based payment processor webhooks display (and remove old one)
+* Add support for getting totalAmount from contribution pages in invoice mode - requires [civicrm-core#32574](https://github.com/civicrm/civicrm-core/pull/32574).
+
+## Release 1.3.4 (2025-02-26)
+
+* Make sure we always activate customdata from managed entities
+* Add civicrm-ext type to composer.json
+
+## Release 1.3.3 (2025-01-06)
+
+* Change ManagedEntity to update policy always (prevents conflicts with other extensions and fixes issues with them disappearing in certain circumstances).
+* Fix regression on required checkbox fields.
+* Fix JS crash if name is undefined.
+
 ## Release 1.3.2 (2024-10-13)
 
 * Add check for webhooks stuck in processing status - if this is triggered something probably needs fixing manually.
@@ -23,10 +39,10 @@ Releases use the following numbering system:
 ## Release 1.3 (2024-07-17)
 
 * Add new API4 functions:
-  * ContributionRecur.updateAmountOnRecurMJW 
-  * Membership.LinkToRecurMJW 
-  * Membership.UnlinkFromRecurMJW 
-  * PriceFieldValue.GetDefaultPriceFieldValueForContributionMJW 
+  * ContributionRecur.updateAmountOnRecurMJW
+  * Membership.LinkToRecurMJW
+  * Membership.UnlinkFromRecurMJW
+  * PriceFieldValue.GetDefaultPriceFieldValueForContributionMJW
   * PriceFieldValue.GetDefaultPriceFieldValueForMembershipMJW
   * PaymentMJW.create
 

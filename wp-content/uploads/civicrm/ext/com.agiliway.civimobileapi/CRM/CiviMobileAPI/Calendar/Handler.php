@@ -106,64 +106,65 @@ class CRM_CiviMobileAPI_Calendar_Handler {
    */
   public function getEvents() {
     $result = [];
-    $query = '
-      SELECT DISTINCT
-        civicrm_event.id,
-        civicrm_event.title,
-        event_type_value.label AS event_type_label,
-        civicrm_event.event_type_id AS event_type_id,
-        civicrm_event.start_date AS start,
-        civicrm_event.end_date AS end
-      FROM civicrm_event
-      LEFT JOIN civicrm_participant ON civicrm_participant.event_id = civicrm_event.id
-      LEFT JOIN `civicrm_option_group` AS event_type_group ON event_type_group.name = \'event_type\'
-      LEFT JOIN `civicrm_option_value` AS event_type_value ON (event_type_value.option_group_id = event_type_group.id
-        AND civicrm_event.event_type_id = event_type_value.value )
-      WHERE civicrm_event.is_active = 1
-        AND civicrm_event.is_template = 0
-        AND civicrm_participant.contact_id = %1
-        AND (
-          civicrm_event.start_date BETWEEN %2 AND %3
-          OR civicrm_event.end_date BETWEEN %2 AND %3
-          OR "%2" BETWEEN civicrm_event.start_date AND civicrm_event.end_date
-        )
-    ';
+
+    $whereParams = [
+      ['is_active', '=', TRUE],
+      ['is_template', '=', FALSE],
+      ['participant.contact_id', '=', $this->contactId],
+      ['OR', [
+        ['start_date', 'BETWEEN', [$this->params['startDate'], $this->params['endDate']]],
+        ['end_date', 'BETWEEN', [$this->params['startDate'], $this->params['endDate']]],
+      ]],
+    ];
 
     if ($this->params['hidePastEvents'] == "1") {
-      $query .= ' AND civicrm_event.start_date > NOW()';
+      $whereParams[] = ['start_date', '>' , 'now'];
     }
 
     $eventCategories = CRM_CiviMobileAPI_Settings_Calendar::getEventTypes();
+
     if (!empty($eventCategories)) {
-      $query .= ' AND civicrm_event.event_type_id IN (' . implode(', ', $eventCategories) . ') ';
+      $whereParams[] = ['event_type_id', 'IN' , $eventCategories];
     }
 
-    $dao = CRM_Core_DAO::executeQuery($query, [
-      1 => [ $this->contactId, 'Integer' ],
-      2 => [ $this->params['startDate'], 'String' ],
-      3 => [ $this->params['endDate'], 'String' ]
-    ]);
+    $events = civicrm_api4('Event', 'get', [
+      'select' => [
+        'id',
+        'title',
+        'event_type_id:label',
+        'event_type_id',
+        'start_date',
+        'end_date',
+      ],
+      'join' => [
+        ['Participant AS participant', 'LEFT', ['participant.event_id', '=', 'id']],
+      ],
+      'where' => $whereParams,
+      'groupBy' => [
+        'id',
+      ],
+      'checkPermissions' => FALSE,
+    ])->getArrayCopy();
 
-    while ($dao->fetch()) {
-      if ($dao->title) {
-        $dao->url = htmlspecialchars_decode(CRM_Utils_System::url('civicrm/event/info', 'reset=1&id=' . $dao->id));
+    foreach ($events as $event) {
+      if ($event['title']) {
+        $event['url'] = htmlspecialchars_decode(CRM_Utils_System::url('civicrm/event/info', 'reset=1&id=' . $event['id']));
       }
 
       $eventData = [];
-      $eventData['id'] = $dao->id;
-      $eventData['event_type_label'] = $dao->event_type_label;
-      $eventData['event_type_id'] = $dao->event_type_id;
-      foreach ($this->fields as $k) {
-        $eventData[$k] = $dao->$k;
-      }
+      $eventData['id'] = $event['id'];
+      $eventData['event_type_label'] = $event['event_type_id:label'];
+      $eventData['event_type_id'] = $event['event_type_id'];
+      $eventData['title'] = $event['title'];
+      $eventData['start'] = $event['start_date'];
+      $eventData['end'] = $event['end_date'];
+      $eventData['url'] = $event['url'];
 
+      $eventData['type'] = self::TYPE_EVENTS;
       $eventData['constraint'] = true;
       $eventData['color'] = $this->params['eventColor'];
-      $eventData['type'] = self::TYPE_EVENTS;
       $result[] = $eventData;
     }
-
-    $dao->free();
 
     return $result;
   }

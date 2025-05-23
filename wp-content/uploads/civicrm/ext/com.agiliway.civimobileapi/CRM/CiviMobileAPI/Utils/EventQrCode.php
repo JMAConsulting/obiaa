@@ -9,18 +9,19 @@ class CRM_CiviMobileAPI_Utils_EventQrCode {
    * @return int|NULL
    */
   public static function isEventUsedQrCode($eventId) {
-    $customFieldName = "custom_" . CRM_CiviMobileAPI_Utils_CustomField::getId(CRM_CiviMobileAPI_Install_Entity_CustomGroup::QR_USES, CRM_CiviMobileAPI_Install_Entity_CustomField::IS_QR_USED);
+    $customFieldName = CRM_CiviMobileAPI_Install_Entity_CustomGroup::QR_USES . '.' . CRM_CiviMobileAPI_Install_Entity_CustomField::IS_QR_USED;
 
-    try {
-      $event = civicrm_api3('Event', 'getsingle', [
-        'id' => $eventId,
-        'return' => [$customFieldName]
-      ]);
-    } catch (CiviCRM_API3_Exception $e) {
-      $event = [];
-    }
+    $event = civicrm_api4('Event', 'get', [
+      'select' => [
+        $customFieldName,
+      ],
+      'where' => [
+        ['id', '=', $eventId],
+      ],
+      'checkPermissions' => FALSE,
+    ])->first();
 
-    return (!empty($event[$customFieldName]) ? $event[$customFieldName] : NULL);
+    return $event[$customFieldName];
   }
 
   /**
@@ -30,14 +31,19 @@ class CRM_CiviMobileAPI_Utils_EventQrCode {
    * @return bool
    */
   public static function setQrCodeToEvent($eventId) {
-    $customFieldName = "custom_" . CRM_CiviMobileAPI_Utils_CustomField::getId(CRM_CiviMobileAPI_Install_Entity_CustomGroup::QR_USES, CRM_CiviMobileAPI_Install_Entity_CustomField::IS_QR_USED);
+    $customFieldName = CRM_CiviMobileAPI_Install_Entity_CustomGroup::QR_USES . '.' . CRM_CiviMobileAPI_Install_Entity_CustomField::IS_QR_USED;
 
     try {
-      civicrm_api3('Event', 'create', array(
-        'id' => $eventId,
-        $customFieldName  => 1
-      ));
-    } catch (CiviCRM_API3_Exception $e) {
+      civicrm_api4('Event', 'update', [
+        'values' => [
+          $customFieldName => 1,
+        ],
+        'where' => [
+          ['id', '=', $eventId],
+        ],
+        'checkPermissions' => FALSE,
+      ]);
+    } catch (CRM_Core_Exception $e) {
       return false;
     }
 

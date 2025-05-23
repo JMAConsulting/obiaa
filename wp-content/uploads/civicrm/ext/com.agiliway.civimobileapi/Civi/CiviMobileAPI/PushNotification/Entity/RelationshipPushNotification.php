@@ -6,16 +6,23 @@ use Civi\CiviMobileAPI\PushNotification\Utils\PushNotificationSender;
 use CRM_CiviMobileAPI_Utils_Request;
 use CRM_Core_Session;
 use Exception;
+use CRM_CiviMobileAPI_ExtensionUtil as E;
 
 class RelationshipPushNotification extends BasePushNotification {
 
-  private $actionText = [
-    'create' => '%display_name has created relationship.',
-    'edit' => '%display_name has edited relationship.',
-    'delete' => '%display_name has deleted relationship.'
-  ];
+  private $actionText;
 
   private $caseID;
+
+  function __construct($action, $entity, $id, $entityInstance) {
+    parent::__construct($action, $entity, $id, $entityInstance);
+
+    $this->actionText = [
+      'create' => '%display_name ' . E::ts('has created relationship.'),
+      'edit' => '%display_name ' . E::ts('has edited relationship.'),
+      'delete' => '%display_name' . E::ts('has deleted relationship.')
+    ];
+  }
 
   public function handlePostHook() {
     if ($this->entity !== 'Relationship') {

@@ -90,7 +90,7 @@ class CRM_CiviMobileAPI_Utils_Membership {
    * @param array $params
    *
    * @return array
-   * @throws \CiviCRM_API3_Exception
+   * @throws \CRM_Core_Exception
    */
   private static function getLineItems($params) {
     $priceSetParams = [
@@ -105,18 +105,22 @@ class CRM_CiviMobileAPI_Utils_Membership {
 
     $priceSetId = self::getPriceSetId($params['membership_id']);
 
-    $priceFields = civicrm_api3('PriceField', 'get', [
-      'price_set_id' => $priceSetId
-    ]);
-
-    $fields = $priceFields['values'];
+    $fields = civicrm_api4('PriceField', 'get', [
+      'where' => [
+        ['price_set_id', '=', $priceSetId],
+      ],
+      'checkPermissions' => FALSE,
+    ])->getArrayCopy();
 
     foreach ($fields as &$field) {
-      $priceFieldValues = civicrm_api3('PriceFieldValue', 'get', [
-        'price_field_id' => $field['id']
-      ]);
+      $priceFieldValues = civicrm_api4('PriceFieldValue', 'get', [
+        'where' => [
+          ['price_field_id', '=', $field['id']],
+        ],
+        'checkPermissions' => FALSE,
+      ])->getArrayCopy();
 
-      $field['options'] = $priceFieldValues['values'];
+      $field['options'] = $priceFieldValues;
       $priceSetParams['price_' . $field['id']] = $field['id'];
     }
 
@@ -181,15 +185,17 @@ class CRM_CiviMobileAPI_Utils_Membership {
    * @return array|string
    */
   public static function getPaymentInstrumentLabel($paymentInstrumentValue) {
-    try {
-      $label = civicrm_api3('OptionValue', 'getvalue', [
-        'return' => "label",
-        'option_group_id' => "payment_instrument",
-        'value' => $paymentInstrumentValue,
-      ]);
-    } catch (CiviCRM_API3_Exception $e) {}
+    $label = civicrm_api4('OptionValue', 'get', [
+      'select' => ['label'],
+      'where' => [
+        ['option_group_id:name', '=', 'payment_instrument'],
+        ['value', '=', $paymentInstrumentValue]
+      ],
+      'limit' => 1,
+      'checkPermissions' => FALSE,
+    ])->first()['label'];
 
-    return ((!empty($label)) ? $label: '');
+    return $label ?? '';
   }
 
   /**

@@ -28,7 +28,7 @@ class CRM_CiviMobileAPI_Page_Auth extends CRM_Core_Page {
    *
    * @var int
    */
-  public $drupalContactId;
+  public $contactId;
 
   /**
    * CiviCrm contact assigns to drupal contact
@@ -36,26 +36,23 @@ class CRM_CiviMobileAPI_Page_Auth extends CRM_Core_Page {
    * @var \CRM_Contact_BAO_Contact
    */
   public $civiContact;
-
+  //login
   /**
    * CRM_CiviMobileAPI_Page_Auth constructor.
    */
   public function __construct() {
-    civimobileapi_secret_validation();
+    CRM_CiviMobileAPI_Hook_Utils::civimobileapi_secret_validation();
 
     $this->emailOrUsername = $this->getEmailOrUsername();
     $this->password = $this->getPassword();
-    $this->drupalContactId = CRM_CiviMobileAPI_Authentication_AuthenticationHelper::getDrupalUserIdByMailAndPassword($this->emailOrUsername, $this->password);
+    $this->contactId = CRM_CiviMobileAPI_Authentication_AuthenticationHelper::getUserIdByMailAndPassword($this->emailOrUsername, $this->password);
 
-    if ($this->isBlocked()) {
+    if (CRM_CiviMobileAPI_Authentication_AuthenticationHelper::isUserBlocked($this->emailOrUsername)) {
       JsonResponse::sendErrorResponse('User is blocked', 'email', 'cms_user_is_blocked');
     }
 
-    $this->civiContact = CRM_CiviMobileAPI_Authentication_AuthenticationHelper::getCiviContact($this->drupalContactId);
+    $this->civiContact = CRM_CiviMobileAPI_Authentication_AuthenticationHelper::getCiviContact($this->contactId);
 
-    if (CRM_CiviMobileAPI_Utils_Contact::isBlockedApp($this->civiContact->id) == 1) {
-      JsonResponse::sendErrorResponse('App is blocked for this user.', 'email', 'application_access_is_blocked');
-    }
     parent::__construct();
   }
 
@@ -85,36 +82,6 @@ class CRM_CiviMobileAPI_Page_Auth extends CRM_Core_Page {
     }
 
     return $password;
-  }
-
-  /**
-   * Checks have user blocked status
-   *
-   * @return bool
-   */
-  private function isBlocked() {
-    $user = CRM_CiviMobileAPI_Utils_CmsUser::getInstance()->searchAccount($this->emailOrUsername);
-    $currentCMS = CRM_CiviMobileAPI_Utils_CmsUser::getInstance()->getSystem();
-    $isBlocked = FALSE;
-
-    switch ($currentCMS) {
-      case CRM_CiviMobileAPI_Utils_CmsUser::CMS_JOOMLA:
-        if ($user->block == 1) {
-          $isBlocked = TRUE;
-        }
-        break;
-      case CRM_CiviMobileAPI_Utils_CmsUser::CMS_DRUPAL6:
-      case CRM_CiviMobileAPI_Utils_CmsUser::CMS_DRUPAL7:
-        if ($user->status == 0) {
-          $isBlocked = TRUE;
-        }
-        break;
-      case CRM_CiviMobileAPI_Utils_CmsUser::CMS_DRUPAL8:
-        $isBlocked = $user->isBlocked();
-        break;
-    }
-
-    return $isBlocked;
   }
 
   /**

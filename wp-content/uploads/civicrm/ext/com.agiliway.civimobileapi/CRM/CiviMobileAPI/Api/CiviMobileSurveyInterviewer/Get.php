@@ -9,42 +9,47 @@ class CRM_CiviMobileAPI_Api_CiviMobileSurveyInterviewer_Get extends CRM_CiviMobi
    * @throws api_Exception
    */
   public function getResult() {
-    try {
-      $survey = civicrm_api3('Survey', 'getsingle', [
-        'id' => $this->validParams['survey_id'],
-      ]);
-    } catch (Exception $e) {
-      throw new api_Exception('Survey does not exists','survey_does_not_exists');
+    $survey = civicrm_api4('Survey', 'get', [
+      'where' => [
+        ['id', '=', $this->validParams['survey_id']],
+      ],
+      'checkPermissions' => FALSE,
+    ])->first();
+
+    if (empty($survey)) {
+      throw new api_Exception('The survey doesn`t exists.', 'survey_does_not_exists');
     }
 
-    $activities = civicrm_api3('Activity', 'get', [
-      'sequential' => 1,
-      'return' => ["assignee_contact_name"],
-      'source_record_id' => $survey['id'],
-      'activity_type_id' => $survey['activity_type_id'],
-      'status_id' => ['IN' => ["Completed", "Scheduled"]],
-      'is_deleted' => 0,
-      'options' => ['limit' => 0],
-    ]);
+    $activities = civicrm_api4('Activity', 'get', [
+      'select' => [
+        'contact.display_name',
+        'contact.id',
+      ],
+      'join' => [
+        ['Contact AS contact', 'LEFT', ['contact.id', 'IN', 'assignee_contact_id']],
+      ],
+      'where' => [
+        ['is_deleted', '=', FALSE],
+        ['source_record_id', '=', $survey['id']],
+        ['activity_type_id', '=', $survey['activity_type_id']],
+        ['status_id:name', 'IN', ["Completed", "Scheduled"]],
+      ],
+      'checkPermissions' => FALSE,
+      'groupBy' => [
+        'contact.id',
+      ],
+    ])->getArrayCopy();
 
     $interviewers = [];
 
-    foreach ($activities['values'] as $activity) {
-      foreach ($activity['assignee_contact_name'] as $key => $value) {
-        $interviewers[$key] = [
-          'id' => $key,
-          'display_name' => $value
+    foreach ($activities as $activity) {
+        $interviewers[] = [
+          'id' => $activity['contact.id'],
+          'display_name' => $activity['contact.display_name']
         ];
-      }
     }
 
-    $interviewers = array_values($interviewers);
-
-    usort($interviewers, function($a, $b) {
-      return strcasecmp($a['display_name'], $b['display_name']);
-    });
-
-    return $interviewers;
+    return array_values($interviewers);
   }
 
   /**

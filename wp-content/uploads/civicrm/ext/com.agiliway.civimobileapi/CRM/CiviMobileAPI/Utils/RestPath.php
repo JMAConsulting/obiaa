@@ -20,7 +20,7 @@ class CRM_CiviMobileAPI_Utils_RestPath {
       $restPath = $this->getJoomlaRestPath();
     }
 
-    if ($currentCMS == CRM_CiviMobileAPI_Utils_CmsUser::CMS_DRUPAL8) {
+    if ($currentCMS == CRM_CiviMobileAPI_Utils_CmsUser::CMS_DRUPAL8 || $currentCMS == CRM_CiviMobileAPI_Utils_CmsUser::CMS_STANDALONE) {
       $restPath = $this->getDrupal8RestPath();
     }
 
@@ -116,7 +116,7 @@ class CRM_CiviMobileAPI_Utils_RestPath {
       $restPath = $this->getJoomlaAbsoluteUrl();
     }
 
-    if ($currentCMS == CRM_CiviMobileAPI_Utils_CmsUser::CMS_DRUPAL8) {
+    if ($currentCMS == CRM_CiviMobileAPI_Utils_CmsUser::CMS_DRUPAL8 || $currentCMS == CRM_CiviMobileAPI_Utils_CmsUser::CMS_STANDALONE) {
       $restPath = $this->getDrupal8AbsoluteUrl();
     }
 
@@ -198,7 +198,7 @@ class CRM_CiviMobileAPI_Utils_RestPath {
    */
   public function getAbsoluteUrlApiV4() {
     $currentCMS = CRM_CiviMobileAPI_Utils_CmsUser::getInstance()->getSystem();
-    $url = CRM_Utils_System::url('civicrm/ajax/api4', NULL, TRUE, NULL, FALSE, TRUE);
+    $url = CRM_Utils_System::url('civicrm/ajax/api4', NULL, TRUE, NULL, FALSE);
 
     if ($currentCMS == CRM_CiviMobileAPI_Utils_CmsUser::CMS_JOOMLA) {
       $url = preg_replace('/[?&]Itemid=\d+\/?/', '', $url);

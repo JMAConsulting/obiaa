@@ -34,7 +34,7 @@ class CRM_CiviMobileAPI_Page_DisablePushToken extends CRM_Core_Page {
    * CRM_CiviMobileAPI_Page_DisablePushToken constructor.
    */
   public function __construct() {
-    civimobileapi_secret_validation();
+    CRM_CiviMobileAPI_Hook_Utils::civimobileapi_secret_validation();
 
     $this->contactId = $this->getContactId();
     $this->token = $this->getToken();

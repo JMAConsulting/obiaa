@@ -11,17 +11,26 @@ class CRM_CiviMobileAPI_Utils_PriceSetField {
    */
   public static function getPriceSetFieldValue($priceSetFieldId) {
     try {
-      $priceFieldValue = civicrm_api3('PriceFieldValue', 'get', [
-        'sequential' => 1,
-        'return' => ['id', 'name', 'price_field_id', 'amount', 'label', 'is_default'],
-        'price_field_id' => $priceSetFieldId,
-        'is_active' => 1
-      ]);
-    } catch (CiviCRM_API3_Exception $e) {
+      $priceFieldValue = civicrm_api4('PriceFieldValue', 'get', [
+        'select' => [
+          'id',
+          'name',
+          'price_field_id',
+          'amount',
+          'label',
+          'is_default',
+        ],
+        'where' => [
+          ['price_field_id', '=', $priceSetFieldId],
+          ['is_active', '=', TRUE],
+        ],
+        'checkPermissions' => FALSE,
+      ])->getArrayCopy();
+    } catch (CRM_Core_Exception $e) {
       return false;
     }
 
-    return $priceFieldValue;
+    return ['values' => $priceFieldValue];
   }
 
   /**

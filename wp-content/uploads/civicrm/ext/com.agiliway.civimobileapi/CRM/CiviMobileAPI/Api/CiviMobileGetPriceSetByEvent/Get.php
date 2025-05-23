@@ -24,14 +24,16 @@ class CRM_CiviMobileAPI_Api_CiviMobileGetPriceSetByEvent_Get extends CRM_CiviMob
   public function getResult() {
     $eventId = (int) $this->validParams['event_id'];
 
-    try {
-      $eventInfo = civicrm_api3('Event', 'getsingle', [
-        'return' => ["is_monetary", "currency"],
-        'id' => $eventId
-      ]);
-    } catch (CiviCRM_API3_Exception $e) {
-      $eventInfo = [];
-    }
+    $eventInfo = civicrm_api4('Event', 'get', [
+      'select' => [
+        'is_monetary',
+        'currency',
+      ],
+      'where' => [
+        ['id', '=', $eventId],
+      ],
+      'checkPermissions' => FALSE,
+    ])->first();
 
     $result = [];
     $isMonetary = false;
@@ -47,11 +49,11 @@ class CRM_CiviMobileAPI_Api_CiviMobileGetPriceSetByEvent_Get extends CRM_CiviMob
     $priceSetId = CRM_Price_BAO_PriceSet::getFor(CRM_Event_BAO_Event::getTableName(), $eventId);
     $priceSetFields = CRM_CiviMobileAPI_Utils_PriceSet::getFields($priceSetId);
 
-    if (empty($priceSetFields) && empty($priceSetFields['values'])) {
+    if (empty($priceSetFields)) {
       return $result;
     }
 
-    foreach ($priceSetFields['values'] as $priceSetField) {
+    foreach ($priceSetFields as $priceSetField) {
       if (!CRM_CiviMobileAPI_Utils_PriceSetField::isActualPriceFieldNow($priceSetField)) {
         continue;
       }

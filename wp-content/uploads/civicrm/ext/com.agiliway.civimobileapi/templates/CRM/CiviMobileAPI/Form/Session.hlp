@@ -1,13 +1,13 @@
 {htxt id="speakers-help-title"}
-  {ts}Speakers{/ts}
+  {ts domain="com.agiliway.civimobileapi"}Speakers{/ts}
 {/htxt}
 {htxt id="speakers-help"}
-  {ts}Event participant who gives speeches, runs discussions on an event session topic. Any participant could be a speaker.{/ts}
+  {ts domain="com.agiliway.civimobileapi"}Event participant who gives speeches, runs discussions on an event session topic. Any participant could be a speaker.{/ts}
 {/htxt}
 
 {htxt id="venue-help-title"}
-  {ts}Venue{/ts}
+  {ts domain="com.agiliway.civimobileapi"}Venue{/ts}
 {/htxt}
 {htxt id="venue-help"}
-  {ts}You can only select one venue for a specific session. All venues directly depends on the Event’s location.{/ts}
+  {ts domain="com.agiliway.civimobileapi"}You can only select one venue for a specific session. All venues directly depends on the Event’s location.{/ts}
 {/htxt}

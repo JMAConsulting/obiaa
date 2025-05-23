@@ -194,6 +194,9 @@ class CRM_Stripe_Api {
           case 'next_sched_contribution_date':
             return self::formatDate($stripeObject->current_period_end);
 
+          case 'current_period_start':
+            return self::formatDate($stripeObject->current_period_start);
+
           case 'cycle_day':
             return date("d", $stripeObject->billing_cycle_anchor);
 
@@ -373,7 +376,7 @@ class CRM_Stripe_Api {
       // 'alipay',
       'au_becs_debit' => E::ts('BECS Direct Debit payments in Australia'),
       'bacs_debit' => E::ts('BACS Direct Debit'),
-      // 'bancontact',
+      'bancontact' => E::ts('Bancontact'),
       // 'blik',
       // 'boleto',
       // 'cashapp',
@@ -413,6 +416,7 @@ class CRM_Stripe_Api {
       'past_due' => 'Overdue',
       'canceled' => 'Cancelled',
       'unpaid' => 'Failed',
+      'paused' => 'Pending',
     ];
     return $statusMap[$subscriptionStatus] ?? '';
   }

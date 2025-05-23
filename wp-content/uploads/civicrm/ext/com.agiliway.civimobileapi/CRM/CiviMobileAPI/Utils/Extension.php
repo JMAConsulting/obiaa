@@ -212,16 +212,16 @@ class CRM_CiviMobileAPI_Utils_Extension {
    * @return array
    */
   public static function getActiveCiviMobileTabs() {
-    try {
-      $tabs = civicrm_api3('OptionValue', 'get', [
-          'sequential' => 1,
-          'option_group_id' => CRM_CiviMobileAPI_Install_Entity_OptionGroup::TABS,
-          'is_active' => 1,
-          'options' => ['limit' => 0, 'sort' => "weight ASC"],
-      ])['values'];
-    } catch (Exception $e){
-      return [];
-    }
+    $tabs = civicrm_api4('OptionValue', 'get', [
+      'where' => [
+        ['option_group_id:name', '=', CRM_CiviMobileAPI_Install_Entity_OptionGroup::TABS],
+        ['is_active', '=', TRUE],
+      ],
+      'orderBy' => [
+        'weight' => 'ASC',
+      ],
+      'checkPermissions' => FALSE,
+    ])->getArrayCopy();
 
     $preparedTabs = [];
 

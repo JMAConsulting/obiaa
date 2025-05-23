@@ -64,16 +64,17 @@ class CRM_CiviMobileAPI_Utils_RelationshipType {
    *
    * @param $relationshipTypeId
    *
-   * @return array|string
+   * @return array
    */
   public static function getById($relationshipTypeId) {
-    try {
-      $relationshipType = civicrm_api3('RelationshipType', 'getsingle', [
-        'id' => $relationshipTypeId,
-      ]);
-    } catch (CiviCRM_API3_Exception $e) {}
+      $relationshipType = civicrm_api4('RelationshipType', 'get', [
+        'where' => [
+          ['id', '=', $relationshipTypeId],
+        ],
+        'checkPermissions' => FALSE,
+      ])->first();
 
-    return ((!empty($relationshipType)) ? $relationshipType: false);
+    return $relationshipType;
   }
 
 }

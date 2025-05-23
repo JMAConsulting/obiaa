@@ -51,7 +51,7 @@ class CRM_CiviMobileAPI_ApiWrapper_Case implements API_Wrapper {
    * @return array
    */
   public function toApiOutput($apiRequest, $result) {
-    if (is_mobile_request()) {
+    if (CRM_CiviMobileAPI_Hook_Utils::is_mobile_request()) {
       if (!empty($result['values'])) {
         $contactIds = $this->getCaseContactsId($result['values']);
         if ($apiRequest['contacts_is_not_found'] ?? null) {

@@ -153,11 +153,13 @@ class CRM_CiviMobileAPI_Utils_Emails_EventConfirmationReceipt {
    * @return array
    */
   private static function prepareEvent($eventId, $participantRoleIds) {
-    try {
-      $event = civicrm_api3('Event', 'getsingle', ['id' => $eventId]);
-    } catch (CiviCRM_API3_Exception $e) {
-      return [];
-    }
+    $event = civicrm_api4('Event', 'get', [
+      'where' => [
+        ['id', '=', $eventId],
+      ],
+      'limit' => 1,
+      'checkPermissions' => FALSE,
+    ])->first();
 
     if (!empty($participantRoleIds)) {
       $rolesIds = explode(CRM_Core_DAO::VALUE_SEPARATOR, $participantRoleIds);
