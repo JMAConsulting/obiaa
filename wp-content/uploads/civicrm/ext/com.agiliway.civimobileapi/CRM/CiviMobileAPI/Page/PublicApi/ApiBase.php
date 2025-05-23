@@ -34,7 +34,7 @@ abstract class CRM_CiviMobileAPI_Page_PublicApi_ApiBase extends CRM_Core_Page {
   public $requestEntity = '';
 
   public function __construct() {
-    civimobileapi_secret_validation();
+    CRM_CiviMobileAPI_Hook_Utils::civimobileapi_secret_validation();
     if (!CRM_CiviMobileAPI_Authentication_AuthenticationHelper::isRequestValid()) {
       JsonResponse::sendErrorResponse(E::ts('Not valid request'));
     }

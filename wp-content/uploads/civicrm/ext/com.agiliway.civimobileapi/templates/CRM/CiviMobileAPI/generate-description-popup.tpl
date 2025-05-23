@@ -76,6 +76,8 @@
     }
 
     CRM.$(function ($) {
+        $(document).off('click', '.generate-text-button');
+
         const descriptionPopup = $('#description-generation-popup');
         const resultWindow = $('#result-window');
         const userInputWindow = $('#user-input-window');

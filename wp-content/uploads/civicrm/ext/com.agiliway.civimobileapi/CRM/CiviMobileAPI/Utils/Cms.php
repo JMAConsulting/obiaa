@@ -23,7 +23,7 @@ class CRM_CiviMobileAPI_Utils_Cms {
       return \Drupal::config('system.site')->get("name");
     }
 
-    return null;
+    return 'CiviCRM';
   }
 
   /**

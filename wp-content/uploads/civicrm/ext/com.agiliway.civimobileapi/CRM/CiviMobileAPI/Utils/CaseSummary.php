@@ -46,22 +46,17 @@ class CRM_CiviMobileAPI_Utils_CaseSummary {
    * @return array
    */
   public static function getContactsIdByName($displayName) {
-    try {
-      $contacts = civicrm_api3('Contact', 'get', [
-        'sequential' => 1,
-        'display_name' => $displayName,
-        'contact_is_deleted' => 0,
-        'options' => ['limit' => 0],
-      ])['values'];
-    } catch (CiviCRM_API3_Exception $e) {
-      return [];
-    }
+    $contacts = civicrm_api4('Contact', 'get', [
+      'where' => [
+        ['display_name', '=', $displayName],
+        ['is_deleted', '=', FALSE],
+      ],
+      'checkPermissions' => FALSE,
+    ])->getArrayCopy();
 
     $contactsId = [];
-    if (!empty($contacts)) {
-      foreach ($contacts as $contact) {
-        $contactsId[] = $contact['id'];
-      }
+    foreach ($contacts as $contact) {
+      $contactsId[] = $contact['id'];
     }
 
     return $contactsId;

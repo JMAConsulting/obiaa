@@ -5,14 +5,21 @@ namespace Civi\CiviMobileAPI\PushNotification\Entity;
 use Civi\CiviMobileAPI\PushNotification\Utils\PushNotificationSender;
 use CRM_CiviMobileAPI_Utils_Request;
 use CRM_Utils_Request;
+use CRM_CiviMobileAPI_ExtensionUtil as E;
 
 class CasePushNotification extends BasePushNotification {
   
-  private $actionText = [
-    'create' => '%display_name has created case.',
-    'edit' => '%display_name has edited case.',
-    'delete' => '%display_name has deleted case.',
-  ];
+  private $actionText;
+
+  function __construct($action, $entity, $id, $entityInstance) {
+    parent::__construct($action, $entity, $id, $entityInstance);
+
+    $this->actionText = [
+      'create' => '%display_name ' . E::ts('has created case.'),
+      'edit' => '%display_name ' . E::ts('has edited case.'),
+      'delete' => '%display_name' . E::ts('has deleted case.')
+    ];
+  }
   
   public function handlePostHook() {
     if ($this->entity !== 'Case') {

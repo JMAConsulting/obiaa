@@ -1,7 +1,7 @@
 {htxt id="secret-key-help-title"}
-{ts}Secret Key{/ts}
+{ts domain="com.agiliway.civimobileapi"}Secret Key{/ts}
 {/htxt}
 {htxt id="secret-key-help"}
-    <p>{ts}The key is used to give access to the ChatGPT functionality{/ts}</p>
+    <p>{ts domain="com.agiliway.civimobileapi"}The key is used to give access to the ChatGPT functionality{/ts}</p>
 {/htxt}
 

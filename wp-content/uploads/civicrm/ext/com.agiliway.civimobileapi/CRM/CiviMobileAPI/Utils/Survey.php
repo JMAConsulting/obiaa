@@ -6,16 +6,20 @@ class CRM_CiviMobileAPI_Utils_Survey {
    * @return array
    */
   public static function getSurveyActivityTypesIds() {
-    $surveyActivityTypes = civicrm_api3('OptionValue', 'get', [
-      'return' => "value",
-      'option_group_id' => "activity_type",
-      'component_id' => "CiviCampaign",
-      'options' => ['limit' => 0],
-    ]);
+    $surveyActivityTypes = civicrm_api4('OptionValue', 'get', [
+      'select' => [
+        'value',
+      ],
+      'where' => [
+        ['option_group_id:name', '=', 'activity_type'],
+        ['component_id:name', '=', 'CiviCampaign'],
+      ],
+      'checkPermissions' => FALSE,
+    ])->getArrayCopy();
 
     $surveyActivityTypesIds = [];
 
-    foreach ($surveyActivityTypes['values'] as $type) {
+    foreach ($surveyActivityTypes as $type) {
       $surveyActivityTypesIds[] = $type['value'];
     }
 

@@ -8,7 +8,7 @@ class CRM_CiviMobileAPI_Utils_Calendar {
    * @return bool
    */
   public static function isCivimobileUseCiviCalendarSettings() {
-    return static::isCiviCalendarEnable() && static::isActivateCiviCalendarSettings();
+    return static::isCiviCalendarInstalled() && static::isActivateCiviCalendarSettings();
   }
 
   /**
@@ -18,14 +18,17 @@ class CRM_CiviMobileAPI_Utils_Calendar {
    */
   public static function isActivateCiviCalendarSettings() {
     try {
-      $civiCalendarSetting = civicrm_api3('Setting', 'getsingle', [
-        'return' => CRM_CiviMobileAPI_Settings_Calendar_CiviMobile::getPrefix() . 'synchronize_with_civicalendar',
-      ]);
-    } catch (Exception $e) {
+      $civiCalendarSetting = civicrm_api4('Setting', 'get', [
+        'select' => [
+          CRM_CiviMobileAPI_Settings_Calendar_CiviMobile::getPrefix() . 'synchronize_with_civicalendar',
+        ],
+        'checkPermissions' => FALSE,
+      ])->first()['value'];
+    } catch (CRM_Core_Exception $e) {
       return FALSE;
     }
 
-    if ($civiCalendarSetting[CRM_CiviMobileAPI_Settings_Calendar_CiviMobile::getPrefix() . 'synchronize_with_civicalendar'] == 1) {
+    if ($civiCalendarSetting == 1) {
       return TRUE;
     }
 
@@ -37,21 +40,8 @@ class CRM_CiviMobileAPI_Utils_Calendar {
    *
    * @return bool
    */
-  public static function isCiviCalendarEnable() {
-    try {
-      $extensionStatus = civicrm_api3('Extension', 'getsingle', [
-        'return' => "status",
-        'full_name' => "com.agiliway.civicalendar",
-      ]);
-    } catch (Exception $e) {
-      return FALSE;
-    }
-
-    if ($extensionStatus['status'] == 'installed') {
-      return TRUE;
-    }
-
-    return FALSE;
+  public static function isCiviCalendarInstalled() {
+    return CRM_CiviMobileAPI_Utils_ExtensionHelper::isInstalled('com.agiliway.civicalendar');
   }
 
   /**
@@ -62,30 +52,21 @@ class CRM_CiviMobileAPI_Utils_Calendar {
   public static function isCiviCalendarCompatible() {
     $minimalMajorVersion = 3.4;
     try {
-      $calendarVersion = civicrm_api3('Extension', 'getsingle', [
-        'return' => ["version"],
-        'full_name' => "com.agiliway.civicalendar",
-      ])['version'];
-    } catch (Exception $e) {
+      $calendarVersion = civicrm_api4('Extension', 'get', [
+        'select' => [
+          'version',
+        ],
+        'where' => [
+          ['key', '=', 'com.agiliway.civicalendar'],
+        ],
+        'checkPermissions' => FALSE,
+      ])->first()['version'];
+    } catch (CRM_Core_Exception $e) {
       return FALSE;
     }
 
     if (!(floatval($calendarVersion) >= $minimalMajorVersion)) {
       return FALSE;
-    }
-
-    $settings = civicrm_api3('Setting', 'getsingle');
-    $requiredSettings = [
-      'civicalendar_activity_types',
-      'civicalendar_event_types',
-      'civicalendar_case_types',
-      'civicalendar_hide_past_events',
-    ];
-
-    foreach ($requiredSettings as $settingName) {
-      if (!isset($settings[$settingName])) {
-        return FALSE;
-      }
     }
 
     return TRUE;

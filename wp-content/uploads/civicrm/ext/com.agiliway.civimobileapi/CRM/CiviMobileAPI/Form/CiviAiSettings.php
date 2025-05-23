@@ -58,11 +58,9 @@ class CRM_CiviMobileAPI_Form_CiviAiSettings extends CRM_Core_Form {
   public function postProcess() {
     $params = $this->exportValues();
 
-    if (!empty($params['_qf_CiviAiSettings_submit'])) {
-      Civi::settings()->set('civimobile_openai_secret_key', $params['civimobile_openai_secret_key']);
-      Civi::settings()->set('civimobile_openai_model', $params['civimobile_openai_model']);
-      CRM_Core_Session::singleton()->setStatus(E::ts('AI settings updated'), E::ts('CiviAI Settings'), 'success');
-    }
+    Civi::settings()->set('civimobile_openai_secret_key', $params['civimobile_openai_secret_key']);
+    Civi::settings()->set('civimobile_openai_model', $params['civimobile_openai_model']);
+    CRM_Core_Session::singleton()->setStatus(E::ts('AI settings updated'), E::ts('CiviAI Settings'), 'success');
   }
 
   public function setDefaultValues() {

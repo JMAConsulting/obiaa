@@ -8,14 +8,21 @@ use CRM_CiviMobileAPI_Install_Entity_CustomGroup;
 use CRM_CiviMobileAPI_Utils_CustomField;
 use CRM_CiviMobileAPI_Install_Entity_CustomField;
 use Exception;
+use CRM_CiviMobileAPI_ExtensionUtil as E;
 
 class ParticipantPushNotification extends BasePushNotification {
 
-  private $actionText = [
-    'create' => "%display_name has created participant.",
-    'edit' => "%display_name has edited your event's participation.",
-    'delete' => "%display_name has deleted you from event."
-  ];
+  private $actionText;
+
+  function __construct($action, $entity, $id, $entityInstance) {
+    parent::__construct($action, $entity, $id, $entityInstance);
+
+    $this->actionText = [
+      'create' => '%display_name ' . E::ts('has created participant.'),
+      'edit' => '%display_name ' . E::ts('has edited your event\'s participation.'),
+      'delete' => '%display_name' . E::ts('has deleted you from event.')
+    ];
+  }
 
   public function handlePostHook() {
     if ($this->entity !== 'Participant') {

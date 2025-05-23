@@ -43,20 +43,15 @@ class CRM_CiviMobileAPI_Form_Session extends CRM_Core_Form {
     $url = CRM_Utils_System::url('civicrm/event/manage');
 
     if ($this->getAction() == CRM_Core_Action::ADD) {
-      $eventId = CRM_Utils_Request::retrieve('event_id', 'Positive');
-      if (!$eventId) {
-        $eventId = $this->_submitValues["event_id"];
-      }
-      try {
-        $event = CRM_Event_BAO_Event::findById($eventId);
-      } catch (Exception $e) {
+      $eventId = CRM_Utils_Request::retrieve('event_id', 'Positive', $this->_submitValues);
+      if (!$eventId || !($event = CRM_Event_BAO_Event::findById($eventId))) {
         CRM_Core_Error::statusBounce(E::ts('Invalid eventId parameter.'), $url, E::ts('Not Found'));
       }
       $this->eventId = $event->id;
       $this->setTitle($event->title . E::ts(' - Add Session'));
     }
 
-    if ($this->getAction() == CRM_Core_Action::UPDATE || $this->getAction() == CRM_Core_Action::DELETE || $this->getAction() == CRM_Core_Action::VIEW) {
+    if (in_array($this->getAction(), [CRM_Core_Action::VIEW, CRM_Core_Action::UPDATE, CRM_Core_Action::DELETE])) {
       $sessionId = CRM_Utils_Request::retrieve('id', 'Positive');
       if (!$sessionId) {
         $sessionId = $this->_submitValues["session_id"];
@@ -73,9 +68,12 @@ class CRM_CiviMobileAPI_Form_Session extends CRM_Core_Form {
       } catch (Exception $e) {
         CRM_Core_Error::statusBounce(E::ts('Event does not exists.'), $url, E::ts('Not Found'));
       }
-      $this->sessionId = $session["id"];
+      $this->sessionId = $session['id'];
       $this->eventId = $event->id;
-      $this->setTitle($event->title . ' - ' . $session["title"]);
+      $this->setTitle($event->title . ' - ' . $session['title']);
+      $this->locationId = $event->loc_block_id;
+
+      $this->assign('eventSession', $session);
 
       if ($this->getAction() == CRM_Core_Action::VIEW) {
         $session["speakers_with_links"] = [];
@@ -83,6 +81,7 @@ class CRM_CiviMobileAPI_Form_Session extends CRM_Core_Form {
           $url = CRM_Utils_System::url('civicrm/civimobile/event/speaker', 'reset=1&action=view&pid=' . $speaker['id'] . '&eid=' . $this->eventId);
           $session["speakers_with_links"][] = '<a href="' . $url . '" class="crm-popup medium-popup">' . $speaker["display_name"] . '</a>';
         }
+
         $session["participant_with_links"] = [];
         foreach ($session["participants"] as $participant) {
           $url = CRM_Utils_System::url('civicrm/contact/view/', 'reset=1&cid=' . $participant['contact_id']);
@@ -90,7 +89,7 @@ class CRM_CiviMobileAPI_Form_Session extends CRM_Core_Form {
         }
         $session['participant_with_links'] = implode(', ', $session['participant_with_links']);
         $session["speakers_with_links"] = implode(', ', $session["speakers_with_links"]);
-        $session["venue_link"] = '<a href="' . CRM_Utils_System::url('civicrm/civimobile/venue', 'reset=1&use_delete_button=0&action=view&id=' . $session['venue_id'] . '&location_id=' . $event->loc_block_id) . '" class="crm-popup medium-popup">' . $session['venue_name'] . '</a>';
+        $session['venue_link'] = '<a href="' . CRM_Utils_System::url('civicrm/civimobile/venue', 'reset=1&use_delete_button=0&action=view&id=' . $session['venue_id'] . '&location_id=' . $event->loc_block_id) . '" class="crm-popup medium-popup">' . $session['venue_name'] . '</a>';
         $this->assign('can_edit_session', CRM_CiviMobileAPI_Utils_Permission::isEnoughPermissionForCreateEventSession());
         $this->assign('can_delete_session', CRM_CiviMobileAPI_Utils_Permission::isEnoughPermissionForDeleteEventSession());
       }
@@ -111,27 +110,15 @@ class CRM_CiviMobileAPI_Form_Session extends CRM_Core_Form {
     parent::buildQuickForm();
 
     $buttons = [];
-    $cancelURL = CRM_Utils_System::url('civicrm/civimobile/event/agenda', http_build_query([
-      'reset' => '1',
-      'id' => $this->eventId
-    ]));
-    $cancelButtonName = E::ts('Cancel');
 
-    if ($this->getAction() == CRM_Core_Action::ADD) {
+    if (in_array($this->getAction(), [CRM_Core_Action::ADD, CRM_Core_Action::UPDATE, CRM_Core_Action::DELETE])) {
       $this->add('hidden', 'event_id', $this->eventId);
     }
-
-    if ($this->getAction() == CRM_Core_Action::UPDATE) {
+    if (in_array($this->getAction(), [CRM_Core_Action::UPDATE, CRM_Core_Action::DELETE])) {
       $this->add('hidden', 'session_id', $this->sessionId);
-      $this->add('hidden', 'event_id', $this->eventId);
     }
 
-    if ($this->getAction() == CRM_Core_Action::DELETE) {
-      $this->add('hidden', 'session_id', $this->sessionId);
-      $this->add('hidden', 'event_id', $this->eventId);
-    }
-
-    if (($this->getAction() == CRM_Core_Action::UPDATE || $this->getAction() == CRM_Core_Action::ADD)) {
+    if (in_array($this->getAction(), [CRM_Core_Action::ADD, CRM_Core_Action::UPDATE])) {
       $this->add('text', 'title', E::ts('Title'), ['class' => 'huge'], TRUE);
       $this->add('datepicker', 'date', E::ts('Date'), [], TRUE, ['time' => FALSE]);
       $this->add('datepicker', 'start_time', E::ts('Start time'), [], TRUE, ['time' => TRUE, 'date' => FALSE]);
@@ -173,6 +160,9 @@ class CRM_CiviMobileAPI_Form_Session extends CRM_Core_Form {
       ];
     }
 
+    $cancelURL = CRM_Utils_System::url('civicrm/civimobile/event/agenda', "reset=1&id={$this->eventId}");
+    $cancelButtonName = E::ts('Cancel');
+
     if ($this->getAction() == CRM_Core_Action::DELETE) {
       $buttons[] = [
         'type' => 'submit',
@@ -212,7 +202,7 @@ class CRM_CiviMobileAPI_Form_Session extends CRM_Core_Form {
   public function postProcess() {
     $params = $this->exportValues();
 
-    if ($this->getAction() == CRM_Core_Action::ADD || $this->getAction() == CRM_Core_Action::UPDATE) {
+    if (in_array($this->getAction(), [CRM_Core_Action::ADD, CRM_Core_Action::UPDATE])) {
       $apiParams = [
         'title' => $params['title'],
         'description' => $params['description'],
@@ -288,7 +278,7 @@ class CRM_CiviMobileAPI_Form_Session extends CRM_Core_Form {
    * AddRules hook
    */
   public function addRules() {
-    if ($this->getAction() == CRM_Core_Action::ADD || $this->getAction() == CRM_Core_Action::UPDATE) {
+    if (in_array($this->getAction(), [CRM_Core_Action::ADD, CRM_Core_Action::UPDATE])) {
       $this->addFormRule([self::class, 'validateForm']);
     }
   }

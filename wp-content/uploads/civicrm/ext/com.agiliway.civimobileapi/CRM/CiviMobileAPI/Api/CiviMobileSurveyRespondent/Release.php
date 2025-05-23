@@ -9,11 +9,14 @@ class CRM_CiviMobileAPI_Api_CiviMobileSurveyRespondent_Release extends CRM_CiviM
    * @throws api_Exception
    */
   public function getResult() {
-    try {
-      $survey = civicrm_api3('Survey', 'getsingle', [
-        'id' => $this->validParams['survey_id'],
-      ]);
-    } catch (Exception $e) {
+    $survey = civicrm_api4('Survey', 'get', [
+      'where' => [
+        ['id', '=', $this->validParams['survey_id']],
+      ],
+      'checkPermissions' => FALSE,
+    ])->first();
+
+    if (empty($survey)) {
       throw new api_Exception('The survey doesn`t exists.', 'survey_does_not_exists');
     }
 
@@ -23,25 +26,31 @@ class CRM_CiviMobileAPI_Api_CiviMobileSurveyRespondent_Release extends CRM_CiviM
       return ['message' => 'Respondents weren`t released.'];
     }
 
-    $activities = civicrm_api3('Activity', 'get', [
-      'sequential' => 1,
-      'source_record_id' => $survey['id'],
-      'activity_type_id' => ['IN' => $surveyActivityTypesIds],
-      'target_contact_id' => ['IN' => $this->validParams['contact_ids']],
-      'assignee_id' => $this->validParams['interviewer_id'],
-      'is_deleted' => 0,
-      'status_id' => "Scheduled",
-      'options' => ['limit' => 0]
-    ]);
+    $activities = civicrm_api4('Activity', 'get', [
+      'where' => [
+        ['source_record_id', '=', $survey['id']],
+        ['activity_type_id', 'IN', $surveyActivityTypesIds],
+        ['target_contact_id', 'IN', $this->validParams['contact_ids']],
+        ['assignee_contact_id', '=', $this->validParams['interviewer_id']],
+        ['is_deleted', '=', FALSE],
+        ['status_id:name', '=', 'Scheduled'],
+      ],
+      'checkPermissions' => FALSE,
+    ])->getArrayCopy();
 
-    if ($activities['count'] != count($this->validParams['contact_ids'])) {
+    if (count($activities) != count($this->validParams['contact_ids'])) {
       throw new api_Exception('Some contacts aren`t reserved respondents.', 'some_contacts_are_not_reserved_respondents');
     }
 
-    foreach ($activities['values'] as $activity) {
-      civicrm_api3('Activity', 'create', [
-        'id' => $activity['id'],
-        'is_deleted' => 1,
+    foreach ($activities as $activity) { // maybe replace with save
+      civicrm_api4('Activity', 'update', [
+        'values' => [
+          'is_deleted' => TRUE,
+        ],
+        'where' => [
+          ['id', '=', $activity['id']],
+        ],
+        'checkPermissions' => FALSE,
       ]);
     }
 

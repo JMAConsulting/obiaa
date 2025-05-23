@@ -20,6 +20,7 @@ return [
         'weight' => 8,
         'collapse_adv_display' => TRUE,
         'icon' => '',
+        'is_active' => TRUE,
       ],
       'match' => [
         'name',

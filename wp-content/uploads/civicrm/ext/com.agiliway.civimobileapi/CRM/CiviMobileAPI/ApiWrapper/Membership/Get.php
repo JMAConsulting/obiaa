@@ -13,7 +13,7 @@ class CRM_CiviMobileAPI_ApiWrapper_Membership_Get implements API_Wrapper {
    * @return array
    */
   public function fromApiInput($apiRequest) {
-    if (is_mobile_request()) {
+    if (CRM_CiviMobileAPI_Hook_Utils::is_mobile_request()) {
       $apiRequest['params']['is_membership'] = 1;
       $contactsId = (new CRM_CiviMobileAPI_Utils_ContactFieldsFilter())->filterContacts($apiRequest['params']);
 

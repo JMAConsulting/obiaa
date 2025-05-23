@@ -40,7 +40,7 @@ class PushNotificationSender {
     }
 
     $notificationBody = [
-      'title' => self::compileMessage($title),
+      'title' => $title,
       'body' => self::compileMessage($message),
     ];
 
@@ -231,19 +231,13 @@ class PushNotificationSender {
 
     $params = ['id' => $contactId];
     $default = [];
-    $contact = CRM_Contact_BAO_Contact::getValues($params, $default);
-    $i = 1;
-    $replace = [];
+    $displayName = CRM_Contact_BAO_Contact::getValues($params, $default)->display_name;
 
-    foreach ((array)$contact as $k => $value) {
-      if (strpos($message, '%' . $k) !== FALSE) {
-        $message = str_replace('%' . $k, '%' . $i, $message);
-        $replace[$i] = $value;
-        $i++;
-      }
+    if (!empty($displayName)) {
+      $message = str_replace('%display_name', CRM_Contact_BAO_Contact::getValues($params, $default)->display_name, $message);
     }
 
-    return E::ts($message, $replace);
+    return $message;
   }
 
 }

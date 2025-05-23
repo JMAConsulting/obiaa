@@ -9,14 +9,21 @@ use CRM_CiviMobileAPI_Utils_Activity;
 use CRM_Core_DAO;
 use CRM_Utils_Array;
 use Exception;
+use CRM_CiviMobileAPI_ExtensionUtil as E;
 
 class ActivityPushNotification extends BasePushNotification {
   
-  private $actionText = [
-    'create' => '%display_name has created activity.',
-    'edit' => '%display_name has edited activity.',
-    'delete' => '%display_name has deleted activity.'
-  ];
+  private $actionText;
+
+  function __construct($action, $entity, $id, $entityInstance) {
+    parent::__construct($action, $entity, $id, $entityInstance);
+
+    $this->actionText = [
+      'create' => '%display_name ' . E::ts('has created activity.'),
+      'edit' => '%display_name '. E::ts('has edited activity.'),
+      'delete' => '%display_name ' . E::ts('has deleted activity.')
+    ];
+  }
 
   public function handlePostHook() {
     if ($this->entity !== 'Activity') {

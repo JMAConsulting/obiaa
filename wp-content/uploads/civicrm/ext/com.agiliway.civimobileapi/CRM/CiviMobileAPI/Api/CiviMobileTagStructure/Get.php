@@ -66,24 +66,21 @@ class CRM_CiviMobileAPI_Api_CiviMobileTagStructure_Get extends CRM_CiviMobileAPI
    */
   public function setChildTags($parentTag) {
     $parentTag['child_tags'] = [];
-    try {
-      $childItems = civicrm_api3('Tag', 'get', [
-        'sequential' => 1,
-        'parent_id' => $parentTag['id'],
-        'used_for' =>  ['LIKE' => "%" . $this->tagMap[$this->validParams['entity']] . "%"],
-        'options' => ['limit' => 0],
-      ]);
-    } catch (CiviCRM_API3_Exception $e) {
-      return $parentTag;
+
+    $childItems = civicrm_api4('Tag', 'get', [
+      'where' => [
+        ['parent_id', '=', $parentTag['id']],
+        ['used_for', '=', $this->tagMap[$this->validParams['entity']]],
+      ],
+      'checkPermissions' => FALSE,
+    ])->getArrayCopy();
+
+    foreach ($childItems as $childItem) {
+      $childItem = $this->setIsTagChecked($childItem);
+      $parentTag['child_tags'][] = $this->setChildTags($childItem);
     }
 
-    if (!empty($childItems['values'])) {
-      foreach ($childItems['values'] as $childItem) {
-        $childItem = $this->setIsTagChecked($childItem);
-        $parentTag['child_tags'][] = $this->setChildTags($childItem);
-      }
-    }
-
+    $parentTag['used_for'] = reset($parentTag['used_for']);
     return $parentTag;
   }
 
@@ -96,26 +93,21 @@ class CRM_CiviMobileAPI_Api_CiviMobileTagStructure_Get extends CRM_CiviMobileAPI
    * @return array
    */
   private function getEntityTags($entityTable, $entityId) {
-    $entityTags = [];
+    $entityTags = civicrm_api4('EntityTag', 'get', [
+      'where' => [
+        ['entity_id', '=', $entityId],
+        ['entity_table', '=', $entityTable],
+      ],
+      'checkPermissions' => FALSE,
+    ])->getArrayCopy();
 
-    try {
-      $entityTag = civicrm_api3('EntityTag', 'get', [
-        'sequential' => 1,
-        'entity_id' => $entityId,
-        'entity_table' => $entityTable,
-        'options' => ['limit' => 0],
-      ]);
-    } catch (CiviCRM_API3_Exception $e) {
-      return $entityTags;
+    $entityTagsFormatted = [];
+
+    foreach ($entityTags as $entityTagItem) {
+      $entityTagsFormatted[$entityTagItem['tag_id']] = $entityTagItem;
     }
 
-    if (!empty($entityTag['values'])) {
-      foreach ($entityTag['values'] as  $entityTagItem) {
-        $entityTags[$entityTagItem['tag_id']] = $entityTagItem;
-      }
-    }
-
-    return $entityTags;
+    return $entityTagsFormatted;
   }
 
   /**
@@ -126,41 +118,34 @@ class CRM_CiviMobileAPI_Api_CiviMobileTagStructure_Get extends CRM_CiviMobileAPI
   private function getTagSetsItems() {
     $tagSets = [];
 
-    try {
-      $tagSetItems = civicrm_api3('Tag', 'get', [
-        'sequential' => 1,
-        'is_tagset' => 1,
-        'options' => ['limit' => 0],
-        'used_for' =>  ['LIKE' => "%" . $this->tagMap[$this->validParams['entity']] . "%"],
-      ]);
-    } catch (CiviCRM_API3_Exception $e) {
-      $tagSetItems = [];
-    }
+    $tagSetItems = civicrm_api4('Tag', 'get', [
+      'where' => [
+        ['is_tagset', '=', TRUE],
+        ['used_for', '=', $this->tagMap[$this->validParams['entity']]],
+      ],
+      'checkPermissions' => FALSE,
+    ])->getArrayCopy();
 
-    if (!empty($tagSetItems['values'])) {
-      foreach ($tagSetItems['values'] as $tagSetItem) {
-        $tagSetItem = $this->setIsTagChecked($tagSetItem);
-        try {
-          $childTags = civicrm_api3('Tag', 'get', [
-            'sequential' => 1,
-            'used_for' =>  ['LIKE' => "%" . $this->tagMap[$this->validParams['entity']] . "%"],
-            'is_tagset' => 0,
-            'options' => ['limit' => 0],
-            'parent_id' => $tagSetItem['id'],
-          ]);
-        } catch (CiviCRM_API3_Exception $e) {
-          $childTags = [];
-        }
+    foreach ($tagSetItems as $tagSetItem) {
+      $tagSetItem = $this->setIsTagChecked($tagSetItem);
+      $tagSetItem['used_for'] = reset($tagSetItem['used_for']);
 
-        $tagSetItem['child_tags'] = [];
-        if (!empty($childTags['values'])) {
-          foreach ($childTags['values'] as  $childTag) {
-            $tagSetItem['child_tags'][] = $this->setIsTagChecked($childTag);
-          }
-        }
+      $childTags = civicrm_api4('Tag', 'get', [
+        'where' => [
+          ['is_tagset', '=', FALSE],
+          ['used_for', '=', $this->tagMap[$this->validParams['entity']]],
+          ['parent_id', '=', $tagSetItem['id']],
+        ],
+        'checkPermissions' => FALSE,
+      ])->getArrayCopy();
 
-        $tagSets[] = $tagSetItem;
+      $tagSetItem['child_tags'] = [];
+      foreach ($childTags as $childTag) {
+        $childTag['used_for'] = reset($childTag['used_for']);
+        $tagSetItem['child_tags'][] = $this->setIsTagChecked($childTag);
       }
+
+      $tagSets[] = $tagSetItem;
     }
 
     return $tagSets;
@@ -173,23 +158,19 @@ class CRM_CiviMobileAPI_Api_CiviMobileTagStructure_Get extends CRM_CiviMobileAPI
    */
   private function getTagTreeItems() {
     $tagTree = [];
-    try {
-      $tagTreeItems = civicrm_api3('Tag', 'get', [
-        'sequential' => 1,
-        'parent_id' => ['IS NULL' => 1],
-        'used_for' =>  ['LIKE' => "%" . $this->tagMap[$this->validParams['entity']] . "%"],
-        'is_tagset' => 0,
-        'options' => ['limit' => 0],
-      ]);
-    } catch (CiviCRM_API3_Exception $e) {
-      $tagTreeItems = [];
-    }
 
-    if (!empty($tagTreeItems['values'])) {
-      foreach ($tagTreeItems['values'] as $tagTreeItem) {
-        $tagTreeItem = $this->setIsTagChecked($tagTreeItem);
-        $tagTree[] = $this->setChildTags($tagTreeItem);
-      }
+    $tagTreeItems = civicrm_api4('Tag', 'get', [
+      'where' => [
+        ['is_tagset', '=', FALSE],
+        ['used_for', '=', $this->tagMap[$this->validParams['entity']]],
+        ['parent_id', 'IS NULL'],
+      ],
+      'checkPermissions' => FALSE,
+    ])->getArrayCopy();
+
+    foreach ($tagTreeItems as $tagTreeItem) {
+      $tagTreeItem = $this->setIsTagChecked($tagTreeItem);
+      $tagTree[] = $this->setChildTags($tagTreeItem);
     }
 
     return $tagTree;

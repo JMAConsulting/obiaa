@@ -15,42 +15,16 @@ class CRM_CiviMobileAPI_Api_CiviMobileSurveyRespondent_Get extends CRM_CiviMobil
       return [];
     }
 
-    try {
-      $contactProfile = civicrm_api3('UFJoin', 'getsingle', [
-        'entity_table' => "civicrm_survey",
-        'entity_id' => $this->validParams['survey_id'],
-        'weight' => 1,
-      ]);
+    $gotvCustomFieldName = CRM_CiviMobileAPI_Install_Entity_CustomGroup::SURVEY . '.' . CRM_CiviMobileAPI_Install_Entity_CustomField::SURVEY_GOTV_STATUS;
 
-      $fields = CRM_Core_BAO_UFGroup::getFields($contactProfile['uf_group_id']);
-    } catch (Exception $e) {
-      return [];
-    }
-
-    $contactParams = [
-      'options' => ['limit' => 0],
-      'return' => ["id", "contact_type", "display_name", "image_URL"],
-      'group' => !empty($this->validParams['group']) ? $this->validParams['group'] : NULL,
-      'display_name' => !empty($this->validParams['display_name']) ? $this->validParams['display_name'] : NULL,
-      'contact_type' => !empty($this->validParams['contact_type']) ? $this->validParams['contact_type'] : NULL,
-      'city' => !empty($this->validParams['city']) ? $this->validParams['city'] : NULL,
-      'street_address' => !empty($this->validParams['group']) ? $this->validParams['street_address'] : NULL,
-      'check_permissions' => true
-    ];
-
-    $gotvCustomFieldName = 'custom_' . CRM_CiviMobileAPI_Utils_CustomField::getId(CRM_CiviMobileAPI_Install_Entity_CustomGroup::SURVEY,CRM_CiviMobileAPI_Install_Entity_CustomField::SURVEY_GOTV_STATUS);
-
-    $activitiesParams = [
-      'sequential' => 1,
-      'source_record_id' => $this->validParams['survey_id'],
-      'activity_type_id' => ['IN' => $surveyActivityTypesIds],
-      'is_deleted' => 0,
-      'return' => ["target_contact_id", "status_id", "result", $gotvCustomFieldName],
-      'options' => ['limit' => 0],
+    $activitiesWhereParams = [
+      ['activity_type_id', 'IN', $surveyActivityTypesIds],
+      ['target_contact_id', 'IS NOT NULL'],
+      ['source_record_id', '=', $this->validParams['survey_id']],
     ];
 
     if (!empty($this->validParams['interviewer_id'])) {
-      $activitiesParams['assignee_contact_id'] = $this->validParams['interviewer_id'];
+      $activitiesWhereParams[] = ['assignee_contact_id', '=', $this->validParams['interviewer_id']];
     }
 
     $filterStatuses = [];
@@ -71,15 +45,25 @@ class CRM_CiviMobileAPI_Api_CiviMobileSurveyRespondent_Get extends CRM_CiviMobil
       }
 
       if (!empty($filterStatuses)) {
-        $activitiesParams['status_id'] = ['IN' => $filterStatuses];
+        $activitiesWhereParams[] = ['status_id:name', 'IN', $filterStatuses];
       }
     }
 
-    $activities = civicrm_api3('Activity', 'get', $activitiesParams);
+    $activities = civicrm_api4('Activity', 'get', [
+      'select' => [
+        CRM_CiviMobileAPI_Install_Entity_CustomGroup::SURVEY . '.' . CRM_CiviMobileAPI_Install_Entity_CustomField::SURVEY_GOTV_STATUS,
+        'target_contact_id',
+        'status_id',
+        'status_id:name',
+        'result',
+      ],
+      'where' => $activitiesWhereParams,
+      'checkPermissions' => FALSE,
+    ])->getArrayCopy();
 
     $contactIds = [];
 
-    foreach ($activities['values'] as $activity) {
+    foreach ($activities as $activity) {
       $contactIds[] = reset($activity['target_contact_id']);
     }
 
@@ -87,40 +71,53 @@ class CRM_CiviMobileAPI_Api_CiviMobileSurveyRespondent_Get extends CRM_CiviMobil
       return [];
     }
 
-    $contactParams['id'] = ['IN' => $contactIds];
+    $contactsWhereParams = [
+      ['id', 'IN', $contactIds],
+    ];
 
-    $contacts = civicrm_api3('Contact', 'get', $contactParams)['values'];
-
-    $activityStatuses = civicrm_api3('OptionValue', 'get', [
-      'sequential' => 1,
-      'option_group_id' => "activity_status",
-      'name' => ['IN' => ["Scheduled", "Completed"]],
-    ])['values'];
-
-    $preparedStatuses = [];
-
-    foreach ($activityStatuses as $status) {
-      $preparedStatuses[$status['value']] = $status['name'];
+    if (!empty($this->validParams['group'])) {
+      $contactsWhereParams[] = ['groups', 'IN', $this->validParams['group']];
     }
+    if (!empty($this->validParams['display_name'])) {
+      $contactsWhereParams[] = ['display_name', 'LIKE', '%' . $this->validParams['display_name'] . '%'];
+    }
+    if (!empty($this->validParams['contact_type'])) {
+      $contactsWhereParams[] = ['contact_type:name', '=', $this->validParams['contact_type']];
+    }
+    if (!empty($this->validParams['city'])) {
+      $contactsWhereParams[] = ['address_primary.city', 'LIKE', '%' . $this->validParams['city'] . '%'];
+    }
+    if (!empty($this->validParams['street_address'])) {
+      $contactsWhereParams[] = ['address_primary.street_address', 'LIKE', '%' . $this->validParams['street_address'] . '%'];
+    }
+
+    $contacts = civicrm_api4('Contact', 'get', [
+      'select' => [
+        'id',
+        'contact_type',
+        'display_name',
+        'image_URL',
+        'address_primary.street_address',
+        'address_primary.city',
+      ],
+      'where' => $contactsWhereParams,
+      'checkPermissions' => TRUE,
+    ])->getArrayCopy();
 
     $preparedContacts = [];
 
-    foreach ($activities['values'] as $activity) {
+    foreach ($activities as $activity) {
       if ($filterGOTV != $filterInterviewed
         && $activity[$gotvCustomFieldName] != $filterGOTV
-        && $preparedStatuses[$activity['status_id']] != 'Scheduled') {
+        && $activity['status_id:name'] != 'Scheduled') {
         continue;
       }
 
-      $contactId = reset($activity['target_contact_id']);
-      if (!isset($contacts[$contactId])) {
-        continue;
-      }
-      $contact = $contacts[$contactId];
+      $contact = $contacts[array_search(reset($activity['target_contact_id']), array_column($contacts, 'id'))];
 
       $status = NULL;
 
-      switch ($preparedStatuses[$activity['status_id']]) {
+      switch ($activity['status_id:name']) {
         case 'Scheduled':
           $status = 'Reserved';
           break;
@@ -133,29 +130,21 @@ class CRM_CiviMobileAPI_Api_CiviMobileSurveyRespondent_Get extends CRM_CiviMobil
           break;
       }
 
-      if (!empty($status)) {
-        $preparedContact = [
-          'contact_id' => $contact['id'],
-          'contact_type' => $contact['contact_type'],
-          'display_name' => $contact['display_name'],
-          'image_URL' => $contact['image_URL'],
-          'survey_status' => $status,
-          'result' => !empty($activity['result']) ? $activity['result'] : '',
-        ];
+      if (empty($status))
+        continue;
 
-        $profileResults = civicrm_api3('Profile', 'get', [
-          'sequential' => 1,
-          'profile_id' => $contactProfile['uf_group_id'],
-          'contact_id' => $contact['id'],
-          'activity_id' => $activity['id']
-        ])['values'];
+      $preparedContact = [
+        'contact_id' => $contact['id'],
+        'contact_type' => $contact['contact_type'],
+        'display_name' => $contact['display_name'],
+        'image_URL' => $contact['image_URL'],
+        'survey_status' => $status,
+        'result' => !empty($activity['result']) ? $activity['result'] : '',
+        'street_address' => $contact['address_primary.street_address'] ?? '',
+        'city' => $contact['address_primary.city'] ?? ''
+      ];
 
-        foreach (array_keys($fields) as $field) {
-          $preparedContact[$field] = $profileResults[$field];
-        }
-
-        $preparedContacts[] = $preparedContact;
-      }
+      $preparedContacts[] = $preparedContact;
     }
 
     usort($preparedContacts, function($a, $b) {

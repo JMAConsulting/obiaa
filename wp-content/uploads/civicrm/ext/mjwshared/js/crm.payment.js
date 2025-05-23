@@ -12,7 +12,13 @@
      */
     getTotalAmount: function() {
       var totalAmount = 0.0;
-      if (this.getIsDrupalWebform()) {
+
+      if (document.getElementById('totalAmount') && document.getElementById('totalAmount').getAttribute('data-totalAmount')) {
+        // See https://github.com/civicrm/civicrm-core/pull/32574 / https://lab.civicrm.org/extensions/stripe/-/issues/348
+        // Get the total amount from the lineItems list
+        totalAmount = parseFloat(document.getElementById('totalAmount').getAttribute('data-totalAmount'));
+      }
+      else if (this.getIsDrupalWebform()) {
         // This is how webform civicrm calculates the amount in webform_civicrm_payment.js
         $('.line-item:visible', '#wf-crm-billing-items').each(function() {
           totalAmount += parseFloat($(this).data('amount'));
@@ -372,8 +378,13 @@
       // Most checkboxes get names like: "custom_63[1]" but "onbehalf" checkboxes get "onbehalf[custom_63][1]". We change them to "custom_63" and "onbehalf[custom_63]".
       $('div#priceset input[type="checkbox"], fieldset.crm-profile input[type="checkbox"], #on-behalf-block input[type="checkbox"]').each(function() {
         var name = $(this).attr('name');
-        $(this).attr('data-name', name);
-        $(this).attr('name', name.replace('[' + name.split('[').pop(), ''));
+        if (name !== undefined) {
+          $(this).attr('data-name', name);
+          $(this).attr('name', name.replace('[' + name.split('[').pop(), ''));
+          $(this).removeAttr('required');
+          $(this).removeClass('required');
+          $(this).removeAttr('aria-required');
+        }
       });
 
       // Default email validator accepts test@example but on test@example.org is valid (https://jqueryvalidation.org/jQuery.validator.methods/)

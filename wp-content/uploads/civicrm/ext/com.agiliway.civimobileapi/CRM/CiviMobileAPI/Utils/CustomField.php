@@ -11,18 +11,16 @@ class CRM_CiviMobileAPI_Utils_CustomField {
    * @return bool|int
    */
   public static function getId($customGroupName, $customFieldName) {
-    try {
-      $customGroupId = civicrm_api3('CustomField', 'getvalue', [
-        'return' => "id",
-        'name' => $customFieldName,
-        'custom_group_id' => $customGroupName,
-      ]);
-
-    } catch (CiviCRM_API3_Exception $e) {
-      return false;
-    }
-
-    return (int) $customGroupId;
+    return civicrm_api4('CustomField', 'get', [
+      'select' => [
+        'id',
+      ],
+      'where' => [
+        ['name', '=', $customFieldName],
+        ['custom_group_id:name', '=', $customGroupName],
+      ],
+      'checkPermissions' => FALSE,
+    ])->first()['id'];
   }
 
 }

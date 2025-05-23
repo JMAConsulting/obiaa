@@ -15,13 +15,20 @@ class CRM_CiviMobileAPI_Utils_Agenda_Speakers {
     }
     $ids = explode(',', $stringIds);
 
-    $participants = civicrm_api3('Participant', 'get', [
-      'sequential' => 1,
-      'id' => ['IN' => $ids],
-      'event_id' => $eventId
-    ]);
+    $participants = civicrm_api4('Participant', 'get', [
+      'select' => [
+        'contact_id.display_name',
+        'id',
+        'contact_id',
+      ],
+      'where' => [
+        ['id', 'IN', $ids],
+        ['event_id', '=', $eventId],
+      ],
+      'checkPermissions' => FALSE,
+    ])->getArrayCopy();
 
-    return CRM_CiviMobileAPI_Utils_Participant::getParticipantsShortDetails($participants['values']);
+    return CRM_CiviMobileAPI_Utils_Participant::getParticipantsShortDetails($participants);
   }
 
   /**
@@ -36,13 +43,18 @@ class CRM_CiviMobileAPI_Utils_Agenda_Speakers {
       return FALSE;
     }
 
-    $participants = civicrm_api3('Participant', 'get', [
-      'sequential' => 1,
-      'id' => ['IN' => $ids],
-      'event_id' => $eventId
-    ]);
+    $participantsCount = civicrm_api4('Participant', 'get', [
+      'select' => [
+        'row_count',
+      ],
+      'where' => [
+        ['id', 'IN', $ids],
+        ['event_id', '=', $eventId],
+      ],
+      'checkPermissions' => FALSE,
+    ])->count();
 
-    if (count($ids) == count($participants["values"])) {
+    if (count($ids) == $participantsCount) {
       return TRUE;
     }
     return FALSE;

@@ -30,11 +30,15 @@ Enable the extension, then go to CiviCRM > Administer > Customize Data and Scree
 * Then add each field that will be part of the condition (it can be two or more fields).
 * Then go back to the condition, and enter a list of allowed values. You can to
   select one combination at the time. Rather tedious, but you can also load
-  values using SQL (todo: add import support via advimport?).
+  values using SQL or using the [advanced import](https://civicrm.org/extensions/advanced-import) extension.
 
-Currently this has only been tested on backend CiviCRM forms (not public forms,
-where currently it requires the 'access CiviCRM' permission because of limited
-security validations).
+When Advanced Import is enabled, it will declare an "import source" for each
+field condition, making it possible to import both the possible values (if they
+do not already exist) and the allowed values.
+
+The extension requires the "access AJAX API" (ex: for anonymous users) or
+"access CiviCRM" permissions (only for users who have access to the CiviCRM
+dashboard).
 
 The extension will automatically enable the field conditions on a form if it detects
 that the fields are present.

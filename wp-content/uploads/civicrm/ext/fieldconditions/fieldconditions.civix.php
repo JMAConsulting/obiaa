@@ -89,7 +89,6 @@ class CRM_Fieldconditions_ExtensionUtil {
 
 use CRM_Fieldconditions_ExtensionUtil as E;
 
-($GLOBALS['_PathLoad'][0] ?? require __DIR__ . '/mixin/lib/pathload-0.php');
 pathload()->addSearchDir(__DIR__ . '/mixin/lib');
 spl_autoload_register('_fieldconditions_civix_class_loader', TRUE, TRUE);
 
@@ -116,13 +115,6 @@ function _fieldconditions_civix_class_loader($class) {
   }
 }
 
-function _fieldconditions_civix_mixin_polyfill() {
-  if (!class_exists('CRM_Extension_MixInfo')) {
-    $polyfill = __DIR__ . '/mixin/polyfill.php';
-    (require $polyfill)(E::LONG_NAME, E::SHORT_NAME, E::path());
-  }
-}
-
 /**
  * (Delegated) Implements hook_civicrm_config().
  *
@@ -138,7 +130,7 @@ function _fieldconditions_civix_civicrm_config($config = NULL) {
   $extRoot = __DIR__ . DIRECTORY_SEPARATOR;
   $include_path = $extRoot . PATH_SEPARATOR . get_include_path();
   set_include_path($include_path);
-  _fieldconditions_civix_mixin_polyfill();
+  // Based on <compatibility>, this does not currently require mixin/polyfill.php.
 }
 
 /**
@@ -148,7 +140,7 @@ function _fieldconditions_civix_civicrm_config($config = NULL) {
  */
 function _fieldconditions_civix_civicrm_install() {
   _fieldconditions_civix_civicrm_config();
-  _fieldconditions_civix_mixin_polyfill();
+  // Based on <compatibility>, this does not currently require mixin/polyfill.php.
 }
 
 /**
@@ -158,7 +150,7 @@ function _fieldconditions_civix_civicrm_install() {
  */
 function _fieldconditions_civix_civicrm_enable(): void {
   _fieldconditions_civix_civicrm_config();
-  _fieldconditions_civix_mixin_polyfill();
+  // Based on <compatibility>, this does not currently require mixin/polyfill.php.
 }
 
 /**

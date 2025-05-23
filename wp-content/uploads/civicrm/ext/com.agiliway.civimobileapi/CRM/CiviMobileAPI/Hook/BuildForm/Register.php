@@ -37,6 +37,12 @@ class CRM_CiviMobileAPI_Hook_BuildForm_Register {
       if ($cmbHash) {
         CRM_CiviMobileAPI_Utils_Extension::hideCiviMobileQrPopup();
         if ($tmpData = CRM_CiviMobileAPI_BAO_CivimobileEventPaymentInfo::getByHash($cmbHash)) {
+          if (!empty($tmpData['contact_id'])) {
+            CRM_Core_Session::singleton()->set('userID', $tmpData['contact_id']);
+          }
+
+          CRM_Core_Smarty::singleton()->assign('showCMS', FALSE);
+
           $priceSet = json_decode($tmpData['price_set'], true);
           $personalFields = $this->findPersonalFields($tmpData);
           $billingFields = $this->findBillingFields($tmpData);
@@ -147,7 +153,7 @@ class CRM_CiviMobileAPI_Hook_BuildForm_Register {
       $template->assign('eventButtonColor', (!empty(Civi::settings()->get('civimobile_event_registration_button_color'))) ? Civi::settings()->get('civimobile_event_registration_button_color') : "#5589B7");
 
       CRM_Core_Region::instance('page-body')->add([
-        'template' => CRM_CiviMobileAPI_ExtensionUtil::path() . '/templates/CRM/CiviMobileAPI/CustomizeEventRegistration.tpl',
+        'template' => 'CRM/CiviMobileAPI/CustomizeEventRegistration.tpl',
       ]);
     }
   }

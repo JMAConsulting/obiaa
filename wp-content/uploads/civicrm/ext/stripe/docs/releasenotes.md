@@ -9,6 +9,90 @@ Releases use the following numbering system:
 
 * **[BC]**: Items marked with [BC] indicate a breaking change that will require updates to your code if you are using that code in your extension.
 
+## Release 6.11.4 (2025-01-05)
+
+* Support [Bancontact](https://stripe.com/payment-method/bancontact) for Stripe Checkout.
+* Add subscription status 'paused' mapped to 'Pending'.
+* Add `current_period_start` to `getObjectParam()` for subscriptions.
+
+## Release 6.11.3 (2024-10-13)
+
+* Upgrade to EntityFrameworkV2
+* Add setting to allow recording contributions/payments using payout amount/currency instead of charge amount/currency.
+
+## Release 6.11.2 (2024-08-12)
+
+* Set next_sched_contribution_date to the actual date retrieved from Stripe instead of using CiviCRM calculated value.
+* Minor refactor of doPayment for Stripe Checkout to allow easier integration with other APIs, like InlayPay.
+
+## Release 6.11.1 (2024-07-29)
+
+* Add custom fields for payout/charge currency/amount per [!252](https://lab.civicrm.org/extensions/stripe/-/merge_requests/252).
+* Add comment re customer_email to StripeCheckout code.
+* Add currency to test mocks.
+* Fix tests.
+* Add missing parent::setUp() to tests.
+* Update test Stripe API keys.
+* Set return message to 'OK' on success for webhooks.
+* Fix settings definition (fixes PHP notice).
+
+## Release 6.11 (2024-07-17)
+
+### New Requirements
+
+* CiviCRM extension [mjwshared](https://lab.civicrm.org/extensions/mjwshared)@1.3.
+
+If you previously used the API3 Stripe.importX API calls they have been removed and replaced with a separate extension:
+* CiviCRM extension [stripeimport](https://lab.civicrm.org/extensions/stripeimport)
+
+### New Features
+
+#### Update Subscription
+Subscription amounts can now be updated via the Stripe Dashboard or by editing the recurring contribution in CiviCRM.
+
+You can use the [upgraderecur](https://lab.civicrm.org/extensions/upgraderecur) extension to perform bulk upgrades (eg. a Membership price subscription increase).
+But you must use MJW branch: https://lab.civicrm.org/mattwire/upgraderecur/-/tree/mjw
+
+#### Support card brand choice for EU customers
+
+Per https://docs.stripe.com/co-badged-cards-compliance - see [this change](https://lab.civicrm.org/extensions/stripe/-/commit/d93d875aa09e2af16fb49c04a49a29ed9df11309).
+
+#### Stripe Checkout: BECS Direct Debit payments in Australia
+
+You can now enable support for [BECS Direct Debit](https://docs.stripe.com/payments/au-becs-debit) in the CiviCRM Stripe settings if your Stripe account supports it.
+
+
+### Fixes / Improvements
+
+* Fix [#470](https://lab.civicrm.org/extensions/stripe/-/issues/470) CiviCRM 5.70 compatibility (rounding issue).
+* Move menu entry to managed entity (allows you to edit using the menu editor).
+* Add composer.json type civicrm-ext (helpful when using composer for deployment).
+* Don't crash if we don't have write permission for stripe customer (to update metadata).
+* Only try to update metadata at Stripe once!
+
+#### SearchKit/FormBuilder compatibility:
+
+* Add searchable tags to API4
+* Add HTML field definitions for StripeCustomer
+
+#### Recurring payments
+
+* Transition Recur from Failed to In Progress if payment fails and then succeeds on later attempt.
+* Ensure initial recurring payment via checkout is recorded.
+
+#### Invoices
+
+* Handle 'Failed' status for invoice
+* Change handling of receive_date on invoice to match paid date
+
+#### Debugging / Internals
+
+* Add log prefix to error messages and clean up StripeCustomer.
+* Add more verbose logging to invoice.finalized processor and switch to API4.
+* Replace deprecated `CiviCRM_API3_Exception`.
+* Add channel to log
+
+
 ## Release 6.10.2 (2023-11-29)
 
 **This is the same as 6.10.1 but with a fix for upgrader issues (https://lab.civicrm.org/extensions/stripe/-/issues/460).**

@@ -52,7 +52,7 @@ class CRM_CiviMobileAPI_Form_Speaker extends CRM_Core_Form {
       'id' => $this->speaker['event_id']
     ]));
 
-    if ($this->getAction() == CRM_Core_Action::UPDATE || $this->getAction() == CRM_Core_Action::VIEW) {
+    if (in_array($this->getAction(), [CRM_Core_Action::VIEW, CRM_Core_Action::UPDATE])) {
       $this->add('hidden', 'pid', $this->speaker['participant_id']);
       $this->add('hidden', 'eid', $this->speaker['event_id']);
 
@@ -128,7 +128,7 @@ class CRM_CiviMobileAPI_Form_Speaker extends CRM_Core_Form {
         CRM_Core_Session::setStatus(E::ts('Contact info wasn`t saved!'), E::ts('Error'), 'error');
       }
 
-      $participantBioFieldName = $customFieldName = "custom_" . CRM_CiviMobileAPI_Utils_CustomField::getId(CRM_CiviMobileAPI_Install_Entity_CustomGroup::AGENDA_PARTICIPANT, CRM_CiviMobileAPI_Install_Entity_CustomField::AGENDA_PARTICIPANT_BIO);
+      $participantBioFieldName = "custom_" . CRM_CiviMobileAPI_Utils_CustomField::getId(CRM_CiviMobileAPI_Install_Entity_CustomGroup::AGENDA_PARTICIPANT, CRM_CiviMobileAPI_Install_Entity_CustomField::AGENDA_PARTICIPANT_BIO);
 
       try {
         civicrm_api3('Participant', 'create', [
