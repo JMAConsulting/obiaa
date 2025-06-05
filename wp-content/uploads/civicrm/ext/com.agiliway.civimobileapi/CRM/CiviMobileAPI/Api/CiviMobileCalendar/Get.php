@@ -46,11 +46,11 @@ class CRM_CiviMobileAPI_Api_CiviMobileCalendar_Get extends CRM_CiviMobileAPI_Api
       'sequential' => 1,
     ]);
 
-    if (!isset($result['values'][0]['event']['view']['all']) || empty($result['values'][0]['event']['view']['all'])) {
+    if (empty($result['values'][0]['event']['view']['all'])) {
       return FALSE;
     }
 
-    return  $result['values'][0]['event']['view']['all'] ? TRUE : FALSE;
+    return TRUE;
   }
 
 }

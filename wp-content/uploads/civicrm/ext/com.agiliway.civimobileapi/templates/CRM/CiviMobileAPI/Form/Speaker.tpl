@@ -81,7 +81,7 @@
                     <img src="{$speaker.image_URL}" class="speaker-image">
                   </a>
                   <br/>
-                  <a class="delete-contact-file" style="color:red" href="javascript:deleteContactImage();"><i class="crm-i fa-trash"></i> {ts}Delete contact image{/ts}</a>
+                  <a class="delete-contact-file" style="color:red" href="javascript:deleteContactImage();"><i class="crm-i fa-trash"></i> {ts domain="com.agiliway.civimobileapi"}Delete contact image{/ts}</a>
                 </div>
               {/if}
             </td>
@@ -109,7 +109,7 @@
     var contactId = {/literal}{$speaker.contact_id}{literal};
 
     function deleteContactImage() {
-      if (confirm("{/literal}{ts}Are you sure you want to delete contact image?{/ts}{literal}")) {
+      if (confirm("{/literal}{ts domain="com.agiliway.civimobileapi"}Are you sure you want to delete contact image?{/ts}{literal}")) {
         CRM.$.get(CRM.url('civicrm/contact/image', {
             'action': 'delete',
             'cid': contactId,

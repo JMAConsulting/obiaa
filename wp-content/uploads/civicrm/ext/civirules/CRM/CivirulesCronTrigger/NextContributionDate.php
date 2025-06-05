@@ -15,12 +15,12 @@ class CRM_CivirulesCronTrigger_NextContributionDate extends CRM_Civirules_Trigge
 
   public static function intervals() {
     return [
-      '-days' => ts('Day(s) before next scheduled recurring contribution date'),
-      '-weeks' => ts('Week(s) before next scheduled recurring contribution date'),
-      '-months' => ts('Month(s) before next scheduled recurring contribution date'),
-      '+days' => ts('Day(s) after next scheduled recurring contribution date'),
-      '+weeks' => ts('Week(s) after next scheduled recurring contribution date'),
-      '+months' => ts('Month(s) after next scheduled recurring contribution date'),
+      '-days' => ts('Day(s) before recurring next scheduled contribution date'),
+      '-weeks' => ts('Week(s) before recurring next scheduled contribution date'),
+      '-months' => ts('Month(s) before recurring next scheduled contribution date'),
+      '+days' => ts('Day(s) after recurring next scheduled contribution date'),
+      '+weeks' => ts('Week(s) after recurring next scheduled contribution date'),
+      '+months' => ts('Month(s) after recurring next scheduled contribution date'),
     ];
   }
 
@@ -39,7 +39,9 @@ class CRM_CivirulesCronTrigger_NextContributionDate extends CRM_Civirules_Trigge
     if ($this->_dao->fetch()) {
       $data = [];
       CRM_Core_DAO::storeValues($this->_dao, $data);
-      return new CRM_Civirules_TriggerData_Cron($this->_dao->contact_id, 'ContributionRecur', $data, $data['contribution_recur_id']);
+      $triggerData = new CRM_Civirules_TriggerData_Cron($this->_dao->contact_id, 'ContributionRecur', $data, $data['contribution_recur_id']);
+      $triggerData->setTrigger($this);
+      return $triggerData;
     }
     return FALSE;
   }
@@ -88,14 +90,19 @@ class CRM_CivirulesCronTrigger_NextContributionDate extends CRM_Civirules_Trigge
 
     $sql = "SELECT r.id AS `contribution_recur_id`, r.*
             FROM `civicrm_contribution_recur` `r`
-            LEFT JOIN `civirule_rule_log` `rule_log` ON `rule_log`.entity_table = 'civicrm_contribution_recur' AND `rule_log`.entity_id = r.id AND `rule_log`.`contact_id` = `r`.`contact_id` AND DATE(`rule_log`.`log_date`) = DATE(NOW()) AND `rule_log`.`rule_id` = %3
-            WHERE `r`.`is_test` = %1 AND (`r`.`next_sched_contribution_date` > CURRENT_DATE() OR `r`.`next_sched_contribution_date` IS NULL)
-            AND `rule_log`.`id` IS NULL
-            {$nextDateStatement}
-            AND `r`.`contact_id` NOT IN (
-              SELECT `rule_log2`.`contact_id`
-              FROM `civirule_rule_log` `rule_log2`
-              WHERE `rule_log2`.`rule_id` = %3 AND DATE(`rule_log2`.`log_date`) = DATE(NOW()) and `rule_log2`.`entity_table` IS NULL AND `rule_log2`.`entity_id` IS NULL
+            LEFT JOIN `civirule_rule_log` `rule_log`
+              ON `rule_log`.entity_table = 'civicrm_contribution_recur'
+              AND `rule_log`.entity_id = r.id
+              AND `rule_log`.`contact_id` = `r`.`contact_id`
+              AND DATE(`rule_log`.`log_date`) = DATE(NOW())
+              AND `rule_log`.`rule_id` = %3
+            WHERE `r`.`is_test` = %1
+              AND `rule_log`.`id` IS NULL
+              {$nextDateStatement}
+              AND `r`.`contact_id` NOT IN (
+                SELECT `rule_log2`.`contact_id`
+                FROM `civirule_rule_log` `rule_log2`
+                WHERE `rule_log2`.`rule_id` = %3 AND DATE(`rule_log2`.`log_date`) = DATE(NOW()) and `rule_log2`.`entity_table` IS NULL AND `rule_log2`.`entity_id` IS NULL
             )";
     $params[3] = [$this->ruleId, 'Integer'];
     $this->_dao = CRM_Core_DAO::executeQuery($sql, $params, TRUE, 'CRM_Contribute_DAO_ContributionRecur');
@@ -135,6 +142,30 @@ class CRM_CivirulesCronTrigger_NextContributionDate extends CRM_Civirules_Trigge
    */
   protected function getAdditionalEntities() {
     return parent::getAdditionalEntities();
+  }
+
+  /**
+   * Get various types of help text for the trigger:
+   *   - triggerDescription: When choosing from a list of triggers, explains what the trigger does.
+   *   - triggerDescriptionWithParams: When a trigger has been configured for a rule provides a
+   *       user friendly description of the trigger and params (see $this->getTriggerDescription())
+   *   - triggerParamsHelp (default): If the trigger has configurable params, show this help text when configuring
+   * @param string $context
+   *
+   * @return string
+   */
+  public function getHelpText(string $context = 'triggerParamsHelp'): string {
+    switch ($context) {
+      case 'triggerDescriptionWithParams':
+        return $this->getTriggerDescription();
+
+      case 'triggerDescription':
+      case 'triggerParamsHelp':
+        return E::ts('Trigger for recurring contributions when the next scheduled contribution date is X days/weeks/months before or after.');
+
+      default:
+        return parent::getHelpText($context);
+    }
   }
 
 }

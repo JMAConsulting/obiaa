@@ -47,20 +47,16 @@ class CRM_CiviMobileAPI_Utils_ActivityType {
    * @return array
    */
   public static function getAllActivityTypes($params) {
-    try {
-      $activityTypes = civicrm_api3('OptionValue', 'get', [
-        'option_group_id' => 'activity_type',
-        'is_active' => 1,
-        'options' => [
-          'limit' => 0,
-          'sort' => (!empty($params['sort'])) ? $params['sort']: 'label'
-        ]
-      ]);
-    } catch (CiviCRM_API3_Exception $e) {
-      return [];
-    }
+    $sortParams = explode(' ', $params['sort']);
 
-    return (!empty($activityTypes['values'])) ? $activityTypes['values'] : [];
+    return civicrm_api4('OptionValue', 'get', [
+      'where' => [
+        ['option_group_id:name', '=', 'activity_type'],
+        ['is_active', '=', TRUE],
+      ],
+      'orderBy' => !empty($sortParams[0]) ? [$sortParams[0] => $sortParams[1]] : ['label' => 'ASC'],
+      'checkPermissions' => FALSE,
+    ])->getArrayCopy();
   }
 
   /**

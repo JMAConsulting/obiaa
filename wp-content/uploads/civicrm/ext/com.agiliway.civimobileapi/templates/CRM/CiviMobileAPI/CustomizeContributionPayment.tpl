@@ -37,6 +37,14 @@
 </script>
 
   <style>
+    .qr_open_popup {
+      visibility: hidden;
+    }
+
+    .crm-not-you-message, #civicrm-menu-nav {
+      display: none !important;
+    }
+
     @media only screen and (max-width: 767px) {
       :root {
         --button-color: {/literal}{$buttonColor}{literal};

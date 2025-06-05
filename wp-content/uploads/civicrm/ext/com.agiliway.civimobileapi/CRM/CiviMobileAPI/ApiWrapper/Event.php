@@ -21,7 +21,7 @@ class CRM_CiviMobileAPI_ApiWrapper_Event implements API_Wrapper {
       $apiRequest['params']['return'] = array_unique(array_merge($apiRequest['params']['return'], [$isAllowMobileRegistration]));
     }
 
-    if (is_mobile_request()) {
+    if (CRM_CiviMobileAPI_Hook_Utils::is_mobile_request()) {
       $apiRequest['params']['check_permissions'] = 0;
     }
 

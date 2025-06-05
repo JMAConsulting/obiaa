@@ -166,6 +166,12 @@ class CRM_Stripe_Api {
           case 'cancel_date':
             return self::formatDate($stripeObject->canceled_at);
 
+          case 'next_sched_contribution_date':
+            return self::formatDate($stripeObject->current_period_end);
+
+          case 'current_period_start':
+            return self::formatDate($stripeObject->current_period_start);
+
           case 'cycle_day':
             return date("d", $stripeObject->billing_cycle_anchor);
 
@@ -306,7 +312,7 @@ class CRM_Stripe_Api {
       // 'alipay',
       // 'au_becs_debit',
       'bacs_debit' => E::ts('BACS Direct Debit'),
-      // 'bancontact',
+      'bancontact' => E::ts('Bancontact'),
       // 'blik',
       // 'boleto',
       // 'cashapp',
@@ -328,6 +334,51 @@ class CRM_Stripe_Api {
       'us_bank_account' => E::ts('ACH Direct Debit'),
       // 'wechat_pay',
     ];
+  }
+
+  /**
+   * Map the Stripe Subscription Status to the CiviCRM ContributionRecur status.
+   *
+   * @param string $subscriptionStatus
+   *
+   * @return string
+   */
+  public static function mapSubscriptionStatusToRecurStatus(string $subscriptionStatus): string {
+    $statusMap = [
+      'incomplete' => 'Failed',
+      'incomplete_expired' => 'Failed',
+      'trialing' => 'In Progress',
+      'active' => 'In Progress',
+      'past_due' => 'Overdue',
+      'canceled' => 'Cancelled',
+      'unpaid' => 'Failed',
+      'paused' => 'Pending',
+    ];
+    return $statusMap[$subscriptionStatus] ?? '';
+  }
+
+  /**
+   * Map the Stripe Invoice Status to the CiviCRM Contribution status.
+   * https://stripe.com/docs/invoicing/overview#invoice-statuses
+   *
+   * @param \Stripe\Invoice $invoice
+   *
+   * @return string
+   */
+  public static function mapInvoiceStatusToContributionStatus(\Stripe\Invoice $invoice): string {
+    $statusMap = [
+      'draft' => 'Pending',
+      'open' => 'Pending',
+      'paid' => 'Completed',
+      'void' => 'Cancelled',
+      'uncollectible' => 'Failed',
+    ];
+    if ($invoice->status === 'open' && $invoice->attempted && empty($invoice->next_payment_attempt)) {
+      // An invoice will automatically be retried. If that fails the status will remain "open" but it has effectively failed.
+      // We use attempted + next_payment_attempt to check if it will NOT be retried and then record it as Failed in CiviCRM.
+      return 'Failed';
+    }
+    return $statusMap[$invoice->status] ?? '';
   }
 
 }

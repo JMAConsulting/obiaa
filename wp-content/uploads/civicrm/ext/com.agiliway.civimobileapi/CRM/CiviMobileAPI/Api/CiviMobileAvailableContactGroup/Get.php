@@ -4,24 +4,26 @@
  * Class handles CiviMobileCustomFields api
  */
 class CRM_CiviMobileAPI_Api_CiviMobileAvailableContactGroup_Get extends CRM_CiviMobileAPI_Api_CiviMobileBase {
-
   /**
    * Returns results to api
    *
    * @return array
    */
   public function getResult() {
-    $availableGroups = [];
-    $groups = $this->getGroups($this->validParams['is_hidden']);
-    $contactGroupIds = $this->getContactGroups($this->validParams['contact_id']);
-
-    foreach ($groups as $group) {
-      if (!in_array($group['id'], $contactGroupIds)) {
-        $availableGroups[] = $group;
-      }
-    }
-
-    return $availableGroups;
+    return civicrm_api4('Group', 'get', [
+      'select' => [
+        'id',
+        'name',
+        'title',
+      ],
+      'join' => [
+        ['GroupContact AS group_contact', 'EXCLUDE', ['group_contact.contact_id', '=', $this->validParams['contact_id']], ['group_contact.group_id', '=', 'id']],
+      ],
+      'where' => [
+        ['is_hidden', '=', $this->validParams['is_hidden']],
+      ],
+      'checkPermissions' => FALSE,
+    ])->getArrayCopy();
   }
 
   /**
@@ -42,7 +44,7 @@ class CRM_CiviMobileAPI_Api_CiviMobileAvailableContactGroup_Get extends CRM_Civi
     }
 
     if (!isset($params['is_hidden'])) {
-      $params['is_hidden'] = NULL;
+      $params['is_hidden'] = FALSE;
     }
 
     return [
@@ -50,68 +52,4 @@ class CRM_CiviMobileAPI_Api_CiviMobileAvailableContactGroup_Get extends CRM_Civi
       'is_hidden' => $params['is_hidden']
     ];
   }
-
-  /**
-   * Gets active simple groups
-   */
-  private function getGroups($isHidden) {
-    $groupsParams = [
-      'sequential' => 1,
-      'is_active' => 1,
-      'saved_search_id' => ['IS NULL' => 1],
-      'options' => ['limit' => 0],
-      'return' => ['name', 'title', 'id'],
-    ];
-
-    if (!is_null($isHidden)) {
-      $groupsParams['is_hidden'] = $isHidden;
-    }
-
-    $groups = [];
-
-    try {
-      $groupsData = civicrm_api3('Group', 'get', $groupsParams);
-    } catch (CiviCRM_API3_Exception $e) {
-      return $groups;
-    }
-
-    if (!empty($groupsData['values'])) {
-      $groups = $groupsData['values'];
-    }
-
-    return $groups;
-  }
-
-  /**
-   * Gets list of group id with contact
-   *
-   * @param $contactId
-   *
-   * @return array
-   */
-  private function getContactGroups($contactId) {
-    $groupIds = [];
-
-    try {
-      $groupContacts = civicrm_api3('GroupContact', 'get', [
-        'sequential' => 1,
-        'contact_id' => $contactId,
-        'status' => '',
-        'options' => ['limit' => 0],
-        'return' => ["group_id"],
-      ]);
-
-    } catch (CiviCRM_API3_Exception $e) {
-      return $groupIds;
-    }
-
-    if (!empty($groupContacts['values'])) {
-      foreach ($groupContacts['values'] as $groupContact) {
-        $groupIds[] = (int)$groupContact['group_id'];
-      }
-    }
-
-    return $groupIds;
-  }
-
 }

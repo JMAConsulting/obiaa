@@ -24,8 +24,8 @@ class CRM_CiviMobileAPI_Authentication_AuthenticationHelper {
    * @return \CRM_Contact_BAO_Contact
    *
    */
-  public static function getCiviContact($drupalUserId) {
-    $contact = static::findContact($drupalUserId);
+  public static function getCiviContact($ufId) {
+    $contact = static::findContact($ufId);
     if (!$contact) {
       JsonResponse::sendErrorResponse(E::ts('There are no such contact in CiviCRM'));
     }
@@ -41,10 +41,9 @@ class CRM_CiviMobileAPI_Authentication_AuthenticationHelper {
    * @return \CRM_Contact_BAO_Contact
    *
    */
-  private static function findContact($drupalUserId) {
+  private static function findContact($ufId) {
     $contact = new CRM_Contact_BAO_Contact();
-    $contact->get('id', static::findContactRelation($drupalUserId));
-
+    $contact->get('id', static::findContactRelation($ufId));
     return $contact;
   }
 
@@ -61,7 +60,7 @@ class CRM_CiviMobileAPI_Authentication_AuthenticationHelper {
         'uf_id' => $uid,
         'sequential' => 1,
       ]);
-      $contactId = $ufMatch ['values'][0]['contact_id'];
+      $contactId = $ufMatch['values'][0]['contact_id'];
     } catch (Exception $e) {
       $contactId = FALSE;
     }
@@ -116,7 +115,7 @@ class CRM_CiviMobileAPI_Authentication_AuthenticationHelper {
    *
    * @return int|null
    */
-  public static function getDrupalUserIdByMailAndPassword($email, $password) {
+  public static function getUserIdByMailAndPassword($email, $password) {
     $cmsUserId = CmsUser::getInstance()->validateAccount($email, $password);
 
     if ($cmsUserId === FALSE) {
@@ -124,6 +123,39 @@ class CRM_CiviMobileAPI_Authentication_AuthenticationHelper {
     }
 
     return $cmsUserId;
+  }
+
+  /**
+   * Checks have user blocked status
+   *
+   * @return bool
+   */
+  public static function isUserBlocked($emailOrUsername) {
+    $user = CRM_CiviMobileAPI_Utils_CmsUser::getInstance()->searchAccount($emailOrUsername);
+    $currentCMS = CRM_CiviMobileAPI_Utils_CmsUser::getInstance()->getSystem();
+    $isBlocked = FALSE;
+
+    switch ($currentCMS) {
+      case CRM_CiviMobileAPI_Utils_CmsUser::CMS_JOOMLA:
+        if ($user->block == 1) {
+          $isBlocked = TRUE;
+        }
+        break;
+      case CRM_CiviMobileAPI_Utils_CmsUser::CMS_DRUPAL6:
+      case CRM_CiviMobileAPI_Utils_CmsUser::CMS_DRUPAL7:
+        if ($user->status == 0) {
+          $isBlocked = TRUE;
+        }
+        break;
+      case CRM_CiviMobileAPI_Utils_CmsUser::CMS_DRUPAL8:
+        $isBlocked = $user->isBlocked();
+        break;
+      case CRM_CiviMobileAPI_Utils_CmsUser::CMS_STANDALONE:
+        $isBlocked = !$user['is_active'];
+        break;
+    }
+
+    return $isBlocked;
   }
 
   /**

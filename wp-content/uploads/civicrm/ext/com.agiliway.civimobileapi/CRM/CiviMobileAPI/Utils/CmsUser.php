@@ -35,6 +35,8 @@ class CRM_CiviMobileAPI_Utils_CmsUser {
    */
   const CMS_BACKDROP = 'Backdrop';
 
+  const CMS_STANDALONE  = 'Standalone';
+
   /**
    * Singleton pattern
    */
@@ -96,6 +98,27 @@ class CRM_CiviMobileAPI_Utils_CmsUser {
     return $user;
   }
 
+  public function getStandaloneAccount($username) {
+    $account = civicrm_api4('User', 'get', [
+        'where' => [
+            ['OR', [['username', '=', $username], ['uf_name', '=', $username]]],
+        ],
+      'checkPermissions' => FALSE,
+    ])->first();
+
+    return $account;
+  }
+
+  public function validateStandaloneUser($username, $password) {
+    $user = civicrm_api4('User', 'login', [
+        'username' => $username,
+        'password' => $password,
+        'checkPermissions' => FALSE,
+    ])->getArrayCopy();
+
+    return isset($user['url']);
+  }
+
   /**
    * Gets Joomla user
    *
@@ -147,22 +170,23 @@ class CRM_CiviMobileAPI_Utils_CmsUser {
       self::CMS_DRUPAL7,
       self::CMS_WORDPRESS,
       self::CMS_JOOMLA,
+      self::CMS_STANDALONE
     ]);
   }
 
   /**
    * Validate account depends on CMS system
    *
-   * @param $email
+   * @param $usernameOrEmail
    * @param $password
    *
    * @return bool
    */
-  public function validateAccount($email, $password) {
+  public function validateAccount($usernameOrEmail, $password) {
     $uid = FALSE;
     switch ($this->system) {
       case self::CMS_DRUPAL8:
-        $account = $this->getDrupalAccount($email);
+        $account = $this->getDrupalAccount($usernameOrEmail);
         if($account) {
           $password_hasher = \Drupal::service('password');
           if ($password_hasher->check($password, $account->getPassword())) {
@@ -171,7 +195,7 @@ class CRM_CiviMobileAPI_Utils_CmsUser {
         }
         break;
       case self::CMS_DRUPAL7:
-        $account = $this->getDrupalAccount($email);
+        $account = $this->getDrupalAccount($usernameOrEmail);
         require_once DRUPAL_ROOT . '/' . variable_get('password_inc', 'includes/password.inc');
         if (user_check_password($password, $account)) {
           $uid = $account->uid;
@@ -182,7 +206,7 @@ class CRM_CiviMobileAPI_Utils_CmsUser {
 
           $form_state = [
             'values' => [
-              'name' => $email,
+              'name' => $usernameOrEmail,
               'pass' => $password,
             ]
           ];
@@ -193,38 +217,48 @@ class CRM_CiviMobileAPI_Utils_CmsUser {
         }
         break;
       case self::CMS_WORDPRESS:
-        $account = $this->getWordPressAccount($email);
+        $account = $this->getWordPressAccount($usernameOrEmail);
         if ($account && wp_check_password($password, $account->user_pass, $account->ID)) {
           $uid = $account->ID;
         }
         break;
       case self::CMS_JOOMLA:
-        $account = $this->getJoomlaAccount($email);
+        $account = $this->getJoomlaAccount($usernameOrEmail);
         if (isset($account) && $this->validateJoomlaUser($account->username, $password)) {
           $uid = $account->id;
         }
+        break;
+      case self::CMS_STANDALONE:
+        $account = $this->getStandaloneAccount($usernameOrEmail);
+        if (!empty($account) && $this->validateStandaloneUser($account['username'], $password)) {
+          $uid = $account['uf_id'];
+        }
+        break;
     }
 
     return $uid;
   }
 
   /**
-   * @param $identificator
+   * @param $usernameOrEmail
    *
    * @return bool|mixed
    */
-  public function searchAccount($identificator) {
+  public function searchAccount($usernameOrEmail) {
     $account = FALSE;
     switch ($this->system) {
       case self::CMS_DRUPAL8:
       case self::CMS_DRUPAL7:
-        $account = $this->getDrupalAccount($identificator);
+        $account = $this->getDrupalAccount($usernameOrEmail);
         break;
       case self::CMS_WORDPRESS:
-        $account = $this->getWordPressAccount($identificator);
+        $account = $this->getWordPressAccount($usernameOrEmail);
         break;
       case self::CMS_JOOMLA:
-        $account = $this->getJoomlaAccount($identificator);
+        $account = $this->getJoomlaAccount($usernameOrEmail);
+        break;
+      case self::CMS_STANDALONE:
+        $account = $this->getStandaloneAccount($usernameOrEmail);
         break;
     }
 

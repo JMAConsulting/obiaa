@@ -12,44 +12,15 @@ class CRM_CiviMobileAPI_Form_CalendarSettings extends CRM_Core_Form {
   public function buildQuickForm() {
     parent::buildQuickForm();
     $settings = $this->getFormSettings();
-    foreach ($settings as $name => $setting) {
-      if (isset($setting['html_type'])) {
-        switch ($setting['html_type']) {
-          case 'Text':
-            $this->addElement('text', $name, E::ts($setting['description']), $setting['html_attributes'], []);
-            break;
-
-          case 'Checkbox':
-            $this->addElement('checkbox', $name, E::ts($setting['description']), '', '');
-            break;
-
-          case 'Select':
-            $options = [];
-            if (isset($setting['option_values'])) {
-              $options = $setting['option_values'];
-            }
-            elseif (isset($setting['pseudoconstant'])) {
-              $options = civicrm_api3('Setting', 'getoptions', [
-                'field' => CRM_CiviMobileAPI_Settings_Calendar_CiviMobile::getPrefix() . $name,
-              ]);
-              $options = $options['values'];
-            }
-            $select = $this->addElement('select', $name, E::ts($setting['description']), $options, $setting['html_attributes']);
-            if (isset($setting['multiple'])) {
-              $select->setMultiple($setting['multiple']);
-            }
-            break;
-        }
-      }
-    }
-
+    $this->addSettingsElements($settings);
     $this->assign('elementNames', $this->getRenderableElementNames());
+
     if (!CRM_CiviMobileAPI_Utils_Calendar::isCiviCalendarCompatible()) {
       $this->assign('synchronizationNotice', E::ts('The CiviCRM has a CiviCalendar installed, but its version is not enough to work with CiviMobileAPI. We recommend updating your calendar to the 3.4.x version or latest.'));
-    } elseif (CRM_CiviMobileAPI_Utils_Calendar::isCiviCalendarEnable() && !CRM_CiviMobileAPI_Utils_Calendar::isActivateCiviCalendarSettings()) {
+    } elseif (CRM_CiviMobileAPI_Utils_Calendar::isCiviCalendarInstalled() && !CRM_CiviMobileAPI_Utils_Calendar::isActivateCiviCalendarSettings()) {
       $this->assign('synchronizationNotice', E::ts('CiviCalendar and CiviMobile calendar are not synchronized! This may cause different info is shown on the calendar in CiviMobile app. It is recommended to set “Synchronize with CiviCalendar” flag to keep both calendars synchronized.'));
-    } elseif (CRM_CiviMobileAPI_Utils_Calendar::isCiviCalendarEnable() && CRM_CiviMobileAPI_Utils_Calendar::isActivateCiviCalendarSettings()) {
-      $this->assign('synchronizationNotice', E::ts("CiviCalendar and CiviMobile calendar are  synchronized! You can change settings in <a href= " . CRM_Utils_System::url('civicrm/admin/calendar') . ">CiviCalendar Settings</a>"));
+    } elseif (CRM_CiviMobileAPI_Utils_Calendar::isCiviCalendarInstalled() && CRM_CiviMobileAPI_Utils_Calendar::isActivateCiviCalendarSettings()) {
+      $this->assign('synchronizationNotice', E::ts("CiviCalendar and CiviMobile calendar are  synchronized! You can change settings in <a %1>CiviCalendar Settings</a>", [1 => 'href="' . CRM_Utils_System::url('civicrm/admin/calendar') . '"']));
     }
 
     $this->addButtons([
@@ -65,6 +36,44 @@ class CRM_CiviMobileAPI_Form_CalendarSettings extends CRM_Core_Form {
     ]);
   }
 
+  private function addSettingsElements($settings) {
+    foreach ($settings as $name => $setting) {
+      if (!isset($setting['html_type'])) continue;
+
+      switch ($setting['html_type']) {
+        case 'Text':
+          $this->addElement('text', $name, E::ts($setting['description']), $setting['html_attributes']);
+          break;
+        case 'Checkbox':
+          $this->addElement('checkbox', $name, E::ts($setting['description']));
+          break;
+        case 'Select':
+          $options = $this->getSelectOptions($name, $setting);
+          $select = $this->addElement('select', $name, E::ts($setting['description']), $options, $setting['html_attributes']);
+          if (!empty($setting['multiple'])) {
+            $select->setMultiple(TRUE);
+          }
+          break;
+      }
+    }
+  }
+
+  private function getSelectOptions($name, $setting) {
+    if (isset($setting['option_values'])) return $setting['option_values'];
+    if (isset($setting['pseudoconstant'])) {
+      $options = civicrm_api4('Setting', 'getFields', [
+        'loadOptions' => TRUE,
+        'where' => [
+          ['name', '=', CRM_CiviMobileAPI_Settings_Calendar_CiviMobile::getPrefix() . $name],
+        ],
+        'checkPermissions' => FALSE,
+      ])->first();
+
+      return $options['options'] ?? [];
+    }
+    return [];
+  }
+
   /**
    * @throws \CiviCRM_API3_Exception
    */
@@ -74,12 +83,7 @@ class CRM_CiviMobileAPI_Form_CalendarSettings extends CRM_Core_Form {
     $settings = $this->getFormSettings(TRUE);
 
     foreach ($settings as &$setting) {
-      if ($setting['html_type'] == 'Checkbox') {
-        $setting = FALSE;
-      }
-      else {
-        $setting = NULL;
-      }
+      $setting = ($setting['html_type'] == 'Checkbox') ? FALSE : NULL;
     }
 
     $settingsToSave = array_merge($settings, array_intersect_key($params, $settings));
@@ -116,8 +120,9 @@ class CRM_CiviMobileAPI_Form_CalendarSettings extends CRM_Core_Form {
    * @throws \CiviCRM_API3_Exception
    */
   function getFormSettings($metadata = TRUE) {
-    $nonPrefixedSettings = [];
     $settings = civicrm_api3('setting', 'getfields', ['filters' => CRM_CiviMobileAPI_Settings_Calendar_CiviMobile::getFilter()]);
+
+    $nonPrefixedSettings = [];
 
     if (!empty($settings['values'])) {
       foreach ($settings['values'] as $name => $values) {
@@ -129,13 +134,11 @@ class CRM_CiviMobileAPI_Form_CalendarSettings extends CRM_Core_Form {
         }
       }
     }
-    if (!CRM_CiviMobileAPI_Utils_Calendar::isCiviCalendarEnable() || !CRM_CiviMobileAPI_Utils_Calendar::isCiviCalendarCompatible()) {
+    if (!CRM_CiviMobileAPI_Utils_Calendar::isCiviCalendarInstalled() || !CRM_CiviMobileAPI_Utils_Calendar::isCiviCalendarCompatible())
       unset($nonPrefixedSettings['synchronize_with_civicalendar']);
-    }
 
-    $components = civicrm_api3('Setting', 'getvalue', [
-      'name' => "enable_components",
-    ]);
+    $components = civicrm_api3('Setting', 'getvalue', ['name' => "enable_components"]);
+
     if (!in_array('CiviCase', $components)) {
       unset($nonPrefixedSettings['case_types']);
     }
@@ -147,18 +150,7 @@ class CRM_CiviMobileAPI_Form_CalendarSettings extends CRM_Core_Form {
   }
 
   function setDefaultValues() {
-    $settings = $this->getFormSettings(FALSE);
-    $defaults = [];
-
-    $existing = CRM_CiviMobileAPI_Settings_Calendar_CiviMobile::get(array_keys($settings));
-
-    if ($existing) {
-      foreach ($existing as $name => $value) {
-        $defaults[$name] = $value;
-      }
-    }
-
-    return $defaults;
+    return CRM_CiviMobileAPI_Settings_Calendar_CiviMobile::get(array_keys($this->getFormSettings(FALSE))) ?: [];
   }
 
   /**
@@ -175,7 +167,7 @@ class CRM_CiviMobileAPI_Form_CalendarSettings extends CRM_Core_Form {
       $prefixedSettings[CRM_CiviMobileAPI_Settings_Calendar_CiviMobile::getName($name, TRUE)] = !empty($value) ? $value : NULL;
     }
 
-    if (!empty($prefixedSettings)) {
+    if ($prefixedSettings) {
       civicrm_api3('setting', 'create', $prefixedSettings);
     }
   }

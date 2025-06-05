@@ -1,5 +1,7 @@
 <?php
 
+use Civi\Api4\Utils\CoreUtil;
+
 /**
  * Class provide Activity helper methods
  */
@@ -17,9 +19,17 @@ class CRM_CiviMobileAPI_Utils_Activity {
    * @return bool
    */
   public static function isActivityInCase($activityId) {
-    return CRM_Core_DAO::executeQuery('SELECT id FROM civicrm_case_activity WHERE activity_id = %1', [
-      1 => [$activityId, 'Integer'],
-    ])->fetch();
+    if (CoreUtil::getApiClass('CaseActivity'))
+    {
+      return civicrm_api4('CaseActivity', 'get', [
+        'where' => [
+          ['activity_id', '=', $activityId],
+        ],
+        'checkPermissions' => FALSE,
+      ])->count() > 0;
+    }
+
+    return false;
   }
   
   /**
@@ -41,17 +51,12 @@ class CRM_CiviMobileAPI_Utils_Activity {
    * @return array
    */
   public static function getTypesFromDb() {
-    try {
-      $result = civicrm_api3('OptionValue', 'get', [
-        'sequential' => 1,
-        'option_group_id' => "activity_type",
-        'options' => ['limit' => 0],
-      ]);
-    } catch (CiviCRM_API3_Exception $e) {
-      return [];
-    }
-
-    return $result['values'];
+    return civicrm_api4('OptionValue', 'get', [
+      'where' => [
+        ['option_group_id:name', '=', 'activity_type'],
+      ],
+      'checkPermissions' => FALSE,
+    ])->getArrayCopy();
   }
   
   public static function getAssignCaseRoleValue() {

@@ -18,22 +18,21 @@ class CRM_CiviMobileAPI_Utils_Participant {
       return $contactIds;
     }
 
-    try {
-      $result = civicrm_api3('Participant', 'get', [
-        'sequential' => 1,
-        'return' => ["contact_id"],
-        'event_id' => $eventId,
-        'options' => ['limit' => 0],
-      ]);
-    } catch (CiviCRM_API3_Exception $e) {
+    $participants = civicrm_api4('Participant', 'get', [
+      'select' => [
+        'contact_id',
+      ],
+      'where' => [
+        ['event_id', '=', $eventId],
+      ],
+      'checkPermissions' => FALSE,
+    ])->getArrayCopy();
+
+    if (empty($participants)) {
       return $contactIds;
     }
 
-    if (empty($result)) {
-      return $contactIds;
-    }
-
-    foreach ($result['values'] as $participant) {
+    foreach ($participants as $participant) {
       $contactIds[] = $participant['contact_id'];
     }
 
@@ -54,14 +53,18 @@ class CRM_CiviMobileAPI_Utils_Participant {
       return [];
     }
 
-    $participants = civicrm_api3('Participant', 'get', [
-      'sequential' => 1,
-      'contact_id' => $contactId,
-      'event_id' => $eventId,
-      'options' => ['limit' => 0],
-    ]);
-
-    return (!empty($participants['values'])) ? $participants['values'] : [];
+    return civicrm_api4('Participant', 'get', [
+      'select' => [
+        'status_id:name',
+        'role_id:name',
+        '*',
+      ],
+      'where' => [
+        ['event_id', '=', $eventId],
+        ['contact_id', '=', $contactId]
+      ],
+      'checkPermissions' => FALSE,
+    ])->getArrayCopy();
   }
 
   /**
@@ -120,14 +123,20 @@ class CRM_CiviMobileAPI_Utils_Participant {
       return [];
     }
 
-    $participants = civicrm_api3('Participant', 'get', [
-      'sequential' => 1,
-      'contact_id' => ['IN' => $contactIds],
-      'event_id' => $eventId,
-      'options' => ['limit' => 0]
-    ]);
+    $participants = civicrm_api4('Participant', 'get', [
+      'select' => [
+        'contact_id.display_name',
+        'id',
+        'contact_id',
+      ],
+      'where' => [
+        ['event_id', '=', $eventId],
+        ['contact_id', 'IN', $contactIds],
+      ],
+      'checkPermissions' => FALSE,
+    ])->getArrayCopy();
 
-    return self::getParticipantsShortDetails($participants['values']);
+    return self::getParticipantsShortDetails($participants);
   }
 
   /**
@@ -141,7 +150,7 @@ class CRM_CiviMobileAPI_Utils_Participant {
 
     foreach ($participants as $speaker) {
       $names[] = [
-        'display_name' => $speaker["display_name"],
+        'display_name' => $speaker["contact_id.display_name"],
         'id' => $speaker["id"],
         'contact_id' => $speaker["contact_id"]
       ];

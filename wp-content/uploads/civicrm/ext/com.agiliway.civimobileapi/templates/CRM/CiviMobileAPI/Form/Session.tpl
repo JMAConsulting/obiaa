@@ -16,48 +16,48 @@
     {if $action eq 4}
       <table class="crm-info-panel">
         <tr>
-          <td class="label">{ts}Title{/ts}</td>
+          <td class="label">{ts domain="com.agiliway.civimobileapi"}Title{/ts}</td>
           <td>
             {$eventSession.title}
           </td>
         </tr>
         <tr>
-          <td class="label">{ts}Date{/ts}</td>
+          <td class="label">{ts domain="com.agiliway.civimobileapi"}Date{/ts}</td>
           <td>
             {$eventSession.date_formatted}
           </td>
         </tr>
         <tr>
-          <td class="label">{ts}Start Time{/ts}</td>
+          <td class="label">{ts domain="com.agiliway.civimobileapi"}Start Time{/ts}</td>
           <td>
             {$eventSession.start_time_formatted}
           </td>
         </tr>
         <tr>
-          <td class="label">{ts}End Time{/ts}</td>
+          <td class="label">{ts domain="com.agiliway.civimobileapi"}End Time{/ts}</td>
           <td>
             {$eventSession.end_time_formatted}
           </td>
         </tr>
         <tr>
-          <td class="label">{ts}Speakers{/ts}</td>
+          <td class="label">{ts domain="com.agiliway.civimobileapi"}Speakers{/ts}</td>
           <td>{$eventSession.speakers_with_links}</td>
         </tr>
         <tr>
-          <td class="label">{ts}Venue{/ts}</td>
+          <td class="label">{ts domain="com.agiliway.civimobileapi"}Venue{/ts}</td>
           <td>
             {$eventSession.venue_link}
           </td>
         </tr>
         <tr>
-          <td class="label">{ts}Description{/ts}</td>
+          <td class="label">{ts domain="com.agiliway.civimobileapi"}Description{/ts}</td>
           <td>
             {$eventSession.description}
           </td>
         </tr>
        {if $eventSession.participant_with_links}
         <tr>
-          <td class="label">{ts}Participant{/ts}</td>
+          <td class="label">{ts domain="com.agiliway.civimobileapi"}Participant{/ts}</td>
           <td>
               {$eventSession.participant_with_links}
           </td>
@@ -66,7 +66,7 @@
       </table>
     {else}
       {if $action eq 8}
-        <p class="status">{ts}Are you really want to delete the Session?{/ts}</p>
+        <p class="status">{ts domain="com.agiliway.civimobileapi"}Are you really want to delete the Session?{/ts}</p>
       {else}
         <table class="form-layout">
           <tr>

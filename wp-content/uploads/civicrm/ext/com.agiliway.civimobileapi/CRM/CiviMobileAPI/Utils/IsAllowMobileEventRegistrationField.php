@@ -10,21 +10,19 @@ class CRM_CiviMobileAPI_Utils_IsAllowMobileEventRegistrationField {
    * @return int|NULL
    */
   public static function getValue($eventId) {
-    $customFieldName = "custom_" . CRM_CiviMobileAPI_Utils_CustomField::getId(
-      CRM_CiviMobileAPI_Install_Entity_CustomGroup::ALLOW_MOBILE_REGISTRATION,
-      CRM_CiviMobileAPI_Install_Entity_CustomField::IS_MOBILE_EVENT_REGISTRATION
-    );
+    $customFieldName = CRM_CiviMobileAPI_Install_Entity_CustomGroup::ALLOW_MOBILE_REGISTRATION . '.' . CRM_CiviMobileAPI_Install_Entity_CustomField::IS_MOBILE_EVENT_REGISTRATION;
 
-    try {
-      $event = civicrm_api3('Event', 'getsingle', [
-          'id' => $eventId,
-          'return' => [$customFieldName]
-      ]);
-    } catch (CiviCRM_API3_Exception $e) {
-      $event = [];
-    }
+    $event = civicrm_api4('Event', 'get', [
+      'select' => [
+        $customFieldName,
+      ],
+      'where' => [
+        ['id', '=', $eventId],
+      ],
+      'checkPermissions' => FALSE,
+    ])->first();
 
-    return (!empty($event[$customFieldName]) ? $event[$customFieldName] : NULL);
+    return $event[$customFieldName];
   }
 
   /**
@@ -35,17 +33,19 @@ class CRM_CiviMobileAPI_Utils_IsAllowMobileEventRegistrationField {
    * @return bool
    */
   public static function setValue($eventId, $value) {
-    $customFieldName = "custom_" . CRM_CiviMobileAPI_Utils_CustomField::getId(
-      CRM_CiviMobileAPI_Install_Entity_CustomGroup::ALLOW_MOBILE_REGISTRATION,
-      CRM_CiviMobileAPI_Install_Entity_CustomField::IS_MOBILE_EVENT_REGISTRATION
-    );
+    $customFieldName = CRM_CiviMobileAPI_Install_Entity_CustomGroup::ALLOW_MOBILE_REGISTRATION . '.' . CRM_CiviMobileAPI_Install_Entity_CustomField::IS_MOBILE_EVENT_REGISTRATION;
 
     try {
-        civicrm_api3('Event', 'create', [
-          'id' => $eventId,
-          $customFieldName  => $value
-        ]);
-    } catch (CiviCRM_API3_Exception $e) {
+      civicrm_api4('Event', 'update', [
+        'values' => [
+          $customFieldName => 1,
+        ],
+        'where' => [
+          ['id', '=', $eventId],
+        ],
+        'checkPermissions' => FALSE,
+      ]);
+    } catch (CRM_Core_Exception $e) {
       return false;
     }
 

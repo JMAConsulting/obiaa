@@ -133,11 +133,11 @@ class CRM_CiviMobileAPI_Api_CiviMobileParticipantPayment_Create {
     }
 
     $priceSetFields = CRM_CiviMobileAPI_Utils_PriceSet::getFields($priceSetId);
-    if (empty($priceSetFields) && empty($priceSetFields['values'])) {
+    if (empty($priceSetFields)) {
       throw new api_Exception(E::ts('Can not get price set fields assigned to event.'), 'event_empty_price_set_fields');
     }
 
-    $validParams['price_set_selected_values'] = $this->validatePriceSetItems($validParams['price_set_selected_values'], $priceSetFields['values']);
+    $validParams['price_set_selected_values'] = $this->validatePriceSetItems($validParams['price_set_selected_values'], $priceSetFields);
     $feeData = $this->calculateFeeData($validParams['price_set_selected_values']);
     $validParams['participant_params']['fee_amount'] = $feeData['fee_amount'];
     $validParams['participant_params']['fee_level'] = $feeData['fee_level'];

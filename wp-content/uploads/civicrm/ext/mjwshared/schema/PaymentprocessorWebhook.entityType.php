@@ -79,14 +79,16 @@ return [
     'created_date' => [
       'title' => E::ts('Created Date'),
       'sql_type' => 'timestamp',
-      'input_type' => NULL,
+      'input_type' => 'Date',
+      'readonly' => TRUE,
       'description' => E::ts('When the webhook was first received by the IPN code'),
       'default' => 'CURRENT_TIMESTAMP',
     ],
     'processed_date' => [
       'title' => E::ts('Processed Date'),
       'sql_type' => 'timestamp',
-      'input_type' => NULL,
+      'input_type' => 'Date',
+      'readonly' => TRUE,
       'description' => E::ts('Has this webhook been processed yet?'),
       'default' => NULL,
     ],

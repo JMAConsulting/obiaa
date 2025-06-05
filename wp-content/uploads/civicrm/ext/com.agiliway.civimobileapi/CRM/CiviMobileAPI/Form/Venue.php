@@ -41,9 +41,7 @@ class CRM_CiviMobileAPI_Form_Venue extends CRM_Core_Form {
       throw new CRM_Core_Exception(E::ts('Wrong location id'));
     }
 
-    if ($this->getAction() == CRM_Core_Action::UPDATE
-      || $this->getAction() == CRM_Core_Action::DELETE
-      || $this->getAction() == CRM_Core_Action::VIEW) {
+    if (in_array($this->getAction(), [CRM_Core_Action::VIEW, CRM_Core_Action::UPDATE, CRM_Core_Action::DELETE])) {
       $this->id = CRM_Utils_Request::retrieve('id', 'Positive');
 
       if (empty($this->id) && !empty($this->_submitValues)) {
@@ -98,9 +96,7 @@ class CRM_CiviMobileAPI_Form_Venue extends CRM_Core_Form {
       $this->setTitle(E::ts('Add venue'));
     }
 
-    if ($this->getAction() == CRM_Core_Action::ADD
-      || $this->getAction() == CRM_Core_Action::UPDATE
-      || $this->getAction() == CRM_Core_Action::VIEW) {
+    if (in_array($this->getAction(), [CRM_Core_Action::VIEW, CRM_Core_Action::UPDATE, CRM_Core_Action::ADD])) {
       $this->add('text', 'venue_name', E::ts('Title'), ['class' => 'huge'], TRUE);
       $this->add('textarea', 'description', E::ts('Description'), ['class' => 'big']);
       $this->addRadio('is_active', E::ts('Is active'), $isActive);
@@ -122,8 +118,7 @@ class CRM_CiviMobileAPI_Form_Venue extends CRM_Core_Form {
       }
 
     }
-    if ($this->getAction() == CRM_Core_Action::ADD
-      || $this->getAction() == CRM_Core_Action::UPDATE) {
+    if (in_array($this->getAction(), [CRM_Core_Action::UPDATE, CRM_Core_Action::ADD])) {
       $this->add('hidden', 'id', $this->id);
       $buttons = [
         [
@@ -144,7 +139,7 @@ class CRM_CiviMobileAPI_Form_Venue extends CRM_Core_Form {
 
       $this->setTitle('Delete venue');
     }
-    if ($this->getAction() == CRM_Core_Action::VIEW || $this->getAction() == CRM_Core_Action::UPDATE) {
+    if (in_array($this->getAction(), [CRM_Core_Action::VIEW, CRM_Core_Action::UPDATE])) {
       try {
         $venue = civicrm_api3('CiviMobileVenue', 'getsingle', [
           'id' => $this->id
@@ -182,7 +177,7 @@ class CRM_CiviMobileAPI_Form_Venue extends CRM_Core_Form {
 
     $venueParams = [];
 
-    if ($this->getAction() == CRM_Core_Action::ADD || $this->getAction() == CRM_Core_Action::UPDATE) {
+    if (in_array($this->getAction(), [CRM_Core_Action::UPDATE, CRM_Core_Action::ADD])) {
       $color = json_decode($inputValues['color'], true);
     }
 
@@ -215,7 +210,7 @@ class CRM_CiviMobileAPI_Form_Venue extends CRM_Core_Form {
       ];
     }
 
-    if ($this->getAction() == CRM_Core_Action::ADD || $this->getAction() == CRM_Core_Action::UPDATE) {
+    if (in_array($this->getAction(), [CRM_Core_Action::UPDATE, CRM_Core_Action::ADD])) {
       try {
         $venue = civicrm_api3('CiviMobileVenue', 'create', $venueParams)['values'][0];
       } catch (Exception $e) {
@@ -289,7 +284,7 @@ class CRM_CiviMobileAPI_Form_Venue extends CRM_Core_Form {
    * AddRules hook
    */
   public function addRules() {
-    if ($this->getAction() == CRM_Core_Action::ADD || $this->getAction() == CRM_Core_Action::UPDATE) {
+    if (in_array($this->getAction(), [CRM_Core_Action::UPDATE, CRM_Core_Action::ADD])) {
       $this->addFormRule([self::class, 'validateForm']);
     }
   }

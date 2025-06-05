@@ -50,16 +50,13 @@ class CRM_CiviMobileAPI_Utils_ContactFieldsFilter {
     if (!empty($this->contactsId) && !empty($selectedContactTagsId)) {
       $selectedTagNames = $this->getSelectedTagsNames($selectedContactTagsId);
 
-      try {
-        $entityTags = civicrm_api3('EntityTag', 'get', [
-          'sequential' => 1,
-          'entity_id' => ['IN' => $this->contactsId],
-          'tag_id' => ['IN' => $selectedTagNames],
-          'options' => ['limit' => 0],
-        ])['values'];
-      } catch (CiviCRM_API3_Exception $e) {
-        return [];
-      }
+      $entityTags = civicrm_api4('EntityTag', 'get', [
+        'where' => [
+          ['entity_id', 'IN', $this->contactsId],
+          ['tag_id', 'IN', $selectedTagNames],
+        ],
+        'checkPermissions' => FALSE,
+      ])->getArrayCopy();
 
       $this->contactsId = [];
       if (!empty($entityTags)) {
@@ -81,15 +78,15 @@ class CRM_CiviMobileAPI_Utils_ContactFieldsFilter {
   public function getSelectedTagsNames($selectedTagsId) {
     $tagsNames = [];
 
-    try {
-      $tagsName = civicrm_api3('Tag', 'get', [
-        'sequential' => 1,
-        'return' => ["name"],
-        'id' => $selectedTagsId,
-      ])['values'];
-    } catch (CiviCRM_API3_Exception $e) {
-      return [];
-    }
+    $tagsName = civicrm_api4('Tag', 'get', [
+      'select' => [
+        'name',
+      ],
+      'where' => [
+        ['id', 'IN', $selectedTagsId],
+      ],
+      'checkPermissions' => FALSE,
+    ])->getArrayCopy();
 
     if ($tagsName) {
       foreach ($tagsName as $tagName) {
@@ -183,14 +180,17 @@ class CRM_CiviMobileAPI_Utils_ContactFieldsFilter {
    * @return array
    */
   public static function getListOfContributionContactsId() {
-    $contributionTable = CRM_Contribute_DAO_Contribution::getTableName();
     $contactsId = [];
 
-    try {
-      $contributionContactsId = CRM_Core_DAO::executeQuery("SELECT DISTINCT(contact_id) FROM $contributionTable")->fetchAll();
-    } catch (Exception $e) {
-      return [];
-    }
+    $contributionContactsId = civicrm_api4('Contribution', 'get', [
+      'select' => [
+        'contact_id',
+      ],
+      'groupBy' => [
+        'contact_id',
+      ],
+      'checkPermissions' => FALSE,
+    ])->getArrayCopy();
 
     if (!empty($contributionContactsId)) {
       foreach ($contributionContactsId as $contributionContactId) {

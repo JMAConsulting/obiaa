@@ -10,13 +10,13 @@ class CRM_CiviMobileAPI_Page_DeletePushToken extends CRM_Core_Page {
   public function run() {
     $contactId = Request::getInstance()->post('contact_id', 'String');
 
-    if (!isset($contactId) || empty($contactId)) {
+    if (empty($contactId)) {
       JsonResponse::sendErrorResponse(E::ts('Wrong contact_id'), 'contact_id');
     }
 
     $token = Request::getInstance()->post('token', 'String');
 
-    if (!isset($token) || empty($token)) {
+    if (empty($token)) {
       JsonResponse::sendErrorResponse(E::ts('Wrong token'), 'token');
     }
 
@@ -25,7 +25,7 @@ class CRM_CiviMobileAPI_Page_DeletePushToken extends CRM_Core_Page {
     $pushNotification->contact_id = $contactId;
 
     $pushNotification->find(TRUE);
-    if (!isset($pushNotification->id) || empty($pushNotification->id)) {
+    if (empty($pushNotification->id)) {
       JsonResponse::sendErrorResponse(E::ts("Token doesn't exist"), 'token_id');
     }
 

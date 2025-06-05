@@ -352,7 +352,7 @@ class CRM_Mjwshared_Check {
         \Psr\Log\LogLevel::ERROR,
         'fa-code'
       );
-      $message->addAction('Check now', FALSE, 'href', ['path' => 'civicrm/a#/paymentprocessorWebhook']);
+      $message->addAction('Check now', FALSE, 'href', ['path' => 'civicrm/paymentprocessorwebhooks']);
       $this->messages[] = $message;
     }
   }

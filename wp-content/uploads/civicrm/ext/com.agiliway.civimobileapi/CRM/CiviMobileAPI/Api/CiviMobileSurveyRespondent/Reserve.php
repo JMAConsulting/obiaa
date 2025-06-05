@@ -9,11 +9,14 @@ class CRM_CiviMobileAPI_Api_CiviMobileSurveyRespondent_Reserve extends CRM_CiviM
    * @throws api_Exception
    */
   public function getResult() {
-    try {
-      $survey = civicrm_api3('Survey', 'getsingle', [
-        'id' => $this->validParams['survey_id'],
-      ]);
-    } catch (Exception $e) {
+    $survey = civicrm_api4('Survey', 'get', [
+      'where' => [
+        ['id', '=', $this->validParams['survey_id']],
+      ],
+      'checkPermissions' => FALSE,
+    ])->first();
+
+    if (empty($survey)) {
       throw new api_Exception('The survey doesn`t exists.', 'survey_does_not_exists');
     }
 
@@ -23,15 +26,17 @@ class CRM_CiviMobileAPI_Api_CiviMobileSurveyRespondent_Reserve extends CRM_CiviM
 
     $surveyActivityTypesIds = CRM_CiviMobileAPI_Utils_Survey::getSurveyActivityTypesIds();
 
-    $activities = civicrm_api3('Activity', 'get', [
-      'sequential' => 1,
-      'is_deleted' => 0,
-      'source_record_id' => $survey['id'],
-      'activity_type_id' => ['IN' => $surveyActivityTypesIds],
-      'target_contact_id' => ['IN' => $this->validParams['contact_ids']]
-    ]);
+    $activities = civicrm_api4('Activity', 'get', [
+      'where' => [
+        ['is_deleted', '=', FALSE],
+        ['source_record_id', '=', $survey['id']],
+        ['activity_type_id', 'IN', $surveyActivityTypesIds],
+        ['target_contact_id', 'IN', $this->validParams['contact_ids']],
+      ],
+      'checkPermissions' => FALSE,
+    ])->getArrayCopy();
 
-    if ($activities['count'] > 0) {
+    if (count($activities) > 0) {
       throw new api_Exception('Some contacts already reserved.', 'some_contacts_already_reserved');
     }
 
@@ -48,14 +53,17 @@ class CRM_CiviMobileAPI_Api_CiviMobileSurveyRespondent_Reserve extends CRM_CiviM
     }
 
     foreach ($this->validParams['contact_ids'] as $id) {
-      civicrm_api3('Activity', 'create', [
-        'source_contact_id' => CRM_Core_Session::getLoggedInContactID(),
-        'source_record_id' => $survey['id'],
-        'target_id' => $id,
-        'subject' => $survey['title'] . ' - Respondent Reservation',
-        'activity_type_id' => $survey['activity_type_id'],
-        'status_id' => "Scheduled",
-        'assignee_contact_id' => $this->validParams['interviewer_id'],
+      civicrm_api4('Activity', 'create', [
+        'values' => [
+          'source_contact_id' => CRM_Core_Session::getLoggedInContactID(),
+          'source_record_id' => $survey['id'],
+          'target_contact_id' => $id,
+          'subject' => $survey['title'] . ' - Respondent Reservation',
+          'activity_type_id' => $survey['activity_type_id'],
+          'status_id:name' => "Scheduled",
+          'assignee_contact_id' => $this->validParams['interviewer_id'],
+        ],
+        'checkPermissions' => FALSE,
       ]);
     }
 
@@ -88,13 +96,17 @@ class CRM_CiviMobileAPI_Api_CiviMobileSurveyRespondent_Reserve extends CRM_CiviM
 
     $params['contact_ids'] = explode(',', $params['contact_ids']);
 
-    $contacts = civicrm_api3('Contact', 'get', [
-      'id' => ['IN' => $params['contact_ids']],
-      'options' => ['limit' => 0],
-      'check_permissions' => true
-    ]);
+    $contactsCount = civicrm_api4('Contact', 'get', [
+      'select' => [
+        'row_count',
+      ],
+      'where' => [
+        ['id', 'IN', $params['contact_ids']],
+      ],
+      'checkPermissions' => TRUE,
+    ])->count();
 
-    if (count($params['contact_ids']) != $contacts['count']) {
+    if (count($params['contact_ids']) != $contactsCount) {
       throw new api_Exception('Some contacts don`t exists or you don`t have permissions to view them.', 'some_contacts_do_not_exists');
     }
 

@@ -5,13 +5,6 @@
  */
 class CRM_CiviMobileAPI_Upgrader extends CRM_Extension_Upgrader_Base {
 
-  public function upgrade_0001() {
-    $this->ctx->log->info('Applying update 0001');
-    CRM_CiviMobileAPI_Utils_CustomGroup::deleteCustomGroup("contact_push_notification");
-
-    return TRUE;
-  }
-
   public function upgrade_0002() {
     try {
       $this->executeSqlFile('sql/auto_install.sql');
@@ -19,12 +12,6 @@ class CRM_CiviMobileAPI_Upgrader extends CRM_Extension_Upgrader_Base {
     } catch (Exception $e) {
       return FALSE;
     }
-  }
-
-  public function upgrade_0003() {
-    CRM_CiviMobileAPI_Install_Install::run();
-
-    return TRUE;
   }
 
   public function upgrade_0004() {
@@ -61,18 +48,6 @@ class CRM_CiviMobileAPI_Upgrader extends CRM_Extension_Upgrader_Base {
     return TRUE;
   }
 
-  public function upgrade_0012() {
-    CRM_CiviMobileAPI_Install_Install::run();
-
-    return TRUE;
-  }
-
-  public function upgrade_0013() {
-    CRM_CiviMobileAPI_Install_Install::run();
-
-    return TRUE;
-  }
-
   public function upgrade_0014() {
     (new CRM_CiviMobileAPI_Install_Entity_ApplicationQrCode())->install();
 
@@ -83,7 +58,6 @@ class CRM_CiviMobileAPI_Upgrader extends CRM_Extension_Upgrader_Base {
     try {
       $this->executeSqlFile('sql/civimobile_event_payment_info_install.sql');
       $this->executeSql('ALTER TABLE civicrm_contact_push_notification_messages ADD data varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL');
-      CRM_CiviMobileAPI_Utils_CustomGroup::delete(CRM_CiviMobileAPI_Install_Entity_CustomGroup::CONTACT_SETTINGS);
       CRM_Core_Invoke::rebuildMenuAndCaches(TRUE);
 
       return TRUE;
@@ -99,8 +73,6 @@ class CRM_CiviMobileAPI_Upgrader extends CRM_Extension_Upgrader_Base {
       $this->executeSqlFile('sql/create_event_session.sql');
       $this->executeSqlFile('sql/create_favourite_event_session.sql');
       $this->executeSqlFile('sql/create_event_session_speaker.sql');
-      (new CRM_CiviMobileAPI_Install_Entity_CustomGroup())->install();
-      (new CRM_CiviMobileAPI_Install_Entity_CustomField())->install();
       $this->executeSql("ALTER TABLE `civicrm_contact_push_notification_messages` CHANGE COLUMN `data` `data` TEXT NULL DEFAULT NULL;");
       CRM_Core_Invoke::rebuildMenuAndCaches(TRUE);
 
@@ -144,42 +116,6 @@ class CRM_CiviMobileAPI_Upgrader extends CRM_Extension_Upgrader_Base {
     }
   }
 
-  public function upgrade_0018() {
-    try {
-      (new CRM_CiviMobileAPI_Install_Entity_CustomGroup())->install();
-      (new CRM_CiviMobileAPI_Install_Entity_CustomField())->install();
-    } catch (Exception $e) {
-      return FALSE;
-    }
-
-    return TRUE;
-  }
-
-  public function upgrade_0019() {
-    try {
-      (new CRM_CiviMobileAPI_Install_Entity_OptionGroup())->install();
-      (new CRM_CiviMobileAPI_Install_Entity_OptionValue())->install();
-    } catch (Exception $e) {
-      return FALSE;
-    }
-
-    return TRUE;
-  }
-
-  public function upgrade_0020() {
-    try {
-      (new CRM_CiviMobileAPI_Install_Entity_CustomGroup())->install();
-      (new CRM_CiviMobileAPI_Install_Entity_CustomField())->install();
-      (new CRM_CiviMobileAPI_Install_Entity_CustomGroup())->enableAll();
-
-      self::setDefaultMobileEventRegistration();
-    } catch (Exception $e) {
-      return FALSE;
-    }
-
-    return TRUE;
-  }
-
   public function upgrade_0021() {
     try {
       $customGroupId = (int)civicrm_api3('CustomGroup', 'getvalue', [
@@ -191,17 +127,6 @@ class CRM_CiviMobileAPI_Upgrader extends CRM_Extension_Upgrader_Base {
         'id' => $customGroupId,
         'is_public' => 0
       ]);
-    } catch (Exception $e) {
-      return FALSE;
-    }
-
-    return TRUE;
-  }
-
-  public function upgrade_0022() {
-    try {
-      (new CRM_CiviMobileAPI_Install_Entity_OptionGroup())->install();
-      (new CRM_CiviMobileAPI_Install_Entity_OptionValue())->install();
     } catch (Exception $e) {
       return FALSE;
     }
@@ -263,35 +188,6 @@ class CRM_CiviMobileAPI_Upgrader extends CRM_Extension_Upgrader_Base {
     return TRUE;
   }
 
-  public function upgrade_0028() {
-    try {
-      (new CRM_CiviMobileAPI_Install_Entity_OptionValue())->install();
-    } catch (Exception $e) {
-      return FALSE;
-    }
-
-    return TRUE;
-  }
-
-  public function upgrade_0029() {
-    try {
-      (new CRM_CiviMobileAPI_Install_Entity_OptionValue())->install();
-    } catch (Exception $e) {
-      return FALSE;
-    }
-
-    return TRUE;
-  }
-
-  public function upgrade_0030() {
-    try {
-      (new CRM_CiviMobileAPI_Install_Entity_OptionValue())->install();
-    } catch (Exception $e) {
-      return FALSE;
-    }
-
-    return TRUE;
-  }
   /**
    * Installs scheduled job
    *
@@ -307,7 +203,7 @@ class CRM_CiviMobileAPI_Upgrader extends CRM_Extension_Upgrader_Base {
     $this->executeSqlFile('sql/create_event_session_speaker.sql');
 
     CRM_CiviMobileAPI_Settings_Calendar::setCalendarIsAllowToUseCiviCalendarSettings(
-      CRM_CiviMobileAPI_Utils_Calendar::isCiviCalendarEnable()
+      CRM_CiviMobileAPI_Utils_Calendar::isCiviCalendarInstalled()
       && CRM_CiviMobileAPI_Utils_Calendar::isCiviCalendarCompatible()
     );
 
@@ -322,7 +218,6 @@ class CRM_CiviMobileAPI_Upgrader extends CRM_Extension_Upgrader_Base {
    * @throws \CiviCRM_API3_Exception
    */
   public function uninstall() {
-    CRM_CiviMobileAPI_Install_Install::uninstall();
 
     $this->executeSqlFile('sql/drop_event_session_speaker.sql');
     $this->executeSqlFile('sql/drop_favourite_event_session.sql');
@@ -331,25 +226,6 @@ class CRM_CiviMobileAPI_Upgrader extends CRM_Extension_Upgrader_Base {
     $this->executeSqlFile('sql/drop_location_venue.sql');
 
     $this->uninstallPushNotificationCustomGroup();
-    CRM_CiviMobileAPI_Utils_CustomGroup::delete(CRM_CiviMobileAPI_Install_Entity_CustomGroup::CONTACT_SETTINGS);
-  }
-
-  /**
-   * Run a simple query when a module is enabled.
-   *
-   * @throws \CiviCRM_API3_Exception
-   */
-  public function enable() {
-    CRM_CiviMobileAPI_Install_Install::enable();
-  }
-
-  /**
-   * Run a simple query when a module is disabled.
-   *
-   * @throws \CiviCRM_API3_Exception
-   */
-  public function disable() {
-    CRM_CiviMobileAPI_Install_Install::disable();
   }
 
   /**

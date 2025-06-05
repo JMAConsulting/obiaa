@@ -13,9 +13,9 @@
                     </div>
                     <div>
                         <p class="description">
-                            {ts}To use ChatGPT you must register at
-                                <a href="https://platform.openai.com/account/api-keys" target="_blank">openai.com</a>
-                                and create your own Secret Key'{/ts}
+                            {ts 1='href="https://platform.openai.com/account/api-keys" target="_blank"'}To use ChatGPT you must register at
+                                <a %1>openai.com</a>
+                                and create your own Secret Key{/ts}
                         </p>
                     </div>
                 </td>
@@ -28,7 +28,7 @@
                     </div>
                     <div>
                         <p class="description">
-                            {ts}Type your model name in format like this <strong>gpt-4o-mini</strong>{/ts}
+                            {ts domain="com.agiliway.civimobileapi"}Type your model name in format like this{/ts} <strong>gpt-4o-mini</strong>
                         </p>
                     </div>
                 </td>

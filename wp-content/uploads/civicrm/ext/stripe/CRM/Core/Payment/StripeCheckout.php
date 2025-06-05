@@ -250,6 +250,7 @@ class CRM_Core_Payment_StripeCheckout extends CRM_Core_Payment_Stripe {
     foreach ($paymentMethods as $paymentMethod) {
       switch ($paymentMethod) {
         case 'sepa_debit':
+        case 'bancontact':
           if ($propertyBag->getCurrency() === 'EUR') {
             $result[] = $paymentMethod;
           }

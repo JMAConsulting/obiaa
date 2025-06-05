@@ -9,7 +9,7 @@ class CRM_CiviMobileAPI_Page_PublicSettings extends CRM_Core_Page {
    * CRM_CiviMobileAPI_Page_PublicSettings constructor.
    */
   public function __construct() {
-    civimobileapi_secret_validation();
+    CRM_CiviMobileAPI_Hook_Utils::civimobileapi_secret_validation();
     parent::__construct();
   }
 

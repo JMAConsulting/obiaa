@@ -69,7 +69,7 @@ class CRM_CiviMobileAPI_Api_CiviMobileParticipantLink_Get extends CRM_CiviMobile
 
     if ($currentCMS == CRM_CiviMobileAPI_Utils_CmsUser::CMS_JOOMLA) {
       $url = str_replace("administrator/", "", $url);
-    } elseif ($currentCMS == CRM_CiviMobileAPI_Utils_CmsUser::CMS_DRUPAL8) {
+    } elseif ($currentCMS == CRM_CiviMobileAPI_Utils_CmsUser::CMS_DRUPAL8 || CRM_CiviMobileAPI_Utils_CmsUser::CMS_STANDALONE) {
       $absoluteUrl = CRM_Utils_System::url('civicrm/event/register', 'id=' . $this->validParams['event_id'] . '&reset=1&cmbHash=' . $cmbHash, TRUE, NULL, FALSE);
       $url = '/' . str_replace($config->userFrameworkBaseURL, "", $absoluteUrl);
     } elseif ($currentCMS == CRM_CiviMobileAPI_Utils_CmsUser::CMS_WORDPRESS) {
@@ -84,7 +84,6 @@ class CRM_CiviMobileAPI_Api_CiviMobileParticipantLink_Get extends CRM_CiviMobile
   /**
    * @param $params
    * @return array
-   * @throws CiviCRM_API3_Exception
    * @throws api_Exception
    */
   protected function getValidParams($params) {
@@ -92,26 +91,43 @@ class CRM_CiviMobileAPI_Api_CiviMobileParticipantLink_Get extends CRM_CiviMobile
     $contactId = (int) $params['contact_id'];
     $selPriceSet = ((is_array($params['price_set'])) ? $params['price_set'] : json_decode($params['price_set'],true));
 
-    try {
-      civicrm_api3('Event', 'getsingle', ['id' => $eventId]);
-    } catch (CiviCRM_API3_Exception $e) {
+    $event = civicrm_api4('Event', 'get', [
+      'select' => ['id'],
+      'where' => [
+        ['id', '=', $eventId],
+      ],
+      'checkPermissions' => FALSE,
+    ])->first();
+
+    if (empty($event)) {
       throw new api_Exception(E::ts('Event(id = %1) User can not be registered because event does not exist.', $eventId), 'event_does_not_exist');
     }
 
     if ($contactId) {
-      $participants = civicrm_api3('Participant', 'get', [
-        'return' => ['contact_id'],
-        'event_id' => $eventId,
-        'contact_id' => $contactId,
-        'sequential' => 1,
-      ]);
-      if (!empty($participants['values'])) {
+      $participants = civicrm_api4('Participant', 'get', [
+        'select' => ['contact_id'],
+        'where' => [
+          ['event_id', '=', $eventId],
+          ['contact_id', '=', $contactId],
+        ],
+        'checkPermissions' => FALSE,
+      ])->getArrayCopy();
+
+      if (!empty($participants)) {
         throw new api_Exception(E::ts('Contact(id = %1) is already registered on the Event(id = %2).', [1 => $contactId, 2 => $eventId]), 'participant_already_exist');
       }
 
-      try {
-        civicrm_api3('Contact', 'getsingle', ['id' => $contactId]);
-      } catch (CiviCRM_API3_Exception $e) {
+      $contact = civicrm_api4('Contact', 'get', [
+        'select' => [
+          'id',
+        ],
+        'where' => [
+          ['id', '=', $contactId],
+        ],
+        'checkPermissions' => FALSE,
+      ])->first();
+
+      if (empty($contact)) {
         throw new api_Exception(E::ts('Contact(id = %1) does not exist.', [1 => $contactId]), 'contact_does_not_exist');
       }
     } else {
@@ -140,11 +156,11 @@ class CRM_CiviMobileAPI_Api_CiviMobileParticipantLink_Get extends CRM_CiviMobile
       }
 
       $priceSetFields = CRM_CiviMobileAPI_Utils_PriceSet::getFields($priceSetId);
-      if (empty($priceSetFields) && empty($priceSetFields['values'])) {
+      if (empty($priceSetFields)) {
         throw new api_Exception(E::ts('Can not get price set fields assigned to event.'), 'event_empty_price_set_fields');
       }
 
-      $this->validatePriceSetItems($selPriceSet, $priceSetFields['values']);
+      $this->validatePriceSetItems($selPriceSet, $priceSetFields);
     }
 
     return [
@@ -162,16 +178,12 @@ class CRM_CiviMobileAPI_Api_CiviMobileParticipantLink_Get extends CRM_CiviMobile
    * @return array|bool
    */
   private function getPriceSet($priceSetId) {
-    try {
-      $priceSet = civicrm_api3('PriceSet', 'getsingle', [
-        'sequential' => 1,
-        'id' => $priceSetId
-      ]);
-    } catch (CiviCRM_API3_Exception $e) {
-      return false;
-    }
-
-    return $priceSet;
+    return civicrm_api4('PriceSet', 'get', [
+      'where' => [
+        ['id', '=', $priceSetId],
+      ],
+      'checkPermissions' => FALSE,
+    ])->first() ?? FALSE;
   }
 
   /**
@@ -197,7 +209,7 @@ class CRM_CiviMobileAPI_Api_CiviMobileParticipantLink_Get extends CRM_CiviMobile
           }
 
           $priceSetFieldValues = $this->getPriceSetFieldValues($priceField['id']);
-          if (empty($priceSetFieldValues['values'])) {
+          if (empty($priceSetFieldValues)) {
             throw new api_Exception(E::ts('Empty filed values for price set field (id = %1). Please create it in administer.', [1 => $priceField['id']]), 'empty_price_set_field_values');
           }
 
@@ -206,7 +218,7 @@ class CRM_CiviMobileAPI_Api_CiviMobileParticipantLink_Get extends CRM_CiviMobile
               throw new api_Exception(E::ts('"filed_value_count" must be filled for field with "Text" "html_type"'), 'invalid_filed_value_count');
             }
 
-            $priceSetFieldValue = $this->findPriceSetFiledValue($priceSetFieldValues['values'], key($psFieldValueId));
+            $priceSetFieldValue = $this->findPriceSetFiledValue($priceSetFieldValues, key($psFieldValueId));
             if (empty($priceSetFieldValue)) {
               throw new api_Exception(E::ts('Not valid value(id = %1) for price set field (id = %2).', [1 => key($psFieldValueId), 2 => $psFieldId]), 'not_valid_value_for_price_set_field');
             }
@@ -247,17 +259,13 @@ class CRM_CiviMobileAPI_Api_CiviMobileParticipantLink_Get extends CRM_CiviMobile
    * @return array|bool
    */
   private function getPriceSetFieldValues($priceSetFieldId) {
-    try {
-      $priceFieldValue = civicrm_api3('PriceFieldValue', 'get', [
-        'sequential' => 1,
-        'price_field_id' => $priceSetFieldId,
-        'is_active' => 1
-      ]);
-    } catch (CiviCRM_API3_Exception $e) {
-      return false;
-    }
-
-    return $priceFieldValue;
+    return civicrm_api4('PriceFieldValue', 'get', [
+      'where' => [
+        ['price_field_id', '=', $priceSetFieldId],
+        ['is_active', '=', TRUE],
+      ],
+      'checkPermissions' => FALSE,
+    ])->getArrayCopy() ?? FALSE;
   }
 
   /**

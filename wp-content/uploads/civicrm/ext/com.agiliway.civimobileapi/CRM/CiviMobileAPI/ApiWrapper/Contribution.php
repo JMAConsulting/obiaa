@@ -20,7 +20,7 @@ class CRM_CiviMobileAPI_ApiWrapper_Contribution implements API_Wrapper {
       $apiRequest['params']['return'] = array_unique(array_merge($apiRequest['params']['return'], ['currency', 'financial_type_id']));
     }
 
-    if (is_mobile_request()) {
+    if (CRM_CiviMobileAPI_Hook_Utils::is_mobile_request()) {
       if (isset($apiRequest['params']['currency'])) {
         $contributionsIds = $this->getIdsByCurrency($apiRequest['params']['currency']);
 
@@ -59,7 +59,7 @@ class CRM_CiviMobileAPI_ApiWrapper_Contribution implements API_Wrapper {
    * @return array
    */
   public function toApiOutput($apiRequest, $result) {
-    if (is_mobile_request()) {
+    if (CRM_CiviMobileAPI_Hook_Utils::is_mobile_request()) {
       if (!empty($result['values'])) {
         $contactsId = $this->getContributionContactsId($result['values']);
 
