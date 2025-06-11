@@ -21,7 +21,13 @@ use Civi\Api4\Property;
 use Civi\Api4\PropertyOwner;
 use Civi\Api4\Organization;
 
+//TODO: fix setting the employer_id field
+//TODO: save the street address of the units corretly
+//TODO: if multiple units present, save all of them
+
 defined('ABSPATH') or die('No script kiddies please!');
+
+require_once 'field-defaults.php';
 
 add_filter('acf/load_field/name=property_address', 'acf_load_property_choices');
 
@@ -186,8 +192,18 @@ add_filter('acf/load_field/name=unit_address', 'acf_load_unit_choices');
 
 function acf_load_unit_choices($field)
 {
+  $choices = Unit::get(FALSE)
+    ->addSelect('id', 'address_id.street_address', 'address_id.street_unit')
+    ->addOrderBy('address_id.street_address', 'ASC')
+    ->execute();
+
+  foreach ($choices as $choice) {
+    // $field['choices'][$choice['id']] = '';
+    $field['choices'][$choice['id']] = 'Unit #' . $choice['address_id.street_unit'] . ' ' . $choice['address_id.street_address'];
+  }
+
   // reset choices to an empty array
-  $field['choices'] = array();
+  // $field['choices'] = array();
   return $field;
 }
 
@@ -553,6 +569,7 @@ function add_business_form_handler_save_post($post_id)
       }
 
       foreach ($propertyDeets['units'] as $unitDeets) {
+        \Civi::log()->debug(print_r($unitDeets, TRUE));
         $unitStatus = OptionValue::get(FALSE)
           ->addWhere('option_group_id:name', '=', $optionGroups['unit_status'])
           ->addWhere('value', '=', $unitDeets['unit_status'])
@@ -588,6 +605,8 @@ function add_business_form_handler_save_post($post_id)
             ->addWhere('property_id', '=', $property['id'])
             ->execute()->first();
         }
+        \Civi::log()->debug("Unit: ");
+        \Civi::log()->debug(print_r($unit, TRUE));
 
         if (empty($unit)) {
           // Ok no unit record found let us create it.
@@ -598,6 +617,7 @@ function add_business_form_handler_save_post($post_id)
             ->addValue('postal_code', $property['postal_code'])
             ->execute()
             ->first();
+          \Civi::log()->debug(print_r($unitAddress, true));
           $unit = Unit::create(FALSE)
             ->addValue('address_id', $unitAddress['id'])
             ->addValue('unit_size', $unitDeets['unit_size'])
@@ -608,8 +628,11 @@ function add_business_form_handler_save_post($post_id)
             ->addValue('mls_listing_link', $unitDeets['mls_listing_link'])
             ->execute()
             ->first();
-          UnitBusiness::create(FALSE)->addValue('unit_id', $unit['id'])->addValue('business_id', $contact['id'])->execute();
+          \Civi::log()->debug(print_r($unit, true));
+          $unitBusiness = UnitBusiness::create(FALSE)->addValue('unit_id', $unit['id'])->addValue('business_id', $contact['id'])->execute();
+          \Civi::log()->debug(print_r($unitBusiness, true));
         } else {
+          \Civi::log()->debug("Found an existing unit");
           // ok we found one let us update it with the import data and update the unit business to link the unit to the business.
           Unit::update(FALSE)
             ->addValue('unit_size', $unitDeets['unit_size'])
@@ -734,7 +757,7 @@ function add_business_form_handler_save_post($post_id)
     }
     if (!empty($params['website'])) {
       $websites = Website::get(FALSE)->addWhere('contact_id', '=', $contact['id'])->addWhere('url', '=', $params['website'])->execute();
-      if (!count($emails)) {
+      if (!count($websites)) {
         Website::create(FALSE)->addValue('url', $params['website'])->addValue('website_type_id:label', 'Work')->addValue('contact_id', $contact['id'])->execute();
       }
     }
@@ -754,7 +777,7 @@ function add_business_form_handler_save_post($post_id)
               ->first();
 
             if ($field !== 'local_bia' && empty($optionValue)) {
-              throw new \CRM_Core_Exception(E::ts('Value %1 supplied for field %2 does not exist in the database', [1 => $value, 2 => $field]));
+              throw new \CRM_Core_Exception(ts('Value %1 supplied for field %2 does not exist in the database', [1 => $value, 2 => $field]));
             } elseif (empty($optionValue)) {
               $optionValue = OptionValue::create(FALSE)
                 ->addValue('value', $value)
@@ -768,7 +791,7 @@ function add_business_form_handler_save_post($post_id)
         } else {
           $optionValue = OptionValue::get(FALSE)->addWhere('value', '=', $params[$field])->addWhere('option_group_id:name', '=', $optionGroups[$field])->execute()->first();
           if ($field !== 'local_bia' && empty($optionValue)) {
-            throw new \CRM_Core_Exception(E::ts('value %1 supplied for field %2 does not exist in the database', [1 => $params[$field], 2 => $field]));
+            throw new \CRM_Core_Exception(ts('value %1 supplied for field %2 does not exist in the database', [1 => $params[$field], 2 => $field]));
           } elseif (empty($optionValue)) {
             $optionValue = OptionValue::create(FALSE)->addValue('value', $params[$field])->addValue('option_group_id:name', $optionGroups[$field])->addValue('value', $params[$field])->execute()->first();
           }
