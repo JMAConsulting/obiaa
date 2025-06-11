@@ -42,7 +42,7 @@ Releases use the following numbering system:
 
 * CiviCRM extension [mjwshared](https://lab.civicrm.org/extensions/mjwshared)@1.3.
 
-If you previously used the API3 Stripe.importX API calls they have been removed and replaced with a separate extension: 
+If you previously used the API3 Stripe.importX API calls they have been removed and replaced with a separate extension:
 * CiviCRM extension [stripeimport](https://lab.civicrm.org/extensions/stripeimport)
 
 ### New Features
