@@ -519,6 +519,7 @@ function add_business_form_handler_save_post($post_id)
       $contact =  Contact::get(FALSE)->addWhere('id', '=', $duplicates[0])->execute()->first();
     }
 
+    $submittedUnitBusiness = [];
     foreach ($properties as $propertyDeets) {
       // Go looking for a property first.
       if ((!isset($propertyDeets['is_new_unit']) || !$propertyDeets['is_new_unit']) && is_numeric($propertyDeets['property_address'])) {
@@ -569,7 +570,6 @@ function add_business_form_handler_save_post($post_id)
       }
 
       foreach ($propertyDeets['units'] as $unitDeets) {
-        \Civi::log()->debug(print_r($unitDeets, TRUE));
         $unitStatus = OptionValue::get(FALSE)
           ->addWhere('option_group_id:name', '=', $optionGroups['unit_status'])
           ->addWhere('value', '=', $unitDeets['unit_status'])
@@ -605,8 +605,6 @@ function add_business_form_handler_save_post($post_id)
             ->addWhere('property_id', '=', $property['id'])
             ->execute()->first();
         }
-        \Civi::log()->debug("Unit: ");
-        \Civi::log()->debug(print_r($unit, TRUE));
 
         if (empty($unit)) {
           // Ok no unit record found let us create it.
@@ -617,7 +615,6 @@ function add_business_form_handler_save_post($post_id)
             ->addValue('postal_code', $property['postal_code'])
             ->execute()
             ->first();
-          \Civi::log()->debug(print_r($unitAddress, true));
           $unit = Unit::create(FALSE)
             ->addValue('address_id', $unitAddress['id'])
             ->addValue('unit_size', $unitDeets['unit_size'])
@@ -628,11 +625,8 @@ function add_business_form_handler_save_post($post_id)
             ->addValue('mls_listing_link', $unitDeets['mls_listing_link'])
             ->execute()
             ->first();
-          \Civi::log()->debug(print_r($unit, true));
-          $unitBusiness = UnitBusiness::create(FALSE)->addValue('unit_id', $unit['id'])->addValue('business_id', $contact['id'])->execute();
-          \Civi::log()->debug(print_r($unitBusiness, true));
+          $unitBusinesses = UnitBusiness::create(FALSE)->addValue('unit_id', $unit['id'])->addValue('business_id', $contact['id'])->execute();
         } else {
-          \Civi::log()->debug("Found an existing unit");
           // ok we found one let us update it with the import data and update the unit business to link the unit to the business.
           Unit::update(FALSE)
             ->addValue('unit_size', $unitDeets['unit_size'])
@@ -649,14 +643,21 @@ function add_business_form_handler_save_post($post_id)
             ->execute();
 
           if (!count($unitBusinesses)) {
-            UnitBusiness::create(FALSE)
+            $unitBusinesses = UnitBusiness::create(FALSE)
               ->addValue('business_id', $contact['id'])
               ->addValue('unit_id', $unit['id'])
               ->execute();
           }
         }
+        $submittedUnitBusiness[] = $unitBusinesses->first()['id'];
       }
     }
+
+    // Remove any links ot units not submitted on this form
+    UnitBusiness::delete(FALSE)
+      ->addWhere('business_id', '=', $contact['id'])
+      ->addWhere('id', 'NOT IN', $submittedUnitBusiness)
+      ->execute();
 
     // Now Look for Business Contact / create business contact.
     $phoneOnBiz = !empty($params['organization_name']);
