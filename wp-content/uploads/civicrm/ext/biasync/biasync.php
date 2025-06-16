@@ -4,7 +4,7 @@ require_once 'biasync.civix.php';
 // phpcs:disable
 use CRM_Biasync_ExtensionUtil as E;
 // phpcs:enable
-Use Civi\Api4\Contact;
+use Civi\Api4\Contact;
 use Civi\Api4\Property;
 use Civi\Api4\Unit;
 use Civi\Api4\PropertyLog;
@@ -14,7 +14,8 @@ use Civi\Api4\PropertyLog;
  *
  * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_config/
  */
-function biasync_civicrm_config(&$config) {
+function biasync_civicrm_config(&$config)
+{
   _biasync_civix_civicrm_config($config);
   \Civi::$statics['biasync']['post_sync_contact_update'] = \Civi::$statics['biasync']['post_sync_property_update'] = \Civi::$statics['biasync']['post_sync_activity_update'] = FALSE;
 }
@@ -24,7 +25,8 @@ function biasync_civicrm_config(&$config) {
  *
  * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_install
  */
-function biasync_civicrm_install() {
+function biasync_civicrm_install()
+{
   _biasync_civix_civicrm_install();
 }
 
@@ -33,44 +35,46 @@ function biasync_civicrm_install() {
  *
  * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_enable
  */
-function biasync_civicrm_enable() {
+function biasync_civicrm_enable()
+{
   _biasync_civix_civicrm_enable();
 }
 
 /**
-* This hook is called after a db write on entities.
-*
-* @param string $op
-*   The type of operation being performed.
-* @param string $objectName
-*   The name of the object.
-* @param int $objectId
-*   The unique identifier for the object.
-* @param object $objectRef
-*   The reference to the object.
-*/
-function biasync_civicrm_post(string $op, string $objectName, int $objectId, &$objectRef) {
-  $modified = ['edit','create','delete','update','merge'];
+ * This hook is called after a db write on entities.
+ *
+ * @param string $op
+ *   The type of operation being performed.
+ * @param string $objectName
+ *   The name of the object.
+ * @param int $objectId
+ *   The unique identifier for the object.
+ * @param object $objectRef
+ *   The reference to the object.
+ */
+function biasync_civicrm_post(string $op, string $objectName, int $objectId, &$objectRef)
+{
+  $modified = ['edit', 'create', 'delete', 'update', 'merge'];
 
   // Check if contact has been modified
-  if ($objectName === 'Contact' && in_array($op,$modified) && !\Civi::$statics['biasync']['post_sync_contact_update']) {
-    $results = Contact::update(TRUE)
+  if ($objectName === 'Contact' && in_array($op, $modified) && !\Civi::$statics['biasync']['post_sync_contact_update']) {
+    $results = Contact::update(FALSE)
       ->addValue('Is_Synced_Contacts.is_synced', 0)
       ->addWhere('id', '=', $objectId)
       ->execute();
   }
 
   // Check if relationship has been modified
-  if ($objectName === 'Relationship' && in_array($op,$modified)) {
-    $results = \Civi\Api4\Relationship::get(TRUE)
+  if ($objectName === 'Relationship' && in_array($op, $modified)) {
+    $results = \Civi\Api4\Relationship::get(FALSE)
       ->addWhere('id', '=', $objectId)
       ->execute();
 
     foreach ($results as $result) {
       // Mark both contacts in relationship as not synced
-      $contactsToUpdate = [$result['contact_id_a'],$result['contact_id_b']];
+      $contactsToUpdate = [$result['contact_id_a'], $result['contact_id_b']];
 
-      $results = Contact::update(TRUE)
+      $results = Contact::update(FALSE)
         ->addValue('Is_Synced_Contacts.is_synced', 0)
         ->addWhere('id', 'IN', $contactsToUpdate)
         ->execute();
@@ -78,10 +82,10 @@ function biasync_civicrm_post(string $op, string $objectName, int $objectId, &$o
   }
   // Check if activity has been created
   if ($objectName === 'Activity' && $op == 'create') {
-      $results = \Civi\Api4\Activity::update(TRUE)
-        ->addValue('Is_Synced_Activites.is_synced', 0)
-        ->addWhere('id', '=', $objectId)
-        ->execute();
+    $results = \Civi\Api4\Activity::update(FALSE)
+      ->addValue('Is_Synced_Activites.is_synced', 0)
+      ->addWhere('id', '=', $objectId)
+      ->execute();
   }
 
   if (($objectName === 'PropertyOwner' || $objectName === 'UnitBusiness') && in_array($op, $modified)) {
@@ -97,8 +101,7 @@ function biasync_civicrm_post(string $op, string $objectName, int $objectId, &$o
         ->addWhere('unit.id', '=', $objectRef->unit_id)
         ->execute()
         ->first()['id'];
-    }
-    else {
+    } else {
       $propertyId = Property::get(FALSE)
         ->addSelect('id')
         ->addJoin('PropertyOwner AS property_owner', 'INNER', ['id', '=', 'property_owner.property_id'])
@@ -128,10 +131,11 @@ function biasync_civicrm_post(string $op, string $objectName, int $objectId, &$o
   }
 }
 
-function biasync_civicrm_custom($op, $groupID, $entityID, &$params) {
+function biasync_civicrm_custom($op, $groupID, $entityID, &$params)
+{
   // Check if custom contact fields have been modified
-  $modified = ['edit','create','delete','update','merge'];
-  $customContactGroups = \Civi\Api4\CustomGroup::get(TRUE)
+  $modified = ['edit', 'create', 'delete', 'update', 'merge'];
+  $customContactGroups = \Civi\Api4\CustomGroup::get(FALSE)
     ->addSelect('id')
     ->addWhere('extends', '=', 'Contact')
     ->addWhere('name', '!=', 'Is_Synced_Contacts')
@@ -144,8 +148,8 @@ function biasync_civicrm_custom($op, $groupID, $entityID, &$params) {
       break; // Break out of the loop as soon as the number is found
     }
   }
-  if ($groupFound && in_array($op,$modified) && !\Civi::$statics['biasync']['post_sync_contact_update']) {
-    Contact::update(TRUE)
+  if ($groupFound && in_array($op, $modified) && !\Civi::$statics['biasync']['post_sync_contact_update']) {
+    Contact::update(FALSE)
       ->addValue('Is_Synced_Contacts.is_synced', 0)
       ->addWhere('id', '=', $entityID)
       ->execute();
