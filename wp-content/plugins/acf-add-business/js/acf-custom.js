@@ -1,4 +1,4 @@
-// TODO: remove console.log()s and clean up code a bit
+// TODO: clean up code a bit
 (function($) {
   $(document).ready(function() {
     // If user clicks the new property link, show hidden fields
@@ -113,11 +113,9 @@
     // Prepopulate the property/unit data once
     var urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get("bid") != null) {
-      console.log("Found bid in url - filling default values");
       handlePropertyChanges($('select[name^="acf[field_669674ee2ea21]"][name*="[field_66967535e6284][field_669679f71b1b0]"]'));
     }
     else {
-      console.log("No bid found - setting empty unit field");
       var unitFieldName =
         '[name*="[field_66967511a2d57]"]';
       var unitField = $("select" + unitFieldName + '[name*="[field_66968109025e6]"]');
@@ -141,9 +139,7 @@
     );
 
     function handlePropertyChanges(propertyField) {
-      console.log("Handling property changes...");
       // Find the corresponding unit address field
-      console.log(propertyField.attr("name"));
       var namePrefix = propertyField
         .attr("name")
         .match(/acf\[field_669674ee2ea21\]\[(.*?)\]/)[0];
@@ -162,7 +158,6 @@
     }
     // Function to get unit options based on the selected property
     function populatePropertyFields(propertyFieldName, propertyField) {
-      console.log("Populating property fields...");
       var property_id = propertyField.val();
 
       $.ajax({
@@ -190,9 +185,7 @@
 
     // Function to get unit options based on the selected property and set values based on selected unit
     function getUnitsByProperty(propertyField, unitFieldName) {
-      console.log("Getting units by property...");
       var property_id = propertyField.val();
-      console.log("Property ID: " + property_id);
 
       $.ajax({
         url: acf_ajax_object.ajax_url,
@@ -204,16 +197,12 @@
         },
         success: function(response) {
           if (response.success) {
-            console.log("Got response containing units");
             var unitFields = $("select" + unitFieldName + '[name*="[field_66968109025e6]"]');
-            console.log("Number of units to add: ");
-            console.log(unitFields.length);
             var selectedUnitIds = [];
             unitFields.each(function(i) {
               selectedUnitIds.push($(this).val());
             });
             var selectedUnitId = unitFields.val();
-            console.log(selectedUnitIds);
             unitFields.empty();
 
             newAddress = $(unitFieldName + '[name*="[field_66a4007826665]"]');
@@ -252,7 +241,6 @@
               );
               unitData[id] = unit;
             });
-            console.log("Filling unit with default value");
             if (urlParams.get('bid') != null) {
               unitFields.each(function(i) {
                 $(this).val(selectedUnitIds[i]);
@@ -269,7 +257,6 @@
               "change",
               // unitFieldName + '[name*="[field_66968109025e6]"]',
               function() {
-                console.log("Selected unit changed!");
                 prefillUnit($(this).val(), unitFieldName, unitData, $(this));
               }
             );
@@ -290,12 +277,10 @@
         // selected unit does not correspond with selected property
         selectedUnitId = "";
       }
-      console.log("Selected unit ID: " + selectedUnitId);
 
       if (/^\d*$/.test(selectedUnitId)) {
         var selectedUnit = unitData[selectedUnitId];
         // unitField.val(selectedUnitId);
-        console.log(unitData);
         var nameAttr = unitField.attr("name");
         var uniqueIdPartMatch = nameAttr.match(
           /\[([\w-]+)\]\[field_66968109025e6\]$/
@@ -356,7 +341,6 @@
 
     // Fill in the subcategories once
     if (urlParams.get("bid") != null) {
-      console.log("Found bid in url - filling default categories");
       var selectedCategories = $("#acf-field_6695732eea221-field_6695739bea224").val();
       populateSubCategories(selectedCategories);
     }
