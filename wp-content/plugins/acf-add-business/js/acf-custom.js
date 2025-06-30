@@ -39,6 +39,20 @@
       );
       $checkbox.prop("checked", true);
 
+      // Copy the new property address for units
+      var $propertyAddress = $row.find("[name*='field_66a3f9f05f9bb']");
+      $propertyAddress.on("change", function() {
+        var unitDetailsRow = $(this).closest(".acf-row").find('[data-name="unit_details"]');
+        if (unitDetailsRow.length === 0) {
+          return;
+        }
+        var address = $(this).val();
+        unitDetailsRow.each(function() {
+          unitAddress = $(this).find("[name*='field_66a4007826665']");
+          unitAddress.val(address);
+        })
+      })
+
       var unitDetailsRow = $row.find('[data-name="unit_details"]');
       if (unitDetailsRow.length === 0) {
         return;
