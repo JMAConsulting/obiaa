@@ -191,6 +191,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Field {
 		// add_filter( 'acf/validate_value/type=text', [ $this, 'value_validate' ], 10, 4 );
 
 		// Listen for queries from our ACF Field class.
+		add_filter( 'cwps/acf/field_group/field/pre_update', [ $this, 'number_settings_modify' ], 20, 2 );
 		add_filter( 'cwps/acf/field_group/field/pre_update', [ $this, 'select_settings_modify' ], 20, 2 );
 		add_filter( 'cwps/acf/field_group/field/pre_update', [ $this, 'date_time_picker_settings_modify' ], 20, 2 );
 
@@ -204,26 +205,53 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Field {
 	 * Filters out the Campaign ID when the CiviCampaign Component is not active.
 	 *
 	 * @since 0.5.4
+	 *
+	 * @return array $public_fields The public Event Fields.
 	 */
 	public function public_fields_get() {
 
 		// Only do this once.
-		static $done;
-		if ( isset( $done ) ) {
-			return $done;
+		static $public_fields;
+		if ( isset( $public_fields ) ) {
+			return $public_fields;
 		}
 
 		// Grab the Event Fields array.
-		$done = $this->event_fields;
+		$public_fields = $this->event_fields;
 
 		// Remove Campaign Field if the CiviCampaign component is not active.
 		$campaign_active = $this->civicrm->is_component_enabled( 'CiviCampaign' );
 		if ( ! $campaign_active ) {
-			unset( $done['campaign_id'] );
+			unset( $public_fields['campaign_id'] );
 		}
 
 		// --<
-		return $done;
+		return $public_fields;
+
+	}
+
+	/**
+	 * Getter for the Event Settings Fields.
+	 *
+	 * @since 0.7.0
+	 *
+	 * @return array $settings_fields The public Event Fields.
+	 */
+	public function settings_fields_get() {
+
+		// Grab the Event Settings Fields array.
+		$settings_fields = $this->settings_fields;
+
+		// Remove Campaign Field if the CiviCampaign component is not active.
+		$campaign_active = $this->civicrm->is_component_enabled( 'CiviCampaign' );
+		if ( ! $campaign_active ) {
+			unset( $public_fields['campaign_id'] );
+		}
+
+		// TODO: Maybe filter here.
+
+		// --<
+		return $settings_fields;
 
 	}
 
@@ -287,14 +315,14 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Field {
 	 */
 	public function value_get_for_acf( $value, $name, $selector, $post_id ) {
 
+		// Bail if value is (string) 'null' which CiviCRM uses for some reason.
+		if ( is_null( $value ) || 'null' === $value || 'NULL' === $value ) {
+			return '';
+		}
+
 		// Bail if empty.
 		if ( empty( $value ) ) {
 			return $value;
-		}
-
-		// Bail if value is (string) 'null' which CiviCRM uses for some reason.
-		if ( 'null' === $value ) {
-			return '';
 		}
 
 		// Get the ACF type for this Event Field.
@@ -837,6 +865,49 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Field {
 	}
 
 	// -------------------------------------------------------------------------
+
+	/**
+	 * Modify the Settings of an ACF "Number" Field.
+	 *
+	 * @since 0.7.0
+	 *
+	 * @param array $field The existing ACF Field data array.
+	 * @param array $field_group The ACF Field Group data array.
+	 * @return array $field The modified ACF Field data array.
+	 */
+	public function number_settings_modify( $field, $field_group ) {
+
+		// Bail early if not our Field Type.
+		if ( 'number' !== $field['type'] ) {
+			return $field;
+		}
+
+		// Skip if the CiviCRM Field key isn't there or isn't populated.
+		$key = $this->civicrm->acf_field_key_get();
+		if ( ! array_key_exists( $key, $field ) || empty( $field[ $key ] ) ) {
+			return $field;
+		}
+
+		// Get the mapped Event Field name if present.
+		$event_field_name = $this->civicrm->event->event_field_name_get( $field );
+		if ( false === $event_field_name ) {
+			return $field;
+		}
+
+		// Bail if not one of our Fields. Necessary because prefix is shared.
+		if ( ! array_key_exists( $event_field_name, $this->public_fields_get() ) ) {
+			return $field;
+		}
+
+		// Set a max for "Max Number of Participants" to be just below MySQL int(10).
+		if ( 'max_participants' === $event_field_name ) {
+			$field['max'] = 999999990;
+		}
+
+		// --<
+		return $field;
+
+	}
 
 	/**
 	 * Modify the Settings of an ACF "Select" Field.

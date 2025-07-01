@@ -146,7 +146,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Registration {
 	 */
 	public $confirmation_email_fields = [
 		'is_email_confirm'   => 'true_false',
-		'confirm_email_text' => 'textarea',
+		'confirm_email_text' => 'wysiwyg',
 		'confirm_from_name'  => 'text',
 		'confirm_from_email' => 'email',
 		'cc_confirm'         => 'email',
@@ -196,6 +196,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Registration {
 		// add_filter( 'acf/validate_value/type=text', [ $this, 'value_validate' ], 10, 4 );
 
 		// Listen for queries from our ACF Field class.
+		add_filter( 'cwps/acf/field_group/field/pre_update', [ $this, 'number_settings_modify' ], 20, 2 );
 		add_filter( 'cwps/acf/field_group/field/pre_update', [ $this, 'select_settings_modify' ], 20, 2 );
 		add_filter( 'cwps/acf/field_group/field/pre_update', [ $this, 'text_settings_modify' ], 20, 2 );
 
@@ -207,25 +208,27 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Registration {
 	 * Getter for the public Event Registration Fields.
 	 *
 	 * @since 0.5.4
+	 *
+	 * @return array $public_fields The public Event Fields.
 	 */
 	public function public_fields_get() {
 
 		// Only do this once.
-		static $done;
-		if ( isset( $done ) ) {
-			return $done;
+		static $public_fields;
+		if ( isset( $public_fields ) ) {
+			return $public_fields;
 		}
 
 		// Build array of all Fields.
-		$done  = $this->settings_fields_get();
-		$done += $this->registration_screen_fields;
-		$done += $this->registration_screen_profiles;
-		$done += $this->confirm_screen_fields;
-		$done += $this->thankyou_screen_fields;
-		$done += $this->confirmation_email_fields;
+		$public_fields  = $this->settings_fields_get();
+		$public_fields += $this->registration_screen_fields;
+		$public_fields += $this->registration_screen_profiles;
+		$public_fields += $this->confirm_screen_fields;
+		$public_fields += $this->thankyou_screen_fields;
+		$public_fields += $this->confirmation_email_fields;
 
 		// --<
-		return $done;
+		return $public_fields;
 
 	}
 
@@ -1032,6 +1035,54 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Registration {
 	// -------------------------------------------------------------------------
 
 	/**
+	 * Modify the Settings of an ACF "Number" Field.
+	 *
+	 * @since 0.7.0
+	 *
+	 * @param array $field The existing ACF Field data array.
+	 * @param array $field_group The ACF Field Group data array.
+	 * @return array $field The modified ACF Field data array.
+	 */
+	public function number_settings_modify( $field, $field_group ) {
+
+		// Bail early if not our Field Type.
+		if ( 'number' !== $field['type'] ) {
+			return $field;
+		}
+
+		// Skip if the CiviCRM Field key isn't there or isn't populated.
+		$key = $this->civicrm->acf_field_key_get();
+		if ( ! array_key_exists( $key, $field ) || empty( $field[ $key ] ) ) {
+			return $field;
+		}
+
+		// Get the mapped Event Field name if present.
+		$event_field_name = $this->civicrm->event->event_field_name_get( $field );
+		if ( false === $event_field_name ) {
+			return $field;
+		}
+
+		// Bail if not one of our Fields. Necessary because prefix is shared.
+		if ( ! array_key_exists( $event_field_name, $this->public_fields_get() ) ) {
+			return $field;
+		}
+
+		// Set a max for "Expiration Time" to be just below MySQL int(10).
+		if ( 'expiration_time' === $event_field_name ) {
+			$field['max'] = 999999990;
+		}
+
+		// Set a max for "Self-service Cancellation Time" to be just below MySQL int(11).
+		if ( 'selfcancelxfer_time' === $event_field_name ) {
+			$field['max'] = 9999999990;
+		}
+
+		// --<
+		return $field;
+
+	}
+
+	/**
 	 * Modify the Settings of an ACF "Select" Field.
 	 *
 	 * @since 0.5.4
@@ -1067,9 +1118,20 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Registration {
 		// Get keyed array of settings.
 		$field['choices'] = $this->options_get( $event_field_name );
 
-		// Set a default for "Dedupe Rule".
+		/*
+		 * Format array for "Dedupe Rule".
+		 *
+		 * The array of Dedupe Rule IDs is actually a sub-array for the key "Individual".
+		 * We extract it and prepend "CiviCRM Default" for clarity.
+		 */
 		if ( 'dedupe_rule_group_id' === $event_field_name ) {
-			$field['choices']       = [ '' => __( 'None', 'civicrm-wp-profile-sync' ) ] + $field['choices'];
+			if ( array_key_exists( 'Individual', $field['choices'] ) ) {
+				$choices          = array_pop( $field['choices'] );
+				$field['choices'] = [ '' => __( 'CiviCRM Default', 'civicrm-wp-profile-sync' ) ] + $choices;
+			} else {
+				// Retain previous logic just in case.
+				$field['choices'] = [ '' => __( 'CiviCRM Default', 'civicrm-wp-profile-sync' ) ] + $field['choices'];
+			}
 			$field['default_value'] = '';
 		}
 
