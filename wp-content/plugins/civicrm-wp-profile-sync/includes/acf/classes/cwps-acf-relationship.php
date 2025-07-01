@@ -354,6 +354,9 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Relationship extends CiviCRM_Profile_Sync
 		$params = [
 			'version'              => 3,
 			'relationship_type_id' => $relationship_type_id,
+			'options'              => [
+				'limit' => 0, // No limit.
+			],
 		];
 
 		// We need to find all Relationships for the Contact.
@@ -1299,6 +1302,9 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Relationship extends CiviCRM_Profile_Sync
 		$params = [
 			'version'    => 3,
 			'sequential' => 1,
+			'options'    => [
+				'limit' => 0, // No limit.
+			],
 		];
 
 		// Call the CiviCRM API.

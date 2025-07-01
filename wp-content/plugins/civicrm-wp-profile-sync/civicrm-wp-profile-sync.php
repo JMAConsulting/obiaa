@@ -6,7 +6,7 @@
  * Description:       Keeps a WordPress User profile in sync with a CiviCRM Contact and integrates WordPress and CiviCRM Entities with data synced via Advanced Custom Fields.
  * Plugin URI:        https://github.com/christianwach/civicrm-wp-profile-sync
  * GitHub Plugin URI: https://github.com/christianwach/civicrm-wp-profile-sync
- * Version:           0.6.9
+ * Version:           0.7.1
  * Author:            Christian Wach
  * Author URI:        https://haystack.co.uk
  * License:           GPLv2 or later
@@ -35,7 +35,7 @@
 defined( 'ABSPATH' ) || exit;
 
 // Set plugin version here.
-define( 'CIVICRM_WP_PROFILE_SYNC_VERSION', '0.6.9' );
+define( 'CIVICRM_WP_PROFILE_SYNC_VERSION', '0.7.1' );
 
 // Set our bulk operations flag here.
 if ( ! defined( 'CIVICRM_WP_PROFILE_SYNC_BULK' ) ) {
@@ -60,11 +60,6 @@ if ( ! defined( 'CIVICRM_WP_PROFILE_SYNC_PATH' ) ) {
 // Set BuddyPress development environment.
 if ( ! defined( 'CIVICRM_WP_PROFILE_SYNC_BUDDYPRESS' ) ) {
 	define( 'CIVICRM_WP_PROFILE_SYNC_BUDDYPRESS', false );
-}
-
-// Set plugin debugging state.
-if ( ! defined( 'CIVICRM_WP_PROFILE_SYNC_DEBUG' ) ) {
-	define( 'CIVICRM_WP_PROFILE_SYNC_DEBUG', false );
 }
 
 /**
@@ -164,9 +159,6 @@ class CiviCRM_WP_Profile_Sync {
 			return;
 		}
 
-		// Use translation.
-		$this->translation();
-
 		// Include files.
 		$this->include_files();
 
@@ -182,23 +174,6 @@ class CiviCRM_WP_Profile_Sync {
 
 		// We're done.
 		$done = true;
-
-	}
-
-	/**
-	 * Enable translation.
-	 *
-	 * @since 0.1
-	 */
-	public function translation() {
-
-		// Load translations.
-		// phpcs:ignore WordPress.WP.DeprecatedParameters.Load_plugin_textdomainParam2Found
-		load_plugin_textdomain(
-			'civicrm-wp-profile-sync', // Unique name.
-			false, // Deprecated argument.
-			dirname( plugin_basename( CIVICRM_WP_PROFILE_SYNC_FILE ) ) . '/languages/' // Relative path to files.
-		);
 
 	}
 
@@ -493,7 +468,7 @@ class CiviCRM_WP_Profile_Sync {
 	public function log_error( $data = [] ) {
 
 		// Skip if not debugging.
-		if ( CIVICRM_WP_PROFILE_SYNC_DEBUG === false ) {
+		if ( WP_DEBUG === false ) {
 			return;
 		}
 
