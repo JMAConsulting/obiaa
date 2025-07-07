@@ -53,7 +53,7 @@
         })
       })
 
-      var unitDetailsRow = $row.find('[data-name="unit_details"] input');
+      var unitDetailsRow = $row.find('[data-name="unit_details"]');
       if (unitDetailsRow.length === 0) {
         return;
       }
