@@ -6,6 +6,7 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
+    'CMRF\\Connection\\AbstractCurlConnection' => $vendorDir . '/civimrf/cmrf_abstract_core/CMRF/Connection/AbstractCurlConnection.php',
     'CMRF\\Connection\\Curl' => $vendorDir . '/civimrf/cmrf_abstract_core/CMRF/Connection/Curl.php',
     'CMRF\\Connection\\CurlAuthX' => $vendorDir . '/civimrf/cmrf_abstract_core/CMRF/Connection/CurlAuthX.php',
     'CMRF\\Connection\\Local' => $vendorDir . '/civimrf/cmrf_abstract_core/CMRF/Connection/Local.php',
@@ -13,6 +14,8 @@ return array(
     'CMRF\\Core\\Call' => $vendorDir . '/civimrf/cmrf_abstract_core/CMRF/Core/Call.php',
     'CMRF\\Core\\Connection' => $vendorDir . '/civimrf/cmrf_abstract_core/CMRF/Core/Connection.php',
     'CMRF\\Core\\Core' => $vendorDir . '/civimrf/cmrf_abstract_core/CMRF/Core/Core.php',
+    'CMRF\\Exception\\ApiCallFailedException' => $vendorDir . '/civimrf/cmrf_abstract_core/CMRF/Exception/ApiCallFailedException.php',
+    'CMRF\\Exception\\ExceptionInterface' => $vendorDir . '/civimrf/cmrf_abstract_core/CMRF/Exception/ExceptionInterface.php',
     'CMRF\\PersistenceLayer\\CallFactory' => $vendorDir . '/civimrf/cmrf_abstract_core/CMRF/PersistenceLayer/CallFactory.php',
     'CMRF\\PersistenceLayer\\SQLPersistingCallFactory' => $vendorDir . '/civimrf/cmrf_abstract_core/CMRF/PersistenceLayer/SQLPersistingCallFactory.php',
     'Composer\\InstalledVersions' => $vendorDir . '/composer/InstalledVersions.php',
