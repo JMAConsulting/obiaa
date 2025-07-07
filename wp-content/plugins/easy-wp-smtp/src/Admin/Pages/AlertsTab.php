@@ -395,7 +395,7 @@ class AlertsTab extends PageAbstract {
 					<div class="easy-wp-smtp-row">
 						<div class="easy-wp-smtp-setting-row">
 							<div class="easy-wp-smtp-setting-row__label">
-								<label><?php esc_html_e( 'Push Notifications Alerts', 'easy-wp-smtp' ); ?></label>
+								<label><?php esc_html_e( 'Push Notification Alerts', 'easy-wp-smtp' ); ?></label>
 							</div>
 							<div class="easy-wp-smtp-setting-row__field">
 								<label class="easy-wp-smtp-toggle">

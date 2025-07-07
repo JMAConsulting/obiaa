@@ -2,9 +2,9 @@
 Contributors: sendlayer, jaredatch, smub, capuderg
 Tags: email, smtp, email logs, gmail, outlook
 Requires at least: 5.2
-Tested up to: 6.7
-Requires PHP: 7.2
-Stable tag: 2.10.0
+Tested up to: 6.8
+Requires PHP: 7.4
+Stable tag: 2.11.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -312,6 +312,11 @@ And we will try to help out as soon as possible.
 10. Setup Wizard - Step 2
 
 == Changelog ==
+
+= 2.11.0 - 2025-05-28 =
+- IMPORTANT: Support for PHP 7.2 has been discontinued. If you are running this version, you MUST upgrade PHP before installing or upgrading to Easy WP SMTP v2.11. Failure to do that will disable Easy WP SMTP functionality.
+* Added: New transactional mailer: MailerSend integration.
+* Fixed: Microsoft Outlook basic auth deprecation notice dismissal.
 
 = 2.10.0 - 2025-03-04 =
 * Fixed: Emails queue runner Action Scheduler task deadlock issue.

@@ -63,7 +63,7 @@ class Options extends OptionsAbstract {
 				'logo_url'    => easy_wp_smtp()->assets_url . '/images/providers/brevo.svg',
 				'slug'        => self::SLUG,
 				'title'       => esc_html__( 'Brevo', 'easy-wp-smtp' ),
-				'php'         => '7.2',
+				'php'         => '7.4',
 				'description' => $description,
 				'supports'    => [
 					'from_email'       => true,

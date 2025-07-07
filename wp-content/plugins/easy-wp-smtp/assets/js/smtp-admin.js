@@ -232,23 +232,6 @@ EasyWPSMTP.Admin.Settings = EasyWPSMTP.Admin.Settings || ( function( document, w
 					} );
 			} );
 
-			// Microsoft SMTP deprecation notice dismiss.
-			$( '.microsoft_basic_auth_deprecation_notice' ).on( 'click', '.notice-dismiss', function() {
-				var $button = $( this );
-				$.ajax( {
-					url: ajaxurl,
-					dataType: 'json',
-					type: 'POST',
-					data: {
-						action: 'easy_wp_smtp_microsoft_basic_auth_deprecation_notice_dismiss',
-						nonce: easy_wp_smtp.nonce,
-					},
-					beforeSend: function() {
-						$button.prop( 'disabled', true );
-					},
-				} );
-			} );
-
 			// Show/hide debug output.
 			$( '.easy-wp-smtp-test-email-debug .easy-wp-smtp-error-log-toggle' ).on( 'click', function( e ) {
 				e.preventDefault();
