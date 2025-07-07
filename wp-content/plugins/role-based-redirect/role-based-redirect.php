@@ -6,7 +6,7 @@
  * Author URI: https://myasark.wordpress.com/
  * Text Domain: role-based-redirect
  * Domain Path: /languages
- * Version: 1.5
+ * Version: 1.6
  * License: GPLv2
  */
 // Exit if accessed directly.
