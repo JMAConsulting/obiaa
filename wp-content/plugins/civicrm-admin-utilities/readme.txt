@@ -3,8 +3,8 @@ Contributors: needle, cuny-academic-commons
 Donate link: https://www.paypal.me/interactivist
 Tags: civicrm, admin, utility, styling, menu
 Requires at least: 4.9
-Tested up to: 6.6
-Stable tag: 1.0.7
+Tested up to: 6.8
+Stable tag: 1.0.8
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 
@@ -70,6 +70,11 @@ Network Administrators can now set site defaults for any further activations of 
 
 
 == Changelog ==
+
+= 1.0.8 =
+
+* Targets new multisite is_enabled setting
+* Misc style fixes for recent version of CiviCRM
 
 = 1.0.7 =
 

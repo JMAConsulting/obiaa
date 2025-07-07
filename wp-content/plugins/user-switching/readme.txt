@@ -1,19 +1,13 @@
 # User Switching
 
-Stable tag: 1.9.1  
-Tested up to: 6.7  
-License: GPL v2 or later  
-Tags: users, user switching, fast user switching, multisite, woocommerce  
-Contributors: johnbillion  
+Stable tag: 1.9.2
+Tested up to: 6.8
+License: GPL v2 or later
+Tags: users, user switching, fast user switching, multisite, woocommerce
+Contributors: johnbillion
 Donate link: https://github.com/sponsors/johnbillion
 
-![](.wordpress-org/banner-1544x500.png)
-
 Instant switching between user accounts in WordPress.
-
-[![](https://img.shields.io/badge/ethical-open%20source-4baaaa.svg?style=flat-square)](#ethical-open-source)
-[![](https://img.shields.io/wordpress/plugin/installs/user-switching?style=flat-square)](https://wordpress.org/plugins/user-switching/)
-[![](https://img.shields.io/github/actions/workflow/status/johnbillion/user-switching/integration-tests.yml?branch=develop&style=flat-square)](https://github.com/johnbillion/user-switching/actions)
 
 ## Description
 
@@ -58,13 +52,13 @@ I maintain several other plugins for developers. Check them out:
 
 ### Privacy Statement
 
+User Switching does not send data to any third party, nor does it include any third party resources, nor will it ever do so.
+
 User Switching makes use of browser cookies in order to allow users to switch to another account. Its cookies operate using the same mechanism as the authentication cookies in WordPress core, which means their values contain the user's `user_login` field in plain text which should be treated as potentially personally identifiable information (PII) for privacy and regulatory reasons (GDPR, CCPA, etc). The names of the cookies are:
 
 * `wordpress_user_sw_{COOKIEHASH}`
 * `wordpress_user_sw_secure_{COOKIEHASH}`
 * `wordpress_user_sw_olduser_{COOKIEHASH}`
-
-User Switching does not send data to any third party, nor does it include any third party resources, nor will it ever do so.
 
 See also the FAQ for some questions relating to privacy and safety when switching between users.
 
@@ -76,10 +70,8 @@ User Switching should adhere to Web Content Accessibility Guidelines (WCAG) 2.0 
 
 ## Screenshots
 
-1. The *Switch To* link on the Users screen  
-   ![The Switch To link on the Users screen](.wordpress-org/screenshot-1.png)
-2. The *Switch To* link on a user's profile  
-   ![The Switch To link on a user's profile](.wordpress-org/screenshot-2.png)
+1. The *Switch To* link on the Users screen
+2. The *Switch To* link on a user's profile
 
 ## Frequently Asked Questions
 
@@ -342,8 +334,12 @@ In addition, User Switching respects the following filters from WordPress core w
 ### Do you accept donations?
 
 [I am accepting sponsorships via the GitHub Sponsors program](https://github.com/sponsors/johnbillion) and any support you can give will help me maintain this plugin and keep it free for everyone.
-
 ## Changelog ##
+
+### 1.9.2 (16 April 2025) ###
+
+* Confirms support for WordPress 6.8
+* Minor code quality improvements
 
 ### 1.9.1 (5 December 2024) ###
 
@@ -396,12 +392,6 @@ In addition, User Switching respects the following filters from WordPress core w
 
 * Avoid a fatal if the `interim-login` query parameter is present on a page other than wp-login.php.
 
-### 1.5.7 (12 May 2021) ###
-
-* Fix some issues that could lead to PHP errors given a malformed cookie.
-* Fix documentation.
-
-
 ### Earlier versions ###
 
-For the changelog of earlier versions, <a href="https://github.com/johnbillion/user-switching/releases">please refer to the releases page on GitHub</a>.
+For the changelog of earlier versions, <a href="https://github.com/johnbillion/user-switching/releases">refer to the releases page on GitHub</a>.

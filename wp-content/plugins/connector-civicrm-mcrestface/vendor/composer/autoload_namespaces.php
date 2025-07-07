@@ -6,5 +6,4 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
-    'CMRF' => array($vendorDir . '/civimrf/cmrf_abstract_core'),
 );

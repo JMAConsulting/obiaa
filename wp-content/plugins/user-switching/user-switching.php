@@ -5,19 +5,19 @@
  * @package   user-switching
  * @link      https://github.com/johnbillion/user-switching
  * @author    John Blackbourn
- * @copyright 2009-2024 John Blackbourn
+ * @copyright 2009-2025 John Blackbourn
  * @license   GPL v2 or later
  *
  * Plugin Name:       User Switching
  * Description:       Instant switching between user accounts in WordPress
- * Version:           1.9.1
+ * Version:           1.9.2
  * Plugin URI:        https://wordpress.org/plugins/user-switching/
  * Author:            John Blackbourn
  * Author URI:        https://johnblackbourn.com
  * Text Domain:       user-switching
  * Domain Path:       /languages/
  * Network:           true
- * Requires at least: 5.9
+ * Requires at least: 6.0
  * Requires PHP:      7.4
  * License URI:       https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
  *
@@ -133,7 +133,7 @@ final class user_switching {
 				<?php echo esc_html_x( 'User Switching', 'User Switching title on user profile screen', 'user-switching' ); ?>
 			</th>
 			<td>
-				<a id="user_switching_switcher" href="<?php echo esc_url( $link ); ?>">
+				<a id="user_switching_switcher" class="button" href="<?php echo esc_url( $link ); ?>">
 					<?php esc_html_e( 'Switch&nbsp;To', 'user-switching' ); ?>
 				</a>
 			</td>
@@ -241,13 +241,11 @@ final class user_switching {
 						'user_switched' => 'true',
 					];
 
-					if ( $redirect_to ) {
-						wp_safe_redirect( add_query_arg( $args, $redirect_to ), 302, self::$application );
-					} elseif ( ! current_user_can( 'read' ) ) {
-						wp_safe_redirect( add_query_arg( $args, home_url() ), 302, self::$application );
-					} else {
-						wp_safe_redirect( add_query_arg( $args, admin_url() ), 302, self::$application );
+					if ( ! $redirect_to ) {
+						$redirect_to = current_user_can( 'read' ) ? admin_url() : home_url();
 					}
+
+					wp_safe_redirect( add_query_arg( $args, $redirect_to ), 302, self::$application );
 					exit;
 				} else {
 					wp_die( esc_html__( 'Could not switch users.', 'user-switching' ), 404 );
@@ -274,7 +272,6 @@ final class user_switching {
 
 				// Switch user:
 				if ( switch_to_user( $old_user->ID, self::remember(), false ) ) {
-
 					if ( ! empty( $_REQUEST['interim-login'] ) && function_exists( 'login_header' ) ) {
 						// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
 						$GLOBALS['interim_login'] = 'success';
@@ -288,11 +285,11 @@ final class user_switching {
 						'switched_back' => 'true',
 					];
 
-					if ( $redirect_to ) {
-						wp_safe_redirect( add_query_arg( $args, $redirect_to ), 302, self::$application );
-					} else {
-						wp_safe_redirect( add_query_arg( $args, admin_url( 'users.php' ) ), 302, self::$application );
+					if ( ! $redirect_to ) {
+						$redirect_to = admin_url( 'users.php' );
 					}
+
+					wp_safe_redirect( add_query_arg( $args, $redirect_to ), 302, self::$application );
 					exit;
 				} else {
 					wp_die( esc_html__( 'Could not switch users.', 'user-switching' ), 404 );
@@ -319,11 +316,11 @@ final class user_switching {
 						'switched_off' => 'true',
 					];
 
-					if ( $redirect_to ) {
-						wp_safe_redirect( add_query_arg( $args, $redirect_to ), 302, self::$application );
-					} else {
-						wp_safe_redirect( add_query_arg( $args, home_url() ), 302, self::$application );
+					if ( ! $redirect_to ) {
+						$redirect_to = home_url();
 					}
+
+					wp_safe_redirect( add_query_arg( $args, $redirect_to ), 302, self::$application );
 					exit;
 				} else {
 					/* Translators: "switch off" means to temporarily log out */

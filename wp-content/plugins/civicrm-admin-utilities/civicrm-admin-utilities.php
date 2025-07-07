@@ -6,7 +6,7 @@
  * Description:       Optionally modifies CiviCRM's behaviour and appearance in single site and multisite installs.
  * Plugin URI:        https://github.com/christianwach/civicrm-admin-utilities
  * GitHub Plugin URI: https://github.com/christianwach/civicrm-admin-utilities
- * Version:           1.0.7
+ * Version:           1.0.8
  * Author:            Christian Wach
  * Author URI:        https://haystack.co.uk
  * Text Domain:       civicrm-admin-utilities
@@ -19,17 +19,7 @@
 defined( 'ABSPATH' ) || exit;
 
 // Set our version here.
-define( 'CIVICRM_ADMIN_UTILITIES_VERSION', '1.0.7' );
-
-// Trigger logging of API failures (mostly).
-if ( ! defined( 'CIVICRM_ADMIN_UTILITIES_LOG' ) ) {
-	define( 'CIVICRM_ADMIN_UTILITIES_LOG', false );
-}
-
-// Trigger logging of 'civicrm_pre' and 'civicrm_post'.
-if ( ! defined( 'CIVICRM_ADMIN_UTILITIES_DEBUG' ) ) {
-	define( 'CIVICRM_ADMIN_UTILITIES_DEBUG', false );
-}
+define( 'CIVICRM_ADMIN_UTILITIES_VERSION', '1.0.8' );
 
 // Store reference to this file.
 if ( ! defined( 'CIVICRM_ADMIN_UTILITIES_FILE' ) ) {
@@ -457,8 +447,8 @@ class CiviCRM_Admin_Utilities {
 	 */
 	public function log_error( $data = [] ) {
 
-		// Skip if not logging.
-		if ( CIVICRM_ADMIN_UTILITIES_LOG === false ) {
+		// Skip if not debugging.
+		if ( ! defined( 'WP_DEBUG' ) || false === WP_DEBUG ) {
 			return;
 		}
 

@@ -5,7 +5,7 @@ Tags: CiviCRM, api, connector, rest
 Requires at least: 5.2
 Tested up to: 6.4
 Requires PHP: 7.2
-Stable tag: 1.0.9
+Stable tag: 1.0.12
 License: AGPL-3.0
 
 Provides an API connector to a local or remote CiviCRM installation. This connector could be used by other plugins. Funded by Artfulrobot, CiviCoop, civiservice.de, Bundesverband Soziokultur e.V., Article 19
@@ -30,8 +30,28 @@ Configuration can be done under **Settings > CiviCRM McRestFace Connections**.
 * [Bundesverband Soziokultur e.V.](https://www.soziokultur.de/)
 * [Article 19](https://www.article19.org/)
 
+== FAQ ==
+
+= How can I report busg? =
+
+You can report bugs at https://github.com/CiviMRF/civimcrestface-wordpress
+
+If you want to notify a (confidential) security bug you can do so by sending an e-mail to jaap.jansma@civicoop.org
+
+= How can I contribute? =
+
+You can contribute to the project by submitting Pull Requests at https://github.com/CiviMRF/civimcrestface-wordpress
+
+= How can I report security bugs? =
+
+You can report security bugs through the Patchstack Vulnerability Disclosure Program. The Patchstack team helps validate, triage and handle any security vulnerabilities. [Report a security vulnerability.](https://patchstack.com/database/vdp/4f50a738-600d-4e04-8bd1-b28312abae76)
+
+
 == Changelog ==
 
+1.0.12: Fixed composer issue
+1.0.11: Added check for api4 and added permission check for clearing caches
+1.0.10: Added FAQ to readme
 1.0.9: Fixed input sanitization
 1.0.8: Compatibility with Wordpress 6.4
 1.0.7: Fixed notice in CiviMRF Abstract Core

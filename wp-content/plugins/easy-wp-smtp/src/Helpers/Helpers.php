@@ -34,6 +34,7 @@ class Helpers {
 				'sparkpost',
 				'mailjet',
 				'elasticemail',
+				'mailersend',
 			],
 			true
 		);

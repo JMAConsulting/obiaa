@@ -489,9 +489,9 @@ class Email {
 	/**
 	 * Erase any potentially sensitive data.
 	 *
-	 * @since  {VERSION}
+	 * @since 2.6.0
 	 *
-	 * @return @return Email
+	 * @return Email
 	 */
 	public function anonymize() {
 

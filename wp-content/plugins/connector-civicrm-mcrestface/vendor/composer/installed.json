@@ -2,25 +2,35 @@
     "packages": [
         {
             "name": "civimrf/cmrf_abstract_core",
-            "version": "0.8",
-            "version_normalized": "0.8.0.0",
+            "version": "0.10.4",
+            "version_normalized": "0.10.4.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/CiviMRF/CMRF_Abstract_Core.git",
-                "reference": "6b71f326aa9774e8e0d5ff7a4f585ea0cae0bb15"
+                "reference": "79cf3f2ecd1ece5acf170f01450243c9f5465d01"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/CiviMRF/CMRF_Abstract_Core/zipball/6b71f326aa9774e8e0d5ff7a4f585ea0cae0bb15",
-                "reference": "6b71f326aa9774e8e0d5ff7a4f585ea0cae0bb15",
+                "url": "https://api.github.com/repos/CiviMRF/CMRF_Abstract_Core/zipball/79cf3f2ecd1ece5acf170f01450243c9f5465d01",
+                "reference": "79cf3f2ecd1ece5acf170f01450243c9f5465d01",
                 "shasum": ""
             },
-            "time": "2022-02-03T16:18:43+00:00",
+            "require": {
+                "ext-json": "*",
+                "php": "^7.4 || ^8"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^8 || ^9"
+            },
+            "suggest": {
+                "ext-curl": "For cURL connection"
+            },
+            "time": "2024-11-28T12:39:11+00:00",
             "type": "library",
             "installation-source": "dist",
             "autoload": {
-                "psr-0": {
-                    "CMRF": ""
+                "psr-4": {
+                    "CMRF\\": "CMRF/"
                 }
             },
             "notification-url": "https://packagist.org/downloads/",
@@ -31,7 +41,7 @@
             "homepage": "https://github.com/CiviMRF/CMRF_Abstract_Core",
             "support": {
                 "issues": "https://github.com/CiviMRF/CMRF_Abstract_Core/issues",
-                "source": "https://github.com/CiviMRF/CMRF_Abstract_Core/tree/0.8"
+                "source": "https://github.com/CiviMRF/CMRF_Abstract_Core/tree/0.10.4"
             },
             "install-path": "../civimrf/cmrf_abstract_core"
         }
