@@ -21,9 +21,7 @@ use Civi\Api4\Property;
 use Civi\Api4\PropertyOwner;
 use Civi\Api4\Organization;
 
-//TODO: fix setting the employer_id field
 //TODO: save the street address of the units corretly
-//TODO: if multiple units present, save all of them
 
 defined('ABSPATH') or die('No script kiddies please!');
 
