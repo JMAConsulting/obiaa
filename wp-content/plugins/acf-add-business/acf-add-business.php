@@ -407,7 +407,7 @@ function add_business_form_handler_save_post($post_id) {
       'racialized' => 'Ownership_Demographics.Racialized_group_member',
       'newcomers' => 'Ownership_Demographics.Newcomers_immigrants_and_refugees',
       'black' => 'Ownership_Demographics.Black_community_member',
-      'disabilities'  => 'Ownership_Demographics.People_with_disabilities',
+      'disabilities' => 'Ownership_Demographics.People_with_disabilities',
     ];
 
     $params = [
@@ -419,7 +419,7 @@ function add_business_form_handler_save_post($post_id) {
       'sub_category' => find_field_value($form_data, 'field_669573c0ea225'),
       'local_bia' => find_field_value($form_data, 'field_669573cdea226'),
       'opened_date' => find_field_value($form_data, 'field_669573dbea227'),
-      'opt_in' => find_field_value($form_data, 'field_669573f6ea229')[0],
+      'opt_in' => find_field_value($form_data, 'field_669573f6ea229')[0] ?? 'No',
       'number_of_employees' => find_field_value($form_data, 'field_669573e9ea228'),
       'linkedin_url' => find_field_value($form_data, 'field_6696803713c32'),
       'google_maps_url' => find_field_value($form_data, 'field_6696805c13c36'),
@@ -435,7 +435,7 @@ function add_business_form_handler_save_post($post_id) {
       'racialized' => find_field_value($form_data, 'field_66967e198204c'),
       'newcomers' => find_field_value($form_data, 'field_66967e318204d'),
       'black' => find_field_value($form_data, 'field_66967e5b10bc3'),
-      'disabilities'  => find_field_value($form_data, 'field_66967e7810bc4'),
+      'disabilities' => find_field_value($form_data, 'field_66967e7810bc4'),
       'first_name' => find_field_value($form_data, 'field_669678fd8537e'),
       'last_name' => find_field_value($form_data, 'field_669679098537f'),
       'contact_position' => find_field_value($form_data, 'field_6696793985382'),
@@ -484,7 +484,7 @@ function add_business_form_handler_save_post($post_id) {
     }
 
     // Try and Find matching business (member) record.
-    $organizationName = !empty($params['organization_name']) ? $params['organization_name'] : $params['first_name'] . '  ' . $params['last_name'];
+    $organizationName = !empty($params['organization_name']) ? $params['organization_name'] : $params['first_name'] . ' ' . $params['last_name'];
     $organizationNameFieldDefinition = Contact::getFields(FALSE)->addWhere('name', '=', 'organization_name')->execute()->first();
     if (mb_strlen($organizationName) > $organizationNameFieldDefinition['input_attrs']['size']) {
       $organizationName = CRM_Utils_String::ellipsify($organizationName, $organizationNameFieldDefinition['input_attrs']['size']);
@@ -509,7 +509,29 @@ function add_business_form_handler_save_post($post_id) {
         ->execute()
         ->first();
     } else {
-      $contact = Contact::get(FALSE)->addWhere('id', '=', $businessId)->execute()->first();
+      $contact = Contact::get(FALSE)
+        ->addSelect('*', 'website.id', 'email.id', 'phone.id')
+        ->addJoin(
+          'Website AS website',
+          'LEFT',
+          ['website.contact_id', '=', 'id'],
+          ['website.website_type_id:label', '=', '"Work"']
+        )
+        ->addJoin(
+          'Email AS email',
+          'LEFT',
+          ['email.contact_id', '=', 'id'],
+          ['email.location_type_id:label', '=', '"Work"']
+        )
+        ->addJoin(
+          'Phone AS phone',
+          'LEFT',
+          ['phone.contact_id', '=', 'id'],
+          ['phone.phone_type_id:label', '=', '"Phone (landline)"'],
+          ['phone.location_type_id:label', '=', '"Work"']
+        )
+        ->addWhere('id', '=', $businessId)
+        ->execute()->first();
     }
 
     $submittedUnitBusiness = [];
@@ -715,6 +737,24 @@ function add_business_form_handler_save_post($post_id) {
             ->addWhere('id', '=', $businessContactId)
             ->execute();
         }
+        $businessContact = Contact::get(FALSE)
+          ->addSelect('email.id', 'phone.id')
+          ->addWhere('id', '=', $businessContactId)
+          ->addJoin(
+            'Email AS email',
+            'LEFT',
+            ['email.contact_id', '=', 'id'],
+            ['email.location_type_id:label', '=', '"Work"']
+          )
+          ->addJoin(
+            'Phone AS phone',
+            'LEFT',
+            ['phone.contact_id', '=', 'id'],
+            ['phone.phone_type_id:label', '=', '"Phone (landline)"'],
+            ['phone.location_type_id:label', '=', '"Work"']
+          )
+          ->execute()
+          ->first();
       } else {
         $businessContactId = Contact::create(FALSE)
           ->addValue('first_name', $params['first_name'])
@@ -726,25 +766,31 @@ function add_business_form_handler_save_post($post_id) {
       }
       // Contact Details for the Business contact
       if (!empty($params['contact_phone'])) {
-        createOrUpdateEntity(
-          Phone::class,
-          ['phone' => $params['contact_phone']],
-          [
-            'contact_id' => $businessContactId,
-            'phone_type_id:label' => 'Phone',
-            'location_type_id:label' => 'Work',
-          ]
-        );
+        $phone = [
+          'phone' => $params['contact_phone'],
+          'contact_id' => $businessContactId,
+          'phone_type_id:label' => 'Phone (landline)',
+          'location_type_id:label' => 'Work',
+        ];
+        if (isset($businessContact['phone.id'])) {
+          $phone['id'] = $businessContact['phone.id'];
+        }
+        Phone::save(FALSE)
+          ->addRecord($phone)
+          ->execute();
       }
       if (!empty($params['contact_email'])) {
-        createOrUpdateEntity(
-          Email::class,
-          ['email' => $params['contact_email']],
-          [
-            'contact_id' => $businessContactId,
-            'location_type_id:label' => 'Work',
-          ]
-        );
+        $email = [
+          'email' => $params['contact_email'],
+          'contact_id' => $businessContactId,
+          'location_type_id:label' => 'Work',
+        ];
+        if (isset($businessContact['email.id'])) {
+          $email['id'] = $businessContact['email.id'];
+        }
+        Email::save(FALSE)
+          ->addRecord($email)
+          ->execute();
       }
       $relationship = Relationship::get(FALSE)
         ->addWhere('contact_id_a', '=', $businessContactId)
@@ -760,36 +806,45 @@ function add_business_form_handler_save_post($post_id) {
 
     // If we have created the business using first name and last name put the phone on the business as well.
     if ($phoneOnBiz && $params['phone']) {
-      createOrUpdateEntity(
-        Phone::class,
-        ['phone' => $params['phone']],
-        [
-          'contact_id' =>  $contact['id'],
-          'phone_type_id:label' => 'Phone',
-          'location_type_id:label' => 'Work',
-        ],
-      );
+      $phone = [
+        'phone' => $params['phone'],
+        'contact_id' => $contact['id'],
+        'phone_type_id:label' => 'Phone (landline)',
+        'location_type_id:label' => 'Work',
+      ];
+      if (isset($contact['phone.id'])) {
+        $phone['id'] = $contact['phone.id'];
+      }
+      Phone::save(FALSE)
+        ->addRecord($phone)
+        ->execute();
     }
     // Store the Business email and website on the business record.
     if (!empty($params['email'])) {
-      createOrUpdateEntity(
-        Email::class,
-        ['email' => $params['email']],
-        [
-          'contact_id' => $contact['id'],
-          'location_type_id:label' => 'Work',
-        ]
-      );
+      $email = [
+        'email' => $params['email'],
+        'contact_id' => $contact['id'],
+        'location_type_id:label' => 'Work',
+      ];
+      if (isset($contact['email.id'])) {
+        $email['id'] = $contact['email.id'];
+      }
+      Email::save(FALSE)
+        ->addRecord($email)
+        ->execute();
     }
     if (!empty($params['website'])) {
-      createOrUpdateEntity(
-        Website::class,
-        ['url' => $params['website']],
-        [
-          'contact_id' => $contact['id'],
-          'website_type_id:label' => 'Work'
-        ]
-      );
+      $website = [
+        'url' => $params['website'],
+        'contact_id' => $contact['id'],
+        'website_type_id:label' => 'Work'
+      ];
+      if (isset($contact['website.id'])) {
+        $website['id'] = $contact['website.id'];
+      }
+      Website::save(FALSE)
+        ->addRecord($website)
+        ->execute();
     }
     // Now loop through all the fields that match to a custom field to create APIv4 Params.
     $orgValues = [];
@@ -873,30 +928,4 @@ function formatDateString($dateString) {
     return $dateFormatted->format('Y-m-d');
   }
   return '';
-}
-
-/**
- * Creates or updates an entity, as appropriate.
- *
- * If exactly one entity exists that matches all `$values`, then it is updated.
- * Otherwise a new entity is created
- *
- * @param string $entity the DAOEntity to create or update, e.g. \Civi\Api4\Phone or \Civi\Api4\Email, should be namespaced
- * @param array $primaryValue the primary value to create the entity with. This value is used to update existing records rather than match them. 
- * For example, on an Email entity it would be the email value. This should be an associative array, i.e., `['key' => 'value']`
- * @param array $record a record stored as an associative array. These are used to either match existing entities or create new ones. For example
- * `[
- *   'key1' => 'value1',
- *   'key2' => 'value2',
- * ]`
- */
-function createOrUpdateEntity(string $entity, array $primaryValue, array $record) {
-  $saved = $entity::save(FALSE)
-    ->addRecord(array_merge($record, $primaryValue));
-  foreach ($record as $key => $_) {
-    // Matches in api4 only have the base field, so instead of something like contact_id:display_name, it would just be contact_id
-    $key = explode(':', $key, 1)[0];
-    $saved->setMatch($key);
-  }
-  $saved->execute();
 }
