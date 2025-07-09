@@ -499,6 +499,11 @@ function add_business_form_handler_save_post($post_id) {
       $duplicates = CRM_Contact_BAO_Contact::getDuplicateContacts($dedupeParams, 'Organization', checkPermissions: FALSE);
       if (count($duplicates) > 0)
         $businessId = $duplicates[0];
+    } else {
+      // business id provided so we should update the name if needed
+      Contact::update(FALSE)
+        ->addWhere('id', '=', $businessId)
+        ->execute();
     }
 
     if (empty($businessId)) {
