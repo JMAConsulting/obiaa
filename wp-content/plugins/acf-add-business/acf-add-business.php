@@ -501,6 +501,7 @@ function add_business_form_handler_save_post($post_id) {
       // business id provided so we should update the name if needed
       Contact::update(FALSE)
         ->addWhere('id', '=', $businessId)
+        ->addValue('organization_name', $organizationName)
         ->execute();
     }
 
