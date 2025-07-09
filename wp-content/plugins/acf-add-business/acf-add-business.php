@@ -1,12 +1,12 @@
 <?php
 
-/*
-Plugin Name: ACF Add Business Form Handler
-Description: Provides custom handling to create contacts, businesses, properties, and units for the Add a Business form.
-Version: 1.0
-Author: JMA
-Author URI: https://jmaconsulting.biz
-*/
+/**
+ * Plugin Name: ACF Add Business Form Handler
+ * Description: Provides custom handling to create contacts, businesses, properties, and units for the Add a Business form.
+ * Version: 1.0
+ * Author: JMA
+ * Author URI: https://jmaconsulting.biz
+ */
 
 use Civi\Api4\Address;
 use Civi\Api4\Contact;
@@ -31,8 +31,7 @@ require_once 'field-defaults.php';
 
 add_filter('acf/load_field/name=property_address', 'acf_load_property_choices');
 
-function acf_load_property_choices($field)
-{
+function acf_load_property_choices($field) {
   // reset choices
   $field['choices'] = array();
 
@@ -52,8 +51,7 @@ function acf_load_property_choices($field)
 
 add_action('wp_enqueue_scripts', 'enqueue_acf_custom_js');
 
-function enqueue_acf_custom_js()
-{
+function enqueue_acf_custom_js() {
   wp_register_script(
     'acf-custom-js',
     plugin_dir_url(__FILE__) . 'js/acf-custom.js',
@@ -72,8 +70,7 @@ function enqueue_acf_custom_js()
 add_action('wp_ajax_get_sub_categories', 'get_sub_categories');
 add_action('wp_ajax_nopriv_get_sub_categories', 'get_sub_categories');
 
-function get_sub_categories()
-{
+function get_sub_categories() {
   global $wpdb;
 
   // Check for nonce security
@@ -125,8 +122,7 @@ function get_sub_categories()
 add_action('wp_ajax_get_property_fields', 'get_property_fields');
 add_action('wp_ajax_nopriv_get_property_fields', 'get_property_fields');
 
-function get_property_fields()
-{
+function get_property_fields() {
   // Check for nonce security
   check_ajax_referer('acf_nonce', 'security');
 
@@ -148,8 +144,7 @@ function get_property_fields()
 add_action('wp_ajax_get_units_by_property', 'get_units_by_property');
 add_action('wp_ajax_nopriv_get_units_by_property', 'get_units_by_property');
 
-function get_units_by_property()
-{
+function get_units_by_property() {
   // Check for nonce security
   check_ajax_referer('acf_nonce', 'security');
 
@@ -190,8 +185,7 @@ function get_units_by_property()
 
 add_filter('acf/load_field/name=unit_address', 'acf_load_unit_choices');
 
-function acf_load_unit_choices($field)
-{
+function acf_load_unit_choices($field) {
   $choices = Unit::get(FALSE)
     ->addSelect('id', 'address_id.street_address', 'address_id.street_unit')
     ->addOrderBy('address_id.street_address', 'ASC')
@@ -210,8 +204,7 @@ function acf_load_unit_choices($field)
 
 add_filter('acf/validate_value/key=field_669679f71b1b0', 'validate_tax_roll', 10, 4);
 
-function validate_tax_roll($valid, $value, $field, $input)
-{
+function validate_tax_roll($valid, $value, $field, $input) {
   $keys = preg_split('/[\[\]]+/', $input, -1, PREG_SPLIT_NO_EMPTY);
   $is_new_property = $_POST;
 
@@ -245,8 +238,7 @@ function validate_tax_roll($valid, $value, $field, $input)
 
 add_filter('acf/validate_value/key=field_66a3f9f05f9bb', 'validate_new_address', 10, 4);
 
-function validate_new_address($valid, $value, $field, $input)
-{
+function validate_new_address($valid, $value, $field, $input) {
   $keys = preg_split('/[\[\]]+/', $input, -1, PREG_SPLIT_NO_EMPTY);
   $is_new_property = $_POST;
 
@@ -280,8 +272,7 @@ function validate_new_address($valid, $value, $field, $input)
 
 add_filter('acf/validate_value/key=field_66968109025e6', 'validate_unit_address', 10, 4);
 
-function validate_unit_address($valid, $value, $field, $input)
-{
+function validate_unit_address($valid, $value, $field, $input) {
   $keys = preg_split('/[\[\]]+/', $input, -1, PREG_SPLIT_NO_EMPTY);
   $is_new_unit = $_POST;
 
@@ -315,8 +306,7 @@ function validate_unit_address($valid, $value, $field, $input)
 
 add_filter('acf/validate_value/key=field_66a4007826665', 'validate_new_unit', 10, 4);
 
-function validate_new_unit($valid, $value, $field, $input)
-{
+function validate_new_unit($valid, $value, $field, $input) {
   $keys = preg_split('/[\[\]]+/', $input, -1, PREG_SPLIT_NO_EMPTY);
 
   // Check if a new unit is being created in this row
@@ -350,8 +340,7 @@ function validate_new_unit($valid, $value, $field, $input)
 
 add_filter('acf/validate_value', 'validate_property_present', 20, 4);
 
-function validate_property_present($valid, $value, $field, $input)
-{
+function validate_property_present($valid, $value, $field, $input) {
   if ($valid !== TRUE) {
     return $value;
   }
@@ -386,8 +375,7 @@ function validate_property_present($valid, $value, $field, $input)
 
 add_action('acf/save_post', 'add_business_form_handler_save_post');
 
-function add_business_form_handler_save_post($post_id)
-{
+function add_business_form_handler_save_post($post_id) {
   // Check if this is an Add a Business ACF form submission
   if (isset($_POST['acf']) && $_POST['_acf_post_id'] == 443) {
 
@@ -502,21 +490,26 @@ function add_business_form_handler_save_post($post_id)
       $organizationName = CRM_Utils_String::ellipsify($organizationName, $organizationNameFieldDefinition['input_attrs']['size']);
     }
 
-    $dedupeParams = [
-      'contact_sub_type' => 'Members_Businesses_',
-      'organization_name' => $organizationName,
-    ];
-    $duplicates = CRM_Contact_BAO_Contact::getDuplicateContacts($dedupeParams, 'Organization');
+    $businessId = isset($_GET['bid']) ? $_GET['bid'] : null;
+    if (empty($businessId)) {
+      $dedupeParams = [
+        'contact_sub_type' => 'Members_Businesses_',
+        'organization_name' => $organizationName,
+      ];
+      $duplicates = CRM_Contact_BAO_Contact::getDuplicateContacts($dedupeParams, 'Organization', checkPermissions: FALSE);
+      if (count($duplicates) > 0)
+        $businessId = $duplicates[0];
+    }
 
-    if (count($duplicates) == 0) {
+    if (empty($businessId)) {
       $contact = Contact::create(FALSE)
         ->addValue('contact_type', 'Organization')
         ->addValue('organization_name', $organizationName)
         ->addValue('contact_sub_type', ['Members_Businesses_'])
         ->execute()
         ->first();
-    } elseif (count($duplicates) >= 1) {
-      $contact =  Contact::get(FALSE)->addWhere('id', '=', $duplicates[0])->execute()->first();
+    } else {
+      $contact = Contact::get(FALSE)->addWhere('id', '=', $businessId)->execute()->first();
     }
 
     $submittedUnitBusiness = [];
@@ -662,18 +655,22 @@ function add_business_form_handler_save_post($post_id)
     // Now Look for Business Contact / create business contact.
     $phoneOnBiz = !empty($params['organization_name']);
     if (!empty($params['first_name']) || !empty($params['last_name']) || !empty($params['contact_email'])) {
-      $contactDups = \Civi\Api4\Individual::getDuplicates(FALSE)
-        ->setDedupeRule('Individual.Supervised')
-        ->addValue('first_name', $params['first_name'])
-        ->addValue('last_name', $params['last_name'])
-        ->addValue('email_primary.email', $params['contact_email'])
-        ->execute();
+      if (!empty($_GET['cid']) && is_numeric($_GET['cid'])) {
+        $contactDuplicates = [$_GET['cid']];
+      } else {
+        $contactDups = \Civi\Api4\Individual::getDuplicates(FALSE)
+          ->setDedupeRule('Individual.Supervised')
+          ->addValue('first_name', $params['first_name'])
+          ->addValue('last_name', $params['last_name'])
+          ->addValue('email_primary.email', $params['contact_email'])
+          ->execute();
 
-      $contactDuplicates = [];
+        $contactDuplicates = [];
 
-      // Loop through the input array
-      foreach ($contactDups as $dup) {
-        $contactDuplicates[] = (int)$dup['id'];
+        // Loop through the input array
+        foreach ($contactDups as $dup) {
+          $contactDuplicates[] = (int)$dup['id'];
+        }
       }
 
       if (count($contactDuplicates) > 0) {
@@ -687,6 +684,7 @@ function add_business_form_handler_save_post($post_id)
             }
           }
           if ($businessContactId === 0) {
+            // None of the contacts have the business as their current employer
             $possiblePhones = Phone::get(FALSE)
               ->addWhere('phone', '=', $params['phone'])
               ->addWhere('contact_id', 'IN', $contactDuplicates)
@@ -701,9 +699,11 @@ function add_business_form_handler_save_post($post_id)
         } else {
           $businessContactId = $contactDuplicates[0];
         }
-
-        $businessContact = Contact::get(FALSE)
+        $businessContact = Contact::update(FALSE)
           ->addWhere('id', '=', $businessContactId)
+          ->addValue('first_name', $params['first_name'])
+          ->addValue('last_name', $params['last_name'])
+          ->addValue('email_primary.email', $params['contact_email'])
           ->execute()
           ->first();
 
@@ -726,41 +726,70 @@ function add_business_form_handler_save_post($post_id)
       }
       // Contact Details for the Business contact
       if (!empty($params['contact_phone'])) {
-        $phones = Phone::get(FALSE)->addWhere('contact_id', '=', $businessContactId)->addWhere('phone', '=', $params['contact_phone'])->execute();
-        if (!count($phones) && $params['contact_phone']) {
-          Phone::create(FALSE)->addValue('phone', $params['contact_phone'])->addValue('phone_type_id:label', 'Phone')->addValue('location_type_id:label', 'Work')->addValue('contact_id', $businessContactId)->execute();
-        }
+        createOrUpdateEntity(
+          Phone::class,
+          ['phone' => $params['contact_phone']],
+          [
+            'contact_id' => $businessContactId,
+            'phone_type_id:label' => 'Phone',
+            'location_type_id:label' => 'Work',
+          ]
+        );
       }
       if (!empty($params['contact_email'])) {
-        $emails = Email::get(FALSE)->addWhere('contact_id', '=', $businessContactId)->addWhere('email', '=', $params['contact_email'])->execute();
-        if (!count($emails)) {
-          Email::create(FALSE)->addValue('email', $params['contact_email'])->addValue('location_type_id:label', 'Work')->addValue('contact_id', $businessContactId)->execute();
-        }
+        createOrUpdateEntity(
+          Email::class,
+          ['email' => $params['contact_email']],
+          [
+            'contact_id' => $businessContactId,
+            'location_type_id:label' => 'Work',
+          ]
+        );
       }
-      $relationship = Relationship::get(FALSE)->addWhere('contact_id_a', '=', $businessContactId)->addWhere('contact_id_b', '=', $contact['id'])->execute()->first();
+      $relationship = Relationship::get(FALSE)
+        ->addWhere('contact_id_a', '=', $businessContactId)
+        ->addWhere('contact_id_b', '=', $contact['id'])
+        ->execute()
+        ->first();
       // set the Position on the employer/employee relatonship.
-      Relationship::update(FALSE)->addValue('Business_Contact.Business_Contact_Position', $params['contact_position'])->addWhere('id', '=', $relationship['id'])->execute();
+      Relationship::update(FALSE)
+        ->addValue('Business_Contact.Business_Contact_Position', $params['contact_position'])
+        ->addWhere('id', '=', $relationship['id'])
+        ->execute();
     }
 
     // If we have created the business using first name and last name put the phone on the business as well.
-    if ($phoneOnBiz) {
-      $phones = Phone::get(FALSE)->addWhere('contact_id', '=', $contact['id'])->addWhere('phone', '=', $params['phone'])->execute();
-      if (!count($phones) && $params['phone']) {
-        Phone::create(FALSE)->addValue('phone', $params['phone'])->addValue('phone_type_id:label', 'Phone')->addValue('location_type_id:label', 'Work')->addValue('contact_id', $contact['id'])->execute();
-      }
+    if ($phoneOnBiz && $params['phone']) {
+      createOrUpdateEntity(
+        Phone::class,
+        ['phone' => $params['phone']],
+        [
+          'contact_id' =>  $contact['id'],
+          'phone_type_id:label' => 'Phone',
+          'location_type_id:label' => 'Work',
+        ],
+      );
     }
     // Store the Business email and website on the business record.
     if (!empty($params['email'])) {
-      $emails = Email::get(FALSE)->addWhere('contact_id', '=', $contact['id'])->addWhere('email', '=', $params['email'])->execute();
-      if (!count($emails)) {
-        Email::create(FALSE)->addValue('email', $params['email'])->addValue('location_type_id:label', 'Work')->addValue('contact_id', $contact['id'])->execute();
-      }
+      createOrUpdateEntity(
+        Email::class,
+        ['email' => $params['email']],
+        [
+          'contact_id' => $contact['id'],
+          'location_type_id:label' => 'Work',
+        ]
+      );
     }
     if (!empty($params['website'])) {
-      $websites = Website::get(FALSE)->addWhere('contact_id', '=', $contact['id'])->addWhere('url', '=', $params['website'])->execute();
-      if (!count($websites)) {
-        Website::create(FALSE)->addValue('url', $params['website'])->addValue('website_type_id:label', 'Work')->addValue('contact_id', $contact['id'])->execute();
-      }
+      createOrUpdateEntity(
+        Website::class,
+        ['url' => $params['website']],
+        [
+          'contact_id' => $contact['id'],
+          'website_type_id:label' => 'Work'
+        ]
+      );
     }
     // Now loop through all the fields that match to a custom field to create APIv4 Params.
     $orgValues = [];
@@ -815,8 +844,7 @@ function add_business_form_handler_save_post($post_id)
 }
 
 // Recursively search array for a given key
-function find_field_value($array, $key)
-{
+function find_field_value($array, $key) {
   if (!is_array($array)) {
     return null;
   }
@@ -839,11 +867,36 @@ function find_field_value($array, $key)
   return null;
 }
 
-function formatDateString($dateString)
-{
+function formatDateString($dateString) {
   if ($dateString != '') {
     $dateFormatted = DateTime::createFromFormat('Ymd', $dateString);
     return $dateFormatted->format('Y-m-d');
   }
   return '';
+}
+
+/**
+ * Creates or updates an entity, as appropriate.
+ *
+ * If exactly one entity exists that matches all `$values`, then it is updated.
+ * Otherwise a new entity is created
+ *
+ * @param string $entity the DAOEntity to create or update, e.g. \Civi\Api4\Phone or \Civi\Api4\Email, should be namespaced
+ * @param array $primaryValue the primary value to create the entity with. This value is used to update existing records rather than match them. 
+ * For example, on an Email entity it would be the email value. This should be an associative array, i.e., `['key' => 'value']`
+ * @param array $record a record stored as an associative array. These are used to either match existing entities or create new ones. For example
+ * `[
+ *   'key1' => 'value1',
+ *   'key2' => 'value2',
+ * ]`
+ */
+function createOrUpdateEntity(string $entity, array $primaryValue, array $record) {
+  $saved = $entity::save(FALSE)
+    ->addRecord(array_merge($record, $primaryValue));
+  foreach ($record as $key => $_) {
+    // Matches in api4 only have the base field, so instead of something like contact_id:display_name, it would just be contact_id
+    $key = explode(':', $key, 1)[0];
+    $saved->setMatch($key);
+  }
+  $saved->execute();
 }
