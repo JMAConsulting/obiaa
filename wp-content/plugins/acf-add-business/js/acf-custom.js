@@ -11,7 +11,7 @@
       // Show hidden fields in the property section
       $row
         .find(
-          ".acf-field-669679ed1b1af, .acf-field-66967a0b1b1b2, .acf-field-66967a011b1b1"
+          "[data-name='roll_no'], [data-name='postal_code'], [data-name='city']"
         )
         .show();
 
@@ -26,18 +26,32 @@
       });
 
       // Hide original address select field
-      $row.find(".acf-field-669679f71b1b0").hide();
+      $row.find("[data-name='property_address']").hide();
 
       // Reset property fields to be blank
-      $row.find("[name*='field_669679ed1b1af']").val("");
-      $row.find("[name*='field_66967a011b1b1']").val("");
-      $row.find("[name*='field_66967a0b1b1b2']").val("");
+      $row.find("[data-name='roll_no'] input").val("");
+      $row.find("[data-name='city'] input").val("");
+      $row.find("[data-name='postal_code'] input").val("");
 
       // Find and check is_new_property checkbox within the same row
       var $checkbox = $row.find(
-        "input[type='checkbox'][name*='field_66a7cf3944bf8']"
+        "[data-name='is_new_unit'] input[type='checkbox']"
       );
       $checkbox.prop("checked", true);
+
+      // Copy the new property address for units
+      var $propertyAddress = $row.find("[data-name='tax_roll_address'] input");
+      $propertyAddress.on("change", function() {
+        var unitDetailsRow = $(this).closest(".acf-row").find('[data-name="unit_details"] input');
+        if (unitDetailsRow.length === 0) {
+          return;
+        }
+        var address = $(this).val();
+        unitDetailsRow.each(function() {
+          unitAddress = $(this).find("[data-name='new_unit_address'] input");
+          unitAddress.val(address);
+        })
+      })
 
       var unitDetailsRow = $row.find('[data-name="unit_details"]');
       if (unitDetailsRow.length === 0) {
@@ -57,20 +71,19 @@
           $(this).find("input, select").prop("disabled", false);
         });
 
-        $row.find(".acf-field-66968109025e6").hide();
-        $row.find(".acf-field-669678b28537a").hide();
+        $row.find("[data-name='unit_address']").hide();
+        $row.find("[data-name='unit_status']").hide();
 
-        $row.find("[name*='field_66a4007826665']").val("");
-        $row.find("[name*='field_66968111025e7']").val("");
-        $row.find("[name*='field_66968111025e7']").val("");
-        $row.find("[name*='field_6696811e025e8']").val("");
-        $row.find("[name*='field_6696812c025e9']").val("");
-        $row.find("[name*='field_66968138025ea']").val("");
-        $row.find("[name*='field_66968146025eb']").val("");
+        $row.find("[data-name='new_unit_address'] input").val("");
+        $row.find("[data-name='unitsuite'] input").val("");
+        $row.find("[data-name='size_sq_ft'] input").val("");
+        $row.find("[data-name='unit_price'] input").val("");
+        $row.find("[data-name='mls_listing_link'] input").val("");
+        $row.find("[data-name='unit_location'] input").val("");
 
         // Find and check the is_new_unit checkbox within the same row
         var $checkbox = $row.find(
-          "input[type='checkbox'][name*='field_66a7cb3396664']"
+          "[data-name='is_new_unit'] input[type='checkbox']"
         );
         $checkbox.prop("checked", true);
       });
@@ -96,16 +109,15 @@
       $row.find(".acf-field-66968109025e6").hide();
       $row.find(".acf-field-669678b28537a").hide();
 
-      $row.find("[name*='field_66968111025e7']").val("");
-      $row.find("[name*='field_66968111025e7']").val("");
-      $row.find("[name*='field_6696811e025e8']").val("");
-      $row.find("[name*='field_6696812c025e9']").val("");
-      $row.find("[name*='field_66968138025ea']").val("");
-      $row.find("[name*='field_66968146025eb']").val("");
+      $row.find("[data-name='unitsuite'] input").val("");
+      $row.find("[data-name='size_sq_ft'] input").val("");
+      $row.find("[data-name='unit_price'] input").val("");
+      $row.find("[data-name='mls_listing_link'] input").val("");
+      $row.find("[data-name='unit_location'] input").val("");
 
       // Find and check the checkbox within the same row
       var $checkbox = $row.find(
-        "input[type='checkbox'][name*='field_66a7cb3396664']"
+        "[data-name='is_new_unit'] input[type='checkbox']"
       );
       $checkbox.prop("checked", true);
     });
@@ -341,12 +353,12 @@
 
     // Fill in the subcategories once
     if (urlParams.get("bid") != null) {
-      var selectedCategories = $("#acf-field_6695732eea221-field_6695739bea224").val();
+      var selectedCategories = $("[data-name='category'] select").val();
       populateSubCategories(selectedCategories);
     }
 
     // Listen to changes to category field
-    $("#acf-field_6695732eea221-field_6695739bea224").on("change", function() {
+    $("[data-name='category'] select").on("change", function() {
       var selectedValues = $(this).val();
 
       // Update the subcategory options
@@ -369,7 +381,7 @@
             var subCategories = response.data;
 
             var selectElement = $(
-              "#acf-field_6695732eea221-field_669573c0ea225"
+              "[data-name='sub_category'] select"
             );
 
             // Ensure all options are initially visible
@@ -457,7 +469,7 @@
 
         // Get the checkbox field value
         var defaultAddress = propertyDetailsRow
-          .find("[name*='field_66a3f9f05f9bb']")
+          .find("[data-name='tax_roll_address'] input")
           .val();
 
         if (checkboxField.is(":checked")) {
@@ -487,11 +499,11 @@
 
             // Find and check the checkbox within the same row
             var $checkbox = $row.find(
-              "input[type='checkbox'][name*='field_66a7cb3396664']"
+              "[data-name='is_new_unit'] input[type='checkbox']"
             );
             $checkbox.prop("checked", true);
 
-            $row.find("[name*='field_66a4007826665']").each(function() {
+            $row.find("[data-name='new_unit_address'] input").each(function() {
               if ($(this).val().trim() === "") {
                 $(this).val(defaultAddress);
               }
