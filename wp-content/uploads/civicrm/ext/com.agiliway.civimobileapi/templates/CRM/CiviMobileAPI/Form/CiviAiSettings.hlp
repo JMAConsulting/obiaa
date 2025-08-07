@@ -1,7 +1,20 @@
-{htxt id="secret-key-help-title"}
+{htxt id="ai-secret-key-help-title"}
 {ts domain="com.agiliway.civimobileapi"}Secret Key{/ts}
 {/htxt}
-{htxt id="secret-key-help"}
-    <p>{ts domain="com.agiliway.civimobileapi"}The key is used to give access to the ChatGPT functionality{/ts}</p>
+{htxt id="ai-secret-key-help"}
+{ts domain="com.agiliway.civimobileapi"}Enter the secret API key provided by your chosen AI service. This key is used to authenticate your requests to the AI provider.{/ts}
 {/htxt}
 
+{htxt id="ai-model-help-title"}
+{ts domain="com.agiliway.civimobileapi"}Model{/ts}
+{/htxt}
+{htxt id="ai-model-help"}
+{ts domain="com.agiliway.civimobileapi"}Specify the AI model you wish to use (e.g., gpt-4o-mini, claude-3-opus). Refer to your AI provider's documentation for available model names.{/ts}
+{/htxt}
+
+{htxt id="api-url-help-title"}
+{ts domain="com.agiliway.civimobileapi"}API URL{/ts}
+{/htxt}
+{htxt id="api-url-help"}
+{ts domain="com.agiliway.civimobileapi"}Enter the API endpoint URL for your AI service. This URL should point to an API that is compatible with the OpenAI API structure (e.g., it should support similar request and response formats). If you are using a self-hosted solution or a provider other than OpenAI, specify the complete URL here. If left empty, the system will default to the OpenAI API URL: https://api.openai.com/v1/chat/completions.{/ts}
+{/htxt}

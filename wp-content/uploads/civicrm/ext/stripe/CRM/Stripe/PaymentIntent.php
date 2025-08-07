@@ -269,7 +269,7 @@ class CRM_Stripe_PaymentIntent {
       $extraData[] = $e->getMessage();
       $stripePaymentintentParams['extra_data'] = implode(';', $extraData);
 
-      CRM_Stripe_BAO_StripePaymentintent::create($stripePaymentintentParams);
+      CRM_Stripe_BAO_StripePaymentintent::writeRecord($stripePaymentintentParams);
       $resultObject->ok = FALSE;
       $resultObject->message = $e->getMessage();
       return $resultObject;
@@ -288,7 +288,7 @@ class CRM_Stripe_PaymentIntent {
     $extraData[] = $ipAddress;
     $stripePaymentintentParams['extra_data'] = implode(';', $extraData);
 
-    CRM_Stripe_BAO_StripePaymentintent::create($stripePaymentintentParams);
+    CRM_Stripe_BAO_StripePaymentintent::writeRecord($stripePaymentintentParams);
 
     switch ($intent->status) {
       case 'requires_payment_method':
@@ -468,7 +468,7 @@ class CRM_Stripe_PaymentIntent {
         $extraData[] = $e->getMessage();
         $stripePaymentintentParams['extra_data'] = implode(';', $extraData);
 
-        CRM_Stripe_BAO_StripePaymentintent::create($stripePaymentintentParams);
+        CRM_Stripe_BAO_StripePaymentintent::writeRecord($stripePaymentintentParams);
 
         if ($e instanceof \Stripe\Exception\CardException) {
 
@@ -536,7 +536,7 @@ class CRM_Stripe_PaymentIntent {
     if (!empty($this->extraData)) {
       $stripePaymentintentParams['extra_data'] = $this->extraData;
     }
-    CRM_Stripe_BAO_StripePaymentintent::create($stripePaymentintentParams);
+    CRM_Stripe_BAO_StripePaymentintent::writeRecord($stripePaymentintentParams);
 
     $resultObject->data = [
       'requires_payment_method' => false,

@@ -9,6 +9,27 @@ Releases use the following numbering system:
 
 * **[BC]**: Items marked with [BC] indicate a breaking change that will require updates to your code if you are using that code in your extension.
 
+## Release 6.12.0 (2025-07-07)
+
+TWINT/iDEAL payments are now supported when using Stripe Checkout.
+
+* Fix settings page permissions on standalone.
+* Update stripe-php sdk (v12.5.0 -> v12.8.0)
+* [!274](https://lab.civicrm.org/extensions/stripe/-/merge_requests/274) Add support for TWINT/iDEAL payments with Stripe Checkout.
+  * Set the paymentMethod on the contribution when we use Stripe Checkout to match the actual paymentMethod.
+  * Pass through payment_instrument_id on updateContributionCompleted so we don't overwrite it.
+* [!277](https://lab.civicrm.org/extensions/stripe/-/merge_requests/277) #488, Include tax amount in unit price when calculating line total for checkout.
+* [!273](https://lab.civicrm.org/extensions/stripe/-/merge_requests/273) Convert StripePaymentintent::create to writeRecord.
+* [!271](https://lab.civicrm.org/extensions/stripe/-/merge_requests/271) PHPUnit10 compatibility.
+* [!272](https://lab.civicrm.org/extensions/stripe/-/merge_requests/272) Extend referrer column to handle longer referrers and enforce limit. This was causing payment failures on some sites when the referer URL was longer than the database field length.
+
+## Release 6.11.5 (2025-05-24)
+
+* [!267](https://lab.civicrm.org/extensions/stripe/-/merge_requests/267) Handle changing subscription amount for subscriptions created using Stripe Checkout (where Products are created as 'Archived' and cannot be modified.
+* [!263](https://lab.civicrm.org/extensions/stripe/-/merge_requests/263) Support redirecting from ajax webform.
+* [!268](https://lab.civicrm.org/extensions/stripe/-/merge_requests/268) More helpful error message on IPN processor if stripe customer does not exist in CiviCRM.
+* Switch managed job to update=unmodified
+
 ## Release 6.11.4 (2025-01-05)
 
 * Support [Bancontact](https://stripe.com/payment-method/bancontact) for Stripe Checkout.
@@ -42,7 +63,7 @@ Releases use the following numbering system:
 
 * CiviCRM extension [mjwshared](https://lab.civicrm.org/extensions/mjwshared)@1.3.
 
-If you previously used the API3 Stripe.importX API calls they have been removed and replaced with a separate extension:
+If you previously used the API3 Stripe.importX API calls they have been removed and replaced with a separate extension: 
 * CiviCRM extension [stripeimport](https://lab.civicrm.org/extensions/stripeimport)
 
 ### New Features

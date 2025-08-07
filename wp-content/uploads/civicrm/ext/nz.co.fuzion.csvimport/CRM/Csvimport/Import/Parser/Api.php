@@ -22,7 +22,7 @@ class CRM_Csvimport_Import_Parser_Api extends CRM_Import_Parser {
 
   protected $_ignoreCase = FALSE;
 
-  protected $baseEntity = NULL;
+  protected $baseEntity = '';
 
   /**
    * Get user job information.
@@ -308,6 +308,8 @@ class CRM_Csvimport_Import_Parser_Api extends CRM_Import_Parser {
   public function import(array $values): void {
     $rowNumber = (int) ($values[array_key_last($values)]);
     $entity = $this->getSubmittedValue('entity');
+    // Civiimport wants a numeric array, not an associative array.
+    $values = array_values($values);
     try {
       $params = $this->getMappedRow($values);
       foreach ($params[$this->getEntity()] as $key => $value) {
@@ -378,6 +380,13 @@ class CRM_Csvimport_Import_Parser_Api extends CRM_Import_Parser {
    */
   public function getEntity(): string {
     return $this->getSubmittedValue('entity');
+  }
+
+  public function getBaseEntity(): string {
+    if ($this->baseEntity === NULL) {
+      $this->baseEntity = $this->getSubmittedValue('entity');
+    }
+    return $this->baseEntity;
   }
 
   /**

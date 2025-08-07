@@ -294,6 +294,13 @@ class CRM_Core_Payment_StripeIPN {
       $stripeCustomers = \Civi\Api4\StripeCustomer::get(FALSE)
         ->addWhere('customer_id', '=', $this->getStripeCustomerID())
         ->execute();
+      // Check if customer exists in CiviCRM
+      if (!$stripeCustomers->count()) {
+        echo "Event ({$this->getEventID()}) customer ({$this->getStripeCustomerID()}) not found in CiviCRM - ignoring. CiviCRM: {$name} {$test}.";
+        exit();
+      }
+
+      // Check if customer exists but is linked to another payment processor
       $eventForThisPaymentProcessor = FALSE;
       foreach ($stripeCustomers as $stripeCustomer) {
         if ($stripeCustomer['processor_id'] === $this->getPaymentProcessor()->getID()) {

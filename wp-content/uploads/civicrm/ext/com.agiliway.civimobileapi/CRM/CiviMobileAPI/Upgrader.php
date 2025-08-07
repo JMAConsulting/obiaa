@@ -206,8 +206,6 @@ class CRM_CiviMobileAPI_Upgrader extends CRM_Extension_Upgrader_Base {
       CRM_CiviMobileAPI_Utils_Calendar::isCiviCalendarInstalled()
       && CRM_CiviMobileAPI_Utils_Calendar::isCiviCalendarCompatible()
     );
-
-    self::setDefaultMobileEventRegistration();
     
     Civi::settings()->set('civimobile_is_allow_registration', 1);
   }
@@ -226,6 +224,10 @@ class CRM_CiviMobileAPI_Upgrader extends CRM_Extension_Upgrader_Base {
     $this->executeSqlFile('sql/drop_location_venue.sql');
 
     $this->uninstallPushNotificationCustomGroup();
+  }
+
+  public function postInstall() {
+    self::setDefaultMobileEventRegistration();
   }
 
   /**

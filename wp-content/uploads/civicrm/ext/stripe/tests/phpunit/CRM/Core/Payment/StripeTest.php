@@ -32,9 +32,9 @@
  *
  * @group headless
  */
-require_once(__DIR__ . '/../../Stripe/BaseTest.php');
+require_once(__DIR__ . '/../../Stripe/TestBase.php');
 
-class CRM_Core_Payment_Stripe_Test extends CRM_Stripe_BaseTest {
+class CRM_Core_Payment_StripeTest extends CRM_Stripe_TestBase {
 
   protected $contributionRecurID;
 
