@@ -6,6 +6,9 @@ namespace Civi\Api4;
  *
  * Provided by the Search Kit extension.
  *
+ * @method Action\SearchDisplay\CreateBatch createBatch(bool $checkPemissions)
+ * @method Action\SearchDisplay\RunBatch runBatch(bool $checkPemissions)
+ *
  * @since 5.32
  * @searchable secondary
  * @package Civi\Api4
@@ -38,6 +41,15 @@ class SearchDisplay extends Generic\DAOEntity {
    */
   public static function download($checkPermissions = TRUE) {
     return (new Action\SearchDisplay\Download(__CLASS__, __FUNCTION__))
+      ->setCheckPermissions($checkPermissions);
+  }
+
+  /**
+   * @param bool $checkPermissions
+   * @return Action\SearchDisplay\SaveFile
+   */
+  public static function saveFile($checkPermissions = TRUE) {
+    return (new Action\SearchDisplay\SaveFile(__CLASS__, __FUNCTION__))
       ->setCheckPermissions($checkPermissions);
   }
 

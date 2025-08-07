@@ -47,7 +47,6 @@ function afform_civicrm_config(&$config) {
   $dispatcher->addListener('civi.afform.submit', ['\Civi\Api4\Action\Afform\Submit', 'processRelationships'], 1);
   $dispatcher->addListener('hook_civicrm_angularModules', '_afform_hook_civicrm_angularModules', -1000);
   $dispatcher->addListener('hook_civicrm_alterAngular', ['\Civi\Afform\AfformMetadataInjector', 'preprocess']);
-  $dispatcher->addListener('hook_civicrm_check', ['\Civi\Afform\StatusChecks', 'hook_civicrm_check']);
   $dispatcher->addListener('civi.afform.get', ['\Civi\Api4\Action\CustomGroup\GetAfforms', 'getCustomGroupAfforms']);
 }
 
@@ -233,7 +232,7 @@ function afform_civicrm_buildAsset($asset, $params, &$mimeType, &$content) {
   $moduleName = _afform_angular_module_name($params['name'], 'camel');
   $formMetaData = (array) civicrm_api4('Afform', 'get', [
     'checkPermissions' => FALSE,
-    'select' => ['redirect', 'name', 'title', 'autosave_draft'],
+    'select' => ['redirect', 'name', 'title', 'autosave_draft', 'confirmation_type', 'confirmation_message'],
     'where' => [['name', '=', $params['name']]],
   ], 0);
   $smarty = CRM_Core_Smarty::singleton();

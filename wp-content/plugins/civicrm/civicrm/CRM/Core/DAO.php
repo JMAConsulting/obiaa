@@ -1956,7 +1956,7 @@ LIKE %1
     $tr = [];
     foreach ($params as $key => $item) {
       if (is_numeric($key)) {
-        if (CRM_Utils_Type::validate($item[0], $item[1]) !== NULL) {
+        if (CRM_Utils_Type::validate($item[0], $item[1], TRUE, $item[2] ?? 'One of the parameters ') !== NULL) {
           $item[0] = self::escapeString($item[0]);
           if ($item[1] == 'String' ||
             $item[1] == 'Memo' ||
@@ -2659,23 +2659,6 @@ SELECT contact_id
   }
 
   /**
-   * @param null $message
-   * @param bool $printDAO
-   */
-  public static function debugPrint($message = NULL, $printDAO = TRUE) {
-    CRM_Utils_System::xMemory("{$message}: ");
-
-    if ($printDAO) {
-      global $_DB_DATAOBJECT;
-      $q = [];
-      foreach (array_keys($_DB_DATAOBJECT['RESULTS']) as $id) {
-        $q[] = $_DB_DATAOBJECT['RESULTS'][$id]->query;
-      }
-      CRM_Core_Error::debug('_DB_DATAOBJECT', $q);
-    }
-  }
-
-  /**
    * Build a list of triggers via hook and add them to (err, reconcile them
    * with) the database.
    *
@@ -3010,7 +2993,7 @@ SELECT contact_id
     }
     $checkPermissions = (bool) ($values['check_permissions'] ?? ($context == 'create' || $context == 'search'));
     $includeDisabled = ($context == 'validate' || $context == 'get');
-    $options = $entity->getOptions($fieldName, $values, $includeDisabled, $checkPermissions);
+    $options = $entity->getOptions($fieldName, $values, $includeDisabled, $checkPermissions, NULL, ($context == 'get' || $context === 'search'));
     return $options ? CRM_Core_PseudoConstant::formatArrayOptions($context, $options) : $options;
   }
 
@@ -3504,6 +3487,9 @@ SELECT contact_id
     }
     if ($value === '') {
       return [];
+    }
+    if (is_array($value)) {
+      return $value;
     }
     switch ($serializationType) {
       case self::SERIALIZE_SEPARATOR_BOOKEND:
