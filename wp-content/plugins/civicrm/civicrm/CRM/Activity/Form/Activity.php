@@ -488,7 +488,7 @@ class CRM_Activity_Form_Activity extends CRM_Contact_Form_Task {
     if ($this->_action & CRM_Core_Action::VIEW) {
       $this->_values['details'] = CRM_Utils_String::purifyHtml($this->_values['details'] ?? '');
       $url = CRM_Utils_System::url(implode("/", $this->urlPath), "reset=1&id={$this->_activityId}&action=view&cid={$this->_values['source_contact_id']}");
-      CRM_Utils_Recent::add(CRM_Utils_Array::value('subject', $this->_values, ts('(no subject)')),
+      CRM_Utils_Recent::add($this->_values['subject'] ?? ts('(no subject)'),
         $url,
         $this->_values['id'],
         'Activity',
@@ -557,10 +557,10 @@ class CRM_Activity_Form_Activity extends CRM_Contact_Form_Task {
       $defaults['target_contact_id'] = $this->_contactIds;
     }
 
-    // CRM-15472 - 50 is around the practical limit of how many items a select2 entityRef can handle
+    // CRM-15472 - there is a practical limit of how many items a select2 entityRef can handle
     if ($this->_action == CRM_Core_Action::UPDATE && !empty($defaults['target_contact_id'])) {
       $count = count(is_array($defaults['target_contact_id']) ? $defaults['target_contact_id'] : explode(',', $defaults['target_contact_id']));
-      if ($count > 50) {
+      if ($count > 1000) {
         $this->freeze(['target_contact_id']);
         $this->assign('disable_swap_button', TRUE);
       }
@@ -955,7 +955,7 @@ class CRM_Activity_Form_Activity extends CRM_Contact_Form_Task {
         $url = CRM_Utils_System::url('civicrm/contact/view', ['cid' => CRM_Utils_Array::first($params['target_contact_id']), 'selectedChild' => 'activity']);
       }
       else {
-        $url = CRM_Utils_System::url('civicrm/activity', ['action' => 'view', 'reset' => 1, 'id' => $this->_activityId]);
+        $url = CRM_Utils_System::url('civicrm/activity', ['action' => 'view', 'reset' => 1, 'id' => $this->_activityId, 'cid' => $params['source_contact_id']]);
       }
       CRM_Core_Session::singleton()->pushUserContext($url);
     }

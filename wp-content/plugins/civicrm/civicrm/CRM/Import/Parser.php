@@ -86,6 +86,10 @@ abstract class CRM_Import_Parser implements UserJobInterface {
     return [];
   }
 
+  public function getBaseEntity(): string {
+    return $this->baseEntity;
+  }
+
   /**
    * Get the relevant datasource object.
    *
@@ -110,7 +114,7 @@ abstract class CRM_Import_Parser implements UserJobInterface {
    * @noinspection PhpUnhandledExceptionInspection
    */
   protected function getSubmittedValue(string $fieldName) {
-    return $this->getUserJob()['metadata']['submitted_values'][$fieldName];
+    return $this->getUserJob()['metadata']['submitted_values'][$fieldName] ?? NULL;
   }
 
   /**
@@ -205,26 +209,33 @@ abstract class CRM_Import_Parser implements UserJobInterface {
   }
 
   /**
-   * @param string $contactType
+   * @param string|null $contactType
    * @param string|null $prefix
    *
    * @return array[]
    * @throws \CRM_Core_Exception
    */
-  protected function getContactFields(string $contactType, ?string $prefix = ''): array {
+  protected function getContactFields(?string $contactType, ?string $prefix = ''): array {
     $contactFields = $this->getAllContactFields('');
-    $dedupeFields = $this->getDedupeFields($contactType);
     $matchText = ' ' . ts('(match to %1)', [1 => $prefix]);
-    foreach ($dedupeFields as $fieldName => $dedupeField) {
-      if (!isset($contactFields[$fieldName])) {
-        continue;
+    $contactTypes = [$contactType];
+    if (!$contactType) {
+      $contactTypes = ['Individual', 'Organization', 'Household'];
+    }
+    foreach ($contactTypes as $type) {
+      $dedupeFields = $this->getDedupeFields($type);
+      foreach ($dedupeFields as $fieldName => $dedupeField) {
+        if (!isset($contactFields[$fieldName])) {
+          continue;
+        }
+        $contactFields[$fieldName]['title'] .= $matchText;
+        $contactFields[$fieldName]['match_rule'] = $this->getDefaultRuleForContactType($type);
       }
-      $contactFields[$fieldName]['title'] .= $matchText;
-      $contactFields[$fieldName]['match_rule'] = $this->getDefaultRuleForContactType($contactType);
     }
 
     $contactFields['external_identifier']['title'] .= $matchText;
     $contactFields['external_identifier']['match_rule'] = '*';
+    $contactFields['id']['match_rule'] = '*';
     if ($prefix) {
       $prefixedFields = [];
       foreach ($contactFields as $name => $contactField) {
@@ -272,7 +283,7 @@ abstract class CRM_Import_Parser implements UserJobInterface {
     $return = [];
     foreach ($this->getImportableFieldsMetadata() as $name => $field) {
       if ($name === 'id' && $this->isSkipDuplicates()) {
-        // Duplicates are being skipped so id matching is not availble.
+        // Duplicates are being skipped so id matching is not available.
         continue;
       }
       $return[$name] = $field['html']['label'] ?? $field['title'];
@@ -1013,19 +1024,7 @@ abstract class CRM_Import_Parser implements UserJobInterface {
 
     $fieldMap = $this->getOddlyMappedMetadataFields();
     $fieldMapName = empty($fieldMap[$fieldName]) ? $fieldName : $fieldMap[$fieldName];
-    foreach ($this->getImportEntities() as $entity) {
-      if (empty($this->getImportableFieldsMetadata()[$fieldMapName]) && $entity['entity_field_prefix'] && str_starts_with($fieldMapName, $entity['entity_field_prefix'])) {
-        // e.g if the field name is 'contact.external_identifier' then it is just a case of looking
-        // for external_identifier.
-        $fieldMapName = substr($fieldMapName, strlen($entity['entity_field_prefix']));
-        break;
-      }
-    }
-    if (isset($this->baseEntity) && str_starts_with($fieldMapName, strtolower($this->baseEntity) . '.')) {
-      // @todo - remove this again - we are switching to NOT namespacing the base entity & using the getImportEntities above.
-      $fieldMapName = str_replace(strtolower($this->baseEntity) . '.', '', $fieldMapName);
-    }
-    // This whole business of only loading metadata for one type when we actually need it for all is ... dubious.
+    // This whole business of only loading metadata for one contact type when we actually need it for all is ... dubious.
     if (empty($this->getImportableFieldsMetadata()[$fieldMapName])) {
       if ($loadOptions || !$limitToContactType) {
         $this->importableFieldsMetadata[$fieldMapName] = CRM_Contact_BAO_Contact::importableFields('All')[$fieldMapName];
@@ -1158,13 +1157,7 @@ abstract class CRM_Import_Parser implements UserJobInterface {
   protected function validateParams(array $params): void {
     if (empty($params['id']) && empty($params[$this->baseEntity]['id'])) {
       $entityConfiguration = $this->getImportEntities()[$this->baseEntity];
-      $entity = '';
-      if (!empty($entityConfiguration['entity_field_prefix'])) {
-        // entity_field_prefix is our current way of showing if a table is prefixed
-        // it might change to only using entity_name based on thinking in
-        // https://github.com/civicrm/civicrm-core/pull/32317
-        $entity = $entityConfiguration['entity_name'];
-      }
+      $entity = $entityConfiguration['entity_name'] ?? '';
       $this->validateRequiredFields($this->getRequiredFields(), $params[$this->baseEntity] ?? $params, $entity);
     }
     $errors = [];
@@ -1325,7 +1318,7 @@ abstract class CRM_Import_Parser implements UserJobInterface {
    */
   public function getImportEntities() : array {
     return [
-      'Contact' => ['text' => ts('Contact Fields'), 'is_contact' => TRUE, 'entity_field_prefix' => ''],
+      'Contact' => ['text' => ts('Contact Fields'), 'is_contact' => TRUE],
     ];
   }
 
@@ -1364,14 +1357,28 @@ abstract class CRM_Import_Parser implements UserJobInterface {
       if ($mappedField['name']) {
         $fieldSpec = $this->getFieldMetadata($mappedField['name']);
         $entity = $fieldSpec['entity_instance'] ?? $fieldSpec['entity_name'] ?? $fieldSpec['entity'] ?? $fieldSpec['extends'] ?? NULL;
+
+        // If there is no column header we are dealing with an added value mapping, do not use
+        // the database value as it will be for (e.g.) `_status`
+        $headers = $this->getUserJob()['metadata']['DataSource']['column_headers'];
+        if (array_key_exists($i, $headers) && empty($headers[$i])) {
+          $fieldValue = '';
+        }
+        else {
+          $fieldValue = $values[$i];
+        }
+
+        if ($fieldValue === '' && isset($mappedField['default_value'])) {
+          $fieldValue = $mappedField['default_value'];
+        }
         if ($entity) {
           // Split values into arrays by entity.
           // Apiv4 name is currently only set for contact, & only in cases where it would
           // be used for the dedupe rule (ie Membership import).
-          $params[$entity][$fieldSpec['name']] = $this->getTransformedFieldValue($mappedField['name'], $values[$i]);
+          $params[$entity][$fieldSpec['name']] = $this->getTransformedFieldValue($mappedField['name'], $fieldValue);
         }
         else {
-          $params[$fieldSpec['name']] = $this->getTransformedFieldValue($mappedField['name'], $values[$i]);
+          $params[$fieldSpec['name']] = $this->getTransformedFieldValue($mappedField['name'], $fieldValue);
         }
       }
     }
@@ -1443,8 +1450,7 @@ abstract class CRM_Import_Parser implements UserJobInterface {
     $dataSource->setLimit($limit);
 
     while ($row = $dataSource->getRow()) {
-      $values = array_values($row);
-      $parser->import($values);
+      $parser->import($row);
     }
     $parser->doPostImportActions();
     return TRUE;

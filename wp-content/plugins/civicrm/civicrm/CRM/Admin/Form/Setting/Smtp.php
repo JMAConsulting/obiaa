@@ -22,19 +22,6 @@ class CRM_Admin_Form_Setting_Smtp extends CRM_Admin_Form_Setting {
   protected $_testButtonName;
 
   /**
-   * Subset of settings on the page as defined using the legacy method.
-   *
-   * @var array
-   *
-   * @deprecated - do not add new settings here - the page to display
-   * settings on should be defined in the setting metadata.
-   */
-  protected $_settings = [
-    // @todo remove these, define any not yet defined in the setting metadata.
-    'allow_mail_from_logged_in_contact' => CRM_Core_BAO_Setting::DIRECTORY_PREFERENCES_NAME,
-  ];
-
-  /**
    * Build the form object.
    */
   public function buildQuickForm() {
@@ -92,7 +79,7 @@ class CRM_Admin_Form_Setting_Smtp extends CRM_Admin_Form_Setting {
   public function postProcess() {
     // flush caches so we reload details for future requests
     // CRM-11967
-    CRM_Utils_System::flushCache();
+    Civi::rebuild(['system' => TRUE])->execute();
 
     $formValues = $this->controller->exportValues($this->_name);
 
@@ -118,7 +105,7 @@ class CRM_Admin_Form_Setting_Smtp extends CRM_Admin_Form_Setting {
 
         if (!$domainEmailAddress || $domainEmailAddress === 'info@EXAMPLE.ORG') {
           $fixUrl = CRM_Utils_System::url('civicrm/admin/options/site_email_address');
-          CRM_Core_Error::statusBounce(ts('The site administrator needs to enter a valid "Site Email Address" in <a href="%1">Administer CiviCRM &raquo; Communications &raquo; Site Email Addresses</a>. The email address used may need to be a valid mail account with your email service provider.', [1 => $fixUrl]));
+          CRM_Core_Error::statusBounce(ts('The site administrator needs to enter a valid "Site From Email Address" in <a href="%1">Administer CiviCRM &raquo; Communications &raquo; Site Email Addresses</a>. The email address used may need to be a valid mail account with your email service provider.', [1 => $fixUrl]));
         }
         if (!$toEmail) {
           CRM_Core_Error::statusBounce(ts('Cannot send a test email because your user record does not have a valid email address.'));
@@ -239,37 +226,35 @@ class CRM_Admin_Form_Setting_Smtp extends CRM_Admin_Form_Setting {
    * Set default values for the form.
    */
   public function setDefaultValues() {
-    if (!$this->_defaults) {
-      $this->_defaults = [];
+    parent::setDefaultValues();
 
-      $mailingBackend = Civi::settings()->get('mailing_backend');
-      if (!empty($mailingBackend)) {
-        $this->_defaults = $mailingBackend;
+    $mailingBackend = Civi::settings()->get('mailing_backend');
+    if (!empty($mailingBackend)) {
+      $this->_defaults += $mailingBackend;
 
-        if (!empty($this->_defaults['smtpPassword'])) {
-          try {
-            $this->_defaults['smtpPassword'] = \Civi::service('crypto.token')->decrypt($this->_defaults['smtpPassword']);
-          }
-          catch (Exception $e) {
-            Civi::log()->error($e->getMessage());
-            CRM_Core_Session::setStatus(ts('Unable to retrieve the encrypted password. Please check your configured encryption keys. The error message is: %1', [1 => $e->getMessage()]), ts("Encryption key error"), "error");
-          }
+      if (!empty($mailingBackend['smtpPassword'])) {
+        try {
+          $this->_defaults['smtpPassword'] = \Civi::service('crypto.token')->decrypt($this->_defaults['smtpPassword']);
         }
-      }
-      else {
-        if (!isset($this->_defaults['smtpServer'])) {
-          $this->_defaults['smtpServer'] = 'localhost';
-          $this->_defaults['smtpPort'] = 25;
-          $this->_defaults['smtpAuth'] = 0;
-        }
-
-        if (!isset($this->_defaults['sendmail_path'])) {
-          $this->_defaults['sendmail_path'] = '/usr/sbin/sendmail';
-          $this->_defaults['sendmail_args'] = '-i';
+        catch (Exception $e) {
+          Civi::log()->error($e->getMessage());
+          CRM_Core_Session::setStatus(ts('Unable to retrieve the encrypted password. Please check your configured encryption keys. The error message is: %1', [1 => $e->getMessage()]), ts("Encryption key error"), "error");
         }
       }
     }
-    $this->_defaults['allow_mail_from_logged_in_contact'] = Civi::settings()->get('allow_mail_from_logged_in_contact');
+    else {
+      if (!isset($mailingBackend['smtpServer'])) {
+        $this->_defaults['smtpServer'] = 'localhost';
+        $this->_defaults['smtpPort'] = 25;
+        $this->_defaults['smtpAuth'] = 0;
+      }
+
+      if (!isset($mailingBackend['sendmail_path'])) {
+        $this->_defaults['sendmail_path'] = '/usr/sbin/sendmail';
+        $this->_defaults['sendmail_args'] = '-i';
+      }
+    }
+
     return $this->_defaults;
   }
 
