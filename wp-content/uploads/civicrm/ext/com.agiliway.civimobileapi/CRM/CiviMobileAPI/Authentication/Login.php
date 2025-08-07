@@ -52,7 +52,7 @@ class CRM_CiviMobileAPI_Authentication_Login {
     $this->emailOrUsername = $request->emailOrUsername;
     $this->password = $request->password;
     $this->civiContact = $request->civiContact;
-    $this->drupalContactId = $request->drupalContactId;
+    $this->drupalContactId = $request->drupalContactId ?? 0;
     $this->nullObject = NULL;
   }
 

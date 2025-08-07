@@ -352,6 +352,8 @@ class Events {
         'trxn_id' => $chargeID,
         'total_amount' => $this->api->getValueFromStripeObject('amount', 'Float', $this->getData()->object),
         // 'fee_amount' Added below via $balanceTransactionDetails
+        // We pass this through in case we changed it to a Stripe specific method (eg. in doCheckoutSessionCompleted)
+        'payment_instrument_id' => $contribution['payment_instrument_id'],
       ];
       foreach ($balanceTransactionDetails as $key => $value) {
         $contributionParams[$key] = $value;
@@ -602,10 +604,16 @@ class Events {
       $return->message = $this->formatResultMessage(__FUNCTION__, 'Missing invoiceID or paymentIntentID');
       return $return;
     }
-    Contribution::update(FALSE)
+
+    $paymentMethodOptionValueID = $this->getPaymentMethodForContribution($paymentIntentID);
+
+    $contributionUpdate = Contribution::update(FALSE)
       ->addWhere('id', '=', $contribution['id'])
-      ->addValue('trxn_id', $contributionTrxnID)
-      ->execute();
+      ->addValue('trxn_id', $contributionTrxnID);
+    if (!empty($paymentMethodOptionValueID)) {
+      $contributionUpdate->addValue('payment_instrument_id', $paymentMethodOptionValueID);
+    }
+    $contributionUpdate->execute();
 
     if (!empty($subscriptionID) && !empty($contribution['contribution_recur_id'])) {
       ContributionRecur::update(FALSE)
@@ -642,7 +650,7 @@ class Events {
         ->addValue('processed_date', NULL)
         ->addWhere('id', '=', $webhook['id'])
         ->execute();
-      $return->message = $this->formatResultMessage(__FUNCTION__, "${trigger} flagged for re-process", ['coid' => $contribution['id']]);
+      $return->message = $this->formatResultMessage(__FUNCTION__, "{$trigger} flagged for re-process", ['coid' => $contribution['id']]);
     }
     else {
       $return->message = $this->formatResultMessage(__FUNCTION__, "No suitable {$trigger} found to re-process for {$identifier}", ['coid' => $contribution['id']]);
@@ -763,6 +771,8 @@ class Events {
         'total_amount' => $this->api->getValueFromStripeObject('amount', 'String', $stripeInvoice),
         // 'fee_amount' Added below via $balanceTransactionDetails
         'contribution_status_id' => $contribution['contribution_status_id'],
+        // We pass this through in case we changed it to a Stripe specific method (eg. in doCheckoutSessionCompleted)
+        'payment_instrument_id' => $contribution['payment_instrument_id'],
       ];
       foreach ($balanceTransactionDetails as $key => $value) {
         $contributionParams[$key] = $value;
@@ -1059,6 +1069,57 @@ class Events {
 
     $return->ok = TRUE;
     return $return;
+  }
+
+  /**
+   * This retrieves the matching paymentInstrument/paymentMethod OptionValue and creates it if missing
+   * So that the Contribution is recorded with the actual payment method instead of the default (eg. "Credit Card").
+   *
+   * @param string $paymentIntentID
+   *
+   * @return int|null
+   */
+  private function getPaymentMethodForContribution(string $paymentIntentID): ?int {
+    try {
+      $paymentIntent = $this->getPaymentProcessor()->stripeClient->paymentIntents->retrieve($paymentIntentID);
+      $paymentMethodOptionValueID = NULL;
+      /**
+       * @var \Stripe\PaymentIntent $paymentIntent
+       */
+      if (!empty($paymentIntent->payment_method_types)) {
+        $paymentMethod = reset($paymentIntent->payment_method_types);
+        $supportedPaymentMethods = \CRM_Stripe_Api::getListOfSupportedPaymentMethodsCheckout();
+        if (array_key_exists($paymentMethod, $supportedPaymentMethods)) {
+          // Update the payment method on the contribution
+          $paymentMethodOptionValueID = \Civi\Api4\OptionValue::get(FALSE)
+            ->addWhere('option_group_id.name', '=', 'payment_instrument')
+            ->addWhere('name', '=', 'stripe_' . $paymentMethod)
+            ->execute()
+            ->first()['value'] ?? NULL;
+          if (empty($paymentMethodOptionValueID)) {
+            // Create the new paymentInstrument optionValue and associated link to FinancialAccount
+            $paymentMethodOptionValue = \Civi\Api4\OptionValue::create(FALSE)
+              ->addValue('option_group_id.name', 'payment_instrument')
+              ->addValue('label', $supportedPaymentMethods[$paymentMethod])
+              ->addValue('name', 'stripe_' . $paymentMethod)
+              ->execute()
+              ->first();
+            \Civi\Api4\EntityFinancialAccount::create(FALSE)
+              ->addValue('entity_table', 'civicrm_option_value')
+              ->addValue('entity_id', $paymentMethodOptionValue['id'])
+              ->addValue('financial_account_id:name', 'Payment Processor Account')
+              ->addValue('account_relationship:name', 'Asset Account is')
+              ->execute();
+            $paymentMethodOptionValueID = $paymentMethodOptionValue['value'];
+          }
+        }
+      }
+      return (int) $paymentMethodOptionValueID ?? NULL;
+    }
+    catch (\Throwable $e) {
+      \Civi::log()->error('Stripe: Error in getPaymentMethodForContribution: ' . $e->getMessage());
+    }
+    return NULL;
   }
 
 }

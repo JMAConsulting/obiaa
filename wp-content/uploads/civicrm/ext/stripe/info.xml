@@ -15,11 +15,11 @@
     <author>Matthew Wire (MJW Consulting)</author>
     <email>mjw@mjwconsult.co.uk</email>
   </maintainer>
-  <releaseDate>2025-01-05</releaseDate>
-  <version>6.11.4</version>
+  <releaseDate>2025-07-07</releaseDate>
+  <version>6.12.0</version>
   <develStage>stable</develStage>
   <compatibility>
-    <ver>5.74</ver>
+    <ver>6.0</ver>
   </compatibility>
   <comments>Original Author: Joshua Walker (drastik) - Drastik by Design.
     Jamie Mcclelland (ProgressiveTech) did a lot of the 5.x compatibility work.
@@ -31,7 +31,7 @@
   </requires>
   <civix>
     <namespace>CRM/Stripe</namespace>
-    <format>24.09.1</format>
+    <format>25.01.1</format>
   </civix>
   <classloader>
     <psr0 prefix="CRM_" path="."/>

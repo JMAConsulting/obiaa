@@ -14,7 +14,7 @@ return [
         'label' => E::ts('Stripe Settings'),
         'name' => 'stripe_settings',
         'url' => 'civicrm/admin/setting/stripe',
-        'permission' => 'administer Stripe',
+        'permission' => ['administer stripe'],
         'permission_operator' => 'OR',
         'parent_id.name' => 'CiviContribute',
         'is_active' => TRUE,

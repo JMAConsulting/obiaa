@@ -32,9 +32,9 @@
  *
  * @group headless
  */
-require_once('BaseTest.php');
+require_once('TestBase.php');
 
-class CRM_Stripe_IpnTest extends CRM_Stripe_BaseTest {
+class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
 
   protected $contributionRecurID;
 

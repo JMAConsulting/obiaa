@@ -40,12 +40,14 @@ The latest CiviMobile application can be downloaded from [AppStore](https://itun
 
 
 ## Requirements
+- CiviCRM v5.69.x+
+- PHP v8.x+
 
-- CiviCRM v5.14.x+
-- PHP v5.4+
-- Drupal 7.x, 8.x
-- Joomla 3.x (CiviCRM 5.1+)
-- WordPress 4.8+
+## Support
+- CiviCRM Standalone
+- Drupal
+- Joomla
+- WordPress
 
 *WordPress API patch is required. Please install ["CiviCRM WP REST API Wrapper" plugin](https://github.com/mecachisenros/civicrm-wp-rest) or [contact us](mailto:civicrm@agiliway.com) for details.
 

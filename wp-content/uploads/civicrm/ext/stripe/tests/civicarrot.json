@@ -7,8 +7,8 @@
         "civicrm": "dev-master"
       },
       {
-        "php-versions": "7.4",
-        "drupal": "9.5.*",
+        "php-versions": "8.1",
+        "drupal": "10.3.*",
         "civicrm": "5.74.*"
       }
     ]

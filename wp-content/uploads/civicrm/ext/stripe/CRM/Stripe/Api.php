@@ -367,36 +367,100 @@ class CRM_Stripe_Api {
     return substr($civiCRMLocale,0, 2);
   }
 
-  public static function getListOfSupportedPaymentMethodsCheckout() {
+  /**
+   * Get a list of name->label for use in the settings
+   *
+   * @return array
+   */
+  public static function getListOfSupportedPaymentMethodsCheckout(): array {
+    return array_column(self::getSupportedPaymentMethodsCheckout(), 'label', 'name');
+  }
+
+  /**
+   * Get an array of supported StripeCheckout paymentMethods with metadata
+   *
+   * @return array[]
+   */
+  public static function getSupportedPaymentMethodsCheckout(): array {
     return [
-      'card' => E::ts('Card'),
-      // 'acss_debit',
-      // 'affirm',
-      // 'afterpay_clearpay',
-      // 'alipay',
-      'au_becs_debit' => E::ts('BECS Direct Debit payments in Australia'),
-      'bacs_debit' => E::ts('BACS Direct Debit'),
-      'bancontact' => E::ts('Bancontact'),
-      // 'blik',
-      // 'boleto',
-      // 'cashapp',
-      // 'customer_balance',
-      // 'eps',
-      // 'fpx',
-      // 'giropay',
-      // 'grabpay',
-      // 'ideal',
-      // 'klarna',
-      // 'konbini',
-      // 'oxxo',
-      // 'p24',
-      // 'paynow',
-      // 'pix',
-      // 'promptpay',
-      'sepa_debit' => E::ts('SEPA Direct Debit'),
-      // 'sofort',
-      'us_bank_account' => E::ts('ACH Direct Debit'),
-      // 'wechat_pay',
+      [
+        // https://docs.stripe.com/payments/cards
+        'name' => 'card',
+        'label' => E::ts('Card'),
+        'currencies' => ['*'],
+        'recur' => TRUE,
+        'setup' => TRUE,
+      ],
+      [
+        // https://docs.stripe.com/payments/au-becs-debit
+        'name' => 'au_becs_debit',
+        'label' => E::ts('BECS Direct Debit payments in Australia'),
+        'currencies' => ['AUD'],
+        'recur' => TRUE,
+        'setup' => TRUE,
+      ],
+      [
+        // https://docs.stripe.com/payments/payment-methods/bacs-debit
+        'name' => 'bacs_debit',
+        'label' => E::ts('BACS Direct Debit'),
+        'currencies' => ['GBP'],
+        'recur' => TRUE,
+        'setup' => TRUE,
+      ],
+      [
+        // https://docs.stripe.com/payments/bancontact
+        'name' => 'bancontact',
+        'label' => E::ts('Bancontact'),
+        'currencies' => ['EUR'],
+        'recur' => TRUE,
+        'setup' => TRUE,
+      ],
+      [
+        // https://docs.stripe.com/payments/ideal/accept-a-payment
+        // Requires payment_intent.succeeded / payment_intent.payment_failed
+        'name' => 'ideal',
+        'label' => E::ts('iDEAL'),
+        'currencies' => ['EUR'],
+        'recur' => TRUE,
+        'setup' => TRUE,
+      ],
+      /*[
+        // https://docs.stripe.com/payments/multibanco
+        // Details of webhooks etc https://docs.stripe.com/payments/multibanco/accept-a-payment
+        // Does not redirect back to site
+        // Requires payment_intent.requires_action and checkout.session.async_payment_succeeded / checkout.session.async_payment_failed
+        'name' => 'multibanco',
+        'label' => E::ts('Multibanco'),
+        'currencies' => ['EUR'],
+        'recur' => FALSE,
+        'setup' => FALSE,
+      ],*/
+      [
+        // https://docs.stripe.com/payments/sepa-debit
+        'name' => 'sepa_debit',
+        'label' => E::ts('SEPA Direct Debit'),
+        'currencies' => ['EUR'],
+        'recur' => TRUE,
+        'setup' => TRUE,
+      ],
+      [
+        // https://docs.stripe.com/payments/ach-direct-debit
+        'name' => 'us_bank_account',
+        'label' => E::ts('ACH Direct Debit'),
+        'currencies' => ['USD'],
+        'recur' => TRUE,
+        'setup' => TRUE,
+      ],
+      [
+        // https://docs.stripe.com/payments/twint/accept-a-payment
+        // Relies on payment_intent.succeeded or payment_intent.failed events to determine if the payment was successful.
+        // @todo: Implement payment_intent.succeeded/payment_intent.failed handling
+        'name' => 'twint',
+        'label' => E::ts('TWINT'),
+        'currencies' => ['CHF'],
+        'recur' => FALSE,
+        'setup' => FALSE,
+      ]
     ];
   }
 

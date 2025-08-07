@@ -16,13 +16,13 @@ use Civi\API\Event\AuthorizedTrait;
 /**
  * Class AuthorizeEvent
  *
- * @package Civi\API\Event
+ * @package Civi\Stripe\Event
  *
  * Determine whether the API request is allowed for the current user.
  * For successful execution, at least one listener must invoke
  * $event->authorize().
  *
- * Event name: 'civi.api.authorize'
+ * Event name: 'civi.stripe.authorize'
  */
 class AuthorizeEvent extends \Civi\Core\Event\GenericHookEvent {
 

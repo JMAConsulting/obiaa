@@ -151,6 +151,15 @@ class CRM_Core_Payment_StripeCheckout extends CRM_Core_Payment_Stripe {
 
     // Allow each CMS to do a pre-flight check before redirecting to Stripe.
     CRM_Core_Config::singleton()->userSystem->prePostRedirect();
+
+    if ((\CRM_Core_Config::singleton()->userFramework === 'Drupal8') && CRM_Utils_Request::retrieve('_drupal_ajax', 'Boolean', FALSE)) {
+      $webformRedirect = new \Drupal\webform\Ajax\WebformRefreshCommand($checkoutSession->url);
+      CRM_Core_Page_AJAX::returnJsonResponse([
+        $webformRedirect->render()
+      ]);
+      exit();
+    }
+
     CRM_Utils_System::setHttpHeader("HTTP/1.1 303 See Other", '');
     CRM_Utils_System::redirect($checkoutSession->url);
   }
@@ -262,29 +271,21 @@ class CRM_Core_Payment_StripeCheckout extends CRM_Core_Payment_Stripe {
   private function getSupportedPaymentMethods(\Civi\Payment\PropertyBag $propertyBag): array {
     $paymentMethods = \Civi::settings()->get('stripe_checkout_supported_payment_methods');
     $result = [];
-    foreach ($paymentMethods as $paymentMethod) {
-      switch ($paymentMethod) {
-        case 'sepa_debit':
-        case 'bancontact':
-          if ($propertyBag->getCurrency() === 'EUR') {
-            $result[] = $paymentMethod;
+    $supportedPaymentMethods = CRM_Stripe_Api::getSupportedPaymentMethodsCheckout();
+    foreach ($supportedPaymentMethods as $supportedPaymentMethod) {
+      if (in_array($supportedPaymentMethod['name'], $paymentMethods)) {
+        // Check for all currencies
+        if (in_array('*', $supportedPaymentMethod['currencies'])) {
+          $result[] = $supportedPaymentMethod['name'];
+        }
+        else {
+          foreach ($supportedPaymentMethod['currencies'] as $currency) {
+            if ($propertyBag->getCurrency() === $currency) {
+              $result[] = $supportedPaymentMethod['name'];
+            }
+            break;
           }
-          break;
-
-        case 'us_bank_account':
-          if ($propertyBag->getCurrency() === 'USD') {
-            $result[] = $paymentMethod;
-          }
-          break;
-
-        case 'bacs_debit':
-          if ($propertyBag->getCurrency() === 'GBP') {
-            $result[] = $paymentMethod;
-          }
-          break;
-
-        default:
-          $result[] = $paymentMethod;
+        }
       }
     }
     if (empty($result)) {
@@ -305,10 +306,11 @@ class CRM_Core_Payment_StripeCheckout extends CRM_Core_Payment_Stripe {
   private function buildCheckoutLineItems(array $civicrmLineItems, PropertyBag $propertyBag) {
     foreach ($civicrmLineItems as $priceSetLines) {
       foreach ($priceSetLines as $lineItem) {
+        $amount = $lineItem['unit_price'] + ($lineItem['tax_amount'] ?? 0);
         $checkoutLineItem = [
           'price_data' => [
             'currency' => $propertyBag->getCurrency(),
-            'unit_amount' => $this->getAmountFormattedForStripeAPI(PropertyBag::cast(['amount' => $lineItem['unit_price'], 'currency' => $propertyBag->getCurrency()])),
+            'unit_amount' => $this->getAmountFormattedForStripeAPI(PropertyBag::cast(['amount' => $amount, 'currency' => $propertyBag->getCurrency()])),
             'product_data' => [
               'name' => $lineItem['field_title'],
               // An empty label on a contribution page amounts configuration gives an empty $lineItem['label']. StripeCheckout needs it set.

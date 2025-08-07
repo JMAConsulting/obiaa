@@ -100,7 +100,7 @@ return [
     ],
     'referrer' => [
       'title' => E::ts('Referrer'),
-      'sql_type' => 'varchar(255)',
+      'sql_type' => 'varchar(1024)',
       'input_type' => 'Text',
       'description' => E::ts('HTTP referrer of this paymentIntent'),
     ],

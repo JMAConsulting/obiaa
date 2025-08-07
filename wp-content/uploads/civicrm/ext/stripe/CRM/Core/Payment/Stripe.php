@@ -14,6 +14,7 @@ use Brick\Math\RoundingMode;
 use Civi\Api4\ContributionRecur;
 use Civi\Api4\PaymentprocessorWebhook;
 use Civi\Api4\StripeCustomer;
+use Civi\Api4\StripePaymentintent;
 use CRM_Stripe_ExtensionUtil as E;
 use Civi\Payment\PropertyBag;
 use Stripe\Stripe;
@@ -309,8 +310,7 @@ class CRM_Core_Payment_Stripe extends CRM_Core_Payment {
     // Set plugin info and API credentials.
     Stripe::setAppInfo('CiviCRM', CRM_Utils_System::version(), CRM_Utils_System::baseURL());
     Stripe::setApiKey(self::getSecretKey($this->_paymentProcessor));
-    // With Stripe-php 12 we pin to latest Stripe API
-    // Stripe::setApiVersion(CRM_Stripe_Check::API_VERSION);
+    // With Stripe-php 12 API version is automatically set (to current version) by Stripe lib so we don't set it here
   }
 
   /**
@@ -959,17 +959,11 @@ class CRM_Core_Payment_Stripe extends CRM_Core_Payment {
         'identifier' => $params['qfKey'] ?? NULL,
         'contact_id' => $params['contactID'],
       ];
-      try {
-        $intentParams['id'] = civicrm_api3('StripePaymentintent', 'getvalue', ['stripe_intent_id' => $propertyBag->getCustomProperty('paymentMethodID'), 'return' => 'id']);
-      }
-      catch (Exception $e) {
-        // Do nothing, we should already have a StripePaymentintent record but we don't so we'll create one.
-      }
 
       if (empty($intentParams['contribution_id'])) {
         $intentParams['flags'][] = 'NC';
       }
-      CRM_Stripe_BAO_StripePaymentintent::create($intentParams);
+      CRM_Stripe_BAO_StripePaymentintent::writeRecord($intentParams);
       // Set the orderID (trxn_id) to the subscription ID because we don't yet have an invoice.
       // The IPN will change it to the invoice_id and then the charge_id
       $this->setPaymentProcessorOrderID($stripeSubscription->id);
@@ -1075,7 +1069,7 @@ class CRM_Core_Payment_Stripe extends CRM_Core_Payment {
       if (empty($intentParams['contribution_id'])) {
         $intentParams['flags'][] = 'NC';
       }
-      CRM_Stripe_BAO_StripePaymentintent::create($intentParams);
+      CRM_Stripe_BAO_StripePaymentintent::writeRecord($intentParams);
     }
 
     return $params;
@@ -1397,23 +1391,27 @@ class CRM_Core_Payment_Stripe extends CRM_Core_Payment {
 
       // Get the existing Price
       $existingPrice = $subscription->items->data[0]->price;
-
-      // Check if the Stripe Product already has a Price configured for the new amount
-      $priceToMatch = [
-        'active' => TRUE,
-        'currency' => $subscription->currency,
-        'product' => $existingPrice->product,
-        'type' => 'recurring',
-        'recurring' => [
-          'interval' => $existingPrice->recurring['interval'],
-        ],
-      ];
-      $existingPrices = $this->stripeClient->prices->all($priceToMatch);
-      foreach ($existingPrices as $price) {
-        if ($price->unit_amount === (int) $this->getAmountFormattedForStripeAPI($propertyBag)) {
-          // Yes, we already have a matching price option - use it!
-          $newPriceID = $price->id;
-          break;
+      $stripeProductID = $existingPrice->product;
+      $existingProduct = $this->stripeClient->products->retrieve($stripeProductID);
+      if (!$existingProduct->isDeleted() && $existingProduct->active) {
+        // Assuming the product is not archived (which it will be if Stripe Checkout created it) and not deleted
+        //   then we can check if the existing Stripe Product already has a Price for the new amount and use it.
+        $priceToMatch = [
+          'active' => TRUE,
+          'currency' => $subscription->currency,
+          'product' => $stripeProductID,
+          'type' => 'recurring',
+          'recurring' => [
+            'interval' => $existingPrice->recurring['interval'],
+          ],
+        ];
+        $existingPrices = $this->stripeClient->prices->all($priceToMatch);
+        foreach ($existingPrices as $price) {
+          if ($price->unit_amount === (int)$this->getAmountFormattedForStripeAPI($propertyBag)) {
+            // Yes, we already have a matching price option - use it!
+            $newPriceID = $price->id;
+            break;
+          }
         }
       }
       if (empty($newPriceID)) {
@@ -1421,13 +1419,45 @@ class CRM_Core_Payment_Stripe extends CRM_Core_Payment {
         $newPriceParameters = [
           'currency' => $subscription->currency,
           'unit_amount' => $this->getAmountFormattedForStripeAPI($propertyBag),
-          'product' => $existingPrice->product,
+          'product' => $stripeProductID,
           'metadata' => $existingPrice->metadata->toArray(),
           'recurring' => [
             'interval' => $existingPrice->recurring['interval'],
             'interval_count' => $existingPrice->recurring['interval_count'],
           ],
         ];
+        if ($existingProduct->isDeleted() || !$existingProduct->active) {
+          // Probably was created "inline", ie automatically via Stripe Checkout so we can't update it and
+          //   we need to either match another (active) Product with the same name or create a new one
+          $productSearchParams = [
+            'query' => "active:'true' AND name:'$existingProduct->name' AND description:'$existingProduct->description'",
+          ];
+          $matchingProducts = $this->stripeClient->products->search($productSearchParams);
+          foreach ($matchingProducts as $matchingProduct) {
+            // Frustratingly the strings are substring match (so eg. "Contribution Amount" matches "Changed Contribution Amount")
+            //   and active does not always seem to work (ie. sometimes the current, archived product is returned.
+            // To workaround this we iterate through the query results and basically check the params again.
+            if ($matchingProduct->active && ($existingProduct->name === $matchingProduct->name) && ($existingProduct->description === $matchingProduct->description)) {
+              // We found a matching, active product. Use it.
+              $newProduct = $matchingProduct;
+              // \Civi::log()->debug('foundmatchingproduct: ' . print_r($newProduct, true));
+              break;
+            }
+          }
+          if (empty($newProduct)) {
+            // No matching, active Product at Stripe. Create a new Product.
+            $newProductParams = [
+              'name' => $existingProduct->name,
+              'description' => $existingProduct->description,
+              'active' => TRUE,
+            ];
+            $newProduct = $this->stripeClient->products->create($newProductParams);
+            // \Civi::log()->debug('created new product: ' . $newProduct->id);
+          }
+          $stripeProductID = $newProduct->id;
+          $newPriceParameters['product'] = $stripeProductID;
+        }
+        // By this point we have identified an active Product to use. Create and assign the new Price to it.
         $newPriceID = $this->stripeClient->prices->create($newPriceParameters)->id;
       }
 
@@ -1443,7 +1473,7 @@ class CRM_Core_Payment_Stripe extends CRM_Core_Payment {
         'proration_behavior' => 'none',
       ]);
     }
-    catch (Exception $e) {
+    catch (Throwable $e) {
       // On ANY failure, throw an exception which will be reported back to the user.
       \Civi::log()->error('Update Subscription failed for RecurID: ' . $propertyBag->getContributionRecurID() . ' Error: ' . $e->getMessage());
       throw new PaymentProcessorException('Update Subscription Failed: ' . $e->getMessage(), $e->getCode(), $params);

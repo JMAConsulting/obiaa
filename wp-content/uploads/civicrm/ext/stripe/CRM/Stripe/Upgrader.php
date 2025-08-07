@@ -452,4 +452,11 @@ class CRM_Stripe_Upgrader extends CRM_Extension_Upgrader_Base {
     return TRUE;
   }
 
+  public function upgrade_6903() {
+    $this->ctx->log->info('Extend civicrm_stripe_paymentintent.referrer field from 255 to 1024 characters');
+    CRM_Core_DAO::executeQuery("ALTER TABLE civicrm_stripe_paymentintent
+      CHANGE referrer referrer varchar(1024) DEFAULT NULL COMMENT 'HTTP referrer of this paymentIntent'");
+    return TRUE;
+  }
+
 }

@@ -20,8 +20,8 @@ class CRM_CiviMobileAPI_Form_CiviAiSettings extends CRM_Core_Form {
 
   public static function validateToken($values) {
     $errors = [];
-    $tokenFieldName = 'civimobile_openai_secret_key';
-    $modelFieldName = 'civimobile_openai_model';
+    $tokenFieldName = 'civimobile_ai_secret_key';
+    $modelFieldName = 'civimobile_ai_model';
 
     if (empty($values[$tokenFieldName]) || empty(trim($values[$tokenFieldName]))) {
       $errors[$tokenFieldName] = E::ts('Fields cannot be empty.');
@@ -37,8 +37,9 @@ class CRM_CiviMobileAPI_Form_CiviAiSettings extends CRM_Core_Form {
   public function buildQuickForm() {
     parent::buildQuickForm();
 
-    $this->addElement('password', 'civimobile_openai_secret_key', E::ts('Secret key'));
-    $this->addElement('text', 'civimobile_openai_model', E::ts('Model'));
+    $this->addElement('password', 'civimobile_ai_secret_key', E::ts('Secret key'));
+    $this->addElement('text', 'civimobile_ai_model', E::ts('Model'));
+    $this->addElement('text', 'civimobile_ai_api_url', E::ts('API URL'));
 
     $buttons = [
       [
@@ -58,16 +59,21 @@ class CRM_CiviMobileAPI_Form_CiviAiSettings extends CRM_Core_Form {
   public function postProcess() {
     $params = $this->exportValues();
 
-    Civi::settings()->set('civimobile_openai_secret_key', $params['civimobile_openai_secret_key']);
-    Civi::settings()->set('civimobile_openai_model', $params['civimobile_openai_model']);
+    Civi::settings()->set('civimobile_ai_secret_key', $params['civimobile_ai_secret_key']);
+    Civi::settings()->set('civimobile_ai_model', $params['civimobile_ai_model']);
+    Civi::settings()->set('civimobile_ai_api_url', $params['civimobile_ai_api_url'] ?? NULL);
     CRM_Core_Session::singleton()->setStatus(E::ts('AI settings updated'), E::ts('CiviAI Settings'), 'success');
   }
 
   public function setDefaultValues() {
     $defaults = [];
 
-    $defaults['civimobile_openai_secret_key'] = Civi::settings()->get('civimobile_openai_secret_key');
-    $defaults['civimobile_openai_model'] = Civi::settings()->get('civimobile_openai_model');
+    $defaults['civimobile_ai_secret_key'] = Civi::settings()->get('civimobile_ai_secret_key');
+    $defaults['civimobile_ai_model'] = Civi::settings()->get('civimobile_ai_model');
+    $defaults['civimobile_ai_api_url'] = Civi::settings()->get('civimobile_ai_api_url');
+    if (empty($defaults['civimobile_ai_api_url'])) {
+      $defaults['civimobile_ai_api_url'] = 'https://api.openai.com/v1/responses';
+    }
 
     return $defaults;
   }

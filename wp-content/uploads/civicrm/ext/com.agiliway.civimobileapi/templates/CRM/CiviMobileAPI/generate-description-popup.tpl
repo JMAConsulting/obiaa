@@ -292,16 +292,17 @@
                         userInputAndData: userInputAndData,
                     },
                 }).then(function (result) {
-                    let generatedData = result?.[0]?.choices?.[0]?.message?.content;
-                    if (generatedData) {
-                        generatedData = generatedData.replace('```html', '');
-                        generatedData = generatedData.replace('```', '');
-                        resultWindow.html('<p class="generated-text-description">' + generatedData + '</p>');
+                    let generatedData = result?.[0];
+                    if (generatedData?.message) {
+                        let fomattedMessage = generatedData.message.replace('```html', '');
+                        fomattedMessage = fomattedMessage.replace('```', '');
+                        resultWindow.html('<p class="generated-text-description">' + fomattedMessage + '</p>');
                         isResultWindowEmpty = false;
                     } else {
                         clearFields();
                         descriptionPopup.hide();
-                        CRM.alert({/literal}'{ts escape="js"}Invalid API key. Please check your key.{/ts}', '{ts escape="js"}Error{/ts}'{literal}, 'error');
+                        console.error(generatedData?.error);
+                        CRM.alert({/literal}'{ts escape="js"}Unable to generate text. Contact Administer to resolve this.{/ts}', '{ts escape="js"}Error{/ts}'{literal}, 'error');
                     }
                 }, function () {
                     CRM.alert(ts('Something went wrong.'), ts('Text can\'t be generated'), 'error');

@@ -66,7 +66,7 @@ class CRM_CivirulesConditions_Contribution_FinancialType extends CRM_Civirules_C
    * @abstract
    */
   public function getExtraDataInputUrl($ruleConditionId) {
-    return CRM_Utils_System::url('civicrm/civirule/form/condition/contribution_financialtype/', 'rule_condition_id='.$ruleConditionId);
+    return $this->getFormattedExtraDataInputUrl('civicrm/civirule/form/condition/contribution_financialtype', $ruleConditionId);
   }
 
   /**

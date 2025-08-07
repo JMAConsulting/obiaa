@@ -9,6 +9,11 @@ Releases use the following numbering system:
 
 * **[BC]**: Items marked with [BC] indicate a breaking change that will require updates to your code if you are using that code in your extension.
 
+## 1.5.11 (2025-07-07)
+
+* Fix [#35](https://lab.civicrm.org/extensions/firewall/-/issues/35) Only use sessionId for logged in users.
+* Upgrade to EntityFrameworkV2.
+
 ## 1.5.10 (2024-04-29)
 
 * Fix [#34](https://lab.civicrm.org/extensions/firewall/-/merge_requests/18) Force session cookie for anonymous users submitting Drupal webforms on Drupal 9.2+.
