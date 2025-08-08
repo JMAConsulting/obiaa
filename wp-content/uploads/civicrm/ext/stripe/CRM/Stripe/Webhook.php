@@ -256,6 +256,9 @@ class CRM_Stripe_Webhook {
       'customer.subscription.updated',
       'customer.subscription.deleted',
       'checkout.session.completed',
+      // These replace charge.succeeded and charge.failed.
+      // 'payment_intent.succeeded',
+      // 'payment_intent.payment_failed',
     ];
   }
 

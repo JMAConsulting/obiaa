@@ -51,6 +51,7 @@ class CRM_Stripe_Api {
             return (string) $stripeObject->balance_transaction;
 
           case 'receive_date':
+          case 'created_date':
             return self::formatDate($stripeObject->created);
 
           case 'invoice_id':
@@ -74,6 +75,13 @@ class CRM_Stripe_Api {
           case 'payment_intent_id':
             return (string) $stripeObject->payment_intent;
 
+          case 'description':
+            return (string) $stripeObject->description;
+
+          case 'status':
+            // This might be "succeeded", "pending", "failed" (https://stripe.com/docs/api/charges/object#charge_object-status)
+            return (string) $stripeObject->status;
+
         }
         break;
 
@@ -87,6 +95,28 @@ class CRM_Stripe_Api {
             return (string) $stripeObject->id;
 
           case 'receive_date':
+            /*
+             * The "created" date of the invoice does not equal the paid date but it *might* be the same.
+             * We should use the paid_at below or lookup via the charge or paymentintent.
+             * "status_transitions": {
+             * "finalized_at": 1676295806,
+             * "marked_uncollectible_at": null,
+             * "paid_at": 1677591861,
+             * "voided_at": null
+             * },
+             */
+            if (!empty($stripeObject->status_transitions->paid_at)) {
+              return self::formatDate($stripeObject->status_transitions->paid_at);
+            }
+            // Intentionally falls through to invoice_date
+
+          case 'invoice_date':
+            if (!empty($stripeObject->status_transitions->finalized_at)) {
+              return self::formatDate($stripeObject->status_transitions->finalized_at);
+            }
+          // Intentionally falls through to created_date
+
+          case 'created_date':
             return self::formatDate($stripeObject->created);
 
           case 'subscription_id':
@@ -104,14 +134,6 @@ class CRM_Stripe_Api {
           case 'currency':
             return self::formatCurrency($stripeObject->currency);
 
-          case 'status_id':
-            if ((bool) $stripeObject->paid) {
-              return 'Completed';
-            }
-            else {
-              return 'Pending';
-            }
-
           case 'description':
             return (string) $stripeObject->description;
 
@@ -122,6 +144,9 @@ class CRM_Stripe_Api {
             // This is a coding error, but it looks like the general policy here is to return something. Could otherwise consider throwing an exception.
             Civi::log()->error("Coding error: CRM_Stripe_Api::getObjectParam failure_message is not a property on a Stripe Invoice object. Please alter your code to fetch the Charge and obtain the failure_message from that.");
             return '';
+
+          case 'status':
+            return self::mapInvoiceStatusToContributionStatus($stripeObject);
 
         }
         break;
@@ -195,8 +220,10 @@ class CRM_Stripe_Api {
               case \Stripe\Subscription::STATUS_INCOMPLETE_EXPIRED:
               default:
                 return CRM_Core_PseudoConstant::getKey('CRM_Contribute_BAO_Contribution', 'contribution_status_id', 'Cancelled');
-
             }
+
+          case 'status':
+            return self::mapSubscriptionStatusToRecurStatus($stripeObject->status);
 
           case 'customer_id':
             return (string) $stripeObject->customer;
@@ -223,6 +250,43 @@ class CRM_Stripe_Api {
 
           case 'subscription_id':
             return (string) $stripeObject->subscription;
+        }
+        break;
+
+      case 'subscription_item':
+        /** @var \Stripe\SubscriptionItem $stripeObject */
+        switch ($name) {
+          default:
+            if (isset($stripeObject->$name)) {
+              return $stripeObject->$name;
+            }
+            \Civi::log('stripe')->error('getObjectParam: Tried to get param "' . $name . '" from "' . $stripeObject->object . '" but it is not set');
+            return NULL;
+          // unit_amount
+        }
+        break;
+
+      case 'price':
+        /** @var \Stripe\Price $stripeObject */
+        switch ($name) {
+          case 'unit_amount':
+            return (float) $stripeObject->unit_amount / 100;
+
+          case 'recurring_interval':
+            // eg. "year"
+            return (string) $stripeObject->recurring->interval ?? '';
+
+          case 'recurring_interval_count':
+            // eg 1
+            return (int) $stripeObject->recurring->interval_count ?? 0;
+
+          default:
+            if (isset($stripeObject->$name)) {
+              return $stripeObject->$name;
+            }
+            \Civi::log('stripe')->error('getObjectParam: Tried to get param "' . $name . '" from "' . $stripeObject->object . '" but it is not set');
+            return NULL;
+          // unit_amount
         }
         break;
 
@@ -303,36 +367,100 @@ class CRM_Stripe_Api {
     return substr($civiCRMLocale,0, 2);
   }
 
-  public static function getListOfSupportedPaymentMethodsCheckout() {
+  /**
+   * Get a list of name->label for use in the settings
+   *
+   * @return array
+   */
+  public static function getListOfSupportedPaymentMethodsCheckout(): array {
+    return array_column(self::getSupportedPaymentMethodsCheckout(), 'label', 'name');
+  }
+
+  /**
+   * Get an array of supported StripeCheckout paymentMethods with metadata
+   *
+   * @return array[]
+   */
+  public static function getSupportedPaymentMethodsCheckout(): array {
     return [
-      'card' => E::ts('Card'),
-      // 'acss_debit',
-      // 'affirm',
-      // 'afterpay_clearpay',
-      // 'alipay',
-      // 'au_becs_debit',
-      'bacs_debit' => E::ts('BACS Direct Debit'),
-      'bancontact' => E::ts('Bancontact'),
-      // 'blik',
-      // 'boleto',
-      // 'cashapp',
-      // 'customer_balance',
-      // 'eps',
-      // 'fpx',
-      // 'giropay',
-      // 'grabpay',
-      // 'ideal',
-      // 'klarna',
-      // 'konbini',
-      // 'oxxo',
-      // 'p24',
-      // 'paynow',
-      // 'pix',
-      // 'promptpay',
-      'sepa_debit' => E::ts('SEPA Direct Debit'),
-      // 'sofort',
-      'us_bank_account' => E::ts('ACH Direct Debit'),
-      // 'wechat_pay',
+      [
+        // https://docs.stripe.com/payments/cards
+        'name' => 'card',
+        'label' => E::ts('Card'),
+        'currencies' => ['*'],
+        'recur' => TRUE,
+        'setup' => TRUE,
+      ],
+      [
+        // https://docs.stripe.com/payments/au-becs-debit
+        'name' => 'au_becs_debit',
+        'label' => E::ts('BECS Direct Debit payments in Australia'),
+        'currencies' => ['AUD'],
+        'recur' => TRUE,
+        'setup' => TRUE,
+      ],
+      [
+        // https://docs.stripe.com/payments/payment-methods/bacs-debit
+        'name' => 'bacs_debit',
+        'label' => E::ts('BACS Direct Debit'),
+        'currencies' => ['GBP'],
+        'recur' => TRUE,
+        'setup' => TRUE,
+      ],
+      [
+        // https://docs.stripe.com/payments/bancontact
+        'name' => 'bancontact',
+        'label' => E::ts('Bancontact'),
+        'currencies' => ['EUR'],
+        'recur' => TRUE,
+        'setup' => TRUE,
+      ],
+      [
+        // https://docs.stripe.com/payments/ideal/accept-a-payment
+        // Requires payment_intent.succeeded / payment_intent.payment_failed
+        'name' => 'ideal',
+        'label' => E::ts('iDEAL'),
+        'currencies' => ['EUR'],
+        'recur' => TRUE,
+        'setup' => TRUE,
+      ],
+      /*[
+        // https://docs.stripe.com/payments/multibanco
+        // Details of webhooks etc https://docs.stripe.com/payments/multibanco/accept-a-payment
+        // Does not redirect back to site
+        // Requires payment_intent.requires_action and checkout.session.async_payment_succeeded / checkout.session.async_payment_failed
+        'name' => 'multibanco',
+        'label' => E::ts('Multibanco'),
+        'currencies' => ['EUR'],
+        'recur' => FALSE,
+        'setup' => FALSE,
+      ],*/
+      [
+        // https://docs.stripe.com/payments/sepa-debit
+        'name' => 'sepa_debit',
+        'label' => E::ts('SEPA Direct Debit'),
+        'currencies' => ['EUR'],
+        'recur' => TRUE,
+        'setup' => TRUE,
+      ],
+      [
+        // https://docs.stripe.com/payments/ach-direct-debit
+        'name' => 'us_bank_account',
+        'label' => E::ts('ACH Direct Debit'),
+        'currencies' => ['USD'],
+        'recur' => TRUE,
+        'setup' => TRUE,
+      ],
+      [
+        // https://docs.stripe.com/payments/twint/accept-a-payment
+        // Relies on payment_intent.succeeded or payment_intent.failed events to determine if the payment was successful.
+        // @todo: Implement payment_intent.succeeded/payment_intent.failed handling
+        'name' => 'twint',
+        'label' => E::ts('TWINT'),
+        'currencies' => ['CHF'],
+        'recur' => FALSE,
+        'setup' => FALSE,
+      ]
     ];
   }
 

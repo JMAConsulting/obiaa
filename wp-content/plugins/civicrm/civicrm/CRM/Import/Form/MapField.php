@@ -242,14 +242,17 @@ abstract class CRM_Import_Form_MapField extends CRM_Import_Forms {
     //Updating Mapping Records
     if ($this->getSubmittedValue('updateMapping')) {
       $savedMappingID = (int) $this->getSubmittedValue('mappingId');
-      foreach (array_keys($this->getColumnHeaders()) as $i) {
-        $this->saveMappingField($savedMappingID, $i, TRUE);
+      if ($savedMappingID) {
+        foreach (array_keys($this->getColumnHeaders()) as $i) {
+          $this->saveMappingField($savedMappingID, $i, TRUE);
+        }
+        $this->setSavedMappingID($savedMappingID);
       }
-      $this->setSavedMappingID($savedMappingID);
       $this->updateUserJobMetadata('Template', ['mapping_id' => (int) $this->getSubmittedValue('mappingId')]);
     }
     //Saving Mapping Details and Records
     if ($this->getSubmittedValue('saveMapping')) {
+      // @todo - stop saving the mapping.
       $savedMappingID = Mapping::create(FALSE)->setValues([
         'name' => $this->getSubmittedValue('saveMappingName'),
         'description' => $this->getSubmittedValue('saveMappingDesc'),
@@ -305,7 +308,7 @@ abstract class CRM_Import_Form_MapField extends CRM_Import_Forms {
       if ($this->getSubmittedValue('savedMapping')) {
         $fieldMapping = $fieldMappings[$i] ?? NULL;
         if (isset($fieldMappings[$i])) {
-          if ($fieldMapping['name'] !== ts('do_not_import')) {
+          if (!empty($fieldMapping['name']) && $fieldMapping['name'] !== ts('do_not_import')) {
             $defaults["mapper[$i]"] = [$fieldMapping['name']];
           }
           else {
@@ -346,7 +349,7 @@ abstract class CRM_Import_Form_MapField extends CRM_Import_Forms {
   protected function addSavedMappingFields(): void {
     $savedMappingID = $this->getSavedMappingID();
     //to save the current mappings
-    if (!$savedMappingID) {
+    if (!$savedMappingID && !$this->getTemplateJob()) {
       $saveDetailsName = ts('Save this field mapping');
       $this->applyFilter('saveMappingName', 'trim');
       $this->add('text', 'saveMappingName', ts('Name'));
@@ -568,7 +571,7 @@ abstract class CRM_Import_Form_MapField extends CRM_Import_Forms {
     if (!$this->isUpdateExisting()) {
       $missingDedupeFields = $this->validateDedupeFieldsSufficientInMapping($rule, $mapper, $contactIdentifierFields);
       if ($missingDedupeFields) {
-        $mapperError[] = $missingDedupeFields;
+        $mapperError['_qf_default'] = $missingDedupeFields;
       }
     }
     return $mapperError;
@@ -611,17 +614,25 @@ abstract class CRM_Import_Form_MapField extends CRM_Import_Forms {
   }
 
   /**
-   * @param array $mapper
-   *
    * @param string $entity
    *
    * @return array
    * @throws \CRM_Core_Exception
    */
-  protected function validateRequiredContactFields(array $mapper, string $entity = 'Contact'): array {
+  protected function validateRequiredContactFields(string $entity = 'Contact'): array {
+    $mapper = [];
+    $fields = $this->getUserJob()['metadata']['import_mappings'];
+    foreach ($fields as $field) {
+      if (!isset($field['name'])) {
+        continue;
+      }
+      if (str_starts_with($field['name'], $entity . '.') || str_starts_with($field['name'], $this->getBaseEntity() . '.')) {
+        $mapper[] = [$field['name']];
+      }
+    }
     $parser = $this->getParser();
     $rule = $parser->getDedupeRule($this->getContactType(), $this->getUserJob()['metadata']['entity_configuration'][$entity]['dedupe_rule'] ?? NULL);
-    return $this->validateContactFields($rule, $this->getImportKeys($mapper), ['external_identifier', 'contact_id']);
+    return $this->validateContactFields($rule, $this->getImportKeys($mapper), ['external_identifier', 'contact_id', 'id']);
   }
 
 }

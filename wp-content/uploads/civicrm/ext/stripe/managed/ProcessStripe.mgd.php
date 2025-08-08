@@ -14,7 +14,7 @@ return [
     [
       'name' => 'ProcessStripe',
       'entity' => 'Job',
-      'update' => 'never',
+      'update' => 'unmodified',
       'params' =>
         [
           'version' => 3,

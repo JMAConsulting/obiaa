@@ -6,30 +6,26 @@
         <table class="form-layout-compressed">
             <tbody>
             <tr class="crm-group-form-block-isReserved">
-                <td class="label">{$form.civimobile_openai_secret_key.label} {help id="secret-key-help"}</td>
+                <td class="label">{$form.civimobile_ai_secret_key.label} {help id="ai-secret-key-help"}</td>
                 <td>
                     <div>
-                        {$form.civimobile_openai_secret_key.html}
-                    </div>
-                    <div>
-                        <p class="description">
-                            {ts 1='href="https://platform.openai.com/account/api-keys" target="_blank"'}To use ChatGPT you must register at
-                                <a %1>openai.com</a>
-                                and create your own Secret Key{/ts}
-                        </p>
+                        {$form.civimobile_ai_secret_key.html}
                     </div>
                 </td>
             </tr>
             <tr class="crm-group-form-block-isReserved">
-                <td class="label">{$form.civimobile_openai_model.label}</td>
+                <td class="label">{$form.civimobile_ai_model.label} {help id="ai-model-help"}</td>
                 <td>
                     <div>
-                        {$form.civimobile_openai_model.html}
+                        {$form.civimobile_ai_model.html}
                     </div>
+                </td>
+            </tr>
+            <tr class="crm-group-form-block-isReserved">
+                <td class="label">{$form.civimobile_ai_api_url.label} {help id="api-url-help"}</td>
+                <td>
                     <div>
-                        <p class="description">
-                            {ts domain="com.agiliway.civimobileapi"}Type your model name in format like this{/ts} <strong>gpt-4o-mini</strong>
-                        </p>
+                        {$form.civimobile_ai_api_url.html}
                     </div>
                 </td>
             </tr>

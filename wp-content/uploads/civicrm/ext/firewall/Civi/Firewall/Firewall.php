@@ -266,7 +266,12 @@ GROUP BY event_type
     $validTo = time() + ((int) \Civi::settings()->get('secure_cache_timeout_minutes') * 60);
     $random = bin2hex(random_bytes(12));
     $privateKey = CIVICRM_SITE_KEY;
-    $sessionId = \CRM_Core_Config::singleton()->userSystem->getSessionId();
+    if (\CRM_Utils_System::isUserLoggedIn()) {
+      $sessionId = \CRM_Core_Config::singleton()->userSystem->getSessionId();
+    }
+    else {
+      $sessionId = '';
+    }
 
     $publicToken = "$validTo.$random.";
     $dataToHash = $publicToken . $privateKey . $sessionId;
@@ -323,7 +328,12 @@ GROUP BY event_type
       $this->setReason('expiredcsrf');
       return FALSE;
     }
-    $sessionId = \CRM_Core_Config::singleton()->userSystem->getSessionId();
+    if (\CRM_Utils_System::isUserLoggedIn()) {
+      $sessionId = \CRM_Core_Config::singleton()->userSystem->getSessionId();
+    }
+    else {
+      $sessionId = '';
+    }
     $dataToHash = "$matches[1].$matches[2]." . CIVICRM_SITE_KEY . $sessionId;
     if ($matches[3] !== hash('sha256', $dataToHash)) {
       \Civi\Firewall\Event\InvalidCSRFEvent::trigger(self::getIPAddress(), 'tampered hash');

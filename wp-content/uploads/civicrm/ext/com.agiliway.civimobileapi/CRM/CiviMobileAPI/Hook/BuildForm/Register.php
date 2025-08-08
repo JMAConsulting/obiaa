@@ -104,7 +104,7 @@ class CRM_CiviMobileAPI_Hook_BuildForm_Register {
 
             if ($form->elementExists("billing_postal_code-{$billingLocationID}")) {
               $element = $form->getElement("billing_postal_code-{$billingLocationID}");
-              $element->setValue($billingFields['state_province_id']);
+              $element->setValue($billingFields['postal_code']);
             }
           }
 

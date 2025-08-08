@@ -196,10 +196,6 @@ abstract class CRM_Import_DataSource implements DataSourceInterface {
       return NULL;
     }
     $values = $this->queryResultObject->toArray();
-    /* trim whitespace around the values */
-    foreach ($values as $k => $v) {
-      $values[$k] = trim($v, " \t\r\n");
-    }
     $this->row = $values;
     return $values;
   }
@@ -229,6 +225,9 @@ abstract class CRM_Import_DataSource implements DataSourceInterface {
    * @throws \CRM_Core_Exception
    */
   public function getRowCount(array $statuses = []): int {
+    if (!$this->getTableName()) {
+      return 0;
+    }
     $this->statuses = $statuses;
     $query = 'SELECT count(*) FROM ' . $this->getTableName() . ' ' . $this->getStatusClause();
     return CRM_Core_DAO::singleValueQuery($query);
@@ -292,7 +291,7 @@ abstract class CRM_Import_DataSource implements DataSourceInterface {
    */
   public function getDataSourceMetadata(): array {
     if (!$this->dataSourceMetadata && $this->getUserJobID()) {
-      $this->dataSourceMetadata = $this->getUserJob()['metadata']['DataSource'];
+      $this->dataSourceMetadata = $this->getUserJob()['metadata']['DataSource'] ?? [];
     }
 
     return $this->dataSourceMetadata;

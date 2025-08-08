@@ -41,7 +41,7 @@ class Admin {
       'operators' => \CRM_Utils_Array::makeNonAssociative(self::getOperators()),
       'permissions' => [],
       'functions' => self::getSqlFunctions(),
-      'displayTypes' => Display::getDisplayTypes(['id', 'name', 'label', 'description', 'icon']),
+      'displayTypes' => Display::getDisplayTypes(['id', 'name', 'label', 'description', 'icon', 'grouping']),
       'styles' => \CRM_Utils_Array::makeNonAssociative(self::getStyles()),
       'defaultPagerSize' => (int) \Civi::settings()->get('default_pager_size'),
       'defaultDisplay' => SearchDisplay::getDefault(FALSE)->setSavedSearch(['id' => NULL])->execute()->first(),
@@ -89,8 +89,10 @@ class Admin {
       '<' => '<',
       '>=' => '≥',
       '<=' => '≤',
-      'CONTAINS' => E::ts('Contains'),
-      'NOT CONTAINS' => E::ts("Doesn't Contain"),
+      'CONTAINS' => E::ts('Contains All'),
+      'NOT CONTAINS' => E::ts("Doesn't Contain All"),
+      'CONTAINS ONE OF' => E::ts('Contains Any'),
+      'NOT CONTAINS ONE OF' => E::ts("Doesn't Contain Any"),
       'IN' => E::ts('Is One Of'),
       'NOT IN' => E::ts('Not One Of'),
       'LIKE' => E::ts('Is Like'),
@@ -103,6 +105,7 @@ class Admin {
       'NOT BETWEEN' => E::ts('Not Between'),
       'IS EMPTY' => E::ts('Is Empty'),
       'IS NOT EMPTY' => E::ts('Not Empty'),
+      'IS NOT NULL' => E::ts('Any value'),
     ];
   }
 

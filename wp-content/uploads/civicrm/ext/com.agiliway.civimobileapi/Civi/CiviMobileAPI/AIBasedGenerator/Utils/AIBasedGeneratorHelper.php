@@ -8,8 +8,6 @@ use CRM_Utils_Hook;
 
 class AIBasedGeneratorHelper {
 
-  const OPENAI_URL = 'https://api.openai.com/v1/chat/completions';
-
   public static function generate($params = '', $userInputAndData = []) {
 
     $conversation = [];
@@ -71,15 +69,23 @@ class AIBasedGeneratorHelper {
       }
     }
 
+    $apiUrl = self::getAiApiUrl();
+
     $postFields = [
-      'model' => Civi::settings()->get('civimobile_openai_model'),
-      'messages' => $conversation,
+      'model' => Civi::settings()->get('civimobile_ai_model'),
     ];
+
+    if (strpos($apiUrl, 'v1/responses')) {
+      $postFields['input'] = $conversation;
+    }
+    else {
+      $postFields['messages'] = $conversation;
+    }
 
     $config = &CRM_Core_Config::singleton();
     $baseUrl = str_replace('/administrator/', '', $config->userFrameworkBaseURL);
 
-    $key = 'Bearer ' . Civi::settings()->get('civimobile_openai_secret_key');
+    $key = 'Bearer ' . Civi::settings()->get('civimobile_ai_secret_key');
 
     $requestHeader = [
       'Content-Type: application/json',
@@ -88,7 +94,7 @@ class AIBasedGeneratorHelper {
     ];
 
     $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, self::OPENAI_URL);
+    curl_setopt($ch, CURLOPT_URL, $apiUrl);
     curl_setopt($ch, CURLOPT_HTTPHEADER, $requestHeader);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
@@ -98,6 +104,34 @@ class AIBasedGeneratorHelper {
     $apiResponse = curl_exec($ch);
     curl_close($ch);
 
-    return json_decode($apiResponse, true);
+    $decodedResponse = json_decode($apiResponse, true);
+
+    $content = NULL;
+
+    if (isset($decodedResponse['output'][0]['content'][0]['text'])) {
+      $content = $decodedResponse['output'][0]['content'][0]['text'];
+    }
+    elseif (isset($decodedResponse['choices'][0]['message']['content'])) {
+      $content = $decodedResponse['choices'][0]['message']['content'];
+    }
+
+    if ($content === NULL) {
+      return ['error' => json_encode($decodedResponse)];
+    }
+
+    return ['message' => $content];
+  }
+
+  /**
+   * Returns AI API URL.
+   *
+   * @return string
+   */
+  private static function getAiApiUrl(): string {
+    $aiApiUrl = Civi::settings()->get('civimobile_ai_api_url');
+    if (empty($aiApiUrl)) {
+      $aiApiUrl = 'https://api.openai.com/v1/responses';
+    }
+    return $aiApiUrl;
   }
 }

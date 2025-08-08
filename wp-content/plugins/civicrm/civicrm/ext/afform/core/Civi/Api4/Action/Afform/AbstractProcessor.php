@@ -69,6 +69,15 @@ abstract class AbstractProcessor extends \Civi\Api4\Generic\AbstractAction {
 
   protected $_entityValues = [];
 
+  protected array $_response = [];
+
+  /**
+   * Line items gathered from entities on the form - for payment processing
+   *
+   * @var array[]
+   */
+  protected array $_lineItems = [];
+
   /**
    * @param \Civi\Api4\Generic\Result $result
    * @throws \CRM_Core_Exception
@@ -87,6 +96,7 @@ abstract class AbstractProcessor extends \Civi\Api4\Generic\AbstractAction {
     }
     $this->_formDataModel = new FormDataModel($this->_afform['layout']);
     $this->loadEntities();
+    // TODO: use _response more consistently
     $result->exchangeArray($this->processForm());
   }
 
@@ -172,11 +182,7 @@ abstract class AbstractProcessor extends \Civi\Api4\Generic\AbstractAction {
     // Limit number of records based on af-repeat settings
     // If 'min' is set then it is repeatable, and max will either be a number or NULL for unlimited.
     if (isset($entity['min']) && isset($entity['max'])) {
-      foreach (array_keys($values) as $count => $index) {
-        if ($count >= $entity['max']) {
-          unset($values[$index]);
-        }
-      }
+      $values = array_slice($values, 0, $entity['max'], TRUE);
     }
     $matchField = self::getNestedKey($values);
     if (!$matchField) {
@@ -320,21 +326,25 @@ abstract class AbstractProcessor extends \Civi\Api4\Generic\AbstractAction {
     // Fill additional info about file fields
     $fileFields = $this->getFileFields($apiEntityName, $entityFields);
     foreach ($fileFields as $fieldName => $fieldDefn) {
-      $select = ['file_name', 'icon'];
-      if ($this->canViewFileAttachments($afEntityName)) {
-        $select[] = 'url';
-      }
       foreach ($result as &$item) {
         if (!empty($item[$fieldName])) {
-          $fileInfo = File::get(FALSE)
-            ->setSelect($select)
-            ->addWhere('id', '=', $item[$fieldName])
-            ->execute()->first();
+          $fileInfo = $this->getFileInfo($item[$fieldName], $afEntityName);
           $item[$fieldName] = $fileInfo;
         }
       }
     }
     return $result;
+  }
+
+  protected function getFileInfo(int $fileId, string $afEntityName):? array {
+    $select = ['id', 'file_name', 'icon'];
+    if ($this->canViewFileAttachments($afEntityName)) {
+      $select[] = 'url';
+    }
+    return File::get(FALSE)
+      ->setSelect($select)
+      ->addWhere('id', '=', $fileId)
+      ->execute()->first();
   }
 
   private function canViewFileAttachments(string $afEntityName): bool {
@@ -590,15 +600,15 @@ abstract class AbstractProcessor extends \Civi\Api4\Generic\AbstractAction {
         // Use default values from DisplayOnly fields + submittable fields on the form
         $values['fields'] = $this->getForcedDefaultValues($entity['fields']) +
           array_intersect_key($values['fields'] ?? [], $submittableFields);
-        // Unset prefilled file fields
+        // Special handling for file fields
         foreach ($fileFields as $fileFieldName) {
           if (isset($values['fields'][$fileFieldName]) && is_array($values['fields'][$fileFieldName])) {
-            // File was unchanged
-            if (isset($values['fields'][$fileFieldName]['file_name'])) {
-              unset($values['fields'][$fileFieldName]);
+            // Keep file id
+            if (isset($values['fields'][$fileFieldName]['id'])) {
+              $values['fields'][$fileFieldName] = $values['fields'][$fileFieldName]['id'];
             }
             // File was deleted
-            elseif (array_key_exists('file_name', $values['fields'][$fileFieldName])) {
+            elseif (array_key_exists('id', $values['fields'][$fileFieldName])) {
               $values['fields'][$fileFieldName] = '';
             }
           }
@@ -728,6 +738,36 @@ abstract class AbstractProcessor extends \Civi\Api4\Generic\AbstractAction {
   }
 
   /**
+   * Set a key in the api response
+   *
+   * Note: key should be recognised by the afForm controller
+   * expected keys are:
+   *   token, redirect, message
+   *
+   * @param string $key
+   * @param mixed $value
+   */
+  public function setResponseItem(string $key, $value): void {
+    $this->_response[$key] = $value;
+  }
+
+  /**
+   * Retrieve stashed line items
+   * @return array
+   */
+  public function getLineItems(): array {
+    return $this->_lineItems;
+  }
+
+  /**
+   * Stash line items from across form entities
+   * @param array $lineItem
+   */
+  public function addLineItem(array $lineItem): void {
+    $this->_lineItems[] = $lineItem;
+  }
+
+  /**
    * Function to get allowed action of a join entity
    *
    * @param array $mainEntity
@@ -742,6 +782,34 @@ abstract class AbstractProcessor extends \Civi\Api4\Generic\AbstractAction {
     }
 
     return $actions;
+  }
+
+  /**
+   * Function to replace tokens with entity values in e.g. redirect urls
+   *
+   * Tokens look like [Participant1.0.id]
+   *
+   * @param string $text
+   *
+   * @return string
+   */
+  public function replaceTokens(string $text): string {
+    $matches = [];
+    preg_match_all('/\[[a-zA-Z0-9]{1,}\.[0-9]{1,}\.[^.]{1,}\]/', $text, $matches);
+
+    foreach ($matches[0] as $match) {
+      // strip [ ] and split on .
+      [$entityName, $index, $field] = explode('.', substr($match, 1, -1));
+      if ($field === 'id') {
+        $value = $this->_entityIds[$entityName][$index]['id'];
+      }
+      else {
+        $value = $this->_entityValues[$entityName][$index]['fields'][$field];
+      }
+      $text = str_replace($match, $value, $text);
+    }
+
+    return $text;
   }
 
 }

@@ -9,65 +9,69 @@
  +--------------------------------------------------------------------+
  */
 
+use Civi\Api4\StripePaymentintent;
 use CRM_Stripe_ExtensionUtil as E;
 
 class CRM_Stripe_BAO_StripePaymentintent extends CRM_Stripe_DAO_StripePaymentintent {
-
-  public static function getEntityName() {
-    return 'StripePaymentintent';
-  }
 
   /**
    * Create a new StripePaymentintent based on array-data
    *
    * @param array $params key-value pairs
    *
-   * @return \CRM_Stripe_BAO_StripePaymentintent
+   * @return \CRM_Core_DAO
+   * @deprecated
    */
   public static function create($params) {
-    $instance = new self;
-    try {
-      if (!empty($params['id'])) {
-        $instance->id = $params['id'];
+    CRM_Core_Error::deprecatedFunctionWarning('writeRecord');
+    return self::writeRecord($params);
+  }
+
+  /**
+   * Create or update a record from supplied params.
+   *
+   * If 'id' is supplied, an existing record will be updated
+   * Otherwise a new record will be created.
+   *
+   * @param array $record
+   *
+   * @return static
+   * @throws \CRM_Core_Exception
+   */
+  public static function writeRecord(array $record): CRM_Core_DAO {
+    if ($record['stripe_intent_id']) {
+      // This checks if we already recorded the intent_id. In that case we need to update it.
+      $existingRecord = StripePaymentintent::get(FALSE)
+        ->addSelect('id', 'flags', 'referrer')
+        ->addWhere('stripe_intent_id', '=', $record['stripe_intent_id'])
+        ->execute()
+        ->first();
+      if (!empty($existingRecord['id'])) {
+        $record['id'] = $existingRecord['id'];
       }
-      elseif ($params['stripe_intent_id']) {
-        $instance->id = civicrm_api3('StripePaymentintent', 'getvalue', [
-          'return' => "id",
-          'stripe_intent_id' => $params['stripe_intent_id'],
-        ]);
-      }
-      if ($instance->id) {
-        if ($instance->find()) {
-          $instance->fetch();
-        }
-      }
-    }
-    catch (Exception $e) {
-      // do nothing, we're creating a new one
     }
 
-    $flags = empty($instance->flags) ? [] : unserialize($instance->flags);
-    if (!empty($params['flags']) && is_array($params['flags'])) {
-      foreach ($params['flags'] as $flag) {
+    $flags = empty($existingRecord['flags']) ? [] : unserialize($existingRecord['flags']);
+    if (!empty($record['flags']) && is_array($record['flags'])) {
+      foreach ($record['flags'] as $flag) {
         if (!in_array($flag, $flags)) {
           $flags[] = 'NC';
         }
       }
-      unset($params['flags']);
+      unset($record['flags']);
     }
-    $instance->flags = serialize($flags);
+    $record['flags'] = serialize($flags);
 
-    if (!empty($_SERVER['HTTP_REFERER']) && empty($instance->referrer)) {
-      $instance->referrer = $_SERVER['HTTP_REFERER'];
+    // Use existing referrer if we have one.
+    $record['referrer'] = empty($existingRecord['referrer']) ? '' : $existingRecord['referrer'];
+    if (!empty($_SERVER['HTTP_REFERER']) && empty($existingRecord['referrer'])) {
+      // Otherwise, use the webserver referrer
+      $record['referrer'] = $_SERVER['HTTP_REFERER'];
     }
+    // The referrer is use-supplied, so could be anything. Ensure it doesn't exceed the field size.
+    $record['referrer'] = substr($record['referrer'], 0, 1024);
 
-    $hook = empty($instance->id) ? 'create' : 'edit';
-    CRM_Utils_Hook::pre($hook, self::getEntityName(), $params['id'] ?? NULL, $params);
-    $instance->copyValues($params);
-    $instance->save();
-
-    CRM_Utils_Hook::post($hook, self::getEntityName(), $instance->id, $instance);
-
-    return $instance;
+    return parent::writeRecord($record);
   }
+
 }
