@@ -357,7 +357,6 @@ add_action('acf/save_post', 'add_business_form_handler_save_post');
 function add_business_form_handler_save_post($post_id) {
   // Check if this is an Add a Business ACF form submission
   if (isset($_POST['acf']) && $_POST['_acf_post_id'] == 443) {
-    \Civi::log()->debug('postSubmissionAddBusiness', $_POST);
 
     // Process submitted ACF fields
     $form_data = $_POST['acf'];
@@ -381,7 +380,7 @@ function add_business_form_handler_save_post($post_id) {
       'google_maps_url' => 'Social_Media.Google_Business_Profile',
       'francophone' => 'Ownership_Demographics.Francophone',
       'women' => 'Ownership_Demographics.Women',
-      'youth_39_under' => 'Ownership_Demographics.Youth_39_and_under_',
+      'youth' => 'Ownership_Demographics.Youth_39_and_under_',
       'lgbtiq' => 'Ownership_Demographics.Lesbian_gay_bisexual_transsexual_queer_LGBTQ_',
       'indigenous' => 'Ownership_Demographics.Indigenous_First_Nations_Inuit_or_Metis_',
       'racialized' => 'Ownership_Demographics.Racialized_group_member',
@@ -398,8 +397,8 @@ function add_business_form_handler_save_post($post_id) {
       'category',
       'sub_category',
       'local_bia',
-      'opened_date',
-      'opt_in',
+      'date_of_opening',
+      'opt_out_of_public_listings',
       'number_of_employees',
       'linkedin_url',
       'google_maps_url',
@@ -409,7 +408,7 @@ function add_business_form_handler_save_post($post_id) {
       'ticktok_url',
       'francophone',
       'women',
-      'youth_39_under',
+      'youth',
       'lgbtiq',
       'indigenous',
       'racialized',
@@ -422,13 +421,12 @@ function add_business_form_handler_save_post($post_id) {
       'contact_email',
       'contact_phone',
     ];
-
     $params = [];
     foreach ($fields as $field) {
       $params[$field] = array_find_key_recursive($form_data, get_acf_key($field));
     }
-    if (empty($params['opt_in'])) {
-      $params['opt_in'] = 'No';
+    if (empty($params['opt_out_of_public_listings'])) {
+      $params['opt_out_of_public_listings'] = 'No';
     }
 
     $allPropertyAndUnitDetails = array_find_key_recursive($form_data, get_acf_key('property_&_unit_details'));
@@ -892,16 +890,22 @@ function add_business_form_handler_save_post($post_id) {
     // Set the custom fields on the business contact.
     Contact::update(FALSE)
       ->setValues($orgValues)
-      ->addValue('Business_Details.Open_Date', formatDateString($params['opened_date']))
-      ->addValue('Business_Category.Opt_out_of_Public_Listing_:label', $params['opt_in'])
+      ->addValue('Business_Details.Open_Date', formatDateString($params['date_of_opening']))
+      ->addValue('Business_Category.Opt_out_of_Public_Listing_:label', $params['opt_out_of_public_listings'])
       ->addValue('Business_Details.Full_Time_Employees_at_this_location', $params['number_of_employees'])
       ->addWhere('id', '=', $contact['id'])
       ->execute();
   }
 }
 
-// Recursively search array for a given key
-function array_find_key_recursive($array, $key) {
+/**
+ * Recursively searches an array for a key
+ *
+ * @param array $array the array to search
+ * @param mixed $key the key to find in `$array`
+ * @return mixed the value associated with `$key`. If multiple entries match `$key` (for example at different depths) one of them will be returned.
+ */
+function array_find_key_recursive(array $array, mixed $key): mixed {
   if (!is_array($array)) {
     return null;
   }
@@ -925,12 +929,18 @@ function array_find_key_recursive($array, $key) {
 }
 
 // NOTE: if performance is an issue we should cache found values here
+/**
+ * Gets the key associated with a given field name in acf
+ *
+ * @param string $field_name the name of the field to get the key for
+ * @return string|null the key of the field or `null` if it is not found
+ */
 function get_acf_key(string $field_name): ?string {
   $field = acf_get_field($field_name);
-  return $field ? $field[0]['key'] : null;
+  return $field ? $field['key'] : null;
 }
 
-function formatDateString($dateString) {
+function formatDateString($dateString): string {
   if ($dateString != '') {
     $dateFormatted = DateTime::createFromFormat('Ymd', $dateString);
     return $dateFormatted->format('Y-m-d');
