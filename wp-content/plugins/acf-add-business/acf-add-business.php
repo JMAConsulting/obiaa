@@ -200,32 +200,27 @@ function acf_load_unit_choices($field) {
 }
 
 
-add_filter('acf/validate_value/key=field_669679f71b1b0', 'validate_tax_roll', 10, 4);
+add_filter('acf/validate_value/name=property_address', 'validate_tax_roll', 10, 4);
 
 function validate_tax_roll($valid, $value, $field, $input) {
   $keys = preg_split('/[\[\]]+/', $input, -1, PREG_SPLIT_NO_EMPTY);
-  $is_new_property = $_POST;
 
   // Check if a new property is being created in this row
   foreach ($keys as $key) {
-    if (isset($is_new_property[$key])) {
-      if ($key != 'field_669679f71b1b0') {
-        $is_new_property = $is_new_property[$key];
+    if (isset($_POST[$key])) {
+      if ($key != get_acf_key('property_address')) {
+        $is_new_property = !empty($_POST[$key]);
       } else {
-        if (isset($is_new_property['field_66a7cf3944bf8'])) {
-          $is_new_property = $is_new_property['field_66a7cf3944bf8'];
-        } else {
-          $is_new_property = '';
-        }
+        $is_new_property = $POST[get_acf_key('is_new_property')] ?? false;
       }
     } else {
-      $is_new_property = '';
+      $is_new_property = false;
       break;
     }
   }
 
   // If not a new property, make sure tax roll is filled
-  if ($is_new_property == 0) {
+  if (!$is_new_property) {
     if (empty($value)) {
       $valid = 'Tax Roll Address is required.';
     }
@@ -234,32 +229,27 @@ function validate_tax_roll($valid, $value, $field, $input) {
   return $valid;
 }
 
-add_filter('acf/validate_value/key=field_66a3f9f05f9bb', 'validate_new_address', 10, 4);
+add_filter('acf/validate_value/name=tax_roll_address', 'validate_new_address', 10, 4);
 
 function validate_new_address($valid, $value, $field, $input) {
   $keys = preg_split('/[\[\]]+/', $input, -1, PREG_SPLIT_NO_EMPTY);
-  $is_new_property = $_POST;
 
   // Check if a new property is being created in this row
   foreach ($keys as $key) {
     if (isset($is_new_property[$key])) {
-      if ($key != 'field_66a3f9f05f9bb') {
-        $is_new_property = $is_new_property[$key];
+      if ($key != get_acf_key('tax_roll_address')) {
+        $is_new_property = !empty($_POST[$key]);
       } else {
-        if (isset($is_new_property['field_66a7cf3944bf8'])) {
-          $is_new_property = $is_new_property['field_66a7cf3944bf8'];
-        } else {
-          $is_new_property = '';
-        }
+        $is_new_property = $_POST[get_acf_key('is_new_property')] ?? false;
       }
     } else {
-      $is_new_property = '';
+      $is_new_property = false;
       break;
     }
   }
 
   // If a new property, make sure new tax roll address is filled
-  if ($is_new_property == 1) {
+  if ($is_new_property) {
     if (empty($value)) {
       $valid = 'New Tax Roll Address is required.';
     }
@@ -268,7 +258,7 @@ function validate_new_address($valid, $value, $field, $input) {
   return $valid;
 }
 
-add_filter('acf/validate_value/key=field_66968109025e6', 'validate_unit_address', 10, 4);
+add_filter('acf/validate_value/name=unit_address', 'validate_unit_address', 10, 4);
 
 function validate_unit_address($valid, $value, $field, $input) {
   $keys = preg_split('/[\[\]]+/', $input, -1, PREG_SPLIT_NO_EMPTY);
@@ -277,23 +267,19 @@ function validate_unit_address($valid, $value, $field, $input) {
   // Check if a new unit is being created in this row
   foreach ($keys as $key) {
     if (isset($is_new_unit[$key])) {
-      if ($key != 'field_66968109025e6') {
-        $is_new_unit = $is_new_unit[$key];
+      if ($key != get_acf_key('unit_address')) {
+        $is_new_unit = $_POST[$key];
       } else {
-        if (isset($is_new_unit['field_66a7cb3396664'])) {
-          $is_new_unit = $is_new_unit['field_66a7cb3396664'];
-        } else {
-          $is_new_unit = '';
-        }
+        $is_new_unit = $_POST[get_acf_key('is_new_unit')] ?? false;
       }
     } else {
-      $is_new_unit = '';
+      $is_new_unit = false;
       break;
     }
   }
 
   // If not a new unit, require original unit address selection
-  if ($is_new_unit == 0) {
+  if (!$is_new_unit) {
     if (empty($value)) {
       $valid = 'Unit Address is required.';
     }
@@ -302,32 +288,27 @@ function validate_unit_address($valid, $value, $field, $input) {
   return $valid;
 }
 
-add_filter('acf/validate_value/key=field_66a4007826665', 'validate_new_unit', 10, 4);
+add_filter('acf/validate_value/name=new_unit_address', 'validate_new_unit', 10, 4);
 
 function validate_new_unit($valid, $value, $field, $input) {
   $keys = preg_split('/[\[\]]+/', $input, -1, PREG_SPLIT_NO_EMPTY);
 
   // Check if a new unit is being created in this row
-  $is_new_unit = $_POST;
   foreach ($keys as $key) {
     if (isset($is_new_unit[$key])) {
-      if ($key != 'field_66a4007826665') {
-        $is_new_unit = $is_new_unit[$key];
+      if ($key != get_acf_key('new_unit_address')) {
+        $is_new_unit = $_POST[$key];
       } else {
-        if (isset($is_new_unit['field_66a7cb3396664'])) {
-          $is_new_unit = $is_new_unit['field_66a7cb3396664'];
-        } else {
-          $is_new_unit = '';
-        }
+        $is_new_unit = $_POST[get_acf_key('is_new_unit')] ?? false;
       }
     } else {
-      $is_new_unit = '';
+      $is_new_unit = false;
       break;
     }
   }
 
   // If new unit, require new unit address selection
-  if ($is_new_unit == 1) {
+  if ($is_new_unit) {
     if (empty($value)) {
       $valid = 'New Unit Address is required.';
     }
@@ -347,17 +328,17 @@ function validate_property_present($valid, $value, $field, $input) {
     foreach ($value as $row => $sections) {
       foreach ($sections as $key => $fields) {
         // Existing Tax Roll Address Selected
-        if (array_key_exists('field_669679f71b1b0', $fields) && !empty($fields['field_669679f71b1b0'])) {
+        if (array_key_exists(get_acf_key('property_address'), $fields) && !empty($fields[get_acf_key('property_address')])) {
           $propertyEntered = TRUE;
-        } elseif (array_key_exists('field_669679ed1b1af', $fields) && !empty($fields['field_669679ed1b1af'])) {
+        } elseif (array_key_exists(get_acf_key('roll_no'), $fields) && !empty($fields[get_acf_key('roll_no')])) {
           // New tax Roll address is present.
           $propertyEntered = TRUE;
         }
-        if ($key === 'field_66967511a2d57') {
+        if ($key === get_acf_key('unit_details')) {
           foreach ($fields as $unitRow => $unitFields) {
-            if (array_key_exists('field_66968109025e6', $unitFields) && !empty($unitFields['field_66968109025e6'])) {
+            if (array_key_exists(get_acf_key('unit_address'), $unitFields) && !empty($unitFields[get_acf_key('unit_address')])) {
               $unitEntered = TRUE;
-            } elseif (array_key_exists('field_66a4007826665', $unitFields) && !empty($unitFields['field_66a4007826665'])) {
+            } elseif (array_key_exists(get_acf_key('new_unit_address'), $unitFields) && !empty($unitFields[get_acf_key('new_unit_address')])) {
               $unitEntered = TRUE;
             }
           }
@@ -376,6 +357,7 @@ add_action('acf/save_post', 'add_business_form_handler_save_post');
 function add_business_form_handler_save_post($post_id) {
   // Check if this is an Add a Business ACF form submission
   if (isset($_POST['acf']) && $_POST['_acf_post_id'] == 443) {
+    \Civi::log()->debug('postSubmissionAddBusiness', $_POST);
 
     // Process submitted ACF fields
     $form_data = $_POST['acf'];
@@ -408,72 +390,88 @@ function add_business_form_handler_save_post($post_id) {
       'disabilities' => 'Ownership_Demographics.People_with_disabilities',
     ];
 
-    $params = [
-      'organization_name' => find_field_value($form_data, 'field_66957220aad77'),
-      'email' => find_field_value($form_data, 'field_6695737bea222'),
-      'phone' => find_field_value($form_data, 'field_66980be820bb3'),
-      'website' => find_field_value($form_data, 'field_66957386ea223'),
-      'category' => find_field_value($form_data, 'field_6695739bea224'),
-      'sub_category' => find_field_value($form_data, 'field_669573c0ea225'),
-      'local_bia' => find_field_value($form_data, 'field_669573cdea226'),
-      'opened_date' => find_field_value($form_data, 'field_669573dbea227'),
-      'opt_in' => find_field_value($form_data, 'field_669573f6ea229')[0] ?? 'No',
-      'number_of_employees' => find_field_value($form_data, 'field_669573e9ea228'),
-      'linkedin_url' => find_field_value($form_data, 'field_6696803713c32'),
-      'google_maps_url' => find_field_value($form_data, 'field_6696805c13c36'),
-      'facebook_url' => find_field_value($form_data, 'field_6696804d13c34'),
-      'instagram_url' => find_field_value($form_data, 'field_6696805413c35'),
-      'twitter_url' => find_field_value($form_data, 'field_6696804513c33'),
-      'ticktok_url' => find_field_value($form_data, 'field_6696809813c37'),
-      'francophone' => find_field_value($form_data, 'field_66967cef2ceaa'),
-      'women' => find_field_value($form_data, 'field_66967d0b2ceac'),
-      'youth_39_under' => find_field_value($form_data, 'field_66967d9f82049'),
-      'lgbtiq' => find_field_value($form_data, 'field_66967db58204a'),
-      'indigenous' => find_field_value($form_data, 'field_66967df28204b'),
-      'racialized' => find_field_value($form_data, 'field_66967e198204c'),
-      'newcomers' => find_field_value($form_data, 'field_66967e318204d'),
-      'black' => find_field_value($form_data, 'field_66967e5b10bc3'),
-      'disabilities' => find_field_value($form_data, 'field_66967e7810bc4'),
-      'first_name' => find_field_value($form_data, 'field_669678fd8537e'),
-      'last_name' => find_field_value($form_data, 'field_669679098537f'),
-      'contact_position' => find_field_value($form_data, 'field_6696793985382'),
-      'contact_email' => find_field_value($form_data, 'field_6696791485380'),
-      'contact_phone' => find_field_value($form_data, 'field_6696792385381'),
+    $fields = [
+      'organization_name',
+      'email',
+      'phone',
+      'website',
+      'category',
+      'sub_category',
+      'local_bia',
+      'opened_date',
+      'opt_in',
+      'number_of_employees',
+      'linkedin_url',
+      'google_maps_url',
+      'facebook_url',
+      'instagram_url',
+      'twitter_url',
+      'ticktok_url',
+      'francophone',
+      'women',
+      'youth_39_under',
+      'lgbtiq',
+      'indigenous',
+      'racialized',
+      'newcomers',
+      'black',
+      'disabilities',
+      'first_name',
+      'last_name',
+      'contact_position',
+      'contact_email',
+      'contact_phone',
     ];
 
-    $propAndUnitDeets = find_field_value($form_data, 'field_669674ee2ea21');
+    $params = [];
+    foreach ($fields as $field) {
+      $params[$field] = array_find_key_recursive($form_data, get_acf_key($field));
+    }
+    if (empty($params['opt_in'])) {
+      $params['opt_in'] = 'No';
+    }
+
+    $allPropertyAndUnitDetails = array_find_key_recursive($form_data, get_acf_key('property_&_unit_details'));
 
     $properties = [];
 
-    foreach ($propAndUnitDeets as $propDeets) {
-      if (isset($propDeets['field_66967535e6284'])) {
-        $property = $propDeets['field_66967535e6284'];
+    foreach ($allPropertyAndUnitDetails as $propertyAndUnitDetails) {
+      if (isset($propertyAndUnitDetails[get_acf_key('property_details')])) {
+        $property = $propertyAndUnitDetails[get_acf_key('property_details')];
 
         // Create an array to store the property details
-        $propertyDetails = [
-          'roll_no' => $property['field_669679ed1b1af'] ?? '',
-          'property_address' => $property['field_669679f71b1b0'] ?? '',
-          'new_property_address' => $property['field_66a3f9f05f9bb'] ?? '',
-          'city' => $property['field_66967a011b1b1'] ?? '',
-          'postal_code' => $property['field_66967a0b1b1b2'] ?? '',
-          'is_new_property' => $property['field_66a7cf3944bf8'] ?? '',
-          'units' => []
+        $propertyDetails = [];
+        $propertyFields = [
+          'roll_no',
+          'property_address',
+          'new_property_address',
+          'city',
+          'postal_code',
+          'is_new_property'
         ];
+        foreach ($propertyFields as $field) {
+          $propertyDetails[$field] = $property[get_acf_key($field)] ?? '';
+        }
+        $propertyDetails['units'] = [];
 
-        // Check if there are unit details under 'field_66967511a2d57'
-        if (isset($propDeets['field_66967511a2d57'])) {
-          foreach ($propDeets['field_66967511a2d57'] as $unit) {
-            $unitDetails = [
-              'unit_status' => $unit['field_669678b28537a'] ?? '',
-              'unit_address' => $unit['field_66968109025e6'] ?? '',
-              'new_unit_address' => $unit['field_66a4007826665'] ?? '',
-              'unit_size' => $unit['field_6696811e025e8'] ?? '',
-              'unit_price' => $unit['field_6696812c025e9'] ?? '',
-              'unit_location' => $unit['field_66968146025eb'] ?? '',
-              'mls_listing_link' => $unit['field_66968138025ea'] ?? '',
-              'property_unit' => $unit['field_66968111025e7'] ?? '',
-              'is_new_unit' => $unit['field_66a7cb3396664'] ?? '',
+        // Check if there are unit details
+        if (isset($propertyAndUnitDetails[get_acf_key('unit_details')])) {
+          foreach ($propertyAndUnitDetails[get_acf_key('unit_details')] as $unit) {
+            $unitDetails = [];
+            $unitFields = [
+              'unit_status',
+              'unit_address',
+              'new_unit_address',
+              'unit_size',
+              'unit_price',
+              'unit_location',
+              'mls_listing_link',
+              'property_unit',
+              'is_new_unit',
             ];
+            foreach ($unitFields as $field) {
+              $unitDetails[$field] = $unit[get_acf_key($field)] ?? '';
+            }
             $propertyDetails['units'][] = $unitDetails;
           }
         }
@@ -903,7 +901,7 @@ function add_business_form_handler_save_post($post_id) {
 }
 
 // Recursively search array for a given key
-function find_field_value($array, $key) {
+function array_find_key_recursive($array, $key) {
   if (!is_array($array)) {
     return null;
   }
@@ -916,7 +914,7 @@ function find_field_value($array, $key) {
 
     // If the value is an array, recursively search it
     if (is_array($value)) {
-      $result = find_field_value($value, $key);
+      $result = array_find_key_recursive($value, $key);
       // Return found match
       if ($result !== null) {
         return $result;
@@ -924,6 +922,12 @@ function find_field_value($array, $key) {
     }
   }
   return null;
+}
+
+// NOTE: if performance is an issue we should cache found values here
+function get_acf_key(string $field_name): ?string {
+  $field = acf_get_field($field_name);
+  return $field ? $field[0]['key'] : null;
 }
 
 function formatDateString($dateString) {
