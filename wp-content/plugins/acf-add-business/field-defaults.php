@@ -56,8 +56,7 @@ foreach ($demographicFields as $acfField => $civiField) {
 }
 
 add_filter('acf/load_field/name=opt_out_of_public_listings', 'set_default_opt_out');
-function set_default_opt_out($field)
-{
+function set_default_opt_out($field) {
   $isOptOut = getBusinessDetails()['Business_Category.Opt_out_of_Public_Listing_'];
   $field['default_value'] = $isOptOut ? 'Yes' : null;
   return $field;
@@ -118,15 +117,7 @@ add_filter('acf/load_value/name=property_&_unit_details', function ($value, $pos
 }, 20, 3);
 
 
-// add_filter('acf/load_field/name=indigenous', 'category');
-// function category($field)
-// {
-//   print_r($field);
-//   $field['default_value'] = false;
-//   return $field;
-// }
-function getContactDetails(): array|null
-{
+function getContactDetails(): array|null {
   $cid = $_GET['cid'];
   return \Civi\Api4\Contact::get(FALSE)
     ->addSelect('*', 'email_primary.email', 'phone_primary.phone')
@@ -137,8 +128,7 @@ function getContactDetails(): array|null
 /**
  * Gets the contact record for a business, including custom fields
  */
-function getBusinessDetails(): array|null
-{
+function getBusinessDetails(): array|null {
   $bid = $_GET['bid'];
   return \Civi\Api4\Contact::get(FALSE)
     ->addWhere('id', '=', $bid)

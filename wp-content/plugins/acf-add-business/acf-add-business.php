@@ -355,8 +355,8 @@ function validate_property_present($valid, $value, $field, $input) {
 add_action('acf/save_post', 'add_business_form_handler_save_post');
 
 function add_business_form_handler_save_post($post_id) {
-  // Check if this is an Add a Business ACF form submission
-  if (isset($_POST['acf']) && $_POST['_acf_post_id'] == 443) {
+  // Check if this is an ACF form and either an Add a Business form or Update Business form
+  if (isset($_POST['acf']) && ($_POST['_acf_post_id'] == 443 || $_POST['_acf_post_id'] == 491)) {
 
     // Process submitted ACF fields
     $form_data = $_POST['acf'];
@@ -433,46 +433,70 @@ function add_business_form_handler_save_post($post_id) {
 
     $properties = [];
 
-    foreach ($allPropertyAndUnitDetails as $propertyAndUnitDetails) {
-      if (isset($propertyAndUnitDetails[get_acf_key('property_details')])) {
-        $property = $propertyAndUnitDetails[get_acf_key('property_details')];
+    if ($allPropertyAndUnitDetails !== null) { // found property and unit details; this is an Add Business form
+      foreach ($allPropertyAndUnitDetails as $propertyAndUnitDetails) {
+        if (isset($propertyAndUnitDetails[get_acf_key('property_details')])) {
+          $property = $propertyAndUnitDetails[get_acf_key('property_details')];
 
-        // Create an array to store the property details
-        $propertyDetails = [];
-        $propertyFields = [
-          'roll_no',
-          'property_address',
-          'new_property_address',
+          // Create an array to store the property details
+          $propertyDetails = [];
+          $propertyFields = [
+            'roll_no',
+            'property_address',
+            'new_property_address',
+            'city',
+            'postal_code',
+            'is_new_property'
+          ];
+          foreach ($propertyFields as $field) {
+            $propertyDetails[$field] = $property[get_acf_key($field)] ?? '';
+          }
+          $propertyDetails['units'] = [];
+
+          // Check if there are unit details
+          if (isset($propertyAndUnitDetails[get_acf_key('unit_details')])) {
+            foreach ($propertyAndUnitDetails[get_acf_key('unit_details')] as $unit) {
+              $unitDetails = [];
+              $unitFields = [
+                'unit_status',
+                'unit_address',
+                'new_unit_address',
+                'unit_size',
+                'unit_price',
+                'unit_location',
+                'mls_listing_link',
+                'unitsuite',
+                'is_new_unit',
+              ];
+              foreach ($unitFields as $field) {
+                $unitDetails[$field] = $unit[get_acf_key($field)] ?? '';
+              }
+              $propertyDetails['units'][] = $unitDetails;
+            }
+          }
+          $properties[] = $propertyDetails;
+        }
+      }
+    } else { // Update business form
+      // HACK: the properties array is just formatted like the add business form expects rather than anything more semantic
+      $addresses = array_find_key_recursive($form_data, get_acf_key('business_address'));
+      foreach ($addresses as $address) {
+        $propertyDetails = [
+          'is_new_property' => false,
+          'property_address' => $address[get_acf_key('property_address')],
+        ];
+        $addressDetails = [];
+        $addressFields = [
+          'unitsuite',
+          'street_address',
           'city',
           'postal_code',
-          'is_new_property'
+          'unit_location',
         ];
-        foreach ($propertyFields as $field) {
-          $propertyDetails[$field] = $property[get_acf_key($field)] ?? '';
+        foreach ($addressFields as $field) {
+          $addressDetails[$field] = $address[get_acf_key($field)] ?? '';
         }
-        $propertyDetails['units'] = [];
-
-        // Check if there are unit details
-        if (isset($propertyAndUnitDetails[get_acf_key('unit_details')])) {
-          foreach ($propertyAndUnitDetails[get_acf_key('unit_details')] as $unit) {
-            $unitDetails = [];
-            $unitFields = [
-              'unit_status',
-              'unit_address',
-              'new_unit_address',
-              'unit_size',
-              'unit_price',
-              'unit_location',
-              'mls_listing_link',
-              'property_unit',
-              'is_new_unit',
-            ];
-            foreach ($unitFields as $field) {
-              $unitDetails[$field] = $unit[get_acf_key($field)] ?? '';
-            }
-            $propertyDetails['units'][] = $unitDetails;
-          }
-        }
+        $propertyDetails['units'] = [$addressDetails];
         $properties[] = $propertyDetails;
       }
     }
@@ -904,6 +928,7 @@ function add_business_form_handler_save_post($post_id) {
  * @param array $array the array to search
  * @param mixed $key the key to find in `$array`
  * @return mixed the value associated with `$key`. If multiple entries match `$key` (for example at different depths) one of them will be returned.
+ * If there are no matching entries, returns `null`
  */
 function array_find_key_recursive(array $array, mixed $key): mixed {
   if (!is_array($array)) {
