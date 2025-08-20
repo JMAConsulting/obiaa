@@ -165,5 +165,5 @@ function getBusinessDetails(): array|null {
     ->addWhere('contact_sub_type', '=', 'Members_Businesses_')
     ->addJoin('Website AS website', 'LEFT', ['id', '=', 'website.contact_id'])
     ->addSelect('*', 'custom.*', 'email_primary.email', 'phone_primary.phone', 'website.url')
-    ->execute()[0] : null;
+    ->single() : null;
 }
