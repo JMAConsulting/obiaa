@@ -37,7 +37,9 @@ $demographicFields = [
 
 foreach ($fields as $acfField => $civiField) {
   add_filter("acf/load_field/name=$acfField", function ($field) use ($civiField) {
-    $field['default_value'] = getBusinessDetails()[$civiField];
+    if (getBusinessDetails() !== null) {
+      $field['default_value'] = getBusinessDetails()[$civiField];
+    }
     return $field;
   });
 }
@@ -50,16 +52,19 @@ $fieldOptions = [
 
 foreach ($demographicFields as $acfField => $civiField) {
   add_filter("acf/load_field/name=$acfField", function ($field) use ($civiField, $fieldOptions) {
-    $field['default_value'] = $fieldOptions[getBusinessDetails()[$civiField]];
+    if (getBusinessDetails() !== null) {
+      $field['default_value'] = $fieldOptions[getBusinessDetails()[$civiField]];
+    }
     return $field;
   });
 }
 
 add_filter('acf/load_field/name=opt_out_of_public_listings', 'set_default_opt_out');
 function set_default_opt_out($field) {
-  \Civi::log()->debug('business details', getBusinessDetails());
-  $isOptOut = getBusinessDetails()['Business_Category.Opt_out_of_Public_Listing_'];
-  $field['default_value'] = 'Yes'; //= $isOptOut ? 'Yes' : null;
+  if (getBusinessDetails() !== null) {
+    $isOptOut = getBusinessDetails()['Business_Category.Opt_out_of_Public_Listing_'];
+    $field['default_value'] = $isOptOut ? 'Yes' : null;
+  }
   return $field;
 }
 
@@ -119,6 +124,7 @@ add_filter('acf/load_value/name=property_&_unit_details', function ($value, $pos
 }, 20, 3);
 
 add_filter('acf/load_value/name=business_address', function ($value, $postId, $field) {
+  if (empty($_GET['bid'])) return $value;
   $units = \Civi\Api4\Unit::get(false)
     ->addSelect('*', 'address.*')
     ->addJoin('UnitBusiness AS unit_business', 'LEFT', ['id', '=', 'unit_business.unit_id'])
@@ -153,11 +159,11 @@ function getContactDetails(): array|null {
  * Gets the contact record for a business, including custom fields
  */
 function getBusinessDetails(): array|null {
-  $bid = $_GET['bid'];
-  return \Civi\Api4\Contact::get(FALSE)
+  $bid = $_GET['bid'] ?? null;
+  return $bid ? \Civi\Api4\Contact::get(FALSE)
     ->addWhere('id', '=', $bid)
     ->addWhere('contact_sub_type', '=', 'Members_Businesses_')
     ->addJoin('Website AS website', 'LEFT', ['id', '=', 'website.contact_id'])
     ->addSelect('*', 'custom.*', 'email_primary.email', 'phone_primary.phone', 'website.url')
-    ->execute()[0];
+    ->execute()[0] : null;
 }
