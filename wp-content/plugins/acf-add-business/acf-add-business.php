@@ -25,7 +25,29 @@ use Civi\Api4\Organization;
 
 defined('ABSPATH') or die('No script kiddies please!');
 
+// Load ACF hooks to fill in form defaults
 require_once 'field-defaults.php';
+
+function redirect_invalid_checksum($template) {
+  if (!is_page('update-business')) return; // Not an update business form so not our problem
+  if (!empty($_GET['cs'])) {
+    $cs = $_GET['cs'];
+  }
+  if (!empty($_GET['cid'])) {
+    $cid = $_GET['cid'];
+  }
+  if (!empty($_GET['cs']) && !empty($_GET['cid'])) {
+    if (CRM_Contact_BAO_Contact_Utils::validChecksum($cid, $cs)) {
+      // Valid request - no redirect
+      return;
+    }
+  }
+  // Not a valid request so we redirect them to WP home
+  // NOTE: we might want to redirect to a custom notice page saying it was a 
+  // invalid request. This is where we would indicate the url
+  wp_redirect(home_url());
+  exit();
+}
 
 add_filter('acf/load_field/name=property_address', 'acf_load_property_choices');
 
@@ -377,7 +399,7 @@ function add_business_form_handler_save_post($post_id) {
       'instagram_url' => 'Social_Media.Instagram',
       'twitter_url' => 'Social_Media.Twitter',
       'ticktok_url' => 'Social_Media.TikTok',
-      'google_maps_url' => 'Social_Media.Google_Business_Profile',
+      'google_maps_link' => 'Social_Media.Google_Business_Profile',
       'francophone' => 'Ownership_Demographics.Francophone',
       'women' => 'Ownership_Demographics.Women',
       'youth' => 'Ownership_Demographics.Youth_39_and_under_',
@@ -401,7 +423,7 @@ function add_business_form_handler_save_post($post_id) {
       'opt_out_of_public_listings',
       'number_of_employees',
       'linkedin_url',
-      'google_maps_url',
+      'google_maps_link',
       'facebook_url',
       'instagram_url',
       'twitter_url',
@@ -429,9 +451,12 @@ function add_business_form_handler_save_post($post_id) {
       $params['opt_out_of_public_listings'] = 'No';
     }
 
-    $allPropertyAndUnitDetails = array_find_key_recursive($form_data, get_acf_key('property_&_unit_details'));
+    if ($_POST['_acf_post_id'] == 443) { // Only applicable for Add business form
+      $allPropertyAndUnitDetails = array_find_key_recursive($form_data, get_acf_key('property_&_unit_details'));
+    }
 
     $properties = [];
+    $unitsToUpdate = [];
 
     if ($allPropertyAndUnitDetails !== null) { // found property and unit details; this is an Add Business form
       foreach ($allPropertyAndUnitDetails as $propertyAndUnitDetails) {
@@ -481,10 +506,6 @@ function add_business_form_handler_save_post($post_id) {
       // HACK: the properties array is just formatted like the add business form expects rather than anything more semantic
       $addresses = array_find_key_recursive($form_data, get_acf_key('business_address'));
       foreach ($addresses as $address) {
-        $propertyDetails = [
-          'is_new_property' => false,
-          'property_address' => $address[get_acf_key('property_address')],
-        ];
         $addressDetails = [];
         $addressFields = [
           'unitsuite',
@@ -492,12 +513,12 @@ function add_business_form_handler_save_post($post_id) {
           'city',
           'postal_code',
           'unit_location',
+          'unit_id'
         ];
         foreach ($addressFields as $field) {
-          $addressDetails[$field] = $address[get_acf_key($field)] ?? '';
+          $addressDetails[$field] = array_find_key_recursive($address, get_acf_key($field)) ?? '';
         }
-        $propertyDetails['units'] = [$addressDetails];
-        $properties[] = $propertyDetails;
+        $unitsToUpdate[] = $addressDetails;
       }
     }
 
@@ -558,148 +579,19 @@ function add_business_form_handler_save_post($post_id) {
         ->execute()->first();
     }
 
-    $submittedUnitBusiness = [];
-    foreach ($properties as $propertyDeets) {
-      // Go looking for a property first.
-      if ((!isset($propertyDeets['is_new_unit']) || !$propertyDeets['is_new_unit']) && is_numeric($propertyDeets['property_address'])) {
-        // If property was autofilled and ID is present
-        $property = Property::get(FALSE)
-          ->addWhere('id', '=', $propertyDeets['property_address'])
-          ->execute()
-          ->first();
-      } else {
-        $property = Property::get(FALSE)
-          ->addWhere('property_address', '=', $propertyDeets['new_property_address'])
-          ->execute()
-          ->first();
-      }
+    if (!empty($properties)) {
+      $submittedUnitBusiness = createPropertiesAndUnits($properties, $optionGroups, $contact);
 
-      // If no property is found, create a new one
-      if (empty($property)) {
-        $property = Property::create(FALSE)
-          ->addValue('roll_no', $propertyDeets['roll_no'])
-          ->addValue('property_address', $propertyDeets['new_property_address'])
-          ->addValue('city', $propertyDeets['city'])
-          ->addValue('postal_code', $propertyDeets['postal_code'])
-          ->execute()
-          ->first();
-      }
-
-      // Check to see if there is a Property Owner attached to the property
-      $propertyOwner = PropertyOwner::get(FALSE)
-        ->addWhere('property_id', '=', $property['id'])
-        ->execute()
-        ->first();
-
-      // Create default property owner (contact = Empty Property Owner)
-      if (empty($propertyOwner) || !isset($propertyOwner['owner_id'])) {
-
-        $dummyOrg = Organization::get(FALSE)
-          ->addSelect('id')
-          ->addWhere('organization_name', '=', 'Empty Property Owner')
-          ->execute()
-          ->first();
-
-        $propertyOwner = PropertyOwner::create(FALSE)
-          ->addValue('property_id', $property['id'])
-          ->addValue('owner_id', $dummyOrg['id'])
-          ->addValue('is_voter', TRUE)
-          ->execute()
-          ->first();
-      }
-
-      foreach ($propertyDeets['units'] as $unitDeets) {
-        $unitStatus = OptionValue::get(FALSE)
-          ->addWhere('option_group_id:name', '=', $optionGroups['unit_status'])
-          ->addWhere('value', '=', $unitDeets['unit_status'])
-          ->execute()
-          ->first()['value'];
-
-        if ($unitDeets['is_new_unit']) {
-          $unitStreetAddress = empty($unitDeets['new_unit_address']) ? $property['property_address'] : $unitDeets['new_unit_address'];
-        } else {
-          $unitStreetAddress = $property['property_address'];
-        }
-
-        $unitOp = empty($unitDeets['property_unit']) ? 'IS NULL' : '=';
-        $unitValue = empty($unitDeets['property_unit']) ? '' : $unitDeets['property_unit'];
-
-        if (!$unitDeets['is_new_unit'] && is_numeric($unitDeets['unit_address'])) {
-          $unit = Unit::get(FALSE)
-            ->addSelect('*')->addSelect('unit_business.*')
-            ->addJoin('UnitBusiness AS unit_business', 'INNER', ['unit_business.unit_id', '=', 'id'])
-            ->addJoin('Address AS address', 'INNER', ['address.id', '=', 'address_id'])
-            ->addWhere('id', '=', $unitDeets['unit_address'])
-            ->addWhere('property_id', '=', $property['id'])
-            ->execute()
-            ->first();
-        } else {
-          // Ok now let us see if we already have a unit record in the system if we have gotten here then the unit won't have a business so it will be vacant at this point.
-          $unit = Unit::get(FALSE)
-            ->addSelect('*')->addSelect('unit_business.*')
-            ->addJoin('UnitBusiness AS unit_business', 'INNER', ['unit_business.unit_id', '=', 'id'])
-            ->addJoin('Address AS address', 'INNER', ['address.id', '=', 'address_id'])
-            ->addWhere('address.street_address', '=', $unitStreetAddress)
-            ->addWhere('address.street_unit', $unitOp, $unitValue)
-            ->addWhere('property_id', '=', $property['id'])
-            ->execute()->first();
-        }
-
-        if (empty($unit)) {
-          // Ok no unit record found let us create it.
-          $unitAddress = Address::create(FALSE)
-            ->addValue('street_address', $unitStreetAddress)
-            ->addValue('street_unit', (empty($unitDeets['property_unit']) ? NULL : $unitDeets['property_unit']))
-            ->addValue('city', $property['city'])
-            ->addValue('postal_code', $property['postal_code'])
-            ->execute()
-            ->first();
-          $unit = Unit::create(FALSE)
-            ->addValue('address_id', $unitAddress['id'])
-            ->addValue('unit_size', $unitDeets['unit_size'])
-            ->addValue('unit_price', $unitDeets['unit_price'])
-            ->addValue('unit_status', 1) // Set status to occupied as default
-            ->addValue('unit_location', $unitDeets['unit_location'])
-            ->addValue('property_id', $property['id'])
-            ->addValue('mls_listing_link', $unitDeets['mls_listing_link'])
-            ->execute()
-            ->first();
-          $unitBusinesses = UnitBusiness::create(FALSE)->addValue('unit_id', $unit['id'])->addValue('business_id', $contact['id'])->execute();
-        } else {
-          // ok we found one let us update it with the import data and update the unit business to link the unit to the business.
-          Unit::update(FALSE)
-            ->addValue('unit_size', $unitDeets['unit_size'])
-            ->addValue('unit_price', $unitDeets['unit_price'])
-            ->addValue('unit_status', $unitStatus)
-            ->addValue('unit_location', $unitDeets['unit_location'])
-            ->addValue('mls_listing_link', $unitDeets['mls_listing_link'])
-            ->addWhere('id', '=', $unit['id'])
-            ->execute();
-
-          $unitBusinesses = UnitBusiness::get(FALSE)
-            ->addWhere('business_id', '=', $contact['id'])
-            ->addWhere('unit_id', '=', $unit['id'])
-            ->execute();
-
-          if (!count($unitBusinesses)) {
-            $unitBusinesses = UnitBusiness::create(FALSE)
-              ->addValue('business_id', $contact['id'])
-              ->addValue('unit_id', $unit['id'])
-              ->execute();
-          }
-        }
-        $submittedUnitBusiness[] = $unitBusinesses->first()['id'];
-      }
+      // Remove any links ot units not submitted on this form
+      UnitBusiness::delete(FALSE)
+        ->addWhere('business_id', '=', $contact['id'])
+        ->addWhere('id', 'NOT IN', $submittedUnitBusiness)
+        ->execute();
+    } else if (!empty($unitsToUpdate)) {
+      updateUnits($unitsToUpdate);
     }
 
-    // Remove any links ot units not submitted on this form
-    UnitBusiness::delete(FALSE)
-      ->addWhere('business_id', '=', $contact['id'])
-      ->addWhere('id', 'NOT IN', $submittedUnitBusiness)
-      ->execute();
-
     // Now Look for Business Contact / create business contact.
-    $phoneOnBiz = !empty($params['organization_name']);
     if (!empty($params['first_name']) || !empty($params['last_name']) || !empty($params['contact_email'])) {
       if (!empty($_GET['cid']) && is_numeric($_GET['cid'])) {
         $contactDuplicates = [$_GET['cid']];
@@ -829,7 +721,7 @@ function add_business_form_handler_save_post($post_id) {
     }
 
     // If we have created the business using first name and last name put the phone on the business as well.
-    if ($phoneOnBiz && $params['phone']) {
+    if ($params['phone']) {
       $phone = [
         'phone' => $params['phone'],
         'contact_id' => $contact['id'],
@@ -971,4 +863,182 @@ function formatDateString($dateString): string {
     return $dateFormatted->format('Y-m-d');
   }
   return '';
+}
+
+function createPropertiesAndUnits(array $properties, $optionGroups, $contact): array {
+  $submittedUnitBusiness = [];
+  foreach ($properties as $propertyDeets) {
+    // Go looking for a property first.
+    if ((!isset($propertyDeets['is_new_unit']) || !$propertyDeets['is_new_unit']) && is_numeric($propertyDeets['property_address'])) {
+      // If property was autofilled and ID is present
+      $property = Property::get(FALSE)
+        ->addWhere('id', '=', $propertyDeets['property_address'])
+        ->execute()
+        ->first();
+    } else {
+      $property = Property::get(FALSE)
+        ->addWhere('property_address', '=', $propertyDeets['new_property_address'])
+        ->execute()
+        ->first();
+    }
+
+    // If no property is found, create a new one
+    if (empty($property)) {
+      $property = Property::create(FALSE)
+        ->addValue('roll_no', $propertyDeets['roll_no'])
+        ->addValue('property_address', $propertyDeets['new_property_address'])
+        ->addValue('city', $propertyDeets['city'])
+        ->addValue('postal_code', $propertyDeets['postal_code'])
+        ->execute()
+        ->first();
+    }
+
+    // Check to see if there is a Property Owner attached to the property
+    $propertyOwner = PropertyOwner::get(FALSE)
+      ->addWhere('property_id', '=', $property['id'])
+      ->execute()
+      ->first();
+
+    // Create default property owner (contact = Empty Property Owner)
+    if (empty($propertyOwner) || !isset($propertyOwner['owner_id'])) {
+
+      $dummyOrg = Organization::get(FALSE)
+        ->addSelect('id')
+        ->addWhere('organization_name', '=', 'Empty Property Owner')
+        ->execute()
+        ->first();
+
+      $propertyOwner = PropertyOwner::create(FALSE)
+        ->addValue('property_id', $property['id'])
+        ->addValue('owner_id', $dummyOrg['id'])
+        ->addValue('is_voter', TRUE)
+        ->execute()
+        ->first();
+    }
+
+    foreach ($propertyDeets['units'] as $unitDeets) {
+      $unitStatus = OptionValue::get(FALSE)
+        ->addWhere('option_group_id:name', '=', $optionGroups['unit_status'])
+        ->addWhere('value', '=', $unitDeets['unit_status'])
+        ->execute()
+        ->first()['value'];
+
+      if ($unitDeets['is_new_unit']) {
+        $unitStreetAddress = empty($unitDeets['new_unit_address']) ? $property['property_address'] : $unitDeets['new_unit_address'];
+      } else {
+        $unitStreetAddress = $property['property_address'];
+      }
+
+      $unitOp = empty($unitDeets['unitsuite']) ? 'IS NULL' : '=';
+      $unitValue = empty($unitDeets['unitsuite']) ? '' : $unitDeets['unitsuite'];
+
+      if (!$unitDeets['is_new_unit'] && is_numeric($unitDeets['unit_address'])) {
+        $unit = Unit::get(FALSE)
+          ->addSelect('*')->addSelect('unit_business.*')
+          ->addJoin('UnitBusiness AS unit_business', 'INNER', ['unit_business.unit_id', '=', 'id'])
+          ->addJoin('Address AS address', 'INNER', ['address.id', '=', 'address_id'])
+          ->addWhere('id', '=', $unitDeets['unit_address'])
+          ->addWhere('property_id', '=', $property['id'])
+          ->execute()
+          ->first();
+      } else {
+        // Ok now let us see if we already have a unit record in the system if we have gotten here then the unit won't have a business so it will be vacant at this point.
+        $unit = Unit::get(FALSE)
+          ->addSelect('*')->addSelect('unit_business.*')
+          ->addJoin('UnitBusiness AS unit_business', 'INNER', ['unit_business.unit_id', '=', 'id'])
+          ->addJoin('Address AS address', 'INNER', ['address.id', '=', 'address_id'])
+          ->addWhere('address.street_address', '=', $unitStreetAddress)
+          ->addWhere('address.street_unit', $unitOp, $unitValue)
+          ->addWhere('property_id', '=', $property['id'])
+          ->execute()->first();
+      }
+
+      if (empty($unit)) {
+        // Ok no unit record found let us create it.
+        $unitAddress = Address::create(FALSE)
+          ->addValue('street_address', $unitStreetAddress)
+          ->addValue('street_unit', (empty($unitDeets['unitsuite']) ? NULL : $unitDeets['unitsuite']))
+          ->addValue('city', $property['city'])
+          ->addValue('postal_code', $property['postal_code'])
+          ->execute()
+          ->first();
+        $unit = Unit::create(FALSE)
+          ->addValue('address_id', $unitAddress['id'])
+          ->addValue('unit_size', $unitDeets['unit_size'])
+          ->addValue('unit_price', $unitDeets['unit_price'])
+          ->addValue('unit_status', 1) // Set status to occupied as default
+          ->addValue('unit_location', $unitDeets['unit_location'])
+          ->addValue('property_id', $property['id'])
+          ->addValue('mls_listing_link', $unitDeets['mls_listing_link'])
+          ->execute()
+          ->first();
+        $unitBusinesses = UnitBusiness::create(FALSE)
+          ->addValue('unit_id', $unit['id'])
+          ->addValue('business_id', $contact['id'])
+          ->execute();
+      } else {
+        // ok we found one let us update it with the import data and update the unit business to link the unit to the business.
+        Unit::update(FALSE)
+          ->addValue('unit_size', $unitDeets['unit_size'])
+          ->addValue('unit_price', $unitDeets['unit_price'])
+          ->addValue('unit_status', $unitStatus)
+          ->addValue('unit_location', $unitDeets['unit_location'])
+          ->addValue('mls_listing_link', $unitDeets['mls_listing_link'])
+          ->addWhere('id', '=', $unit['id'])
+          ->execute();
+
+        $unitBusinesses = UnitBusiness::get(FALSE)
+          ->addWhere('business_id', '=', $contact['id'])
+          ->addWhere('unit_id', '=', $unit['id'])
+          ->execute();
+
+        if (!count($unitBusinesses)) {
+          $unitBusinesses = UnitBusiness::create(FALSE)
+            ->addValue('business_id', $contact['id'])
+            ->addValue('unit_id', $unit['id'])
+            ->execute();
+        }
+      }
+      $submittedUnitBusiness[] = $unitBusinesses->first()['id'];
+    }
+  }
+  return $submittedUnitBusiness;
+}
+
+// NOTE: this does **not** allow users to create new units!!
+function updateUnits($unitsToUpdate) {
+  foreach ($unitsToUpdate as $unit) {
+    $streetUnit = $unit['unitsuite'];
+    $addressQuery = Address::get(FALSE)
+      ->addSelect('id')
+      ->addWhere('street_address', '=', $unit['street_address'])
+      ->addWhere('city', '=', $unit['city'])
+      ->addWhere('postal_code', '=', $unit['postal_code']);
+    if (empty($streetUnit)) {
+      $addressQuery->addWhere('street_unit', 'IS NULL');
+    } else {
+      $addressQuery->addWhere('street_unit', '=', $streetUnit);
+    }
+    $address = $addressQuery->execute()->first();
+    if ($address == null) {
+      // No address matches what the user inputted so they must have changed the address of the unit; we should create a new address
+      $address = Address::create(FALSE)
+        ->addValue('street_address', $unit['street_address'])
+        ->addValue('city', $unit['city'])
+        ->addValue('postal_code', $unit['postal_code'])
+        ->addValue('street_unit', empty($streetUnit) ? NULL : $streetUnit) // NOTE: using ternary instead of null coalescing operator because streetUnit could be empty string
+        ->execute()->first();
+    }
+    \Civi::log()->debug('Address', [$address]);
+    \Civi::log()->debug('Unit', [$unit]);
+    Unit::update(FALSE)
+      ->addWhere('id', '=', $unit['unit_id'])
+      ->addValue('unit_size', $unit['unit_size'])
+      ->addValue('unit_price', $unit['unit_price'])
+      ->addValue('unit_location', $unit['unit_location'])
+      // ->addValue('unit_status', 1) // occupied
+      ->addValue('address_id', $address['id'])
+      ->execute();
+    // Since we are only updating units we don't change the UnitBusinesses
+  }
 }

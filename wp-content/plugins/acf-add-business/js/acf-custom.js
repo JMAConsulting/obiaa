@@ -131,14 +131,16 @@
       var unitFieldName =
         '[name*="[field_66967511a2d57]"]';
       var unitField = $("select" + unitFieldName + '[name*="[field_66968109025e6]"]');
-      unitField.empty();
-      unitField.append(
-        $("<option>", {
-          value: "",
-          text: "Enter unit/suite number",
-          selected: true,
-        })
-      );
+      if (unitField != null) {
+        unitField.empty();
+        unitField.append(
+          $("<option>", {
+            value: "",
+            text: "Enter unit/suite number",
+            selected: true,
+          })
+        );
+      }
     }
 
     // Listen for changes on property address fields
@@ -151,6 +153,9 @@
     );
 
     function handlePropertyChanges(propertyField) {
+      if (propertyField.length == 0) {
+        return;
+      }
       // Find the corresponding unit address field
       var namePrefix = propertyField
         .attr("name")
