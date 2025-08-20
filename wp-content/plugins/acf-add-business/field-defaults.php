@@ -152,7 +152,7 @@ function getContactDetails(): array|null {
   return $cid ? \Civi\Api4\Contact::get(FALSE)
     ->addSelect('*', 'email_primary.email', 'phone_primary.phone')
     ->addWhere('id', '=', $cid)
-    ->execute()[0] : null;
+    ->single() : null;
 }
 
 /**
