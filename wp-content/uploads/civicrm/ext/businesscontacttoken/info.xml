@@ -2,16 +2,15 @@
 <extension key="businesscontacttoken" type="module">
   <file>businesscontacttoken</file>
   <name>businesscontacttoken</name>
-  <description>FIXME</description>
+  <description>Provides tokens with links to the update business form</description>
   <license>AGPL-3.0</license>
   <maintainer>
-    <author>Rafe Murray</author>
-    <email>rafe.murray@jmaconsulting.biz</email>
+    <author>JMA Consulting</author>
+    <email>support@jmaconsulting.biz</email>
   </maintainer>
   <urls>
-    <url desc="Main Extension Page">http://FIXME</url>
-    <url desc="Documentation">http://FIXME</url>
-    <url desc="Support">http://FIXME</url>
+    <url desc="Main Extension Page">https://lab.jmaconsulting.biz/jma/obiaa/obiaa.git</url>
+    <url desc="Documentation">https://lab.jmaconsulting.biz/jma/obiaa/obiaa.git</url>
     <url desc="Licensing">http://www.gnu.org/licenses/agpl-3.0.html</url>
   </urls>
   <releaseDate>2025-06-11</releaseDate>
@@ -20,7 +19,6 @@
   <compatibility>
     <ver>5.78</ver>
   </compatibility>
-  <comments>This is a new, undeveloped module</comments>
   <classloader>
     <psr0 prefix="CRM_" path="."/>
     <psr4 prefix="Civi\" path="Civi"/>

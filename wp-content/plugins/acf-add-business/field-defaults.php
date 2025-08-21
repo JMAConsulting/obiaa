@@ -20,13 +20,13 @@ $fields = [
   'instagram_url' => 'Social_Media.Instagram',
   'twitter_url' => 'Social_Media.Twitter',
   'ticktok_url' => 'Social_Media.TikTok',
-  'google_maps_url' => 'Social_Media.Google_Business_Profile',
+  'google_maps_link' => 'Social_Media.Google_Business_Profile',
 ];
 
 $demographicFields = [
   'francophone' => 'Ownership_Demographics.Francophone',
   'women' => 'Ownership_Demographics.Women',
-  'youth_39_under' => 'Ownership_Demographics.Youth_39_and_under_',
+  'youth' => 'Ownership_Demographics.Youth_39_and_under_',
   'lgbtiq' => 'Ownership_Demographics.Lesbian_gay_bisexual_transsexual_queer_LGBTQ_',
   'indigenous' => 'Ownership_Demographics.Indigenous_First_Nations_Inuit_or_Metis_',
   'racialized' => 'Ownership_Demographics.Racialized_group_member',
@@ -37,7 +37,9 @@ $demographicFields = [
 
 foreach ($fields as $acfField => $civiField) {
   add_filter("acf/load_field/name=$acfField", function ($field) use ($civiField) {
-    $field['default_value'] = getBusinessDetails()[$civiField];
+    if (getBusinessDetails() !== null) {
+      $field['default_value'] = getBusinessDetails()[$civiField];
+    }
     return $field;
   });
 }
@@ -50,16 +52,19 @@ $fieldOptions = [
 
 foreach ($demographicFields as $acfField => $civiField) {
   add_filter("acf/load_field/name=$acfField", function ($field) use ($civiField, $fieldOptions) {
-    $field['default_value'] = $fieldOptions[getBusinessDetails()[$civiField]];
+    if (getBusinessDetails() !== null) {
+      $field['default_value'] = $fieldOptions[getBusinessDetails()[$civiField]];
+    }
     return $field;
   });
 }
 
 add_filter('acf/load_field/name=opt_out_of_public_listings', 'set_default_opt_out');
-function set_default_opt_out($field)
-{
-  $isOptOut = getBusinessDetails()['Business_Category.Opt_out_of_Public_Listing_'];
-  $field['default_value'] = $isOptOut ? 'Yes' : null;
+function set_default_opt_out($field) {
+  if (getBusinessDetails() !== null) {
+    $isOptOut = getBusinessDetails()['Business_Category.Opt_out_of_Public_Listing_'];
+    $field['default_value'] = $isOptOut ? 'Yes' : null;
+  }
   return $field;
 }
 
@@ -73,7 +78,9 @@ $contactFields = [
 
 foreach ($contactFields as $acfField => $civiField) {
   add_filter("acf/load_field/name=$acfField", function ($field) use ($civiField) {
-    $field['default_value'] = getContactDetails()[$civiField];
+    if (getContactDetails() !== null) {
+      $field['default_value'] = getContactDetails()[$civiField];
+    }
     return $field;
   });
 }
@@ -94,7 +101,6 @@ add_filter('acf/load_value/name=property_&_unit_details', function ($value, $pos
   foreach ($units as $i => $unit) {
     $propertyMap[$unit['property_id']][] = $i;
   }
-  echo "\n";
   $value = array();
   foreach ($propertyMap as $propertyId => $unitIndices) {
     // $property = \Civi\Api4\Property::get(FALSE)
@@ -117,33 +123,47 @@ add_filter('acf/load_value/name=property_&_unit_details', function ($value, $pos
   return $value;
 }, 20, 3);
 
+add_filter('acf/load_value/name=business_address', function ($value, $postId, $field) {
+  if (empty($_GET['bid'])) return $value;
+  $units = \Civi\Api4\Unit::get(false)
+    ->addSelect('*', 'address.*')
+    ->addJoin('UnitBusiness AS unit_business', 'LEFT', ['id', '=', 'unit_business.unit_id'])
+    ->addJoin('Address AS address', 'LEFT', ['address_id', '=', 'address.id'])
+    ->addWhere('unit_business.business_id', '=', $_GET['bid'])
+    ->execute();
+  foreach ($units as $unit) {
+    $newValue = [
+      get_acf_key('business_address_group') => [
+        get_acf_key('unitsuite') => $unit['address.street_unit'],
+        get_acf_key('street_address') => $unit['address.street_address'],
+        get_acf_key('city') => $unit['address.city'],
+        get_acf_key('postal_code') => $unit['address.postal_code'],
+        get_acf_key('unit_location') => $unit['unit_location'],
+        get_acf_key('unit_id') => $unit['id'],
+      ],
+    ];
+    $value[] = $newValue;
+  }
+  return $value;
+}, 20, 3);
 
-// add_filter('acf/load_field/name=indigenous', 'category');
-// function category($field)
-// {
-//   print_r($field);
-//   $field['default_value'] = false;
-//   return $field;
-// }
-function getContactDetails(): array|null
-{
-  $cid = $_GET['cid'];
-  return \Civi\Api4\Contact::get(FALSE)
+function getContactDetails(): array|null {
+  $cid = $_GET['cid'] ?? null;
+  return $cid ? \Civi\Api4\Contact::get(FALSE)
     ->addSelect('*', 'email_primary.email', 'phone_primary.phone')
     ->addWhere('id', '=', $cid)
-    ->execute()[0];
+    ->single() : null;
 }
 
 /**
  * Gets the contact record for a business, including custom fields
  */
-function getBusinessDetails(): array|null
-{
-  $bid = $_GET['bid'];
-  return \Civi\Api4\Contact::get(FALSE)
+function getBusinessDetails(): array|null {
+  $bid = $_GET['bid'] ?? null;
+  return $bid ? \Civi\Api4\Contact::get(FALSE)
     ->addWhere('id', '=', $bid)
     ->addWhere('contact_sub_type', '=', 'Members_Businesses_')
     ->addJoin('Website AS website', 'LEFT', ['id', '=', 'website.contact_id'])
     ->addSelect('*', 'custom.*', 'email_primary.email', 'phone_primary.phone', 'website.url')
-    ->execute()[0];
+    ->single() : null;
 }

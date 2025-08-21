@@ -25,7 +25,29 @@ use Civi\Api4\Organization;
 
 defined('ABSPATH') or die('No script kiddies please!');
 
+// Load ACF hooks to fill in form defaults
 require_once 'field-defaults.php';
+
+function redirect_invalid_checksum($template) {
+  if (!is_page('update-business')) return; // Not an update business form so not our problem
+  if (!empty($_GET['cs'])) {
+    $cs = $_GET['cs'];
+  }
+  if (!empty($_GET['cid'])) {
+    $cid = $_GET['cid'];
+  }
+  if (!empty($_GET['cs']) && !empty($_GET['cid'])) {
+    if (CRM_Contact_BAO_Contact_Utils::validChecksum($cid, $cs)) {
+      // Valid request - no redirect
+      return;
+    }
+  }
+  // Not a valid request so we redirect them to WP home
+  // NOTE: we might want to redirect to a custom notice page saying it was a 
+  // invalid request. This is where we would indicate the url
+  wp_redirect(home_url());
+  exit();
+}
 
 add_filter('acf/load_field/name=property_address', 'acf_load_property_choices');
 
@@ -200,32 +222,27 @@ function acf_load_unit_choices($field) {
 }
 
 
-add_filter('acf/validate_value/key=field_669679f71b1b0', 'validate_tax_roll', 10, 4);
+add_filter('acf/validate_value/name=property_address', 'validate_tax_roll', 10, 4);
 
 function validate_tax_roll($valid, $value, $field, $input) {
   $keys = preg_split('/[\[\]]+/', $input, -1, PREG_SPLIT_NO_EMPTY);
-  $is_new_property = $_POST;
 
   // Check if a new property is being created in this row
   foreach ($keys as $key) {
-    if (isset($is_new_property[$key])) {
-      if ($key != 'field_669679f71b1b0') {
-        $is_new_property = $is_new_property[$key];
+    if (isset($_POST[$key])) {
+      if ($key != get_acf_key('property_address')) {
+        $is_new_property = !empty($_POST[$key]);
       } else {
-        if (isset($is_new_property['field_66a7cf3944bf8'])) {
-          $is_new_property = $is_new_property['field_66a7cf3944bf8'];
-        } else {
-          $is_new_property = '';
-        }
+        $is_new_property = $POST[get_acf_key('is_new_property')] ?? false;
       }
     } else {
-      $is_new_property = '';
+      $is_new_property = false;
       break;
     }
   }
 
   // If not a new property, make sure tax roll is filled
-  if ($is_new_property == 0) {
+  if (!$is_new_property) {
     if (empty($value)) {
       $valid = 'Tax Roll Address is required.';
     }
@@ -234,32 +251,27 @@ function validate_tax_roll($valid, $value, $field, $input) {
   return $valid;
 }
 
-add_filter('acf/validate_value/key=field_66a3f9f05f9bb', 'validate_new_address', 10, 4);
+add_filter('acf/validate_value/name=tax_roll_address', 'validate_new_address', 10, 4);
 
 function validate_new_address($valid, $value, $field, $input) {
   $keys = preg_split('/[\[\]]+/', $input, -1, PREG_SPLIT_NO_EMPTY);
-  $is_new_property = $_POST;
 
   // Check if a new property is being created in this row
   foreach ($keys as $key) {
     if (isset($is_new_property[$key])) {
-      if ($key != 'field_66a3f9f05f9bb') {
-        $is_new_property = $is_new_property[$key];
+      if ($key != get_acf_key('tax_roll_address')) {
+        $is_new_property = !empty($_POST[$key]);
       } else {
-        if (isset($is_new_property['field_66a7cf3944bf8'])) {
-          $is_new_property = $is_new_property['field_66a7cf3944bf8'];
-        } else {
-          $is_new_property = '';
-        }
+        $is_new_property = $_POST[get_acf_key('is_new_property')] ?? false;
       }
     } else {
-      $is_new_property = '';
+      $is_new_property = false;
       break;
     }
   }
 
   // If a new property, make sure new tax roll address is filled
-  if ($is_new_property == 1) {
+  if ($is_new_property) {
     if (empty($value)) {
       $valid = 'New Tax Roll Address is required.';
     }
@@ -268,7 +280,7 @@ function validate_new_address($valid, $value, $field, $input) {
   return $valid;
 }
 
-add_filter('acf/validate_value/key=field_66968109025e6', 'validate_unit_address', 10, 4);
+add_filter('acf/validate_value/name=unit_address', 'validate_unit_address', 10, 4);
 
 function validate_unit_address($valid, $value, $field, $input) {
   $keys = preg_split('/[\[\]]+/', $input, -1, PREG_SPLIT_NO_EMPTY);
@@ -277,23 +289,19 @@ function validate_unit_address($valid, $value, $field, $input) {
   // Check if a new unit is being created in this row
   foreach ($keys as $key) {
     if (isset($is_new_unit[$key])) {
-      if ($key != 'field_66968109025e6') {
-        $is_new_unit = $is_new_unit[$key];
+      if ($key != get_acf_key('unit_address')) {
+        $is_new_unit = $_POST[$key];
       } else {
-        if (isset($is_new_unit['field_66a7cb3396664'])) {
-          $is_new_unit = $is_new_unit['field_66a7cb3396664'];
-        } else {
-          $is_new_unit = '';
-        }
+        $is_new_unit = $_POST[get_acf_key('is_new_unit')] ?? false;
       }
     } else {
-      $is_new_unit = '';
+      $is_new_unit = false;
       break;
     }
   }
 
   // If not a new unit, require original unit address selection
-  if ($is_new_unit == 0) {
+  if (!$is_new_unit) {
     if (empty($value)) {
       $valid = 'Unit Address is required.';
     }
@@ -302,32 +310,27 @@ function validate_unit_address($valid, $value, $field, $input) {
   return $valid;
 }
 
-add_filter('acf/validate_value/key=field_66a4007826665', 'validate_new_unit', 10, 4);
+add_filter('acf/validate_value/name=new_unit_address', 'validate_new_unit', 10, 4);
 
 function validate_new_unit($valid, $value, $field, $input) {
   $keys = preg_split('/[\[\]]+/', $input, -1, PREG_SPLIT_NO_EMPTY);
 
   // Check if a new unit is being created in this row
-  $is_new_unit = $_POST;
   foreach ($keys as $key) {
     if (isset($is_new_unit[$key])) {
-      if ($key != 'field_66a4007826665') {
-        $is_new_unit = $is_new_unit[$key];
+      if ($key != get_acf_key('new_unit_address')) {
+        $is_new_unit = $_POST[$key];
       } else {
-        if (isset($is_new_unit['field_66a7cb3396664'])) {
-          $is_new_unit = $is_new_unit['field_66a7cb3396664'];
-        } else {
-          $is_new_unit = '';
-        }
+        $is_new_unit = $_POST[get_acf_key('is_new_unit')] ?? false;
       }
     } else {
-      $is_new_unit = '';
+      $is_new_unit = false;
       break;
     }
   }
 
   // If new unit, require new unit address selection
-  if ($is_new_unit == 1) {
+  if ($is_new_unit) {
     if (empty($value)) {
       $valid = 'New Unit Address is required.';
     }
@@ -347,17 +350,17 @@ function validate_property_present($valid, $value, $field, $input) {
     foreach ($value as $row => $sections) {
       foreach ($sections as $key => $fields) {
         // Existing Tax Roll Address Selected
-        if (array_key_exists('field_669679f71b1b0', $fields) && !empty($fields['field_669679f71b1b0'])) {
+        if (array_key_exists(get_acf_key('property_address'), $fields) && !empty($fields[get_acf_key('property_address')])) {
           $propertyEntered = TRUE;
-        } elseif (array_key_exists('field_669679ed1b1af', $fields) && !empty($fields['field_669679ed1b1af'])) {
+        } elseif (array_key_exists(get_acf_key('roll_no'), $fields) && !empty($fields[get_acf_key('roll_no')])) {
           // New tax Roll address is present.
           $propertyEntered = TRUE;
         }
-        if ($key === 'field_66967511a2d57') {
+        if ($key === get_acf_key('unit_details')) {
           foreach ($fields as $unitRow => $unitFields) {
-            if (array_key_exists('field_66968109025e6', $unitFields) && !empty($unitFields['field_66968109025e6'])) {
+            if (array_key_exists(get_acf_key('unit_address'), $unitFields) && !empty($unitFields[get_acf_key('unit_address')])) {
               $unitEntered = TRUE;
-            } elseif (array_key_exists('field_66a4007826665', $unitFields) && !empty($unitFields['field_66a4007826665'])) {
+            } elseif (array_key_exists(get_acf_key('new_unit_address'), $unitFields) && !empty($unitFields[get_acf_key('new_unit_address')])) {
               $unitEntered = TRUE;
             }
           }
@@ -374,8 +377,8 @@ function validate_property_present($valid, $value, $field, $input) {
 add_action('acf/save_post', 'add_business_form_handler_save_post');
 
 function add_business_form_handler_save_post($post_id) {
-  // Check if this is an Add a Business ACF form submission
-  if (isset($_POST['acf']) && $_POST['_acf_post_id'] == 443) {
+  // Check if this is an ACF form and either an Add a Business form or Update Business form
+  if (isset($_POST['acf']) && ($_POST['_acf_post_id'] == 443 || $_POST['_acf_post_id'] == 491)) {
 
     // Process submitted ACF fields
     $form_data = $_POST['acf'];
@@ -396,10 +399,10 @@ function add_business_form_handler_save_post($post_id) {
       'instagram_url' => 'Social_Media.Instagram',
       'twitter_url' => 'Social_Media.Twitter',
       'ticktok_url' => 'Social_Media.TikTok',
-      'google_maps_url' => 'Social_Media.Google_Business_Profile',
+      'google_maps_link' => 'Social_Media.Google_Business_Profile',
       'francophone' => 'Ownership_Demographics.Francophone',
       'women' => 'Ownership_Demographics.Women',
-      'youth_39_under' => 'Ownership_Demographics.Youth_39_and_under_',
+      'youth' => 'Ownership_Demographics.Youth_39_and_under_',
       'lgbtiq' => 'Ownership_Demographics.Lesbian_gay_bisexual_transsexual_queer_LGBTQ_',
       'indigenous' => 'Ownership_Demographics.Indigenous_First_Nations_Inuit_or_Metis_',
       'racialized' => 'Ownership_Demographics.Racialized_group_member',
@@ -408,76 +411,114 @@ function add_business_form_handler_save_post($post_id) {
       'disabilities' => 'Ownership_Demographics.People_with_disabilities',
     ];
 
-    $params = [
-      'organization_name' => find_field_value($form_data, 'field_66957220aad77'),
-      'email' => find_field_value($form_data, 'field_6695737bea222'),
-      'phone' => find_field_value($form_data, 'field_66980be820bb3'),
-      'website' => find_field_value($form_data, 'field_66957386ea223'),
-      'category' => find_field_value($form_data, 'field_6695739bea224'),
-      'sub_category' => find_field_value($form_data, 'field_669573c0ea225'),
-      'local_bia' => find_field_value($form_data, 'field_669573cdea226'),
-      'opened_date' => find_field_value($form_data, 'field_669573dbea227'),
-      'opt_in' => find_field_value($form_data, 'field_669573f6ea229')[0] ?? 'No',
-      'number_of_employees' => find_field_value($form_data, 'field_669573e9ea228'),
-      'linkedin_url' => find_field_value($form_data, 'field_6696803713c32'),
-      'google_maps_url' => find_field_value($form_data, 'field_6696805c13c36'),
-      'facebook_url' => find_field_value($form_data, 'field_6696804d13c34'),
-      'instagram_url' => find_field_value($form_data, 'field_6696805413c35'),
-      'twitter_url' => find_field_value($form_data, 'field_6696804513c33'),
-      'ticktok_url' => find_field_value($form_data, 'field_6696809813c37'),
-      'francophone' => find_field_value($form_data, 'field_66967cef2ceaa'),
-      'women' => find_field_value($form_data, 'field_66967d0b2ceac'),
-      'youth_39_under' => find_field_value($form_data, 'field_66967d9f82049'),
-      'lgbtiq' => find_field_value($form_data, 'field_66967db58204a'),
-      'indigenous' => find_field_value($form_data, 'field_66967df28204b'),
-      'racialized' => find_field_value($form_data, 'field_66967e198204c'),
-      'newcomers' => find_field_value($form_data, 'field_66967e318204d'),
-      'black' => find_field_value($form_data, 'field_66967e5b10bc3'),
-      'disabilities' => find_field_value($form_data, 'field_66967e7810bc4'),
-      'first_name' => find_field_value($form_data, 'field_669678fd8537e'),
-      'last_name' => find_field_value($form_data, 'field_669679098537f'),
-      'contact_position' => find_field_value($form_data, 'field_6696793985382'),
-      'contact_email' => find_field_value($form_data, 'field_6696791485380'),
-      'contact_phone' => find_field_value($form_data, 'field_6696792385381'),
+    $fields = [
+      'organization_name',
+      'email',
+      'phone',
+      'website',
+      'category',
+      'sub_category',
+      'local_bia',
+      'date_of_opening',
+      'opt_out_of_public_listings',
+      'number_of_employees',
+      'linkedin_url',
+      'google_maps_link',
+      'facebook_url',
+      'instagram_url',
+      'twitter_url',
+      'ticktok_url',
+      'francophone',
+      'women',
+      'youth',
+      'lgbtiq',
+      'indigenous',
+      'racialized',
+      'newcomers',
+      'black',
+      'disabilities',
+      'first_name',
+      'last_name',
+      'contact_position',
+      'contact_email',
+      'contact_phone',
     ];
+    $params = [];
+    foreach ($fields as $field) {
+      $params[$field] = array_find_key_recursive($form_data, get_acf_key($field));
+    }
+    if (empty($params['opt_out_of_public_listings'])) {
+      $params['opt_out_of_public_listings'] = 'No';
+    }
 
-    $propAndUnitDeets = find_field_value($form_data, 'field_669674ee2ea21');
+    if ($_POST['_acf_post_id'] == 443) { // Only applicable for Add business form
+      $allPropertyAndUnitDetails = array_find_key_recursive($form_data, get_acf_key('property_&_unit_details'));
+    }
 
     $properties = [];
+    $unitsToUpdate = [];
 
-    foreach ($propAndUnitDeets as $propDeets) {
-      if (isset($propDeets['field_66967535e6284'])) {
-        $property = $propDeets['field_66967535e6284'];
+    if ($allPropertyAndUnitDetails !== null) { // found property and unit details; this is an Add Business form
+      foreach ($allPropertyAndUnitDetails as $propertyAndUnitDetails) {
+        if (isset($propertyAndUnitDetails[get_acf_key('property_details')])) {
+          $property = $propertyAndUnitDetails[get_acf_key('property_details')];
 
-        // Create an array to store the property details
-        $propertyDetails = [
-          'roll_no' => $property['field_669679ed1b1af'] ?? '',
-          'property_address' => $property['field_669679f71b1b0'] ?? '',
-          'new_property_address' => $property['field_66a3f9f05f9bb'] ?? '',
-          'city' => $property['field_66967a011b1b1'] ?? '',
-          'postal_code' => $property['field_66967a0b1b1b2'] ?? '',
-          'is_new_property' => $property['field_66a7cf3944bf8'] ?? '',
-          'units' => []
-        ];
-
-        // Check if there are unit details under 'field_66967511a2d57'
-        if (isset($propDeets['field_66967511a2d57'])) {
-          foreach ($propDeets['field_66967511a2d57'] as $unit) {
-            $unitDetails = [
-              'unit_status' => $unit['field_669678b28537a'] ?? '',
-              'unit_address' => $unit['field_66968109025e6'] ?? '',
-              'new_unit_address' => $unit['field_66a4007826665'] ?? '',
-              'unit_size' => $unit['field_6696811e025e8'] ?? '',
-              'unit_price' => $unit['field_6696812c025e9'] ?? '',
-              'unit_location' => $unit['field_66968146025eb'] ?? '',
-              'mls_listing_link' => $unit['field_66968138025ea'] ?? '',
-              'property_unit' => $unit['field_66968111025e7'] ?? '',
-              'is_new_unit' => $unit['field_66a7cb3396664'] ?? '',
-            ];
-            $propertyDetails['units'][] = $unitDetails;
+          // Create an array to store the property details
+          $propertyDetails = [];
+          $propertyFields = [
+            'roll_no',
+            'property_address',
+            'new_property_address',
+            'city',
+            'postal_code',
+            'is_new_property'
+          ];
+          foreach ($propertyFields as $field) {
+            $propertyDetails[$field] = $property[get_acf_key($field)] ?? '';
           }
+          $propertyDetails['units'] = [];
+
+          // Check if there are unit details
+          if (isset($propertyAndUnitDetails[get_acf_key('unit_details')])) {
+            foreach ($propertyAndUnitDetails[get_acf_key('unit_details')] as $unit) {
+              $unitDetails = [];
+              $unitFields = [
+                'unit_status',
+                'unit_address',
+                'new_unit_address',
+                'unit_size',
+                'unit_price',
+                'unit_location',
+                'mls_listing_link',
+                'unitsuite',
+                'is_new_unit',
+              ];
+              foreach ($unitFields as $field) {
+                $unitDetails[$field] = $unit[get_acf_key($field)] ?? '';
+              }
+              $propertyDetails['units'][] = $unitDetails;
+            }
+          }
+          $properties[] = $propertyDetails;
         }
-        $properties[] = $propertyDetails;
+      }
+    } else { // Update business form
+      // HACK: the properties array is just formatted like the add business form expects rather than anything more semantic
+      $addresses = array_find_key_recursive($form_data, get_acf_key('business_address'));
+      foreach ($addresses as $address) {
+        $addressDetails = [];
+        $addressFields = [
+          'unitsuite',
+          'street_address',
+          'city',
+          'postal_code',
+          'unit_location',
+          'unit_id'
+        ];
+        foreach ($addressFields as $field) {
+          $addressDetails[$field] = array_find_key_recursive($address, get_acf_key($field)) ?? '';
+        }
+        $unitsToUpdate[] = $addressDetails;
       }
     }
 
@@ -538,148 +579,19 @@ function add_business_form_handler_save_post($post_id) {
         ->execute()->first();
     }
 
-    $submittedUnitBusiness = [];
-    foreach ($properties as $propertyDeets) {
-      // Go looking for a property first.
-      if ((!isset($propertyDeets['is_new_unit']) || !$propertyDeets['is_new_unit']) && is_numeric($propertyDeets['property_address'])) {
-        // If property was autofilled and ID is present
-        $property = Property::get(FALSE)
-          ->addWhere('id', '=', $propertyDeets['property_address'])
-          ->execute()
-          ->first();
-      } else {
-        $property = Property::get(FALSE)
-          ->addWhere('property_address', '=', $propertyDeets['new_property_address'])
-          ->execute()
-          ->first();
-      }
+    if (!empty($properties)) {
+      $submittedUnitBusiness = createPropertiesAndUnits($properties, $optionGroups, $contact);
 
-      // If no property is found, create a new one
-      if (empty($property)) {
-        $property = Property::create(FALSE)
-          ->addValue('roll_no', $propertyDeets['roll_no'])
-          ->addValue('property_address', $propertyDeets['new_property_address'])
-          ->addValue('city', $propertyDeets['city'])
-          ->addValue('postal_code', $propertyDeets['postal_code'])
-          ->execute()
-          ->first();
-      }
-
-      // Check to see if there is a Property Owner attached to the property
-      $propertyOwner = PropertyOwner::get(FALSE)
-        ->addWhere('property_id', '=', $property['id'])
-        ->execute()
-        ->first();
-
-      // Create default property owner (contact = Empty Property Owner)
-      if (empty($propertyOwner) || !isset($propertyOwner['owner_id'])) {
-
-        $dummyOrg = Organization::get(FALSE)
-          ->addSelect('id')
-          ->addWhere('organization_name', '=', 'Empty Property Owner')
-          ->execute()
-          ->first();
-
-        $propertyOwner = PropertyOwner::create(FALSE)
-          ->addValue('property_id', $property['id'])
-          ->addValue('owner_id', $dummyOrg['id'])
-          ->addValue('is_voter', TRUE)
-          ->execute()
-          ->first();
-      }
-
-      foreach ($propertyDeets['units'] as $unitDeets) {
-        $unitStatus = OptionValue::get(FALSE)
-          ->addWhere('option_group_id:name', '=', $optionGroups['unit_status'])
-          ->addWhere('value', '=', $unitDeets['unit_status'])
-          ->execute()
-          ->first()['value'];
-
-        if ($unitDeets['is_new_unit']) {
-          $unitStreetAddress = empty($unitDeets['new_unit_address']) ? $property['property_address'] : $unitDeets['new_unit_address'];
-        } else {
-          $unitStreetAddress = $property['property_address'];
-        }
-
-        $unitOp = empty($unitDeets['property_unit']) ? 'IS NULL' : '=';
-        $unitValue = empty($unitDeets['property_unit']) ? '' : $unitDeets['property_unit'];
-
-        if (!$unitDeets['is_new_unit'] && is_numeric($unitDeets['unit_address'])) {
-          $unit = Unit::get(FALSE)
-            ->addSelect('*')->addSelect('unit_business.*')
-            ->addJoin('UnitBusiness AS unit_business', 'INNER', ['unit_business.unit_id', '=', 'id'])
-            ->addJoin('Address AS address', 'INNER', ['address.id', '=', 'address_id'])
-            ->addWhere('id', '=', $unitDeets['unit_address'])
-            ->addWhere('property_id', '=', $property['id'])
-            ->execute()
-            ->first();
-        } else {
-          // Ok now let us see if we already have a unit record in the system if we have gotten here then the unit won't have a business so it will be vacant at this point.
-          $unit = Unit::get(FALSE)
-            ->addSelect('*')->addSelect('unit_business.*')
-            ->addJoin('UnitBusiness AS unit_business', 'INNER', ['unit_business.unit_id', '=', 'id'])
-            ->addJoin('Address AS address', 'INNER', ['address.id', '=', 'address_id'])
-            ->addWhere('address.street_address', '=', $unitStreetAddress)
-            ->addWhere('address.street_unit', $unitOp, $unitValue)
-            ->addWhere('property_id', '=', $property['id'])
-            ->execute()->first();
-        }
-
-        if (empty($unit)) {
-          // Ok no unit record found let us create it.
-          $unitAddress = Address::create(FALSE)
-            ->addValue('street_address', $unitStreetAddress)
-            ->addValue('street_unit', (empty($unitDeets['property_unit']) ? NULL : $unitDeets['property_unit']))
-            ->addValue('city', $property['city'])
-            ->addValue('postal_code', $property['postal_code'])
-            ->execute()
-            ->first();
-          $unit = Unit::create(FALSE)
-            ->addValue('address_id', $unitAddress['id'])
-            ->addValue('unit_size', $unitDeets['unit_size'])
-            ->addValue('unit_price', $unitDeets['unit_price'])
-            ->addValue('unit_status', 1) // Set status to occupied as default
-            ->addValue('unit_location', $unitDeets['unit_location'])
-            ->addValue('property_id', $property['id'])
-            ->addValue('mls_listing_link', $unitDeets['mls_listing_link'])
-            ->execute()
-            ->first();
-          $unitBusinesses = UnitBusiness::create(FALSE)->addValue('unit_id', $unit['id'])->addValue('business_id', $contact['id'])->execute();
-        } else {
-          // ok we found one let us update it with the import data and update the unit business to link the unit to the business.
-          Unit::update(FALSE)
-            ->addValue('unit_size', $unitDeets['unit_size'])
-            ->addValue('unit_price', $unitDeets['unit_price'])
-            ->addValue('unit_status', $unitStatus)
-            ->addValue('unit_location', $unitDeets['unit_location'])
-            ->addValue('mls_listing_link', $unitDeets['mls_listing_link'])
-            ->addWhere('id', '=', $unit['id'])
-            ->execute();
-
-          $unitBusinesses = UnitBusiness::get(FALSE)
-            ->addWhere('business_id', '=', $contact['id'])
-            ->addWhere('unit_id', '=', $unit['id'])
-            ->execute();
-
-          if (!count($unitBusinesses)) {
-            $unitBusinesses = UnitBusiness::create(FALSE)
-              ->addValue('business_id', $contact['id'])
-              ->addValue('unit_id', $unit['id'])
-              ->execute();
-          }
-        }
-        $submittedUnitBusiness[] = $unitBusinesses->first()['id'];
-      }
+      // Remove any links ot units not submitted on this form
+      UnitBusiness::delete(FALSE)
+        ->addWhere('business_id', '=', $contact['id'])
+        ->addWhere('id', 'NOT IN', $submittedUnitBusiness)
+        ->execute();
+    } else if (!empty($unitsToUpdate)) {
+      updateUnits($unitsToUpdate);
     }
 
-    // Remove any links ot units not submitted on this form
-    UnitBusiness::delete(FALSE)
-      ->addWhere('business_id', '=', $contact['id'])
-      ->addWhere('id', 'NOT IN', $submittedUnitBusiness)
-      ->execute();
-
     // Now Look for Business Contact / create business contact.
-    $phoneOnBiz = !empty($params['organization_name']);
     if (!empty($params['first_name']) || !empty($params['last_name']) || !empty($params['contact_email'])) {
       if (!empty($_GET['cid']) && is_numeric($_GET['cid'])) {
         $contactDuplicates = [$_GET['cid']];
@@ -809,7 +721,7 @@ function add_business_form_handler_save_post($post_id) {
     }
 
     // If we have created the business using first name and last name put the phone on the business as well.
-    if ($phoneOnBiz && $params['phone']) {
+    if ($params['phone']) {
       $phone = [
         'phone' => $params['phone'],
         'contact_id' => $contact['id'],
@@ -894,16 +806,23 @@ function add_business_form_handler_save_post($post_id) {
     // Set the custom fields on the business contact.
     Contact::update(FALSE)
       ->setValues($orgValues)
-      ->addValue('Business_Details.Open_Date', formatDateString($params['opened_date']))
-      ->addValue('Business_Category.Opt_out_of_Public_Listing_:label', $params['opt_in'])
+      ->addValue('Business_Details.Open_Date', formatDateString($params['date_of_opening']))
+      ->addValue('Business_Category.Opt_out_of_Public_Listing_:label', $params['opt_out_of_public_listings'])
       ->addValue('Business_Details.Full_Time_Employees_at_this_location', $params['number_of_employees'])
       ->addWhere('id', '=', $contact['id'])
       ->execute();
   }
 }
 
-// Recursively search array for a given key
-function find_field_value($array, $key) {
+/**
+ * Recursively searches an array for a key
+ *
+ * @param array $array the array to search
+ * @param mixed $key the key to find in `$array`
+ * @return mixed the value associated with `$key`. If multiple entries match `$key` (for example at different depths) one of them will be returned.
+ * If there are no matching entries, returns `null`
+ */
+function array_find_key_recursive(array $array, mixed $key): mixed {
   if (!is_array($array)) {
     return null;
   }
@@ -916,7 +835,7 @@ function find_field_value($array, $key) {
 
     // If the value is an array, recursively search it
     if (is_array($value)) {
-      $result = find_field_value($value, $key);
+      $result = array_find_key_recursive($value, $key);
       // Return found match
       if ($result !== null) {
         return $result;
@@ -926,10 +845,200 @@ function find_field_value($array, $key) {
   return null;
 }
 
-function formatDateString($dateString) {
+// NOTE: if performance is an issue we should cache found values here
+/**
+ * Gets the key associated with a given field name in acf
+ *
+ * @param string $field_name the name of the field to get the key for
+ * @return string|null the key of the field or `null` if it is not found
+ */
+function get_acf_key(string $field_name): ?string {
+  $field = acf_get_field($field_name);
+  return $field ? $field['key'] : null;
+}
+
+function formatDateString($dateString): string {
   if ($dateString != '') {
     $dateFormatted = DateTime::createFromFormat('Ymd', $dateString);
     return $dateFormatted->format('Y-m-d');
   }
   return '';
+}
+
+function createPropertiesAndUnits(array $properties, $optionGroups, $contact): array {
+  $submittedUnitBusiness = [];
+  foreach ($properties as $propertyDeets) {
+    // Go looking for a property first.
+    if ((!isset($propertyDeets['is_new_unit']) || !$propertyDeets['is_new_unit']) && is_numeric($propertyDeets['property_address'])) {
+      // If property was autofilled and ID is present
+      $property = Property::get(FALSE)
+        ->addWhere('id', '=', $propertyDeets['property_address'])
+        ->execute()
+        ->first();
+    } else {
+      $property = Property::get(FALSE)
+        ->addWhere('property_address', '=', $propertyDeets['new_property_address'])
+        ->execute()
+        ->first();
+    }
+
+    // If no property is found, create a new one
+    if (empty($property)) {
+      $property = Property::create(FALSE)
+        ->addValue('roll_no', $propertyDeets['roll_no'])
+        ->addValue('property_address', $propertyDeets['new_property_address'])
+        ->addValue('city', $propertyDeets['city'])
+        ->addValue('postal_code', $propertyDeets['postal_code'])
+        ->execute()
+        ->first();
+    }
+
+    // Check to see if there is a Property Owner attached to the property
+    $propertyOwner = PropertyOwner::get(FALSE)
+      ->addWhere('property_id', '=', $property['id'])
+      ->execute()
+      ->first();
+
+    // Create default property owner (contact = Empty Property Owner)
+    if (empty($propertyOwner) || !isset($propertyOwner['owner_id'])) {
+
+      $dummyOrg = Organization::get(FALSE)
+        ->addSelect('id')
+        ->addWhere('organization_name', '=', 'Empty Property Owner')
+        ->execute()
+        ->first();
+
+      $propertyOwner = PropertyOwner::create(FALSE)
+        ->addValue('property_id', $property['id'])
+        ->addValue('owner_id', $dummyOrg['id'])
+        ->addValue('is_voter', TRUE)
+        ->execute()
+        ->first();
+    }
+
+    foreach ($propertyDeets['units'] as $unitDeets) {
+      $unitStatus = OptionValue::get(FALSE)
+        ->addWhere('option_group_id:name', '=', $optionGroups['unit_status'])
+        ->addWhere('value', '=', $unitDeets['unit_status'])
+        ->execute()
+        ->first()['value'];
+
+      if ($unitDeets['is_new_unit']) {
+        $unitStreetAddress = empty($unitDeets['new_unit_address']) ? $property['property_address'] : $unitDeets['new_unit_address'];
+      } else {
+        $unitStreetAddress = $property['property_address'];
+      }
+
+      $unitOp = empty($unitDeets['unitsuite']) ? 'IS NULL' : '=';
+      $unitValue = empty($unitDeets['unitsuite']) ? '' : $unitDeets['unitsuite'];
+
+      if (!$unitDeets['is_new_unit'] && is_numeric($unitDeets['unit_address'])) {
+        $unit = Unit::get(FALSE)
+          ->addSelect('*')->addSelect('unit_business.*')
+          ->addJoin('UnitBusiness AS unit_business', 'INNER', ['unit_business.unit_id', '=', 'id'])
+          ->addJoin('Address AS address', 'INNER', ['address.id', '=', 'address_id'])
+          ->addWhere('id', '=', $unitDeets['unit_address'])
+          ->addWhere('property_id', '=', $property['id'])
+          ->execute()
+          ->first();
+      } else {
+        // Ok now let us see if we already have a unit record in the system if we have gotten here then the unit won't have a business so it will be vacant at this point.
+        $unit = Unit::get(FALSE)
+          ->addSelect('*')->addSelect('unit_business.*')
+          ->addJoin('UnitBusiness AS unit_business', 'INNER', ['unit_business.unit_id', '=', 'id'])
+          ->addJoin('Address AS address', 'INNER', ['address.id', '=', 'address_id'])
+          ->addWhere('address.street_address', '=', $unitStreetAddress)
+          ->addWhere('address.street_unit', $unitOp, $unitValue)
+          ->addWhere('property_id', '=', $property['id'])
+          ->execute()->first();
+      }
+
+      if (empty($unit)) {
+        // Ok no unit record found let us create it.
+        $unitAddress = Address::create(FALSE)
+          ->addValue('street_address', $unitStreetAddress)
+          ->addValue('street_unit', (empty($unitDeets['unitsuite']) ? NULL : $unitDeets['unitsuite']))
+          ->addValue('city', $property['city'])
+          ->addValue('postal_code', $property['postal_code'])
+          ->execute()
+          ->first();
+        $unit = Unit::create(FALSE)
+          ->addValue('address_id', $unitAddress['id'])
+          ->addValue('unit_size', $unitDeets['unit_size'])
+          ->addValue('unit_price', $unitDeets['unit_price'])
+          ->addValue('unit_status', 1) // Set status to occupied as default
+          ->addValue('unit_location', $unitDeets['unit_location'])
+          ->addValue('property_id', $property['id'])
+          ->addValue('mls_listing_link', $unitDeets['mls_listing_link'])
+          ->execute()
+          ->first();
+        $unitBusinesses = UnitBusiness::create(FALSE)
+          ->addValue('unit_id', $unit['id'])
+          ->addValue('business_id', $contact['id'])
+          ->execute();
+      } else {
+        // ok we found one let us update it with the import data and update the unit business to link the unit to the business.
+        Unit::update(FALSE)
+          ->addValue('unit_size', $unitDeets['unit_size'])
+          ->addValue('unit_price', $unitDeets['unit_price'])
+          ->addValue('unit_status', $unitStatus)
+          ->addValue('unit_location', $unitDeets['unit_location'])
+          ->addValue('mls_listing_link', $unitDeets['mls_listing_link'])
+          ->addWhere('id', '=', $unit['id'])
+          ->execute();
+
+        $unitBusinesses = UnitBusiness::get(FALSE)
+          ->addWhere('business_id', '=', $contact['id'])
+          ->addWhere('unit_id', '=', $unit['id'])
+          ->execute();
+
+        if (!count($unitBusinesses)) {
+          $unitBusinesses = UnitBusiness::create(FALSE)
+            ->addValue('business_id', $contact['id'])
+            ->addValue('unit_id', $unit['id'])
+            ->execute();
+        }
+      }
+      $submittedUnitBusiness[] = $unitBusinesses->first()['id'];
+    }
+  }
+  return $submittedUnitBusiness;
+}
+
+// NOTE: this does **not** allow users to create new units!!
+function updateUnits($unitsToUpdate) {
+  foreach ($unitsToUpdate as $unit) {
+    $streetUnit = $unit['unitsuite'];
+    $addressQuery = Address::get(FALSE)
+      ->addSelect('id')
+      ->addWhere('street_address', '=', $unit['street_address'])
+      ->addWhere('city', '=', $unit['city'])
+      ->addWhere('postal_code', '=', $unit['postal_code']);
+    if (empty($streetUnit)) {
+      $addressQuery->addWhere('street_unit', 'IS NULL');
+    } else {
+      $addressQuery->addWhere('street_unit', '=', $streetUnit);
+    }
+    $address = $addressQuery->execute()->first();
+    if ($address == null) {
+      // No address matches what the user inputted so they must have changed the address of the unit; we should create a new address
+      $address = Address::create(FALSE)
+        ->addValue('street_address', $unit['street_address'])
+        ->addValue('city', $unit['city'])
+        ->addValue('postal_code', $unit['postal_code'])
+        ->addValue('street_unit', empty($streetUnit) ? NULL : $streetUnit) // NOTE: using ternary instead of null coalescing operator because streetUnit could be empty string
+        ->execute()->first();
+    }
+    \Civi::log()->debug('Address', [$address]);
+    \Civi::log()->debug('Unit', [$unit]);
+    Unit::update(FALSE)
+      ->addWhere('id', '=', $unit['unit_id'])
+      ->addValue('unit_size', $unit['unit_size'])
+      ->addValue('unit_price', $unit['unit_price'])
+      ->addValue('unit_location', $unit['unit_location'])
+      // ->addValue('unit_status', 1) // occupied
+      ->addValue('address_id', $address['id'])
+      ->execute();
+    // Since we are only updating units we don't change the UnitBusinesses
+  }
 }
