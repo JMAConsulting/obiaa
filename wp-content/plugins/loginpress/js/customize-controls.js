@@ -135,12 +135,14 @@ wp.customize.bind('ready', function() {
             updateValues($controlWrapper, settingName, true);
         });
     }
-
-    // Bind control events for padding
-    bindControlEvents($('.customize-control-loginpress-spacing [data-loginpresstarget="customize-control-loginpress_customization-customize_form_padding"]'), 'loginpress_customization[customize_form_padding]');
-
-    // Bind control events for margin
-    bindControlEvents($('.customize-control-loginpress-spacing [data-loginpresstarget="customize-control-loginpress_customization-textfield_margin"]'), 'loginpress_customization[textfield_margin]');
+	if($('.customize-control-loginpress-spacing [data-loginpresstarget="customize-control-loginpress_customization-customize_form_padding"]').length > 0){
+		// Bind control events for padding
+		bindControlEvents($('.customize-control-loginpress-spacing [data-loginpresstarget="customize-control-loginpress_customization-customize_form_padding"]'), 'loginpress_customization[customize_form_padding]');
+	}
+	if($('.customize-control-loginpress-spacing [data-loginpresstarget="customize-control-loginpress_customization-textfield_margin"]').length > 0){
+    	// Bind control events for margin
+    	bindControlEvents($('.customize-control-loginpress-spacing [data-loginpresstarget="customize-control-loginpress_customization-textfield_margin"]'), 'loginpress_customization[textfield_margin]');
+	}
 	// Function to update padding inputs based on margin input
     function updatePaddingFromMargin($marginControlWrapper, marginControlTarget) {
         // Get the value of the margin input
@@ -165,8 +167,12 @@ wp.customize.bind('ready', function() {
         $('.customize-control-loginpress-spacing [data-loginpresstarget="'+marginControlTarget+'"] input[type="number"][id*="_left"]').val(left);
         $('.customize-control-loginpress-spacing [data-loginpresstarget="'+marginControlTarget+'"] select[id*="_unit"]').val(unitValue);
     }
-	updatePaddingFromMargin($('#customize-control-loginpress_customization-customize_form_padding'), 'customize-control-loginpress_customization-customize_form_padding');
-	updatePaddingFromMargin($('#customize-control-loginpress_customization-textfield_margin'), 'customize-control-loginpress_customization-textfield_margin');
+	if($('#customize-control-loginpress_customization-customize_form_padding').length > 0){
+		updatePaddingFromMargin($('#customize-control-loginpress_customization-customize_form_padding'), 'customize-control-loginpress_customization-customize_form_padding');
+	}
+	if($('#customize-control-loginpress_customization-textfield_margin').length > 0){
+		updatePaddingFromMargin($('#customize-control-loginpress_customization-textfield_margin'), 'customize-control-loginpress_customization-textfield_margin');
+	}
 });
 
 
@@ -981,37 +987,37 @@ var wp_logo_height = '84';
 		} else if ( 'default2' == customizer_bg ) {
 			loginpress_bg = 'url(' + loginpress_script.plugin_url + '/loginpress/img/bg2.jpg)';
 		} else if ( 'default3' == customizer_bg ) {
-			loginpress_bg = 'url(' + loginpress_script.plugin_url + '/loginpress-pro/img/bg3.jpg)';
+			loginpress_bg = 'url(' + loginpress_script.plugin_url + '/loginpress-pro/assets/img/bg3.jpg)';
 		} else if ( 'default4' == customizer_bg ) {
-			loginpress_bg = 'url(' + loginpress_script.plugin_url + '/loginpress-pro/img/bg4.jpg)';
+			loginpress_bg = 'url(' + loginpress_script.plugin_url + '/loginpress-pro/assets/img/bg4.jpg)';
 		} else if ( 'default5' == customizer_bg ) {
-			loginpress_bg = 'url(' + loginpress_script.plugin_url + '/loginpress-pro/img/bg5.jpg)';
+			loginpress_bg = 'url(' + loginpress_script.plugin_url + '/loginpress-pro/assets/img/bg5.jpg)';
 		} else if ( 'default6' == customizer_bg ) {
-			loginpress_bg = 'url(' + loginpress_script.plugin_url + '/loginpress-pro/img/bg6.jpg)';
+			loginpress_bg = 'url(' + loginpress_script.plugin_url + '/loginpress-pro/assets/img/bg6.jpg)';
 		} else if ( 'default7' == customizer_bg ) {
-			loginpress_bg = 'url(' + loginpress_script.plugin_url + '/loginpress-pro/img/bg7.jpg)';
+			loginpress_bg = 'url(' + loginpress_script.plugin_url + '/loginpress-pro/assets/img/bg7.jpg)';
 		} else if ( 'default8' == customizer_bg ) {
-			loginpress_bg = 'url(' + loginpress_script.plugin_url + '/loginpress-pro/img/bg8.jpg)';
+			loginpress_bg = 'url(' + loginpress_script.plugin_url + '/loginpress-pro/assets/img/bg8.jpg)';
 		} else if ( 'default9' == customizer_bg ) {
-			loginpress_bg = 'url(' + loginpress_script.plugin_url + '/loginpress-pro/img/bg9.jpg)';
+			loginpress_bg = 'url(' + loginpress_script.plugin_url + '/loginpress-pro/assets/img/bg9.jpg)';
 		} else if ( 'default10' == customizer_bg ) {
-			loginpress_bg = 'url(' + loginpress_script.plugin_url + '/loginpress-pro/img/bg10.jpg)';
+			loginpress_bg = 'url(' + loginpress_script.plugin_url + '/loginpress-pro/assets/img/bg10.jpg)';
 		} else if ( 'default11' == customizer_bg ) {
-			loginpress_bg = 'url(' + loginpress_script.plugin_url + '/loginpress-pro/img/bg11.png)';
+			loginpress_bg = 'url(' + loginpress_script.plugin_url + '/loginpress-pro/assets/img/bg11.png)';
 		} else if ( 'default12' == customizer_bg ) {
-			loginpress_bg = 'url(' + loginpress_script.plugin_url + '/loginpress-pro/img/bg12.jpg)';
+			loginpress_bg = 'url(' + loginpress_script.plugin_url + '/loginpress-pro/assets/img/bg12.jpg)';
 		} else if ( 'default13' == customizer_bg ) {
-			loginpress_bg = 'url(' + loginpress_script.plugin_url + '/loginpress-pro/img/bg13.jpg)';
+			loginpress_bg = 'url(' + loginpress_script.plugin_url + '/loginpress-pro/assets/img/bg13.jpg)';
 		} else if ( 'default14' == customizer_bg ) {
-			loginpress_bg = 'url(' + loginpress_script.plugin_url + '/loginpress-pro/img/bg14.jpg)';
+			loginpress_bg = 'url(' + loginpress_script.plugin_url + '/loginpress-pro/assets/img/bg14.jpg)';
 		} else if ( 'default15' == customizer_bg ) {
-			loginpress_bg = 'url(' + loginpress_script.plugin_url + '/loginpress-pro/img/bg15.jpg)';
+			loginpress_bg = 'url(' + loginpress_script.plugin_url + '/loginpress-pro/assets/img/bg15.jpg)';
 		} else if ( 'default16' == customizer_bg ) {
-			loginpress_bg = 'url(' + loginpress_script.plugin_url + '/loginpress-pro/img/bg16.jpg)';
+			loginpress_bg = 'url(' + loginpress_script.plugin_url + '/loginpress-pro/assets/img/bg16.jpg)';
 		} else if ( 'default17' == customizer_bg ) {
-			loginpress_bg = 'url(' + loginpress_script.plugin_url + '/loginpress-pro/img/bg17.jpg)';
+			loginpress_bg = 'url(' + loginpress_script.plugin_url + '/loginpress-pro/assets/img/bg17.jpg)';
 		} else if ( 'default18' == customizer_bg ) {
-			loginpress_bg = 'url(' + loginpress_script.plugin_url + '/loginpress-pro/img/bg18.jpg)';
+			loginpress_bg = 'url(' + loginpress_script.plugin_url + '/loginpress-pro/assets/img/bg18.jpg)';
 		}
 	}
 
@@ -1043,7 +1049,7 @@ var wp_logo_height = '84';
 
 				// Turn Off the Dependencies controls.
 				// $('#customize-control-loginpress_customization-loginpress_display_bg').nextAll().hide();
-				loginpress_manage_customizer_controls( ['gallery_background', 'setting_background', 'background_repeat_radio', 'background_position', 'background_image_size'], 'off' );
+				loginpress_manage_customizer_controls( ['gallery_background', 'setting_background', 'background_repeat_radio', 'background_position', 'background_image_size', 'mobile_background'], 'off' );
 
 			} else {
 				if ( localStorage.loginpress_bg ) {
@@ -1110,7 +1116,7 @@ var wp_logo_height = '84';
 
 				// Turn On the Dependencies controls.
 				// $('#customize-control-loginpress_customization-loginpress_display_bg').nextAll().show();
-				loginpress_manage_customizer_controls( ['gallery_background', 'setting_background', 'background_repeat_radio', 'background_position', 'background_image_size'], 'on' );
+				loginpress_manage_customizer_controls( ['gallery_background', 'setting_background', 'background_repeat_radio', 'background_position', 'background_image_size', 'mobile_background'], 'on' );
 				if( $('#customize-control-loginpress_customization-setting_background .attachment-thumb').length > 0 ) {
 					$('#customize-control-loginpress_customization-gallery_background').hide();
 				}
@@ -1233,6 +1239,7 @@ var wp_logo_height = '84';
 			}
 		});
 	});
+	
 
 	// loginpress_background_img( 'loginpress_customization[]', 'body.login' );
 	$('.customize-controls-close').on('click', function() {
@@ -1289,6 +1296,8 @@ var wp_logo_height = '84';
 	loginpress_new_css_property( 'loginpress_customization[customize_logo_width]', '#login h1 a', 'width', 'px' );
 	loginpress_new_css_property( 'loginpress_customization[customize_logo_height]', '#login h1 a', 'height', 'px' );
 	loginpress_new_css_property( 'loginpress_customization[customize_logo_padding]', '#login h1 a', 'margin-bottom', 'px' );
+	loginpress_new_css_property( 'loginpress_customization[custom_button_color]', '.wp-core-ui #login input[type=checkbox]', 'border-color', '' );
+	loginpress_new_css_property( 'loginpress_customization[custom_button_color]', '.wp-core-ui #login .dashicons-visibility', 'color', '' );
 	
 	loginpress_attr_property( 'loginpress_customization[customize_logo_hover]', '#login h1 a', 'href' );
 	loginpress_attr_property( 'loginpress_customization[customize_logo_hover_title]', '#login h1 a', 'title' );
@@ -2050,11 +2059,14 @@ var wp_logo_height = '84';
 
 		if ( $('#customize-control-loginpress_customization-loginpress_display_bg input[type="checkbox"]').is(":checked") ) {
 			$('#customize-control-loginpress_customization-loginpress_display_bg').nextUntil('#customize-control-loginpress_customization-bg_video_group').show();
+			$('#customize-control-loginpress_customization-mobile_background').show();
 			if( $('#customize-control-loginpress_customization-setting_background .attachment-thumb').length > 0 ){
 				$('#customize-control-loginpress_customization-gallery_background').hide();
 			}
 		} else {
 			$('#customize-control-loginpress_customization-loginpress_display_bg').nextUntil('#customize-control-loginpress_customization-bg_video_group').hide();
+			$('#customize-control-loginpress_customization-mobile_background').hide();
+
 		}
 
 		if ( $('#customize-control-loginpress_customization-setting_background .attachment-media-view-image').length > 0  ) {

@@ -87,10 +87,6 @@ if ( is_multisite() ) {
 		// Delete all queue attachments.
 		( new \EasyWPSMTP\Queue\Attachments() )->delete_attachments();
 
-		// Delete Outlook notice dismissals.
-		delete_metadata( 'user', 0, 'easy_wp_smtp_microsoft_basic_auth_deprecation_notice_dismissed', '', true );
-		delete_metadata( 'user', 0, 'easy_wp_smtp_microsoft_basic_auth_deprecation_general_notice_dismissed', '', true );
-
 		/*
 		 * Cleanup Pro plugin data.
 		 */
@@ -172,10 +168,6 @@ if ( is_multisite() ) {
 
 	// Delete all queue attachments.
 	( new \EasyWPSMTP\Queue\Attachments() )->delete_attachments();
-
-	// Delete Outlook notice dismissals.
-	delete_metadata( 'user', 0, 'easy_wp_smtp_microsoft_basic_auth_deprecation_notice_dismissed', '', true );
-	delete_metadata( 'user', 0, 'easy_wp_smtp_microsoft_basic_auth_deprecation_general_notice_dismissed', '', true );
 
 	/*
 	 * Cleanup Pro plugin data.

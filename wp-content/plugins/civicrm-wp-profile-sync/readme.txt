@@ -1,13 +1,13 @@
 === CiviCRM Profile Sync ===
-Contributors: needle, cuny-academic-commons, kcristiano, tadpolecc
-Donate link: https://www.paypal.me/interactivist
-Tags: civicrm, buddypress, acf, profile, sync
+Contributors:      needle, cuny-academic-commons, kcristiano, tadpolecc
+Donate link:       https://www.paypal.me/interactivist
+Tags:              civicrm, buddypress, acf, profile, sync
+Requires PHP:      7.4
 Requires at least: 4.9
-Tested up to: 6.6
-Requires PHP: 7.1
-Stable tag: 0.6.9
-License: GPLv2 or later
-License URI: https://www.gnu.org/licenses/gpl-2.0.html
+Tested up to:      6.8
+Stable tag:        0.7.1
+License:           GPLv2 or later
+License URI:       https://www.gnu.org/licenses/gpl-2.0.html
 
 Keeps a WordPress User profile in sync with a CiviCRM Contact and integrates WordPress and CiviCRM Entities when using Advanced Custom Fields.
 
@@ -37,7 +37,7 @@ Please refer to the [ACF Integration Documentation](https://github.com/christian
 
 CiviCRM Profile Sync enables Forms to be built for the front-end of your website with the UI provided by the ACF Extended plugin. These Forms can send their data directly to CiviCRM in a similar (though more limited) way to Caldera Forms CiviCRM.
 
-Form building with ACF Extended is at an early stage of development and is currently limited to submitting data for Contacts, Participants, Activities and Cases. This does, however, provide enough functionality to build some fairly powerful and useful Forms.
+Form building with ACF Extended is currently limited to submitting data for Contacts, Participants, Activities and Cases. This does, however, provide enough functionality to build some fairly powerful and useful Forms.
 
 Please refer to the [ACFE Form-building Documentation](https://github.com/christianwach/civicrm-wp-profile-sync/blob/master/docs/ACFE.md) for details.
 
@@ -85,6 +85,17 @@ I'll say it again: test early, test often and - above all - test on a developmen
 
 
 == Changelog ==
+
+= 0.7.1 =
+
+* Refinements to Address Field
+* Sets default Location Type for Addresses
+
+= 0.7.0 =
+
+* Adds compatibility with ACF Extended 0.9.x Form Actions
+* Enables syncing of ACF "Number" Fields
+* Misc bug fixes and improvements
 
 = 0.6.9 =
 

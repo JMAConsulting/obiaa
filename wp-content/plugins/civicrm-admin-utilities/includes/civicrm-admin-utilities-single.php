@@ -453,16 +453,6 @@ class CiviCRM_Admin_Utilities_Single {
 		// Add Afform Angular modules when required.
 		add_action( 'wp', [ $this, 'afform_scripts' ] );
 
-		// If the debugging flag is set.
-		if ( CIVICRM_ADMIN_UTILITIES_DEBUG === true ) {
-
-			// Log pre and post database operations.
-			add_action( 'civicrm_pre', [ $this, 'trace_pre' ], 10, 4 );
-			add_action( 'civicrm_post', [ $this, 'trace_post' ], 10, 4 );
-			add_action( 'civicrm_postProcess', [ $this, 'trace_post_process' ], 10, 2 );
-
-		}
-
 	}
 
 	// -------------------------------------------------------------------------
@@ -1683,6 +1673,33 @@ class CiviCRM_Admin_Utilities_Single {
 	 * @since 0.5.4 Moved from plugin class.
 	 */
 	public function admin_scripts_enqueue() {
+
+		/*
+		 * We should only load our styles on the CiviCRM admin screen and on any
+		 * Post Types where the CiviCRM Shortcode button is visible.
+		 */
+		$screen = get_current_screen();
+
+		// Get post types on which button is enabled.
+		$allowed_ids = $this->setting_get( 'post_types', [] );
+
+		// Allow CiviCRM admin screen.
+		$allowed_ids[] = 'toplevel_page_CiviCRM';
+
+		/**
+		 * Filters the array of allowed screen IDs.
+		 *
+		 * @since 1.0.8
+		 *
+		 * @param array     $allowed_ids The array of allowed screen IDs.
+		 * @param WP_Screen $screen The current screen object.
+		 */
+		$allowed_ids = apply_filters( 'cau/single/admin_scripts_enqueue/allowed_ids', $allowed_ids, $screen );
+
+		// Bail if we're not on a screen that needs our styles.
+		if ( ! in_array( $screen->id, $allowed_ids, true ) ) {
+			return;
+		}
 
 		// Bail if disabled.
 		if ( $this->setting_get( 'prettify_menu', '0' ) === '1' ) {
@@ -3042,82 +3059,6 @@ class CiviCRM_Admin_Utilities_Single {
 		if ( ! has_action( 'wp_enqueue_scripts', [ civi_wp(), 'front_end_page_load' ] ) ) {
 			add_action( 'wp_enqueue_scripts', [ civi_wp(), 'front_end_page_load' ], 100 );
 		}
-
-	}
-
-	// -------------------------------------------------------------------------
-
-	/**
-	 * Utility for tracing calls to hook_civicrm_pre.
-	 *
-	 * @since 0.5.4 Moved from plugin class.
-	 *
-	 * @param string  $op The type of database operation.
-	 * @param string  $object_name The type of object.
-	 * @param integer $object_id The ID of the object.
-	 * @param object  $object_ref The object.
-	 */
-	public function trace_pre( $op, $object_name, $object_id, $object_ref ) {
-
-		$e     = new Exception();
-		$trace = $e->getTraceAsString();
-		$log   = [
-			'method'      => __METHOD__,
-			'op'          => $op,
-			'object_name' => $object_name,
-			'object_id'   => $object_id,
-			'object_ref'  => $object_ref,
-			'backtrace'   => $trace,
-		];
-		$this->plugin->log_error( $log );
-
-	}
-
-	/**
-	 * Utility for tracing calls to hook_civicrm_post.
-	 *
-	 * @since 0.5.4 Moved from plugin class.
-	 *
-	 * @param string  $op The type of database operation.
-	 * @param string  $object_name The type of object.
-	 * @param integer $object_id The ID of the object.
-	 * @param object  $object_ref The object.
-	 */
-	public function trace_post( $op, $object_name, $object_id, $object_ref ) {
-
-		$e     = new Exception();
-		$trace = $e->getTraceAsString();
-		$log   = [
-			'method'      => __METHOD__,
-			'op'          => $op,
-			'object_name' => $object_name,
-			'object_id'   => $object_id,
-			'object_ref'  => $object_ref,
-			'backtrace'   => $trace,
-		];
-		$this->plugin->log_error( $log );
-
-	}
-
-	/**
-	 * Utility for tracing calls to hook_civicrm_postProcess.
-	 *
-	 * @since 0.5.4 Moved from plugin class.
-	 *
-	 * @param string $form_name The name of the form.
-	 * @param object $form The form object.
-	 */
-	public function trace_post_process( $form_name, &$form ) {
-
-		$e     = new Exception();
-		$trace = $e->getTraceAsString();
-		$log   = [
-			'method'    => __METHOD__,
-			'form_name' => $form_name,
-			'form'      => $form,
-			'backtrace' => $trace,
-		];
-		$this->plugin->log_error( $log );
 
 	}
 

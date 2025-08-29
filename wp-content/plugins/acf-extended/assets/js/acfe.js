@@ -1093,7 +1093,8 @@
             modal = new acfe.Modal($modal, args);
 
             // actions
-            acf.doAction('new_modal', modal);
+            acf.doAction('acfe/new_modal', modal);
+            acfe.doActionDeprecated('new_modal', [modal], '0.9.0.5', 'acfe/new_modal');
 
             // return
             return modal;
@@ -1109,7 +1110,8 @@
         modal = new acfe.Modal(args);
 
         // actions
-        acf.doAction('new_modal', modal);
+        acf.doAction('acfe/new_modal', modal);
+        acfe.doActionDeprecated('new_modal', [modal], '0.9.0.5', 'acfe/new_modal');
 
         // return
         return modal;
@@ -1454,7 +1456,7 @@
 
         events: {
             'click .acfe-modal-overlay': 'onClick',
-            'keydown': 'onKeydown',
+            'keyup': 'onKeyUp',
         },
 
         getModals: function() {
@@ -1503,7 +1505,7 @@
 
         },
 
-        onKeydown: function(e) {
+        onKeyUp: function(e) {
             if (e.keyCode === 27 && $('body').hasClass('acfe-modal-opened')) {
                 e.preventDefault();
                 this.closeLastModal();
@@ -1762,6 +1764,72 @@
 
     /**
      * Tooltip
+     *
+     * A fixed version of acf-js-tooltip which doesn't allow multiple tooltips on different elements
+     */
+    new acf.Model({
+        events: {
+            'mouseenter .acfe-js-tooltip': 'showTitle',
+            'mouseup .acfe-js-tooltip': 'hideTitle',
+            'mouseleave .acfe-js-tooltip': 'hideTitle',
+            'focus .acfe-js-tooltip': 'showTitle',
+            'blur .acfe-js-tooltip': 'hideTitle',
+            'keyup .acfe-js-tooltip': 'onKeyUp'
+        },
+        showTitle: function(e, $el) {
+
+            // vars
+            var title = $el.attr('title');
+
+            // bail early if no title
+            if (!title) {
+                return;
+            }
+
+            // clear title to avoid default browser tooltip
+            $el.attr('title', '');
+
+            // create
+            if (!$el.data('acfe-tooltip')) {
+
+                var tooltip = acf.newTooltip({
+                    text: title,
+                    target: $el
+                });
+
+                $el.data('acfe-tooltip', tooltip);
+
+                // update
+            } else {
+
+                $el.data('acfe-tooltip').update({
+                    text: title,
+                    target: $el
+                });
+
+            }
+        },
+        hideTitle: function(e, $el) {
+
+            // hide tooltip
+            $el.data('acfe-tooltip').hide();
+
+            // restore title
+            $el.attr('title', $el.data('acfe-tooltip').get('text'));
+
+        },
+        onKeyUp: function(e, $el) {
+            if ('Escape' === e.key) {
+                this.hideTitle(e, $el);
+            }
+        }
+    });
+
+
+    /**
+     * Field Tooltip
+     *
+     * Toggleable tooltip for fields
      */
     var tooltip = new acf.Model({
 
@@ -1785,41 +1853,67 @@
                 return;
             }
 
+            this.toggle(field, $el, title);
+
+        },
+
+        toggle: function(field, $el, title) {
+
             // clear title to avoid default browser tooltip
             $el.attr('title', '');
 
             // open
             if (!this.tooltips[field.cid]) {
-
-                this.tooltips[field.cid] = acf.newTooltip({
-                    text: title,
-                    target: $el
-                });
-
-                if (acfe.versionCompare(acf.get('wp_version'), '>=', '5.5')) {
-                    $el.removeClass('dashicons-info-outline').addClass('dashicons-remove');
-                }
+                this.open(field, $el, title);
 
                 // close
             } else {
-
-                // hide tooltip
-                this.tooltips[field.cid].hide();
-
-                // restore title
-                $el.attr('title', this.tooltips[field.cid].get('text'));
-
-                this.tooltips[field.cid] = false;
-
-                if (acfe.versionCompare(acf.get('wp_version'), '>=', '5.5')) {
-                    $el.removeClass('dashicons-remove').addClass('dashicons-info-outline');
-                }
-
+                this.close(field, $el, title);
             }
 
         },
 
+        open: function(field, $el, title) {
+
+            this.tooltips[field.cid] = acf.newTooltip({
+                text: title,
+                target: $el
+            });
+
+            if (acfe.versionCompare(acf.get('wp_version'), '>=', '5.5')) {
+                $el.removeClass('dashicons-info-outline').addClass('dashicons-remove');
+            }
+
+        },
+
+        close: function(field, $el, title) {
+
+            // hide tooltip
+            this.tooltips[field.cid].hide();
+
+            // restore title
+            $el.attr('title', this.tooltips[field.cid].get('text'));
+
+            this.tooltips[field.cid] = false;
+
+            if (acfe.versionCompare(acf.get('wp_version'), '>=', '5.5')) {
+                $el.removeClass('dashicons-remove').addClass('dashicons-info-outline');
+            }
+
+        }
+
     });
+
+    new acf.Model({
+        actions: {
+            'hide_field': 'onHideField',
+        },
+        onHideField: function(field) {
+            if (tooltip.tooltips[field.cid]) {
+                tooltip.close(field, field.$el.find('.acfe-field-tooltip:first'));
+            }
+        }
+    })
 
 })(jQuery);
 (function($) {
@@ -2220,6 +2314,75 @@
     if (typeof acf === 'undefined' || typeof acfe === 'undefined') {
         return;
     }
+
+
+    /**
+     * acfe.copyClipboard
+     *
+     * @param data
+     * @param message
+     */
+    acfe.copyClipboard = function(data, message) {
+
+        // default message
+        message = acf.parseArgs(message, {
+            auto: acf.__('Data has been copied to your clipboard.'),
+            manual: acf.__('Please copy the following data to your clipboard.'),
+        });
+
+        // fallback for browsers that don't support navigator.clipboard
+        var fallbackCopy = function(data, message) {
+
+            var $input = $('<input type="text" style="clip:rect(0,0,0,0);clip-path:none;position:absolute;" value="" />').appendTo($('body'));
+            $input.attr('value', data).select();
+
+            if (document.execCommand('copy')) {
+                alert(message.auto);
+            } else {
+                prompt(message.manual, data);
+            }
+
+            $input.remove();
+
+        }
+
+        // navigator clipboard
+        if (navigator.clipboard) {
+
+            navigator.clipboard.writeText(data).then(function() {
+                alert(message.auto);
+                return true;
+            }).catch(function() {
+                fallbackCopy(data, message);
+            });
+
+            // fallback
+        } else {
+            fallbackCopy(data, message);
+        }
+
+    }
+
+
+    /**
+     * acfe.scrollTo
+     *
+     * Scroll to element, if needed with acf.isInView()
+     *
+     * @param $el
+     * @param scrollTime
+     * @constructor
+     */
+    acfe.scrollTo = function($el, scrollTime = 500) {
+
+        if (!acf.isInView($el)) {
+            $('body, html').animate({
+                scrollTop: $el.offset().top - $(window).height() / 2
+            }, scrollTime);
+        }
+
+    }
+
 
     /**
      * acfe.versionCompare

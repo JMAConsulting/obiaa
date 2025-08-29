@@ -13,7 +13,7 @@ use CMRF\Core\AbstractCall;
 use mysqli;
 
 class SQLPersistingCallFactory extends CallFactory {
-  
+
   /** @var mysqli */
   protected $connection;
   /** @var string */
@@ -38,6 +38,20 @@ class SQLPersistingCallFactory extends CallFactory {
         ),
         'connector_id' => array(
           'description' => 'Connector ID',
+          'type' => 'varchar',
+          'length' => 255,
+          'not null' => TRUE,
+          'default' => '',
+        ),
+        'entity' => array(
+          'description' => 'The CiviCRM API entity',
+          'type' => 'varchar',
+          'length' => 255,
+          'not null' => TRUE,
+          'default' => '',
+        ),
+        'action' => array(
+          'description' => 'The CiviCRM API action',
           'type' => 'varchar',
           'length' => 255,
           'not null' => TRUE,
@@ -117,28 +131,44 @@ class SQLPersistingCallFactory extends CallFactory {
   }
 
   /** @return \CMRF\Core\Call */
-  public function createOrFetch($connector_id, $core, $entity, $action, $parameters, $options, $callback) {
-    if(!empty($options['cache'])) {
+  public function createOrFetch($connector_id, $core, $entity, $action, $parameters, $options, $callback, string $api_version = '3') {
+    /** @var \CMRF\Core\Call $call */
+    $call = parent::createOrFetch($connector_id, $core, $entity, $action, $parameters, $options, $callback, $api_version);
+
+    if (!empty($options['cache'])) {
       $today = new \DateTime();
       $today = $today->format('Y-m-d H:i:s');
-      $hash = AbstractCall::getHashFromParams($entity,$action,$parameters,$options);
-      $stmt=$this->connection->prepare("select * from {$this->table_name} where request_hash = ? and connector_id = ? and cached_until > ? limit 1");
-      $stmt->bind_param("sss",$hash,$connector_id, $today);
+      $hash = $call->getHash();
+      $stmt = $this->connection->prepare(
+        "select * from {$this->table_name} where request_hash = ? and connector_id = ? and cached_until > ? limit 1"
+      );
+      $stmt->bind_param('sss', $hash, $connector_id, $today);
       $stmt->execute();
 
-      $result=$stmt->get_result();
-      $dataset=$result->fetch_object();
-      if($dataset != NULL) {
-        return $this->call_load($connector_id,$core,$dataset);
+      $result = $stmt->get_result();
+      $dataset = $result->fetch_object();
+      if ($dataset != NULL) {
+        return $this->call_load($connector_id, $core, $dataset);
       }
     }
-    /** @var \CMRF\Core\Call $call */
-    $call=$this->call_construct($connector_id,$core,$entity,$action,$parameters,$options,$callback);
-    $stmt = $this->connection->prepare("insert into {$this->table_name} 
-             (status,connector_id,request,metadata,request_hash,create_date, scheduled_date)
-      VALUES (?     ,?           ,?      ,?       ,?           ,?           , ?)");
+
+    $result = $this->connection->query("SHOW COLUMNS FROM {$this->table_name} WHERE field = 'entity' OR field = 'action';");
+    $columns_exist = ($result->num_rows == 2);
+    if ($columns_exist) {
+      $query = "insert into {$this->table_name}
+             (status,connector_id,entity,action,request,metadata,request_hash,create_date,scheduled_date)
+      VALUES (?     ,?           ,?      ,?    ,?      ,?       ,?           ,?          ,?)";
+    }
+    else {
+      $query = "insert into {$this->table_name}
+             (status,connector_id,request,metadata,request_hash,create_date,scheduled_date)
+      VALUES (?     ,?           ,?      ,?       ,?           ,?          ,?)";
+    }
+    $stmt = $this->connection->prepare($query);
     $status = $call->getStatus();
     $connectorID=$call->getConnectorID();
+    $entity=$call->getEntity();
+    $action=$call->getAction();
     $request=json_encode($call->getRequest());
     $metadata=json_encode($call->getMetadata());
     $hash=$call->getHash();
@@ -147,7 +177,12 @@ class SQLPersistingCallFactory extends CallFactory {
     if($call->getScheduledDate() != NULL) {
       $scheduled_date=$call->getScheduledDate()->format('Y-m-d H:i:s');
     }
-    $stmt->bind_param("sssssss",$status,$connectorID,$request,$metadata,$hash,$date, $scheduled_date);
+    if ($columns_exist) {
+      $stmt->bind_param("sssssssss",$status,$connectorID,$entity,$action,$request,$metadata,$hash,$date, $scheduled_date);
+    }
+    else {
+      $stmt->bind_param("sssssss",$status,$connectorID,$request,$metadata,$hash,$date, $scheduled_date);
+    }
     $stmt->execute();
     if ($stmt->errno) {
       throw new \Exception($stmt->error);
@@ -198,9 +233,9 @@ class SQLPersistingCallFactory extends CallFactory {
   public function getQueuedCallIds() {
     $call_ids = array();
     $result = $this->connection->query("
-      select cid from {$this->table_name} 
-      where (status = 'INIT' OR status = 'RETRY') 
-      and (DATE(scheduled_date) < NOW() or scheduled_date is NULL) 
+      select cid from {$this->table_name}
+      where (status = 'INIT' OR status = 'RETRY')
+      and (DATE(scheduled_date) < NOW() or scheduled_date is NULL)
       ORDER BY scheduled_date ASC");
     if ($result) {
       while ($dataset = $result->fetch_object()) {
@@ -225,6 +260,5 @@ class SQLPersistingCallFactory extends CallFactory {
     //TODO: not yet implemented, as options is not yet known.
     return parent::findCall($options); // TODO: Change the autogenerated stub
   }
-
 
 }

@@ -4,19 +4,24 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit7fd6297525d6f796fbab979fd70c9fd4
+class ComposerStaticInitec2d33c406bff619589a395d02dc78ec
 {
-    public static $prefixesPsr0 = array (
+    public static $prefixLengthsPsr4 = array (
         'C' => 
         array (
-            'CMRF' => 
-            array (
-                0 => __DIR__ . '/..' . '/civimrf/cmrf_abstract_core',
-            ),
+            'CMRF\\' => 5,
+        ),
+    );
+
+    public static $prefixDirsPsr4 = array (
+        'CMRF\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/civimrf/cmrf_abstract_core/CMRF',
         ),
     );
 
     public static $classMap = array (
+        'CMRF\\Connection\\AbstractCurlConnection' => __DIR__ . '/..' . '/civimrf/cmrf_abstract_core/CMRF/Connection/AbstractCurlConnection.php',
         'CMRF\\Connection\\Curl' => __DIR__ . '/..' . '/civimrf/cmrf_abstract_core/CMRF/Connection/Curl.php',
         'CMRF\\Connection\\CurlAuthX' => __DIR__ . '/..' . '/civimrf/cmrf_abstract_core/CMRF/Connection/CurlAuthX.php',
         'CMRF\\Connection\\Local' => __DIR__ . '/..' . '/civimrf/cmrf_abstract_core/CMRF/Connection/Local.php',
@@ -24,6 +29,8 @@ class ComposerStaticInit7fd6297525d6f796fbab979fd70c9fd4
         'CMRF\\Core\\Call' => __DIR__ . '/..' . '/civimrf/cmrf_abstract_core/CMRF/Core/Call.php',
         'CMRF\\Core\\Connection' => __DIR__ . '/..' . '/civimrf/cmrf_abstract_core/CMRF/Core/Connection.php',
         'CMRF\\Core\\Core' => __DIR__ . '/..' . '/civimrf/cmrf_abstract_core/CMRF/Core/Core.php',
+        'CMRF\\Exception\\ApiCallFailedException' => __DIR__ . '/..' . '/civimrf/cmrf_abstract_core/CMRF/Exception/ApiCallFailedException.php',
+        'CMRF\\Exception\\ExceptionInterface' => __DIR__ . '/..' . '/civimrf/cmrf_abstract_core/CMRF/Exception/ExceptionInterface.php',
         'CMRF\\PersistenceLayer\\CallFactory' => __DIR__ . '/..' . '/civimrf/cmrf_abstract_core/CMRF/PersistenceLayer/CallFactory.php',
         'CMRF\\PersistenceLayer\\SQLPersistingCallFactory' => __DIR__ . '/..' . '/civimrf/cmrf_abstract_core/CMRF/PersistenceLayer/SQLPersistingCallFactory.php',
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
@@ -32,8 +39,9 @@ class ComposerStaticInit7fd6297525d6f796fbab979fd70c9fd4
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixesPsr0 = ComposerStaticInit7fd6297525d6f796fbab979fd70c9fd4::$prefixesPsr0;
-            $loader->classMap = ComposerStaticInit7fd6297525d6f796fbab979fd70c9fd4::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInitec2d33c406bff619589a395d02dc78ec::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInitec2d33c406bff619589a395d02dc78ec::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInitec2d33c406bff619589a395d02dc78ec::$classMap;
 
         }, null, ClassLoader::class);
     }

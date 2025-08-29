@@ -65,6 +65,10 @@ class Options {
 			'api_key',
 			'secret_key',
 		],
+		'mailersend'               => [
+			'api_key',
+			'has_pro_plan',
+		],
 		'sendgrid'                 => [
 			'api_key',
 			'domain',
@@ -146,6 +150,7 @@ class Options {
 		'gmail',
 		'mailgun',
 		'mailjet',
+		'mailersend',
 		'outlook',
 		'postmark',
 		'sendgrid',
@@ -638,6 +643,18 @@ class Options {
 
 				break;
 
+			case 'mailersend':
+				switch ( $key ) { // phpcs:ignore WPForms.Formatting.Switch.AddEmptyLineBefore
+					case 'api_key':
+						$return = $this->is_const_defined( $group, $key ) ? EASY_WP_SMTP_MAILERSEND_API_KEY : $value;
+						break;
+
+					case 'has_pro_plan':
+						$return = $this->is_const_defined( $group, $key ) ? $this->parse_boolean( EASY_WP_SMTP_MAILERSEND_HAS_PRO_PLAN ) : $value;
+						break;
+				}
+				break; // phpcs:ignore WPForms.Formatting.Switch.AddEmptyLineBefore
+
 			case 'sendgrid':
 				switch ( $key ) {
 					case 'api_key':
@@ -1015,6 +1032,18 @@ class Options {
 
 				break;
 
+			case 'mailersend':
+				switch ( $key ) { // phpcs:ignore WPForms.Formatting.Switch.AddEmptyLineBefore
+					case 'api_key':
+						$return = defined( 'EASY_WP_SMTP_MAILERSEND_API_KEY' ) && EASY_WP_SMTP_MAILERSEND_API_KEY;
+						break;
+
+					case 'has_pro_plan':
+						$return = defined( 'EASY_WP_SMTP_MAILERSEND_HAS_PRO_PLAN' );
+						break;
+				}
+				break; // phpcs:ignore WPForms.Formatting.Switch.AddEmptyLineBefore
+
 			case 'sparkpost':
 				switch ( $key ) {
 					case 'api_key':
@@ -1383,6 +1412,10 @@ class Options {
 							} catch ( \Exception $e ) {
 							} // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch, Squiz.Commenting.EmptyCatchComment.Missing, Squiz.ControlStructures.ControlSignature.NewlineAfterOpenBrace
 						}
+						break;
+
+					case 'has_pro_plan': // mailersend.
+						$options[ $mailer ][ $option_name ] = $this->is_const_defined( $mailer, $option_name ) ? false : (bool) $option_value;
 						break;
 
 					case 'access_token': // outlook/zoho, is an array.

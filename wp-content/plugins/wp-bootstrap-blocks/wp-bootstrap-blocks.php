@@ -1,11 +1,11 @@
 <?php
 /**
  * Plugin Name: Bootstrap Blocks
- * Plugin URI: https://github.com/liip/bootstrap-blocks-wordpress-plugin
+ * Plugin URI: https://github.com/tschortsch/bootstrap-blocks-wordpress-plugin
  * Description: Bootstrap Gutenberg Blocks for WordPress.
- * Author: Liip AG
- * Author URI: https://liip.ch
- * Version: 5.2.0
+ * Author: Jürg Hunziker
+ * Author URI: https://juerghunziker.ch
+ * Version: 5.2.1
  * License: GPL2+
  * License URI: https://www.gnu.org/licenses/gpl-2.0.txt
  * Text Domain: wp-bootstrap-blocks

@@ -221,7 +221,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Relationship extends acf_field {
 	}
 
 	/**
-	 * Renders the Field Fettings used in the "Presentation" tab.
+	 * Renders the Field settings used in the "Presentation" tab.
 	 *
 	 * @since 0.6.6
 	 *
@@ -252,6 +252,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Relationship extends acf_field {
 		$field['ajax']       = 1;
 		$field['allow_null'] = 1;
 		$field['multiple']   = 1;
+		$field['nonce']      = wp_create_nonce( $field['key'] );
 
 		// Init choices array.
 		$field['choices'] = [];
@@ -371,11 +372,6 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Relationship extends acf_field {
 		// Load Field.
 		$field = acf_get_field( $options['field_key'] );
 
-		// Bail if Field did not load.
-		if ( ! $field ) {
-			return $response;
-		}
-
 		// Grab the ACF "Post ID".
 		$post_id = $options['post_id'];
 
@@ -392,8 +388,8 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Relationship extends acf_field {
 		$args['contact_type']     = '';
 		$args['contact_sub_type'] = '';
 
-		// If this has a relationship.
-		if ( ! empty( $field[ $relationship_key ] ) ) {
+		// If this has a Relationship.
+		if ( ! empty( $field ) && ! empty( $field[ $relationship_key ] ) ) {
 
 			// Get the Relationship ID.
 			$relationship_data      = explode( '_', $field[ $relationship_key ] );
@@ -432,8 +428,10 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Relationship extends acf_field {
 		 * @param integer $post_id The numeric ID of the WordPress post.
 		 */
 		$args = apply_filters( 'acf/fields/' . $this->name . '/query', $args, $field, $post_id );
-		$args = apply_filters( 'acf/fields/' . $this->name . "/query/name={$field['_name']}", $args, $field, $post_id );
-		$args = apply_filters( 'acf/fields/' . $this->name . "/query/key={$field['key']}", $args, $field, $post_id );
+		if ( ! empty( $field ) ) {
+			$args = apply_filters( 'acf/fields/' . $this->name . "/query/name={$field['_name']}", $args, $field, $post_id );
+			$args = apply_filters( 'acf/fields/' . $this->name . "/query/key={$field['key']}", $args, $field, $post_id );
+		}
 
 		// Handle paging.
 		$offset = 0;
