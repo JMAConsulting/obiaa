@@ -152,7 +152,7 @@ function getContactDetails(): array|null {
   return $cid ? \Civi\Api4\Contact::get(FALSE)
     ->addSelect('*', 'email_primary.email', 'phone_primary.phone')
     ->addWhere('id', '=', $cid)
-    ->single() : null;
+    ->execute()->first() : null;
 }
 
 /**
@@ -165,5 +165,5 @@ function getBusinessDetails(): array|null {
     ->addWhere('contact_sub_type', '=', 'Members_Businesses_')
     ->addJoin('Website AS website', 'LEFT', ['id', '=', 'website.contact_id'])
     ->addSelect('*', 'custom.*', 'email_primary.email', 'phone_primary.phone', 'website.url')
-    ->single() : null;
+    ->execute()->first() : null;
 }
