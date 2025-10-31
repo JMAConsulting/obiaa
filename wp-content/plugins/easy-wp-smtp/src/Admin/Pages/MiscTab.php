@@ -84,7 +84,7 @@ class MiscTab extends PageAbstract {
 					<!-- Domain check -->
 					<div class="easy-wp-smtp-row easy-wp-smtp-setting-row">
 						<div class="easy-wp-smtp-setting-row__label">
-							<label for="easy-wp-smtp-setting-do_not_send">
+							<label for="easy-wp-smtp-setting-domain_check">
 								<?php esc_html_e( 'Enable Domain Check', 'easy-wp-smtp' ); ?>
 							</label>
 						</div>
@@ -141,25 +141,26 @@ class MiscTab extends PageAbstract {
 							</label>
 						</div>
 						<div class="easy-wp-smtp-setting-row__field">
-							<label class="easy-wp-smtp-toggle" for="easy-wp-smtp-setting-do_not_send">
-								<input name="easy-wp-smtp[general][do_not_send]" type="checkbox" value="true" id="easy-wp-smtp-setting-do_not_send"
-									<?php echo $options->is_const_defined( 'general', 'do_not_send' ) ? 'disabled' : ''; ?>
-									<?php checked( true, $options->get( 'general', 'do_not_send' ) ); ?>
-								/>
-								<span class="easy-wp-smtp-toggle__switch"></span>
-								<span class="easy-wp-smtp-toggle__label easy-wp-smtp-toggle__label--static"><?php esc_html_e( 'Stop sending all emails', 'easy-wp-smtp' ); ?></span>
-							</label>
+							<div class="easy-wp-smtp-setting-row__sub-row">
+								<label class="easy-wp-smtp-toggle" for="easy-wp-smtp-setting-do_not_send">
+									<input name="easy-wp-smtp[general][do_not_send]" type="checkbox" value="true" id="easy-wp-smtp-setting-do_not_send"
+										<?php echo $options->is_const_defined( 'general', 'do_not_send' ) ? 'disabled' : ''; ?>
+										<?php checked( true, $options->get( 'general', 'do_not_send' ) ); ?>
+									/>
+									<span class="easy-wp-smtp-toggle__switch"></span>
+									<span class="easy-wp-smtp-toggle__label easy-wp-smtp-toggle__label--static"><?php esc_html_e( 'Stop sending all emails', 'easy-wp-smtp' ); ?></span>
+								</label>
 
-							<p class="desc">
-								<?php
-								esc_html_e( 'Enable to stop your site from sending emails. Test emails are allowed to be sent, regardless of whether this option is enabled.', 'easy-wp-smtp' );
-								?>
-							</p>
-							<p class="desc">
-								<?php
-								esc_html_e( 'Some plugins, like BuddyPress and Events Manager, use their own email delivery solutions. By default, this option does not block their emails, as those plugins do not use the default wp_mail() function to send emails. You will need to consult the documentation of any such plugins to switch them to use default WordPress email delivery for this setting to have an effect. ', 'easy-wp-smtp' );
-								?>
-							</p>
+								<p class="desc">
+									<?php
+									esc_html_e( 'Enable to stop your site from sending emails. Test emails are allowed to be sent, regardless of whether this option is enabl.', 'easy-wp-smtp' );
+									?>
+								</p>
+								<p class="desc">
+									<?php esc_html_e( 'Some plugins, like BuddyPress and Events Manager, use their own email delivery solutions. By default, this option does not block their emails, as those plugins do not use the default wp_mail() function to send emails. You will need to consult the documentation of any such plugins to switch them to use default WordPress email delivery for this setting to have an effect. ', 'easy-wp-smtp' ); ?>,
+								</p>
+							</div>
+							<?php $this->display_log_blocked_emails_settings(); ?>
 						</div>
 					</div>
 
@@ -576,6 +577,13 @@ class MiscTab extends PageAbstract {
 		</div>
 		<?php
 	}
+
+	/**
+	 * Display "Log Blocked Emails" control.
+	 *
+	 * @since 2.12.0
+	 */
+	protected function display_log_blocked_emails_settings() {}
 
 	/**
 	 * Process tab form submission ($_POST).

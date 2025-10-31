@@ -352,6 +352,33 @@ class Conflicts {
 				'slug'     => 'zoho-mail/zohoMail.php',
 				'function' => 'zmail_send_mail_callback',
 			],
+
+			/**
+			 * Url: https://elementor.com/products/site-mailer/
+			 */
+			[
+				'name'  => 'Site Mailer - SMTP Replacement, Email API Deliverability & Email Log',
+				'slug'  => 'site-mailer/site-mailer.php',
+				'class' => 'SiteMailer',
+			],
+
+			/**
+			 * Url: https://wordpress.org/plugins/suremails/
+			 */
+			[
+				'name'  => 'SureMail',
+				'slug'  => 'suremails/suremails.php',
+				'class' => 'MailHandler',
+			],
+
+			/**
+			 * Url: https://www.gravityforms.com/gravity-smtp/
+			 */
+			[
+				'name'  => 'Gravity SMTP',
+				'slug'  => 'gravitysmtp/gravitysmtp.php',
+				'class' => 'Gravity_SMTP',
+			],
 		];
 	}
 
