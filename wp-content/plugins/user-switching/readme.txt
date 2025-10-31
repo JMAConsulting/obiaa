@@ -1,6 +1,6 @@
 # User Switching
 
-Stable tag: 1.9.2
+Stable tag: 1.11.0
 Tested up to: 6.8
 License: GPL v2 or later
 Tags: users, user switching, fast user switching, multisite, woocommerce
@@ -11,7 +11,7 @@ Instant switching between user accounts in WordPress.
 
 ## Description
 
-This plugin allows you to quickly swap between user accounts in WordPress at the click of a button. You'll be instantly logged out and logged in as your desired user. This is handy for for helping customers on WooCommerce sites, membership sites, testing environments, or for any site where administrators need to switch between multiple accounts.
+This plugin allows you to quickly swap between user accounts in WordPress at the click of a button. You'll be instantly logged out and logged in as your desired user. This is handy for helping customers on WooCommerce sites, membership sites, testing environments, or for any site where administrators need to switch between multiple accounts.
 
 ### Features
 
@@ -336,6 +336,15 @@ In addition, User Switching respects the following filters from WordPress core w
 [I am accepting sponsorships via the GitHub Sponsors program](https://github.com/sponsors/johnbillion) and any support you can give will help me maintain this plugin and keep it free for everyone.
 ## Changelog ##
 
+### 1.11.0 (15 October 2025) ###
+
+- Adds a Switch Back link to all `wp_die()` screens when you're switched into another account.
+
+### 1.10.0 (27 July 2025) ###
+
+* When the user is switched, display all of User Switching's messages in the language of the original user
+
+
 ### 1.9.2 (16 April 2025) ###
 
 * Confirms support for WordPress 6.8
@@ -382,15 +391,6 @@ In addition, User Switching respects the following filters from WordPress core w
 * Use a better placement for the Switch To menu on bbPress profiles
 * Use a more appropriate HTTP response code if switching off fails
 * Exclude `.editorconfig` from dist ZIP
-
-### 1.6.0 (24 June 2022) ###
-
-* Add a 'Switch To' link to the order screen in WooCommerce
-* Add a 'Switch back' link to the My Account screen and the login screen in WooCommerce
-
-### 1.5.8 (2 October 2021) ###
-
-* Avoid a fatal if the `interim-login` query parameter is present on a page other than wp-login.php.
 
 ### Earlier versions ###
 
