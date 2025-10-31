@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit11c02380f50d2808e4d8f3a4bb234f17
+class ComposerStaticInita0b8d9ed88be7ac6271d1a375dcb9443
 {
     public static $files = array (
         '703a8983f7f3d73a3e507ba2561cc7b7' => __DIR__ . '/../..' . '/vendor_prefixed/symfony/polyfill-mbstring/bootstrap.php',
@@ -175,8 +175,11 @@ class ComposerStaticInit11c02380f50d2808e4d8f3a4bb234f17
         'EasyWPSMTP\\Compatibility\\Plugin\\Admin2020' => __DIR__ . '/../..' . '/src/Compatibility/Plugin/Admin2020.php',
         'EasyWPSMTP\\Compatibility\\Plugin\\PluginAbstract' => __DIR__ . '/../..' . '/src/Compatibility/Plugin/PluginAbstract.php',
         'EasyWPSMTP\\Compatibility\\Plugin\\PluginInterface' => __DIR__ . '/../..' . '/src/Compatibility/Plugin/PluginInterface.php',
+        'EasyWPSMTP\\Compatibility\\Plugin\\Polylang' => __DIR__ . '/../..' . '/src/Compatibility/Plugin/Polylang.php',
+        'EasyWPSMTP\\Compatibility\\Plugin\\PolylangPro' => __DIR__ . '/../..' . '/src/Compatibility/Plugin/PolylangPro.php',
         'EasyWPSMTP\\Compatibility\\Plugin\\WPForms' => __DIR__ . '/../..' . '/src/Compatibility/Plugin/WPForms.php',
         'EasyWPSMTP\\Compatibility\\Plugin\\WPFormsLite' => __DIR__ . '/../..' . '/src/Compatibility/Plugin/WPFormsLite.php',
+        'EasyWPSMTP\\Compatibility\\Plugin\\WPML' => __DIR__ . '/../..' . '/src/Compatibility/Plugin/WPML.php',
         'EasyWPSMTP\\Compatibility\\Plugin\\WooCommerce' => __DIR__ . '/../..' . '/src/Compatibility/Plugin/WooCommerce.php',
         'EasyWPSMTP\\Conflicts' => __DIR__ . '/../..' . '/src/Conflicts.php',
         'EasyWPSMTP\\Connect' => __DIR__ . '/../..' . '/src/Connect.php',
@@ -262,6 +265,7 @@ class ComposerStaticInit11c02380f50d2808e4d8f3a4bb234f17
         'EasyWPSMTP\\Pro\\Emails\\Logs\\DeliveryVerification\\MailerSend\\DeliveryVerifier' => __DIR__ . '/../..' . '/src/Pro/Emails/Logs/DeliveryVerification/MailerSend/DeliveryVerifier.php',
         'EasyWPSMTP\\Pro\\Emails\\Logs\\DeliveryVerification\\Mailgun\\DeliveryVerifier' => __DIR__ . '/../..' . '/src/Pro/Emails/Logs/DeliveryVerification/Mailgun/DeliveryVerifier.php',
         'EasyWPSMTP\\Pro\\Emails\\Logs\\DeliveryVerification\\Mailjet\\DeliveryVerifier' => __DIR__ . '/../..' . '/src/Pro/Emails/Logs/DeliveryVerification/Mailjet/DeliveryVerifier.php',
+        'EasyWPSMTP\\Pro\\Emails\\Logs\\DeliveryVerification\\Mandrill\\DeliveryVerifier' => __DIR__ . '/../..' . '/src/Pro/Emails/Logs/DeliveryVerification/Mandrill/DeliveryVerifier.php',
         'EasyWPSMTP\\Pro\\Emails\\Logs\\DeliveryVerification\\Postmark\\DeliveryVerifier' => __DIR__ . '/../..' . '/src/Pro/Emails/Logs/DeliveryVerification/Postmark/DeliveryVerifier.php',
         'EasyWPSMTP\\Pro\\Emails\\Logs\\DeliveryVerification\\SMTP2GO\\DeliveryVerifier' => __DIR__ . '/../..' . '/src/Pro/Emails/Logs/DeliveryVerification/SMTP2GO/DeliveryVerifier.php',
         'EasyWPSMTP\\Pro\\Emails\\Logs\\DeliveryVerification\\SMTPcom\\DeliveryVerifier' => __DIR__ . '/../..' . '/src/Pro/Emails/Logs/DeliveryVerification/SMTPcom/DeliveryVerifier.php',
@@ -319,6 +323,10 @@ class ComposerStaticInit11c02380f50d2808e4d8f3a4bb234f17
         'EasyWPSMTP\\Pro\\Emails\\Logs\\Webhooks\\Providers\\Mailjet\\Processor' => __DIR__ . '/../..' . '/src/Pro/Emails/Logs/Webhooks/Providers/Mailjet/Processor.php',
         'EasyWPSMTP\\Pro\\Emails\\Logs\\Webhooks\\Providers\\Mailjet\\Provider' => __DIR__ . '/../..' . '/src/Pro/Emails/Logs/Webhooks/Providers/Mailjet/Provider.php',
         'EasyWPSMTP\\Pro\\Emails\\Logs\\Webhooks\\Providers\\Mailjet\\Subscriber' => __DIR__ . '/../..' . '/src/Pro/Emails/Logs/Webhooks/Providers/Mailjet/Subscriber.php',
+        'EasyWPSMTP\\Pro\\Emails\\Logs\\Webhooks\\Providers\\Mandrill\\Events\\Failed' => __DIR__ . '/../..' . '/src/Pro/Emails/Logs/Webhooks/Providers/Mandrill/Events/Failed.php',
+        'EasyWPSMTP\\Pro\\Emails\\Logs\\Webhooks\\Providers\\Mandrill\\Processor' => __DIR__ . '/../..' . '/src/Pro/Emails/Logs/Webhooks/Providers/Mandrill/Processor.php',
+        'EasyWPSMTP\\Pro\\Emails\\Logs\\Webhooks\\Providers\\Mandrill\\Provider' => __DIR__ . '/../..' . '/src/Pro/Emails/Logs/Webhooks/Providers/Mandrill/Provider.php',
+        'EasyWPSMTP\\Pro\\Emails\\Logs\\Webhooks\\Providers\\Mandrill\\Subscriber' => __DIR__ . '/../..' . '/src/Pro/Emails/Logs/Webhooks/Providers/Mandrill/Subscriber.php',
         'EasyWPSMTP\\Pro\\Emails\\Logs\\Webhooks\\Providers\\Postmark\\Events\\Failed' => __DIR__ . '/../..' . '/src/Pro/Emails/Logs/Webhooks/Providers/Postmark/Events/Failed.php',
         'EasyWPSMTP\\Pro\\Emails\\Logs\\Webhooks\\Providers\\Postmark\\Processor' => __DIR__ . '/../..' . '/src/Pro/Emails/Logs/Webhooks/Providers/Postmark/Processor.php',
         'EasyWPSMTP\\Pro\\Emails\\Logs\\Webhooks\\Providers\\Postmark\\Provider' => __DIR__ . '/../..' . '/src/Pro/Emails/Logs/Webhooks/Providers/Postmark/Provider.php',
@@ -399,6 +407,7 @@ class ComposerStaticInit11c02380f50d2808e4d8f3a4bb234f17
         'EasyWPSMTP\\Pro\\Tasks\\Logs\\MailerSend\\VerifySentStatusTask' => __DIR__ . '/../..' . '/src/Pro/Tasks/Logs/MailerSend/VerifySentStatusTask.php',
         'EasyWPSMTP\\Pro\\Tasks\\Logs\\Mailgun\\VerifySentStatusTask' => __DIR__ . '/../..' . '/src/Pro/Tasks/Logs/Mailgun/VerifySentStatusTask.php',
         'EasyWPSMTP\\Pro\\Tasks\\Logs\\Mailjet\\VerifySentStatusTask' => __DIR__ . '/../..' . '/src/Pro/Tasks/Logs/Mailjet/VerifySentStatusTask.php',
+        'EasyWPSMTP\\Pro\\Tasks\\Logs\\Mandrill\\VerifySentStatusTask' => __DIR__ . '/../..' . '/src/Pro/Tasks/Logs/Mandrill/VerifySentStatusTask.php',
         'EasyWPSMTP\\Pro\\Tasks\\Logs\\Postmark\\VerifySentStatusTask' => __DIR__ . '/../..' . '/src/Pro/Tasks/Logs/Postmark/VerifySentStatusTask.php',
         'EasyWPSMTP\\Pro\\Tasks\\Logs\\ResendTask' => __DIR__ . '/../..' . '/src/Pro/Tasks/Logs/ResendTask.php',
         'EasyWPSMTP\\Pro\\Tasks\\Logs\\SMTP2GO\\VerifySentStatusTask' => __DIR__ . '/../..' . '/src/Pro/Tasks/Logs/SMTP2GO/VerifySentStatusTask.php',
@@ -428,6 +437,8 @@ class ComposerStaticInit11c02380f50d2808e4d8f3a4bb234f17
         'EasyWPSMTP\\Providers\\Mailgun\\Options' => __DIR__ . '/../..' . '/src/Providers/Mailgun/Options.php',
         'EasyWPSMTP\\Providers\\Mailjet\\Mailer' => __DIR__ . '/../..' . '/src/Providers/Mailjet/Mailer.php',
         'EasyWPSMTP\\Providers\\Mailjet\\Options' => __DIR__ . '/../..' . '/src/Providers/Mailjet/Options.php',
+        'EasyWPSMTP\\Providers\\Mandrill\\Mailer' => __DIR__ . '/../..' . '/src/Providers/Mandrill/Mailer.php',
+        'EasyWPSMTP\\Providers\\Mandrill\\Options' => __DIR__ . '/../..' . '/src/Providers/Mandrill/Options.php',
         'EasyWPSMTP\\Providers\\OptionsAbstract' => __DIR__ . '/../..' . '/src/Providers/OptionsAbstract.php',
         'EasyWPSMTP\\Providers\\OptionsInterface' => __DIR__ . '/../..' . '/src/Providers/OptionsInterface.php',
         'EasyWPSMTP\\Providers\\Outlook\\Options' => __DIR__ . '/../..' . '/src/Providers/Outlook/Options.php',
@@ -491,9 +502,9 @@ class ComposerStaticInit11c02380f50d2808e4d8f3a4bb234f17
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit11c02380f50d2808e4d8f3a4bb234f17::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit11c02380f50d2808e4d8f3a4bb234f17::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInit11c02380f50d2808e4d8f3a4bb234f17::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInita0b8d9ed88be7ac6271d1a375dcb9443::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInita0b8d9ed88be7ac6271d1a375dcb9443::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInita0b8d9ed88be7ac6271d1a375dcb9443::$classMap;
 
         }, null, ClassLoader::class);
     }
