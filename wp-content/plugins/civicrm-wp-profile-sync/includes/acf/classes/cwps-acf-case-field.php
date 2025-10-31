@@ -25,7 +25,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Case_Field {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync
 	 */
 	public $plugin;
 
@@ -34,7 +34,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Case_Field {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync_ACF_Loader
 	 */
 	public $acf_loader;
 
@@ -43,7 +43,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Case_Field {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_Profile_Sync_ACF_CiviCRM
 	 */
 	public $civicrm;
 
@@ -140,7 +140,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Case_Field {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Validate the content of a Field.
@@ -185,7 +185,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Case_Field {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Intercept when a Post has been updated from a Case via the Mapper.
@@ -250,7 +250,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Case_Field {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the value of a Case Field, formatted for ACF.
@@ -335,7 +335,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Case_Field {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the "select" options for a given CiviCRM Case Field.
@@ -375,7 +375,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Case_Field {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the CiviCRM Case Fields for an ACF Field.
@@ -422,7 +422,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Case_Field {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the Case Field options for a given Field ID.
@@ -531,7 +531,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Case_Field {
 
 				// Skip all but those mapped to the type of ACF Field.
 				foreach ( $public_fields as $key => $value ) {
-					if ( $field_type == $this->case_fields[ $value['name'] ] ) {
+					if ( $field_type === $this->case_fields[ $value['name'] ] ) {
 						$fields[] = $value;
 					}
 				}
@@ -664,7 +664,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Case_Field {
 
 		// Skip all but those mapped to the type of ACF Field.
 		foreach ( $this->case_fields as $key => $value ) {
-			if ( $type == $value ) {
+			if ( $type === $value ) {
 				$case_fields[ $key ] = $value;
 			}
 		}
@@ -697,7 +697,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Case_Field {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Modify the Settings of an ACF "Select" Field.
@@ -820,7 +820,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Case_Field {
 			// Override if we get the default.
 			$config = CRM_Core_Config::singleton();
 			// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-			if ( $config->dateInputFormat == $format ) {
+			if ( $config->dateInputFormat === $format ) {
 				$format = '';
 			}
 
@@ -836,7 +836,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Case_Field {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Maybe sync the Case "Date" Fields to the ACF Fields on a WordPress Post.

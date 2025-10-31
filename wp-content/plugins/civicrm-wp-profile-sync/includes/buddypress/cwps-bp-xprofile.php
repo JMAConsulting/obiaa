@@ -25,7 +25,7 @@ class CiviCRM_Profile_Sync_BP_XProfile {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync
 	 */
 	public $plugin;
 
@@ -34,7 +34,7 @@ class CiviCRM_Profile_Sync_BP_XProfile {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync_BuddyPress
 	 */
 	public $bp_loader;
 
@@ -43,7 +43,7 @@ class CiviCRM_Profile_Sync_BP_XProfile {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync_CiviCRM
 	 */
 	public $civicrm;
 
@@ -52,7 +52,7 @@ class CiviCRM_Profile_Sync_BP_XProfile {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_Profile_Sync_BP_CiviCRM_Contact
 	 */
 	public $contact;
 
@@ -61,7 +61,7 @@ class CiviCRM_Profile_Sync_BP_XProfile {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_Profile_Sync_BP_CiviCRM_Contact_Field
 	 */
 	public $contact_field;
 
@@ -70,7 +70,7 @@ class CiviCRM_Profile_Sync_BP_XProfile {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field
 	 */
 	public $custom_field;
 
@@ -79,7 +79,7 @@ class CiviCRM_Profile_Sync_BP_XProfile {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_Profile_Sync_BP_CiviCRM_Address
 	 */
 	public $address;
 
@@ -88,7 +88,7 @@ class CiviCRM_Profile_Sync_BP_XProfile {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_Profile_Sync_BP_CiviCRM_Phone
 	 */
 	public $phone;
 
@@ -97,7 +97,7 @@ class CiviCRM_Profile_Sync_BP_XProfile {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_Profile_Sync_BP_CiviCRM_Website
 	 */
 	public $website;
 
@@ -375,7 +375,7 @@ class CiviCRM_Profile_Sync_BP_XProfile {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Called when a BuddyPress xProfile "Profile Group" has been updated.
@@ -544,7 +544,7 @@ class CiviCRM_Profile_Sync_BP_XProfile {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Update the value of a BuddyPress xProfile Field.
@@ -720,7 +720,7 @@ class CiviCRM_Profile_Sync_BP_XProfile {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Filters the HTML output for an xProfile Field options checkbox button.
@@ -840,7 +840,7 @@ class CiviCRM_Profile_Sync_BP_XProfile {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Filter the raw submitted Profile Field value.
@@ -932,7 +932,7 @@ class CiviCRM_Profile_Sync_BP_XProfile {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Fires when the children of a BuddyPress xProfile Field are read.
@@ -984,7 +984,7 @@ class CiviCRM_Profile_Sync_BP_XProfile {
 		// Add in the CiviCRM values.
 		foreach ( $options as $id => $option ) {
 			foreach ( $children as $child ) {
-				if ( $child->name == $option ) {
+				if ( $child->name === $option ) {
 					$child->civicrm_value = $id;
 				}
 			}
@@ -1254,7 +1254,7 @@ class CiviCRM_Profile_Sync_BP_XProfile {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Output a metabox below the xProfile Field Type metabox in the main column.
@@ -1385,7 +1385,7 @@ class CiviCRM_Profile_Sync_BP_XProfile {
 
 				// Assign top level Contact Type data.
 				foreach ( $contact_types as $contact_type ) {
-					if ( $contact_type['id'] == $contact_type_id ) {
+					if ( (int) $contact_type['id'] === (int) $contact_type_id ) {
 						$entity_type_data = $contact_type;
 					}
 				}
@@ -1396,7 +1396,7 @@ class CiviCRM_Profile_Sync_BP_XProfile {
 						continue;
 					}
 					foreach ( $contact_type['children'] as $contact_subtype ) {
-						if ( $contact_subtype['id'] == $contact_type_id ) {
+						if ( (int) $contact_subtype['id'] === (int) $contact_type_id ) {
 							$entity_type_data = $contact_subtype;
 						}
 					}
@@ -1410,7 +1410,7 @@ class CiviCRM_Profile_Sync_BP_XProfile {
 		if ( 'Address' === $entity_type || 'Phone' === $entity_type ) {
 			if ( ! empty( $location_types ) ) {
 				foreach ( $location_types as $location ) {
-					if ( $location['id'] == $location_type_id ) {
+					if ( (int) $location['id'] === (int) $location_type_id ) {
 						$entity_type_data['location_type'] = $location;
 					}
 				}
@@ -1421,7 +1421,7 @@ class CiviCRM_Profile_Sync_BP_XProfile {
 		if ( 'Phone' === $entity_type ) {
 			if ( ! empty( $phone_types ) ) {
 				foreach ( $phone_types as $id => $label ) {
-					if ( $id == $phone_type_id ) {
+					if ( (int) $id === (int) $phone_type_id ) {
 						$entity_type_data['phone_type'] = [
 							'id'    => $id,
 							'label' => $label,
@@ -1435,7 +1435,7 @@ class CiviCRM_Profile_Sync_BP_XProfile {
 		if ( 'Website' === $entity_type ) {
 			if ( ! empty( $website_types ) ) {
 				foreach ( $website_types as $id => $label ) {
-					if ( $id == $website_type_id ) {
+					if ( (int) $id === (int) $website_type_id ) {
 						$entity_type_data['website_type'] = [
 							'id'    => $id,
 							'label' => $label,
@@ -1604,7 +1604,7 @@ class CiviCRM_Profile_Sync_BP_XProfile {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Gets all of our metadata for a BuddyPress xProfile Field.

@@ -25,7 +25,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync
 	 */
 	public $plugin;
 
@@ -34,7 +34,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync_ACF_Loader
 	 */
 	public $acf_loader;
 
@@ -43,7 +43,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_Profile_Sync_ACF_CiviCRM
 	 */
 	public $civicrm;
 
@@ -52,7 +52,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_Profile_Sync_ACF
 	 */
 	public $acf;
 
@@ -61,7 +61,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_Profile_Sync_ACF_ACFE
 	 */
 	public $acfe;
 
@@ -535,7 +535,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Listen for queries from the Field Group class.
@@ -633,7 +633,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form {
 		}
 
 		// Test for this Location Rule.
-		if ( $rule['param'] == $this->rule_name && ! empty( $params[ $this->rule_name ] ) ) {
+		if ( $rule['param'] === $this->rule_name && ! empty( $params[ $this->rule_name ] ) ) {
 			$supported = true;
 		}
 
@@ -642,7 +642,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Returns a Setting Field from this Entity when found.

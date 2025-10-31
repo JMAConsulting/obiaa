@@ -27,7 +27,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync
 	 */
 	public $plugin;
 
@@ -36,7 +36,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync_ACF_Loader
 	 */
 	public $acf_loader;
 
@@ -45,7 +45,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_Profile_Sync_ACF_CiviCRM
 	 */
 	public $civicrm;
 
@@ -54,7 +54,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_Profile_Sync_ACF_CiviCRM_Participant
 	 */
 	public $participant;
 
@@ -63,7 +63,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT
 	 */
 	public $cpt;
 
@@ -359,7 +359,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Filters the arguments used to update a Post.
@@ -481,7 +481,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax {
 	public function term_created( $args ) {
 
 		// Only look for Terms in the Participant Role Taxonomy.
-		if ( $args['taxonomy'] != $this->taxonomy_name ) {
+		if ( $args['taxonomy'] !== $this->taxonomy_name ) {
 			return;
 		}
 
@@ -489,6 +489,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax {
 		$term = get_term_by( 'id', $args['term_id'], $this->taxonomy_name );
 
 		// If "Is Active" is not set, then the Term is not active.
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
 		if ( ! isset( $_POST['cwps-participant-role-active'] ) ) {
 			$this->term_active_set( $term->term_id, false );
 		} else {
@@ -496,6 +497,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax {
 		}
 
 		// If "Counted" is not set, then the Term is not counted.
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
 		if ( ! isset( $_POST['cwps-participant-role-counted'] ) ) {
 			$this->term_counted_set( $term->term_id, false );
 		} else {
@@ -544,7 +546,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax {
 		}
 
 		// Check Taxonomy.
-		if ( $term->taxonomy != $this->taxonomy_name ) {
+		if ( $term->taxonomy !== $this->taxonomy_name ) {
 			return;
 		}
 
@@ -563,7 +565,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax {
 	public function term_edited( $args ) {
 
 		// Only look for Terms in the Participant Role Taxonomy.
-		if ( $args['taxonomy'] != $this->taxonomy_name ) {
+		if ( $args['taxonomy'] !== $this->taxonomy_name ) {
 			return;
 		}
 
@@ -577,15 +579,15 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax {
 			unset( $this->term_edited[ $new_term->term_id ] );
 		}
 
+		// Get action from POST array.
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$post_action = ! empty( $_POST['action'] ) ? sanitize_text_field( wp_unslash( $_POST['action'] ) ) : '';
+
 		// Is this an Inline Edit?
-		// phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedIf
-		if ( ! empty( $_POST['action'] ) && 'inline-save-tax' === $_POST['action'] ) {
-
-			// There will be no change to "Is Active" or "Counted".
-
-		} else {
+		if ( 'inline-save-tax' !== $post_action ) {
 
 			// If "Is Active" is not set, then the Term is not active.
+			// phpcs:ignore WordPress.Security.NonceVerification.Missing
 			if ( ! isset( $_POST['cwps-participant-role-active'] ) ) {
 				$this->term_active_set( $new_term->term_id, false );
 			} else {
@@ -593,6 +595,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax {
 			}
 
 			// If "Counted" is not set, then the Term is not counted.
+			// phpcs:ignore WordPress.Security.NonceVerification.Missing
 			if ( ! isset( $_POST['cwps-participant-role-counted'] ) ) {
 				$this->term_counted_set( $new_term->term_id, false );
 			} else {
@@ -609,9 +612,6 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax {
 
 		// Rehook CiviCRM.
 		$this->register_civicrm_hooks();
-
-		// Clear property.
-		unset( $this->term_edited );
 
 	}
 
@@ -641,7 +641,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax {
 		}
 
 		// Check Taxonomy.
-		if ( $term->taxonomy != $this->taxonomy_name ) {
+		if ( $term->taxonomy !== $this->taxonomy_name ) {
 			return;
 		}
 
@@ -665,7 +665,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax {
 	public function term_deleted( $args ) {
 
 		// Only look for Terms in the Participant Role Taxonomy.
-		if ( $args['taxonomy'] != $this->taxonomy_name ) {
+		if ( $args['taxonomy'] !== $this->taxonomy_name ) {
 			return;
 		}
 
@@ -909,7 +909,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax {
 	public function terms_dropdown_clear( $output, $parsed_args ) {
 
 		// Only clear Participant Role category.
-		if ( $parsed_args['taxonomy'] != $this->taxonomy_name ) {
+		if ( $parsed_args['taxonomy'] !== $this->taxonomy_name ) {
 			return $output;
 		}
 
@@ -933,7 +933,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax {
 	public function term_default_checked( $args, $post_id ) {
 
 		// Only modify Participant Role category.
-		if ( $args['taxonomy'] != $this->taxonomy_name ) {
+		if ( $args['taxonomy'] !== $this->taxonomy_name ) {
 			return $args;
 		}
 
@@ -984,7 +984,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the Term in the Participant Role category for a given CiviCRM Participant Role ID.
@@ -1130,7 +1130,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get "Is Active" state of a Term in the Participant Role category.
@@ -1294,7 +1294,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Callback for the CiviCRM 'civi.dao.postInsert' hook.
@@ -1316,7 +1316,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax {
 
 		// Bail if it's not a CiviCRM Participant Role.
 		$opt_group_id = $this->civicrm->participant_role->option_group_id_get();
-		if ( false === $opt_group_id || $opt_group_id != $participant_role->option_group_id ) {
+		if ( false === $opt_group_id || (int) $opt_group_id !== (int) $participant_role->option_group_id ) {
 			return;
 		}
 
@@ -1471,7 +1471,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Updates a CiviCRM Participant Role.
@@ -1763,7 +1763,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Add a form element to the "Add Term" form.
@@ -1804,7 +1804,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Add a add a Menu Item to the CiviCRM Admin Utilities menu.
@@ -1831,7 +1831,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax {
 		}
 
 		// Bail if not our Taxonomy.
-		if ( $screen->taxonomy != $this->taxonomy_name ) {
+		if ( $screen->taxonomy !== $this->taxonomy_name ) {
 			return;
 		}
 

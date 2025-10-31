@@ -25,7 +25,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Address_Country_Field extends acf_fiel
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync
 	 */
 	public $plugin;
 
@@ -34,7 +34,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Address_Country_Field extends acf_fiel
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync_ACF_Loader
 	 */
 	public $acf_loader;
 
@@ -43,7 +43,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Address_Country_Field extends acf_fiel
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_Profile_Sync_ACF
 	 */
 	public $acf;
 
@@ -52,7 +52,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Address_Country_Field extends acf_fiel
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_Profile_Sync_ACF_CiviCRM
 	 */
 	public $civicrm;
 
@@ -359,7 +359,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Address_Country_Field extends acf_fiel
 
 				// Assign Country ID from the Address Location Type.
 				foreach ( $addresses as $address ) {
-					if ( $address->location_type_id == $field['country_location_type_id'] ) {
+					if ( (int) $address->location_type_id === (int) $field['country_location_type_id'] ) {
 						$country_id = (int) $address->country_id;
 						break;
 					}

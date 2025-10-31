@@ -25,7 +25,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync
 	 */
 	public $plugin;
 
@@ -34,7 +34,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync_ACF_Loader
 	 */
 	public $acf_loader;
 
@@ -43,7 +43,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_Profile_Sync_ACF_CiviCRM
 	 */
 	public $civicrm;
 
@@ -199,7 +199,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Update a CiviCRM Contact when a WordPress Post is synced.
@@ -381,7 +381,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Getter method for the "Handled Fields" array.
@@ -408,7 +408,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Checks if there are valid checksum query params.
@@ -838,7 +838,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 			foreach ( $top_level_types as $type ) {
 				if ( empty( $contact_type ) ) {
 					$dedupe_rules[ $type ] = CRM_Dedupe_BAO_RuleGroup::getByType( $type );
-				} elseif ( $contact_type == $type ) {
+				} elseif ( $contact_type === $type ) {
 					$dedupe_rules = CRM_Dedupe_BAO_RuleGroup::getByType( $type );
 					break;
 				}
@@ -851,7 +851,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get "chunked" CiviCRM API Contact data for a given Contact Type ID.
@@ -911,7 +911,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Check whether any of a Contact's Contact Types is mapped to a Post Type.
@@ -1079,7 +1079,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Prepare the required CiviCRM Contact data from a WordPress Post.
@@ -1157,20 +1157,6 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 		}
 		if ( 'Household' === $contact_data['contact_type'] ) {
 			$contact_data['household_name'] = $contact_data['display_name'];
-		}
-
-		// Set a status for the Contact depending on the Post status.
-		if ( 'trash' === $post->post_status ) {
-			$contact_data['is_deleted'] = 1;
-		} else {
-			/*
-			 * Skip when creating a Contact to avoid CiviRules bug.
-			 *
-			 * @see https://lab.civicrm.org/extensions/civirules/-/issues/172
-			 */
-			if ( ! empty( $contact['id'] ) ) {
-				$contact_data['is_deleted'] = 0;
-			}
 		}
 
 		/**
@@ -1285,7 +1271,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Prepare the required CiviCRM Contact data from a set of ACF Fields.
@@ -1404,7 +1390,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Return the "CiviCRM Field" ACF Settings Field.
@@ -1505,7 +1491,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Check with CiviCRM that this Contact can be viewed.
@@ -1542,7 +1528,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Returns the choices for a Setting Field from this Entity when found.
@@ -2070,7 +2056,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Check if a Field Group has been mapped to one or more Contact Post Types.
@@ -2142,9 +2128,9 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 	// Retained methods to provide backwards compatibility.
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the CiviCRM Contact data for a given ID.

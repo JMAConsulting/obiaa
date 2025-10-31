@@ -25,7 +25,7 @@ class CiviCRM_Profile_Sync_ACF_Post {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync
 	 */
 	public $plugin;
 
@@ -34,7 +34,7 @@ class CiviCRM_Profile_Sync_ACF_Post {
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync_ACF_Loader
 	 */
 	public $acf_loader;
 
@@ -43,7 +43,7 @@ class CiviCRM_Profile_Sync_ACF_Post {
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_Profile_Sync_ACF_Post_Tax
 	 */
 	public $tax;
 
@@ -222,6 +222,7 @@ class CiviCRM_Profile_Sync_ACF_Post {
 		// Listen for events from our Mapper that require Post updates.
 		add_action( 'cwps/acf/mapper/contact/created', [ $this, 'contact_created' ], 10 );
 		add_action( 'cwps/acf/mapper/contact/edited', [ $this, 'contact_edited' ], 10 );
+		add_action( 'cwps/acf/mapper/contact/deleted', [ $this, 'contact_deleted' ], 10 );
 		add_action( 'cwps/acf/mapper/activity/created', [ $this, 'activity_created' ], 10 );
 		add_action( 'cwps/acf/mapper/activity/edited', [ $this, 'activity_edited' ], 10 );
 		add_action( 'cwps/acf/mapper/participant/created', [ $this, 'participant_created' ], 10 );
@@ -249,6 +250,7 @@ class CiviCRM_Profile_Sync_ACF_Post {
 		// Remove all Mapper listeners.
 		remove_action( 'cwps/acf/mapper/contact/created', [ $this, 'contact_created' ], 10 );
 		remove_action( 'cwps/acf/mapper/contact/edited', [ $this, 'contact_edited' ], 10 );
+		remove_action( 'cwps/acf/mapper/contact/deleted', [ $this, 'contact_deleted' ], 10 );
 		remove_action( 'cwps/acf/mapper/activity/created', [ $this, 'activity_created' ], 10 );
 		remove_action( 'cwps/acf/mapper/activity/edited', [ $this, 'activity_edited' ], 10 );
 		remove_action( 'cwps/acf/mapper/participant/created', [ $this, 'participant_created' ], 10 );
@@ -260,7 +262,7 @@ class CiviCRM_Profile_Sync_ACF_Post {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Register meta boxes.
@@ -339,7 +341,7 @@ class CiviCRM_Profile_Sync_ACF_Post {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Add a add a Menu Item to the CiviCRM Contact's "Actions" menu.
@@ -568,7 +570,7 @@ class CiviCRM_Profile_Sync_ACF_Post {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Check if a Post is mapped to a Contact.
@@ -596,7 +598,7 @@ class CiviCRM_Profile_Sync_ACF_Post {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the CiviCRM Contact ID for a given WordPress Post ID.
@@ -652,7 +654,7 @@ class CiviCRM_Profile_Sync_ACF_Post {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the WordPress Post ID(s) for a given CiviCRM Contact ID and Post Type.
@@ -673,19 +675,26 @@ class CiviCRM_Profile_Sync_ACF_Post {
 		/*
 		 * Define args for query.
 		 *
-		 * We need to query multiple Post Statuses because we need to keep the
-		 * linkage between the CiviCRM Entity and the Post throughout its
-		 * life cycle, e.g.
+		 * We need to query multiple Post Statuses because we need to keep the linkage
+		 * between the CiviCRM Entity and the Post throughout its life cycle.
+		 *
+		 * We have to specify these because "any" does not retrieve Posts with a status
+		 * of "trash". We ignore "inherit" and "auto-draft" since they're not relevant.
 		 *
 		 * * Published: The default status for our purposes.
-		 * * Trash: Because we want to avoid a duplicate Post being created.
-		 * * Draft: When Posts are moved out of the Trash, this is their status.
+		 * * Trash:     Because we want to avoid a duplicate Post being created.
+		 * * Private:   Ditto.
+		 * * Future:    Ditto.
+		 * * Draft:     When Posts are moved out of the Trash, this is their status.
+		 * * Pending:   The status of Posts that are synced with trashed Contacts in CiviCRM.
 		 *
 		 * This may need to be revisited.
+		 *
+		 * @see https://developer.wordpress.org/reference/classes/wp_query/#status-parameters
 		 */
 		$args = [
 			'post_type'      => $post_type,
-			'post_status'    => [ 'publish', 'trash', 'draft' ],
+			'post_status'    => [ 'publish', 'trash', 'private', 'future', 'draft', 'pending' ],
 			'no_found_rows'  => true,
 			// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
 			'meta_key'       => $this->contact_id_key,
@@ -694,6 +703,20 @@ class CiviCRM_Profile_Sync_ACF_Post {
 			'posts_per_page' => -1,
 			'order'          => 'ASC',
 		];
+
+		/*
+		 * Filters the args for query.
+		 *
+		 * If you have added any custom Post statuses that need to be included, add them
+		 * with a callback to this filter.
+		 *
+		 * @since 0.7.2
+		 *
+		 * @param array   $args The array of query args.
+		 * @param integer $contact_id The CiviCRM Contact ID.
+		 * @param string  $post_type The WordPress Post Type.
+		 */
+		$args = apply_filters( 'cwps/acf/post/get_by_contact_id/args', $args );
 
 		// Do query.
 		$query = new WP_Query( $args );
@@ -727,7 +750,7 @@ class CiviCRM_Profile_Sync_ACF_Post {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Create the WordPress Posts when a CiviCRM Contact is being synced.
@@ -870,7 +893,7 @@ class CiviCRM_Profile_Sync_ACF_Post {
 				 *
 				 * Instead, the Contact ID needs to be reverse synced to the Post.
 				 */
-				if ( 'post' === $entity['entity'] && $post_type == $entity['type'] ) {
+				if ( 'post' === $entity['entity'] && $post_type === $entity['type'] ) {
 
 					// Save correspondence and skip to next.
 					$this->contact_id_set( $entity['id'], $args['objectId'] );
@@ -940,7 +963,7 @@ class CiviCRM_Profile_Sync_ACF_Post {
 				$post_id = $this->acf_loader->civicrm->contact->is_mapped_to_post( $args['objectRef'], $post_type );
 
 				// Exclude "reverse" edits when a Post is the originator.
-				if ( 'post' === $entity['entity'] && $post_id == $entity['id'] ) {
+				if ( 'post' === $entity['entity'] && (int) $post_id === (int) $entity['id'] ) {
 					continue;
 				}
 
@@ -1001,7 +1024,7 @@ class CiviCRM_Profile_Sync_ACF_Post {
 			$post_ids = $this->get_by_contact_id( $args['objectId'], $post_type );
 
 			// Skip if there are no associated Post IDs.
-			if ( false === $post_type ) {
+			if ( false === $post_ids ) {
 				continue;
 			}
 
@@ -1014,19 +1037,29 @@ class CiviCRM_Profile_Sync_ACF_Post {
 				// Remove WordPress Post callbacks to prevent recursion.
 				$this->acf_loader->mapper->hooks_wordpress_post_remove();
 
+				// Set Post status to Draft.
+				$args = [
+					'ID'          => $post_id,
+					'post_status' => 'pending',
+				];
+
+				// Update the Post.
+				$result = wp_update_post( $args, true );
+
 				/**
 				 * Broadcast that a WordPress Post has been unlinked from a Contact.
 				 *
-				 * This hook can be used to change the status of the Post to 'draft'
-				 * or even to delete the Post entirely.
+				 * This hook can be used to change the status of the Post to something
+				 * other than 'pending' or even to delete the Post entirely.
 				 *
 				 * @since 0.4
 				 *
 				 * @param integer $post_id The numeric ID of the WordPress Post.
 				 * @param integer $post_type The WordPress Post Type.
 				 * @param array $args The array of CiviCRM params.
+				 * @param int|WP_Error $result The result of updating the WordPress Post.
 				 */
-				do_action( 'cwps/acf/post/unlinked', $post_id, $post_type, $args );
+				do_action( 'cwps/acf/post/unlinked', $post_id, $post_type, $args, $result );
 
 				// Reinstate WordPress Post callbacks.
 				$this->acf_loader->mapper->hooks_wordpress_post_add();
@@ -1046,7 +1079,68 @@ class CiviCRM_Profile_Sync_ACF_Post {
 
 	}
 
-	// -------------------------------------------------------------------------
+	/**
+	 * Updates the synced WordPress Posts when a CiviCRM Contact has been deleted.
+	 *
+	 * @since 0.7.2
+	 *
+	 * @param array $args The array of CiviCRM params.
+	 */
+	public function contact_deleted( $args ) {
+
+		// Get all associated Post IDs of all Post Types.
+		$post_ids = $this->get_by_contact_id( $args['objectId'] );
+		if ( false !== $post_ids ) {
+
+			// Handle each Post in turn.
+			foreach ( $post_ids as $post_id ) {
+
+				// Delete the Contact ID meta.
+				$this->contact_id_delete( $post_id );
+
+				// Remove WordPress Post callbacks to prevent recursion.
+				$this->acf_loader->mapper->hooks_wordpress_post_remove();
+
+				// Set Post status to Draft.
+				$args = [
+					'ID'          => $post_id,
+					'post_status' => 'draft',
+				];
+
+				// Update the Post.
+				$result = wp_update_post( $args, true );
+
+				/**
+				 * Fires when a WordPress Post has been unlinked from a Contact that has been deleted.
+				 *
+				 * This hook can be used to change the status of the Post to something
+				 * other than 'pending' or even to delete the Post entirely.
+				 *
+				 * @since 0.7.2
+				 *
+				 * @param integer $post_id The numeric ID of the WordPress Post.
+				 * @param integer $post_type The WordPress Post Type.
+				 * @param array $args The array of CiviCRM params.
+				 * @param int|WP_Error $result The result of updating the WordPress Post.
+				 */
+				do_action( 'cwps/acf/post/contact/delete/unlinked', $post_id, $args, $result );
+
+			}
+
+		}
+
+		/**
+		 * Broadcast that a Contact has been updated from Contact details.
+		 *
+		 * @since 0.7.2
+		 *
+		 * @param array $args The array of CiviCRM and discovered params.
+		 */
+		do_action( 'cwps/acf/post/contact/deleted', $args );
+
+	}
+
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Create a WordPress Post from a CiviCRM Contact.
@@ -1079,6 +1173,27 @@ class CiviCRM_Profile_Sync_ACF_Post {
 			'post_title'            => $contact['display_name'],
 			'post_content'          => '',
 		];
+
+		// Check if the Contact is in the CiviCRM Trash.
+		$contact_is_deleted = false;
+		if ( isset( $contact['contact_is_deleted'] ) && 1 === (int) $contact['contact_is_deleted'] ) {
+			$contact_is_deleted = true;
+		}
+
+		// Set Post status to Pending or Publish.
+		if ( $contact_is_deleted ) {
+			$args['post_status'] = 'pending';
+		}
+
+		/**
+		 * Filters the arguments used to create a Post from a Contact.
+		 *
+		 * @since 0.7.2
+		 *
+		 * @param array $args The arguments used to create a Post.
+		 * @param array $contact The CiviCRM Contact data.
+		 */
+		$args = apply_filters( 'cwps/acf/post/contact/create/args', $args, $contact );
 
 		// Insert the Post into the database.
 		$post_id = wp_insert_post( $args );
@@ -1147,6 +1262,46 @@ class CiviCRM_Profile_Sync_ACF_Post {
 			}
 		}
 
+		/*
+		 * Decide what to do when a Contact is in the CiviCRM Trash.
+		 *
+		 * CiviCRM does not have an Empty Trash schedule - a Contact has to be manually
+		 * deleted permanently.
+		 *
+		 * What behaviour do we when the WordPress Trash is disabled? And when it's not?
+		 *
+		 * We can check if it's disabled with `! EMPTY_TRASH_DAYS` which means that there
+		 * are zero days before emptying, i.e. immediate delete.
+		 *
+		 * But even when the Trash is not disabled, do we *really* want the Post to be
+		 * permanently deleted when the Empty Trash procedure runs?
+		 *
+		 * For now, let's set the Post status to "Pending Review".
+		 */
+
+		// Check if the Contact is in the CiviCRM Trash.
+		$contact_is_deleted = false;
+		if ( isset( $contact['contact_is_deleted'] ) && 1 === (int) $contact['contact_is_deleted'] ) {
+			$contact_is_deleted = true;
+		}
+
+		// Set Post status to Pending or Publish.
+		if ( $contact_is_deleted ) {
+			$args['post_status'] = 'pending';
+		} else {
+			$args['post_status'] = 'publish';
+		}
+
+		/**
+		 * Filters the arguments used to update a Post from a Contact.
+		 *
+		 * @since 0.7.2
+		 *
+		 * @param array $args The arguments used to update a Post.
+		 * @param array $contact The CiviCRM Contact data.
+		 */
+		$args = apply_filters( 'cwps/acf/post/contact/update/args', $args, $contact );
+
 		// Update the Post.
 		$post_id = wp_update_post( $args, true );
 
@@ -1160,7 +1315,7 @@ class CiviCRM_Profile_Sync_ACF_Post {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Check if a Post is mapped to an Activity.
@@ -1188,7 +1343,7 @@ class CiviCRM_Profile_Sync_ACF_Post {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the CiviCRM Activity ID for a given WordPress Post ID.
@@ -1230,7 +1385,7 @@ class CiviCRM_Profile_Sync_ACF_Post {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the WordPress Post ID for a given CiviCRM Activity ID and Post Type.
@@ -1275,7 +1430,7 @@ class CiviCRM_Profile_Sync_ACF_Post {
 				if ( 'any' === $post_type ) {
 					// Add if we want *all* Posts.
 					$posts[] = $found->ID;
-				} elseif ( $found->post_type == $post_type ) {
+				} elseif ( $found->post_type === $post_type ) {
 					// Grab what should be the only Post.
 					$posts[] = $found->ID;
 					break;
@@ -1292,7 +1447,7 @@ class CiviCRM_Profile_Sync_ACF_Post {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Create the WordPress Post when a CiviCRM Activity is being synced.
@@ -1417,7 +1572,7 @@ class CiviCRM_Profile_Sync_ACF_Post {
 		 *
 		 * Instead, the Activity ID needs to be reverse synced to the Post.
 		 */
-		if ( 'post' === $entity['entity'] && $post_type == $entity['type'] ) {
+		if ( 'post' === $entity['entity'] && $post_type === $entity['type'] ) {
 
 			// Save correspondence and bail.
 			$this->activity_id_set( $entity['id'], $args['objectId'] );
@@ -1485,7 +1640,7 @@ class CiviCRM_Profile_Sync_ACF_Post {
 		$post_id = $this->acf_loader->civicrm->activity->is_mapped_to_post( $args['objectRef'], $post_type );
 
 		// Exclude "reverse" edits when a Post is the originator.
-		if ( 'post' === $entity['entity'] && $post_id == $entity['id'] ) {
+		if ( 'post' === $entity['entity'] && (int) $post_id === (int) $entity['id'] ) {
 			return;
 		}
 
@@ -1521,7 +1676,7 @@ class CiviCRM_Profile_Sync_ACF_Post {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Create a CiviCRM Activity from a WordPress Post.
@@ -1558,6 +1713,16 @@ class CiviCRM_Profile_Sync_ACF_Post {
 			'post_title'            => $activity->subject,
 			'post_content'          => $activity->details,
 		];
+
+		/**
+		 * Filters the arguments used to create a Post from an Activity.
+		 *
+		 * @since 0.7.2
+		 *
+		 * @param array $args The arguments used to create a Post.
+		 * @param object $activity The CiviCRM Activity data.
+		 */
+		$args = apply_filters( 'cwps/acf/post/activity/create/args', $args, $activity );
 
 		// Insert the Post into the database.
 		$post_id = wp_insert_post( $args );
@@ -1624,6 +1789,16 @@ class CiviCRM_Profile_Sync_ACF_Post {
 			}
 		}
 
+		/**
+		 * Filters the arguments used to update a Post from an Activity.
+		 *
+		 * @since 0.7.2
+		 *
+		 * @param array $args The arguments used to update a Post.
+		 * @param object $activity The CiviCRM Activity data.
+		 */
+		$args = apply_filters( 'cwps/acf/post/activity/update/args', $args, $activity );
+
 		// Update the Post.
 		$post_id = wp_update_post( $args, true );
 
@@ -1637,7 +1812,7 @@ class CiviCRM_Profile_Sync_ACF_Post {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Check if a Post is mapped to a Participant.
@@ -1665,7 +1840,7 @@ class CiviCRM_Profile_Sync_ACF_Post {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the CiviCRM Participant ID for a given WordPress Post ID.
@@ -1707,7 +1882,7 @@ class CiviCRM_Profile_Sync_ACF_Post {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the WordPress Post ID for a given CiviCRM Participant ID and Post Type.
@@ -1752,7 +1927,7 @@ class CiviCRM_Profile_Sync_ACF_Post {
 				if ( 'any' === $post_type ) {
 					// Add if we want *all* Posts.
 					$posts[] = $found->ID;
-				} elseif ( $found->post_type == $post_type ) {
+				} elseif ( $found->post_type === $post_type ) {
 					// Grab what should be the only Post.
 					$posts[] = $found->ID;
 					break;
@@ -1769,7 +1944,7 @@ class CiviCRM_Profile_Sync_ACF_Post {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Create the WordPress Post when a CiviCRM Participant is being synced.
@@ -1899,7 +2074,7 @@ class CiviCRM_Profile_Sync_ACF_Post {
 			 *
 			 * Instead, the Participant ID needs to be reverse synced to the Post.
 			 */
-			if ( 'post' === $entity['entity'] && $post_type == $entity['type'] ) {
+			if ( 'post' === $entity['entity'] && $post_type === $entity['type'] ) {
 
 				// Save correspondence and skip.
 				$this->participant_id_set( $entity['id'], $args['objectId'] );
@@ -1972,7 +2147,7 @@ class CiviCRM_Profile_Sync_ACF_Post {
 			$post_id = $this->acf_loader->civicrm->participant->is_mapped_to_post( $args['objectRef'], $post_type );
 
 			// Exclude "reverse" edits when a Post is the originator.
-			if ( 'post' === $entity['entity'] && $post_id == $entity['id'] ) {
+			if ( 'post' === $entity['entity'] && (int) $post_id === (int) $entity['id'] ) {
 				continue;
 			}
 
@@ -2123,7 +2298,7 @@ class CiviCRM_Profile_Sync_ACF_Post {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Create a CiviCRM Participant from a WordPress Post.
@@ -2175,13 +2350,24 @@ class CiviCRM_Profile_Sync_ACF_Post {
 			'post_content'          => '',
 		];
 
+		// Check if the Contact is in the CiviCRM Trash.
+		$contact_is_deleted = false;
+		if ( isset( $contact['contact_is_deleted'] ) && 1 === (int) $contact['contact_is_deleted'] ) {
+			$contact_is_deleted = true;
+		}
+
+		// Set Post status to Pending.
+		if ( $contact_is_deleted ) {
+			$args['post_status'] = 'pending';
+		}
+
 		/**
-		 * Filter the arguments used to create a Post.
+		 * Filter the arguments used to create a Post from a Participant.
 		 *
 		 * @since 0.5
 		 *
-		 * @param array $args The arguments used to create a Post.
-		 * @param array $participant The CiviCRM Participant data.
+		 * @param array  $args The arguments used to create a Post.
+		 * @param object $participant The CiviCRM Participant data.
 		 */
 		$args = apply_filters( 'cwps/acf/post/participant/create/args', $args, $participant );
 
@@ -2263,12 +2449,12 @@ class CiviCRM_Profile_Sync_ACF_Post {
 		}
 
 		/**
-		 * Filter the arguments used to update a Post.
+		 * Filter the arguments used to update a Post from a Participant.
 		 *
 		 * @since 0.5
 		 *
-		 * @param array $args The arguments used to update a Post.
-		 * @param array $participant The CiviCRM Participant data.
+		 * @param array  $args The arguments used to update a Post.
+		 * @param object $participant The CiviCRM Participant data.
 		 */
 		$args = apply_filters( 'cwps/acf/post/participant/update/args', $args, $participant );
 
@@ -2356,7 +2542,7 @@ class CiviCRM_Profile_Sync_ACF_Post {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Query for the Contact ID that an ACF "Post ID" is mapped to.
@@ -2388,51 +2574,93 @@ class CiviCRM_Profile_Sync_ACF_Post {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
-	 * Check if a WordPress Post should be synced.
+	 * Checks if a WordPress Post should be synced to CiviCRM.
 	 *
 	 * @since 0.4
 	 *
-	 * @param WP_Post $post_obj The WordPress Post object.
+	 * @param WP_Post $post The WordPress Post object.
 	 * @return WP_Post|bool $post The WordPress Post object, or false if not allowed.
 	 */
-	public function should_be_synced( $post_obj ) {
+	public function should_be_synced( $post ) {
 
-		// Init return.
-		$post = false;
+		// Assume Post should be synced.
+		$should_be_synced = true;
 
-		// Bail if no Post object.
-		if ( ! $post_obj ) {
+		// Do not sync if no Post object.
+		if ( ! $post ) {
+			$should_be_synced = false;
+		}
+
+		// Do not sync if the User cannot edit the Post.
+		if ( $should_be_synced ) {
+			if ( ! current_user_can( 'edit_post', $post->ID ) ) {
+				$should_be_synced = false;
+			}
+		}
+
+		// Do not sync if this is a draft or an auto-draft.
+		if ( $should_be_synced ) {
+			if ( 'draft' === $post->post_status || 'auto-draft' === $post->post_status ) {
+				$should_be_synced = false;
+			}
+		}
+
+		// Do not sync if this Post is in the Trash.
+		if ( $should_be_synced ) {
+			if ( 'trash' === $post->post_status ) {
+				$should_be_synced = false;
+			}
+		}
+
+		// Do not sync if this is an autosave routine.
+		if ( $should_be_synced ) {
+			if ( wp_is_post_autosave( $post ) ) {
+				$should_be_synced = false;
+			}
+		}
+
+		// Do not sync if this is a revision.
+		if ( $should_be_synced ) {
+			if ( wp_is_post_revision( $post ) ) {
+				$should_be_synced = false;
+			}
+		}
+
+		/**
+		 * Filters whether or not a Post should be synced to CiviCRM.
+		 *
+		 * Of particular interest here is the "draft" Post status. Posts with "draft"
+		 * status are not synced to CiviCRM to allow Post authors to complete the Post
+		 * before syncing to CiviCRM.
+		 *
+		 * There is, however, a need to set an "unpublished" status on the Post when the
+		 * CiviCRM Entity is trashed. We can't use "draft", because when a CiviCRM Entity
+		 * is trashed and and edits are made to the Post, they will not sync to CiviCRM.
+		 * If the Entity is later taken out of the trash, there will be a mismatch between
+		 * the data in the Post and the data in the CiviCRM Entity.
+		 *
+		 * Since 0.7.2 we set Posts to "pending" when the CiviCRM Entity is trashed, but
+		 * there needs to be documentation about this because sync will happen when this
+		 * status is set for the Post. It should *not* be set until sync has happened
+		 * and the CiviCRM Entity has sufficient data.
+		 *
+		 * @since 0.7.2
+		 *
+		 * @param bool    $should_be_synced True if the Post should be synced, false otherwise.
+		 * @param WP_Post $post The WordPress Post object.
+		 */
+		$should_be_synced = apply_filters( 'cwps/acf/post/should_be_synced', $should_be_synced, $post );
+
+		// Return the Post object if it should be synced.
+		if ( $should_be_synced ) {
 			return $post;
 		}
 
-		// Check permissions.
-		if ( ! current_user_can( 'edit_post', $post_obj->ID ) ) {
-			return $post;
-		}
-
-		// Bail if this is a draft or an auto-draft.
-		if ( 'draft' === $post_obj->post_status || 'auto-draft' === $post_obj->post_status ) {
-			return $post;
-		}
-
-		// Bail if this is an autosave routine.
-		if ( wp_is_post_autosave( $post_obj ) ) {
-			return $post;
-		}
-
-		// Bail if this is a revision.
-		if ( wp_is_post_revision( $post_obj ) ) {
-			return $post;
-		}
-
-		// The Post should be synced.
-		$post = $post_obj;
-
-		// --<
-		return $post;
+		// Do not sync.
+		return false;
 
 	}
 
@@ -2469,7 +2697,7 @@ class CiviCRM_Profile_Sync_ACF_Post {
 		}
 
 		// Bail if the Display Name and the Title match.
-		if ( $args['post']->post_title == $contact['display_name'] ) {
+		if ( $args['post']->post_title === $contact['display_name'] ) {
 			return;
 		}
 

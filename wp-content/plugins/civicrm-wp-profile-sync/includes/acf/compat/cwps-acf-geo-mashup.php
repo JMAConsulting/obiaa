@@ -23,7 +23,7 @@ class CiviCRM_WP_Profile_Sync_ACF_Geo_Mashup {
 	 *
 	 * @since 0.5.8
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync
 	 */
 	public $plugin;
 
@@ -32,7 +32,7 @@ class CiviCRM_WP_Profile_Sync_ACF_Geo_Mashup {
 	 *
 	 * @since 0.5.8
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync_ACF_Loader
 	 */
 	public $acf_loader;
 
@@ -41,7 +41,7 @@ class CiviCRM_WP_Profile_Sync_ACF_Geo_Mashup {
 	 *
 	 * @since 0.5.8
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_Profile_Sync_ACF_CiviCRM
 	 */
 	public $civicrm;
 
@@ -119,7 +119,7 @@ class CiviCRM_WP_Profile_Sync_ACF_Geo_Mashup {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Creates a Geo Mashup Location with a given set of data.
@@ -251,7 +251,7 @@ class CiviCRM_WP_Profile_Sync_ACF_Geo_Mashup {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Gets the Geo Mashup Location for a given Location ID.
@@ -376,7 +376,7 @@ class CiviCRM_WP_Profile_Sync_ACF_Geo_Mashup {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Prepares the Geo Mashup Location for a given Address.
@@ -675,7 +675,7 @@ class CiviCRM_WP_Profile_Sync_ACF_Geo_Mashup {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Adds settings for a CiviCRM Contact Type.

@@ -25,7 +25,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Phone_Single extends CiviCRM_Profile_Sync
 	 *
 	 * @since 0.6.9
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync
 	 */
 	public $plugin;
 
@@ -34,7 +34,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Phone_Single extends CiviCRM_Profile_Sync
 	 *
 	 * @since 0.6.9
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync_ACF_Loader
 	 */
 	public $acf_loader;
 
@@ -43,7 +43,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Phone_Single extends CiviCRM_Profile_Sync
 	 *
 	 * @since 0.6.9
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_Profile_Sync_ACF_CiviCRM
 	 */
 	public $civicrm;
 
@@ -185,7 +185,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Phone_Single extends CiviCRM_Profile_Sync
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Update CiviCRM Phone Fields with data from ACF Fields.
@@ -263,7 +263,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Phone_Single extends CiviCRM_Profile_Sync
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the Primary Phone for a given Contact ID.
@@ -376,7 +376,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Phone_Single extends CiviCRM_Profile_Sync
 			$existing_data = array_pop( $primary_phone['values'] );
 
 			// Bail if it hasn't changed.
-			if ( $existing_data['phone'] == $value ) {
+			if ( $existing_data['phone'] === $value ) {
 				return $existing_data;
 			}
 
@@ -434,7 +434,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Phone_Single extends CiviCRM_Profile_Sync
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Intercept when a Post is been synced from a Contact.
@@ -475,7 +475,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Phone_Single extends CiviCRM_Profile_Sync
 				}
 
 				// Skip if the Location Types don't match.
-				if ( $phone_field != $phone->location_type_id ) {
+				if ( (int) $phone_field !== (int) $phone->location_type_id ) {
 					continue;
 				}
 
@@ -701,7 +701,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Phone_Single extends CiviCRM_Profile_Sync
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Intercept when a CiviCRM Phone Record has been updated.
@@ -834,7 +834,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Phone_Single extends CiviCRM_Profile_Sync
 				}
 
 				// Exclude "reverse" edits when a Post is the originator.
-				if ( 'post' === $entity['entity'] && $post_id == $entity['id'] ) {
+				if ( 'post' === $entity['entity'] && (int) $post_id === (int) $entity['id'] ) {
 					continue;
 				}
 
@@ -904,7 +904,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Phone_Single extends CiviCRM_Profile_Sync
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Add any Single Phone Fields that are attached to a Post.
