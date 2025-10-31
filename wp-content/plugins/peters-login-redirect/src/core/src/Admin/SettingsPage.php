@@ -56,6 +56,18 @@ class SettingsPage extends AbstractSettingsPage
     {
         $settings = [
             [
+                'disable_failed_login_redirect' => [
+
+                    'label'          => esc_html__('Failed login redirect', 'peters-login-redirect'),
+
+                    'checkbox_label' => esc_html__('Disable', 'peters-login-redirect'),
+
+                    'description'    => esc_html__('Check this box if the plugin causes conflict with "wp_login_failed" action hook. For example: PMPro failed login message not showing up.', 'peters-login-redirect'),
+
+                    'type'           => 'checkbox',
+
+                ],
+
                 'remove_plugin_data' => [
                     'label'          => esc_html__('Remove Data on Uninstall', 'peters-login-redirect'),
                     'checkbox_label' => esc_html__('Activate', 'peters-login-redirect'),
