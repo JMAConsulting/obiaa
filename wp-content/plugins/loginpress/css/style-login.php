@@ -94,7 +94,7 @@ if ( ! function_exists( 'loginpress_check_px' ) ) {
  * @param  string $value [description]
  * @return string        [description]
  * @since 1.1.0
- * @version 1.5.2
+ * @version 6.0.0
  */
 if ( ! function_exists( 'loginpress_check_percentage' ) ) {
 
@@ -112,25 +112,74 @@ if ( ! function_exists( 'loginpress_check_percentage' ) ) {
  * [if for login page background]
  *
  * @since 1.1.0
- * @version 1.1.2
+ * @version 4.0.1
  * @return string
  */
 $loginpress_custom_background  = loginpress_get_option_key( 'setting_background', $loginpress_array );
 $loginpress_gallery_background = loginpress_get_option_key( 'gallery_background', $loginpress_array );
+$loginpress_rand_bg_check      = loginpress_get_option_key( 'lp_random_bg_img_check', $loginpress_array );
+$lp_random_bg_img_upload       = loginpress_get_option_key( 'lp_random_bg_img_upload', $loginpress_array );
 $loginpress_mobile_background  = loginpress_get_option_key( 'mobile_background', $loginpress_array );
-if ( ! empty( $loginpress_custom_background ) ) { // Use Custom Background
-	$loginpress_background_img = $loginpress_custom_background;
-} elseif ( ! empty( $loginpress_gallery_background ) ) { // Background from Gallery Control.
-	if ( LOGINPRESS_DIR_URL . 'img/gallery/img-1.jpg' == $loginpress_gallery_background ) { // If user select 1st image from gallery control then show template's default image.
-		$loginpress_background_img = '';
-	} else { // Use selected image from gallery control.
-		$loginpress_background_img = $loginpress_gallery_background;
-	}
-} else { // exceptional case (use default image).
-	$loginpress_background_img = '';
+
+$selected_images = array();
+if ( ! is_null( $lp_random_bg_img_upload ) && ! empty( $lp_random_bg_img_upload ) ) {
+	$selected_images = explode( ',', $lp_random_bg_img_upload );
 }
 
-$loginpress_background_img = empty( $loginpress_background_img ) ? '' : str_replace( '&amp;', '&', $loginpress_background_img );
+// Create array of default gallery images
+$default_gallery_images = array();
+for ( $bg_count = 4; $bg_count <= 9; $bg_count++ ) {
+	$default_gallery_images[] = plugins_url( "img/gallery/img-{$bg_count}.jpg", LOGINPRESS_ROOT_FILE );
+}
+
+// Check if any default gallery images exist in selected_images
+$has_default_images = false;
+if ( ! empty( $selected_images ) ) {
+	foreach ( $default_gallery_images as $default_image ) {
+		if ( in_array( $default_image, $selected_images ) ) {
+			$modified_default_images = array();
+			$modified_default_images[] = $default_image;
+			$has_default_images = true;
+			break;
+		}
+	}
+}
+
+// If no default images are present in selected_images, add all default images
+if ( ! empty( $lp_random_bg_img_upload ) && ( ! isset( $selected_images[0] ) || empty( $selected_images[0] ) ) && $has_default_images ) {
+	$selected_images = array_merge( $selected_images, $modified_default_images );
+}
+
+$seconds = apply_filters( 'loginpress_random_background_timespan', 5 ) * 1000;
+
+$selected_images = empty( $selected_images ) ? $default_gallery_images : $selected_images;
+if ( $loginpress_rand_bg_check && ! empty( $selected_images ) ) {
+	?>
+	<script>
+		jQuery(document).ready(function($) {
+			var images = <?php echo json_encode( $selected_images ); ?>;
+			var currentIndex = 0;
+
+			// Function to change the background image
+			function loginpress_changeBackground() {
+				currentIndex = (currentIndex + 1) % images.length;
+				if ( images[currentIndex] ) {
+					$('body.login').css('background-image', 'url(' + images[currentIndex] + ')');
+				}
+			}
+
+			setTimeout(loginpress_changeBackground, 5);
+			setInterval(loginpress_changeBackground, <?php echo $seconds; ?>); // Change every 5 seconds
+		});
+	</script>
+	<?php
+	$loginpress_background_img = '';
+} else {
+	$loginpress_background_img = ! empty( $loginpress_custom_background ) ? $loginpress_custom_background : $loginpress_gallery_background;
+	$loginpress_background_img = ( $loginpress_background_img == LOGINPRESS_DIR_URL . 'img/gallery/img-1.jpg' ) ? '' : $loginpress_background_img;
+	$loginpress_background_img = empty( $loginpress_background_img ) ? '' : str_replace( '&amp;', '&', $loginpress_background_img );
+}
+
 
 /**
  * Add !important with property's value. To avoid overriding from theme.
@@ -258,15 +307,17 @@ $login_copy_right_display      = loginpress_get_option_key( 'login_copy_right_di
  * @since 1.1.3
  */
 $loginpress_inset = $loginpress_login_form_inset ? true : false; // var_dump($loginpress_inset);
-function loginpress_box_shadow( $shadow, $opacity, $default_shadow = 0, $inset = false ) {
+if ( ! function_exists( 'loginpress_box_shadow' ) ) {
+	function loginpress_box_shadow( $shadow, $opacity, $default_shadow = 0, $inset = false ) {
 
-	$loginpress_shadow  = ! empty( $shadow ) ? $shadow : $default_shadow;
-	$loginpress_opacity = ! empty( $opacity ) ? $opacity : 80;
-	$inset              = $inset ? ' inset' : '';
-	$opacity_conversion = $loginpress_opacity / 100;
-	$loginpress_rgba    = 'rgba( 0,0,0,' . $opacity_conversion . ' )';
+		$loginpress_shadow  = ! empty( $shadow ) ? $shadow : $default_shadow;
+		$loginpress_opacity = ! empty( $opacity ) ? $opacity : 80;
+		$inset              = $inset ? ' inset' : '';
+		$opacity_conversion = $loginpress_opacity / 100;
+		$loginpress_rgba    = 'rgba( 0,0,0,' . $opacity_conversion . ' )';
 
-	return '0 0 ' . $loginpress_shadow . 'px ' . $loginpress_rgba . $inset . ';';
+		return '0 0 ' . $loginpress_shadow . 'px ' . $loginpress_rgba . $inset . ';';
+	}
 }
 // ob_start();
 ?>
@@ -839,6 +890,7 @@ body.login form.shake{
 	padding-left: 20px;
 }
 <?php if ( $loginpress_theme_tem === 'minimalist' ) : ?>
+
 #resetpassform,
 #lostpasswordform {
 	<?php if ( true != $loginpress_form_display_bg && ! empty( $loginpress_form_background_clr ) ) : ?>
@@ -859,6 +911,7 @@ body.login form.shake{
 	<?php endif; ?>
 }
 <?php else : ?>
+
 .login-action-rp form,
 .login-action-lostpassword form{
 	background-color: transparent;
@@ -1328,8 +1381,8 @@ input[type=checkbox]:checked::before{
 
 @media screen and (max-width: 767px) {
 	body.login {
-	    <?php $loginpress_background_img = apply_filters( 'loginpress_mobile_background_image', $loginpress_mobile_background ); ?>
-		<?php if( $loginpress_background_img && $loginpress_display_bg ) : ?>
+		<?php $loginpress_background_img = apply_filters( 'loginpress_mobile_background_image', $loginpress_mobile_background ); ?>
+		<?php if ( $loginpress_background_img && $loginpress_display_bg ) : ?>
 			background-image: url(<?php echo $loginpress_background_img; ?>);
 		<?php endif; ?>
 	}

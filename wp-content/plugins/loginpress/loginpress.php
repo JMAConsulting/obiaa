@@ -3,7 +3,7 @@
  * Plugin Name: LoginPress
  * Plugin URI: https://loginpress.pro?utm_source=loginpress-lite&utm_medium=plugin-header&utm_campaign=pro-upgrade&utm_content=plugin-uri
  * Description: LoginPress is the best <code>wp-login</code> Login Page Customizer plugin by <a href="https://wpbrigade.com/?utm_source=loginpress-lite&utm_medium=plugins&utm_campaign=wpbrigade-home&utm_content=WPBrigade-text-link">WPBrigade</a> which allows you to completely change the layout of login, register and forgot password forms.
- * Version: 5.0.0
+ * Version: 6.0.0
  * Author: LoginPress
  * Author URI: https://loginpress.pro?utm_source=loginpress-lite&utm_medium=plugin-header&utm_campaign=pro-upgrade&utm_content=author-uri
  * Text Domain: loginpress
@@ -72,7 +72,7 @@ if ( ! class_exists( 'LoginPress' ) ) :
 		/**
 		 * @var string
 		 */
-		public $version = '5.0.0';
+		public $version = '6.0.0';
 
 		/**
 		 * @var The single instance of the class
@@ -117,6 +117,7 @@ if ( ! class_exists( 'LoginPress' ) ) :
 			$this->define( 'LOGINPRESS_ROOT_FILE', __FILE__ );
 			$this->define( 'LOGINPRESS_VERSION', $this->version );
 			$this->define( 'LOGINPRESS_FEEDBACK_SERVER', 'https://wpbrigade.com/' );
+			$this->define( 'LOGINPRESS_REST_NAMESPACE', 'loginpress/v1' );
 		}
 
 		/**
@@ -128,12 +129,14 @@ if ( ! class_exists( 'LoginPress' ) ) :
 		public function includes() {
 
 			include_once LOGINPRESS_DIR_PATH . 'include/compatibility.php';
+			include_once LOGINPRESS_DIR_PATH . 'include/loginpress-allow-domain.php';
 			include_once LOGINPRESS_DIR_PATH . 'custom.php';
 			include_once LOGINPRESS_DIR_PATH . 'classes/class-loginpress-setup.php';
 			include_once LOGINPRESS_DIR_PATH . 'classes/class-loginpress-ajax.php';
 			// include_once( LOGINPRESS_DIR_PATH . 'classes/class-loginpress-filter-plugin.php' );
 			include_once LOGINPRESS_DIR_PATH . 'classes/class-loginpress-developer-hooks.php';
 			include_once LOGINPRESS_DIR_PATH . 'classes/class-loginpress-notifications.php';
+			include_once LOGINPRESS_DIR_PATH . 'include/loginpress-utilities.php';
 			if ( is_multisite() ) {
 				require_once LOGINPRESS_DIR_PATH . 'include/class-loginpress-theme-template.php';
 			}
@@ -173,6 +176,7 @@ if ( ! class_exists( 'LoginPress' ) ) :
 		 */
 		private function _hooks() {
 
+			add_action( 'rest_api_init', array( $this, 'loginpress_register_routes' ) );
 			add_action( 'admin_menu', array( $this, 'register_options_page' ) );
 			add_action( 'init', array( $this, 'textdomain' ) );
 			add_filter( 'plugin_row_meta', array( $this, '_row_meta' ), 10, 2 );
@@ -201,6 +205,111 @@ if ( ! class_exists( 'LoginPress' ) ) :
 					}
 				}
 			}
+		}
+		/**
+		 * Register the rest routes
+		 *
+		 * @since  6.0.0
+		 */
+		public function loginpress_register_routes() {
+			register_rest_route(
+				LOGINPRESS_REST_NAMESPACE,
+				'/settings',
+				array(
+					'methods'             => 'GET',
+					'callback'            => array( $this, 'loginpress_get_settings' ),
+					'permission_callback' => array( $this, 'loginpress_rest_can_manage_options' ),
+				)
+			);
+
+			register_rest_route(
+				LOGINPRESS_REST_NAMESPACE,
+				'/settings',
+				array(
+					'methods'             => 'POST',
+					'callback'            => array( $this, 'loginpress_update_settings' ),
+					'permission_callback' => array( $this, 'loginpress_rest_can_manage_options' ),
+				)
+			);
+		}
+
+		/**
+		 * Get loginpress settings
+		 *
+		 * @since  6.0.0
+		 */
+		public function loginpress_get_settings( WP_REST_Request $request ) {
+			$settings = get_option( 'loginpress_setting', array() );
+
+			// Convert restrict_domains_textarea from array back to string for frontend
+			if ( isset( $settings['restrict_domains_textarea'] ) ) {
+				if ( is_array( $settings['restrict_domains_textarea'] ) ) {
+					$settings['restrict_domains_textarea'] = implode( "\n", $settings['restrict_domains_textarea'] );
+				}
+			}
+
+			return array(
+				'settings' 		=> $settings,
+				'userRoles' 	=> wp_roles()->roles,
+				'upgradeLink' 	=> loginpress_admin_upgrade_link( 'settings-tab' ),
+			);
+		}
+
+		/**
+		 * Update loginpress settings
+		 *
+		 * @since  6.0.0
+		 */
+		public function loginpress_update_settings( WP_REST_Request $request ) {
+			$settings = $request->get_json_params();
+
+			// Process restrict_domains_textarea to convert string to array
+			if ( isset( $settings['restrict_domains_textarea'] ) && is_string( $settings['restrict_domains_textarea'] ) ) {
+				$domains_string = $settings['restrict_domains_textarea'];
+				$domains_array  = array();
+
+				// Split by newlines and process each domain
+				$domains = explode( "\n", $domains_string );
+				foreach ( $domains as $domain ) {
+					$domain = trim( $domain );
+					if ( ! empty( $domain ) ) {
+						// Ensure domain starts with @ (compatible with PHP < 8)
+						if ( function_exists( 'str_starts_with' ) ) {
+							if ( ! str_starts_with( $domain, '@' ) ) {
+								$domain = '@' . $domain;
+							}
+						} else {
+							if ( substr( $domain, 0, 1 ) !== '@' ) {
+								$domain = '@' . $domain;
+							}
+						}
+						$domains_array[] = $domain;
+					}
+				}
+
+				// Save as array instead of string
+				$settings['restrict_domains_textarea'] = $domains_array;
+			}
+
+			if ( isset( $settings['reset_settings'] ) && 'on' == $settings['reset_settings'] ) {
+				$loginpress_last_reset = array( 'last_reset_on' => date( 'Y-m-d' ) );
+				update_option( 'loginpress_customization', $loginpress_last_reset );
+				update_option( 'customize_presets_settings', 'minimalist' );
+				$settings['reset_settings'] = 'off';
+				add_action( 'admin_notices', array( $this, 'settings_reset_message' ) );
+			}
+			update_option( 'loginpress_setting', $settings );
+
+			return array( 'success' => true );
+		}
+
+		/**
+		 * Check user permissions
+		 *
+		 * @since  6.0.0
+		 */
+		function loginpress_rest_can_manage_options() {
+			return current_user_can( 'manage_options' );
 		}
 
 		/**
@@ -456,67 +565,99 @@ if ( ! class_exists( 'LoginPress' ) ) :
 		 * @version 3.0.0
 		 */
 		function _admin_scripts( $hook ) {
-				if ( $hook === 'toplevel_page_loginpress-settings' ) {
-					wp_enqueue_script( 'youtube-api', 'https://www.youtube.com/iframe_api', [], null, true );
+			if ( $hook === 'toplevel_page_loginpress-settings' ) {
+				wp_enqueue_script( 'youtube-api', 'https://www.youtube.com/iframe_api', array(), null, true );
 
-					$js_code = '
-					var ytPlayers = {};
+				$js_code = '
+				var ytPlayers = {};
 
-					function onYouTubeIframeAPIReady() {
-						var iframes = document.querySelectorAll("iframe.loginPress-feature-video");
+				function onYouTubeIframeAPIReady() {
+					var iframes = document.querySelectorAll("iframe.loginPress-feature-video");
 
-						Array.prototype.forEach.call(iframes, function(iframe) {
-							// Assign a unique ID if not present
-							if (!iframe.id) {
-								iframe.id = "yt-player-" + Math.random().toString(36).substring(2, 15);
-							}
+					Array.prototype.forEach.call(iframes, function(iframe) {
+						// Assign a unique ID if not present
+						if (!iframe.id) {
+							iframe.id = "yt-player-" + Math.random().toString(36).substring(2, 15);
+						}
 
-							var id = iframe.id;
+						var id = iframe.id;
 
-							ytPlayers[id] = new YT.Player(id, {
-								events: {
-									"onStateChange": function(event) {
-										handleStateChange(event, id);
-									}
+						ytPlayers[id] = new YT.Player(id, {
+							events: {
+								"onStateChange": function(event) {
+									handleStateChange(event, id);
 								}
-							});
+							}
 						});
-					}
+					});
+				}
 
-					function handleStateChange(event, currentId) {
-						if (event.data === YT.PlayerState.PLAYING) {
-							for (var id in ytPlayers) {
-								if (ytPlayers.hasOwnProperty(id) && id !== currentId) {
-									var player = ytPlayers[id];
-									if (typeof player.pauseVideo === "function") {
-										player.pauseVideo();
-									}
+				function handleStateChange(event, currentId) {
+					if (event.data === YT.PlayerState.PLAYING) {
+						for (var id in ytPlayers) {
+							if (ytPlayers.hasOwnProperty(id) && id !== currentId) {
+								var player = ytPlayers[id];
+								if (typeof player.pauseVideo === "function") {
+									player.pauseVideo();
 								}
 							}
 						}
 					}
-					';
-
-					wp_add_inline_script( 'youtube-api', $js_code );
 				}
+				';
 
+				wp_add_inline_script( 'youtube-api', $js_code );
+			}
 
-			if ( $hook == 'toplevel_page_loginpress-settings' || $hook == 'loginpress_page_loginpress-addons' || $hook == 'loginpress_page_loginpress-help' || $hook == 'loginpress_page_loginpress-import-export' || $hook == 'loginpress_page_loginpress-license' || $hook == 'admin_page_loginpress-optin' ) {
+			$should_load = ( $hook == 'toplevel_page_loginpress-settings' || $hook == 'loginpress_page_loginpress-addons' || $hook == 'loginpress_page_loginpress-help' || $hook == 'loginpress_page_loginpress-import-export' || $hook == 'loginpress_page_loginpress-license' || $hook == 'admin_page_loginpress-optin' );
 
+		if ( version_compare( LOGINPRESS_VERSION, '6.0.0', '>=' ) ) {
+			if ( $should_load || 'users.php' == $hook ) {
+				// Register script first with all parameters
+				wp_register_script( 'loginpress-react-settings', LOGINPRESS_DIR_URL . 'build/index.js', array( 'wp-element', 'wp-i18n', 'wp-api-fetch' ), LOGINPRESS_VERSION, true );
+				
+				// Enqueue the registered script
+				wp_enqueue_script( 'loginpress-react-settings' );
+				wp_enqueue_style( 'loginpress_style_react', plugins_url( 'build/index.css', __FILE__ ), array(), LOGINPRESS_VERSION );
+
+				// Set translations
+				wp_set_script_translations( 'loginpress-react-settings', 'loginpress', LOGINPRESS_DIR_PATH . 'languages' );
+
+				// Localize script data
+				$is_pro_active = false;
+				if ( is_plugin_active( 'loginpress-pro/loginpress-pro.php' ) ) {
+					$is_pro_active = true;
+				}
+				$languages = ! empty( get_available_languages() );
+				
+				wp_localize_script(
+					'loginpress-react-settings',
+					'loginpressReactData',
+					array(
+						'ajaxUrl'           => admin_url( 'admin-ajax.php' ),
+						'isProActive'       => $is_pro_active,
+						'wp_login_url'      => wp_login_url(),
+						'language_switcher' => $languages,
+					)
+				);
+			}
+		}
+
+			if ( $should_load ) {
 				wp_enqueue_style( 'loginpress_style', plugins_url( 'css/style.css', __FILE__ ), array(), LOGINPRESS_VERSION );
 				wp_enqueue_script( 'loginpress_js', plugins_url( 'js/admin-custom.js', __FILE__ ), array(), LOGINPRESS_VERSION );
 
-				// Array for localize.
-				$loginpress_localize = array(
-					'plugin_url'            => plugins_url(),
-					'localize_translations' => array(
-						_x( 'Name', 'Login Redirect Roles', 'loginpress' ),
-					),
-					'help_nonce'            => wp_create_nonce( 'loginpress-log-nonce' ),
+			// Array for localize.
+			$loginpress_localize = array(
+				'plugin_url'            => plugins_url(),
+				'localize_translations' => array(
+					_x( 'Name', 'Login Redirect Roles', 'loginpress' ),
+				),
+				'help_nonce'            => wp_create_nonce( 'loginpress-log-nonce' ),
 
-				);
+			);
 
-				wp_localize_script( 'loginpress_js', 'loginpress_script', $loginpress_localize );
+			wp_localize_script( 'loginpress_js', 'loginpress_script', $loginpress_localize );
 			}
 		}
 

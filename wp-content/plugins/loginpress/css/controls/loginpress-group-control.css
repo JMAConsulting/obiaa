@@ -28,10 +28,10 @@ span#_customize-description-loginpress_customization\[yt_video_id\] .fadeout{
 }
 
 .loginpress-group-info{
-    margin: 0 -12px;
-    background: #fff;
-    padding: 12px;
-    border-bottom: 1px solid #ddd;
+	margin: 0 -12px;
+	background: #fff;
+	padding: 12px;
+	border-bottom: 1px solid #ddd;
 }
 .loginpress-group-info p{
 	font-size: 12px;
@@ -39,10 +39,10 @@ span#_customize-description-loginpress_customization\[yt_video_id\] .fadeout{
 	margin: 0 0 10px;
 }
 .loginpress-group-info p:last-child{
-    margin-bottom: 0;
-    font-size: 11px;
-    line-height: 1.6;
-    color: #444;
+	margin-bottom: 0;
+	font-size: 11px;
+	line-height: 1.6;
+	color: #444;
 }
 .loginpress-group-badge{
 	margin-right: 5px;

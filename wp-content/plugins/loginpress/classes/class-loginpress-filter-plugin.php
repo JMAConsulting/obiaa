@@ -41,9 +41,13 @@ if ( ! class_exists( 'LoginPress_Filter_API' ) ) :
 						$link,
 						'button',
 						esc_url( $plugin['buy-now'] ),
-						esc_attr( sprintf( 
+						esc_attr(
+							sprintf(
 							// translators: Buy now
-							__( 'Buy %s now', 'loginpress' ), $plugin['name'] ) ),
+								__( 'Buy %s now', 'loginpress' ),
+								$plugin['name']
+							)
+						),
 						esc_html__( 'Buy Now', 'loginpress' )
 					);
 				}

@@ -55,7 +55,7 @@ class LoginPress_Force_Password_Reset {
 		add_action( 'after_password_reset', array( $this, 'loginpress_update_expire_duration' ), 10 );
 		add_action( 'profile_update', array( $this, 'loginpress_user_profile_update' ), 10 );
 		add_action( 'wp_login', array( $this, 'loginpress_user_login_check' ), 10, 2 );
-		add_action( 'login_message', array( $this, 'loginpress_reset_pass_message_text' ), 0, 1 );
+		add_action( 'login_message', array( $this, 'loginpress_reset_pass_message_text' ), 10, 1 );
 	}
 
 	/**
@@ -128,16 +128,16 @@ class LoginPress_Force_Password_Reset {
 
 		$loginpress_Settings   = get_option( 'loginpress_setting' );
 		$enable_password_reset = isset( $loginpress_Settings['enable_password_reset'] ) && ! empty( $loginpress_Settings['enable_password_reset'] ) ? $loginpress_Settings['enable_password_reset'] : 'off';
-		
+
 		if ( $enable_password_reset !== 'off' ) {
 
 			$desired_role_names = isset( $loginpress_Settings['roles_for_password_reset'] ) && ! empty( $loginpress_Settings['roles_for_password_reset'] ) ? $loginpress_Settings['roles_for_password_reset'] : array( false );
-			
+
 			global $wp_roles;
 			$restricted_roles = array();
-			foreach ($wp_roles->roles as $role => $val) {
-				if (in_array($val['name'], $desired_role_names)) {
-					$restricted_roles[$role] = $role;
+			foreach ( $wp_roles->roles as $role => $val ) {
+				if ( in_array( $val['name'], $desired_role_names ) ) {
+					$restricted_roles[ $role ] = $role;
 				}
 			}
 			// Get the meta of the user since when the user last reset the password.
@@ -190,26 +190,44 @@ class LoginPress_Force_Password_Reset {
 		$month = ( $limit % 365 ) / 30;
 		$month = floor( $month ); // Remove all decimals
 		$days  = fmod( fmod( $limit, 365 ), 30 ); // the rest of days
-
 		if ( $years != 0 ) {
 			$year_string  = 1 === absint( $years ) ? __( 'Year', 'loginpress' ) : __( 'Years', 'loginpress' );
 			$month_string = 1 === absint( $month ) ? __( 'Month', 'loginpress' ) : __( 'Months', 'loginpress' );
 			$day_string   = 1 === absint( $days ) ? __( 'Day', 'loginpress' ) : __( 'Days', 'loginpress' );
 
-			return sprintf( 
+			return sprintf(
 				// translators: Date year
-				__( '%1$s %2$s, %3$s %4$s and %5$s %6$s', 'loginpress' ), $years, $year_string, $month, $month_string, $days, $day_string );
+				__( '%1$s %2$s, %3$s %4$s and %5$s %6$s', 'loginpress' ),
+				$years,
+				$year_string,
+				$month,
+				$month_string,
+				$days,
+				$day_string
+			);
 
-		} elseif ( $month != 0 ) {
-			$month_string = 1 === $month ? 'Month' : 'Months';
-			$day_string   = 1 === $days ? 'Day' : 'Days';
+	} elseif ( $month != 0 ) {
+		$month_string = 1 === absint( $month ) ? __( 'Month', 'loginpress' ) : __( 'Months', 'loginpress' );
+		
+		// If there are no days, only show months
+		if ( $days == 0 ) {
+			return sprintf( '%1$s %2$s', $month, $month_string );
+		}
+		
+		// If there are days, show both months and days
+		$day_string = 1 === absint( $days ) ? __( 'Day', 'loginpress' ) : __( 'Days', 'loginpress' );
 
-			return sprintf( 
-				// translators: Date month
-				__( '%1$s %2$s and %3$s %4$s', 'loginpress' ), $month, $month_string, $days, $day_string );
+		return sprintf(
+			// translators: Date month
+			__( '%1$s %2$s and %3$s %4$s', 'loginpress' ),
+			$month,
+			$month_string,
+			$days,
+			$day_string
+		);
 
 		} else {
-			$remain_string = 1 === $days ? __( 'Day', 'loginpress' ) : __( 'Days', 'loginpress' );
+			$remain_string = 1 === absint( $days ) ? __( 'Day', 'loginpress' ) : __( 'Days', 'loginpress' );
 			return sprintf( '%1$s %2$s', $days, $remain_string );
 		}
 	}
@@ -228,10 +246,15 @@ class LoginPress_Force_Password_Reset {
 
 		if ( 'expired' === $status ) {
 			$limit           = $this->loginpress_convert_days();
-			$default_message = sprintf( 
+			$default_message = sprintf(
 				// translators: Update Password
-				__( 'It\'s been %1$s%2$s%3$s since you last updated your password. Kindly update your password.', 'loginpress' ), '<b>', $limit, '</b>', '</br>' );
-			$message         = apply_filters( 'loginpress_change_reset_message', $default_message, $limit );
+				__( 'It\'s been %1$s%2$s%3$s since you last updated your password. Kindly update your password.', 'loginpress' ),
+				'<b>',
+				$limit,
+				'</b>',
+				'</br>'
+			);
+			$message = apply_filters( 'loginpress_change_reset_message', $default_message, $limit );
 			return '<p id="login_error">' . wp_kses_post( $message ) . '</p>';
 		}
 

@@ -68,7 +68,7 @@
 .loginpress-dashboard-pro-link{
 	color: #0cbb0c;
 }
-  
+
 /* LoginPress Add-ons CSS @since 1.1.3 */
 
 .black_friday_notice .loginpress-alert-text {
@@ -174,7 +174,7 @@
 	width: 50px;
 	vertical-align: middle;
 }
-  
+
 .loginpress-notice-description{
 	overflow: hidden;
 	width: calc(100% - 50px);
@@ -201,42 +201,42 @@
 }
 
 .loginpress-alert-text{
-    display: flex;
-    align-items: center;
+	display: flex;
+	align-items: center;
 }
-[dir="rtl"] .rpt-review-notice, 
+[dir="rtl"] .rpt-review-notice,
 [dir="rtl"] .loginpress-review-notice{
-    padding: 15px 30px 15px 0;
-    margin: 20px 0 0 20px;
+	padding: 15px 30px 15px 0;
+	margin: 20px 0 0 20px;
 }
 .loginpress-v-text{
-    background: rgba(255,255,255,.1);
-    padding: 18px 73px;
-    font-style: normal;
-    font-weight: bold;
-    font-size: 73.2727px;
-    line-height: 62px;
-    color: #fff;
-    margin-right: 20px;
-    clip-path: polygon( 0 100%, 28px 0px, 100% 0, 100% 0, calc( 100% - 28px ) 100%, 0 100% );
+	background: rgba(255,255,255,.1);
+	padding: 18px 73px;
+	font-style: normal;
+	font-weight: bold;
+	font-size: 73.2727px;
+	line-height: 62px;
+	color: #fff;
+	margin-right: 20px;
+	clip-path: polygon( 0 100%, 28px 0px, 100% 0, 100% 0, calc( 100% - 28px ) 100%, 0 100% );
 }
 
 .loginpress-alert-button{
-    background: #28296A;
+	background: #28296A;
 	border-radius: 3px;
-    padding: 20px 32px;
-    font-weight: 600;
+	padding: 20px 32px;
+	font-weight: 600;
 	font-size: 22px;
 	line-height: 22px;
 	/* identical to box height, or 100% */
 	text-transform: uppercase;
 	color: #FFFFFF;
-    display: inline-block;
-    text-decoration: none;
+	display: inline-block;
+	text-decoration: none;
 }
 
 .loginpress-alert-button:hover{
-    background: #F6366A;
+	background: #F6366A;
 	color: #FFFFFF;
 }
 

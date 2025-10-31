@@ -474,7 +474,7 @@ if ( ! class_exists( 'LoginPress_Compatibility' ) ) :
 		public function enqueue_loginpress_script() {
 
 			include LOGINPRESS_DIR_PATH . 'css/style-presets.php';
-			include LOGINPRESS_DIR_PATH . 'css/style-login.php';
+			include_once LOGINPRESS_DIR_PATH . 'css/style-login.php';
 		}
 
 		/**

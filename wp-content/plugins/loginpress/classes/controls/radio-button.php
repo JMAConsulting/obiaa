@@ -72,7 +72,7 @@ class LoginPress_Radio_Control extends WP_Customize_Control {
 	 * @since  1.0.23
 	 * @access public
 	 * @return void
-	 * @version 1.1.7
+	 * @version 6.0.0
 	 */
 	public function render_content() {
 		?>
@@ -92,7 +92,7 @@ class LoginPress_Radio_Control extends WP_Customize_Control {
 				<label for="cb<?php echo $this->instance_number; ?>" class="loginpress-radio-btn"></label>
 			</div>
 			<?php if ( ! empty( $this->description ) ) : ?>
-				<span class="description customize-control-description"><?php echo $this->description; ?></span>
+				<span class="description " style="font-style: italic;"><?php echo esc_html( $this->description ); ?></span>
 			<?php endif; ?>
 		</label>
 		<?php
