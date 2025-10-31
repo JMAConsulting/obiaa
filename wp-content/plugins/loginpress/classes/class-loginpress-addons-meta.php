@@ -20,7 +20,6 @@ if ( ! class_exists( 'LoginPress_Addons_Meta' ) ) :
 			} else {
 				add_action( 'init', array( $this, 'addons_options_array' ) );
 			}
-			
 		}
 
 		/**

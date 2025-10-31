@@ -21,7 +21,7 @@ if ( ! class_exists( 'LoginPress_Addons' ) ) :
 		 */
 		function __construct() {
 			$this->includes();
-			//add_action( 'init', array( $this, 'addons_array_construct' ),0 );
+			// add_action( 'init', array( $this, 'addons_array_construct' ),0 );
 			// $this->addons_array_construct();
 			$this->plugins_list = get_plugins();
 			$this->addons_array = get_option( 'loginpress_pro_addons' );
@@ -86,9 +86,11 @@ if ( ! class_exists( 'LoginPress_Addons' ) ) :
 					$license_data    = LoginPress_Pro::get_registration_data();
 
 					if ( isset( $license_data['license_data']['error'] ) && 'expired' === $license_data['license_data']['error'] ) {
-						echo '<div class="main_notice_msg">' . sprintf( 
+						echo '<div class="main_notice_msg">' . sprintf(
 							// translators: License expiration
-							esc_html__( 'Your license key has been expired on %1$s.', 'loginpress' ), date_i18n( get_option( 'date_format' ), strtotime( $expiration_date, current_time( 'timestamp' ) ) ) ) . '</div>';
+							esc_html__( 'Your license key has been expired on %1$s.', 'loginpress' ),
+							date_i18n( get_option( 'date_format' ), strtotime( $expiration_date, current_time( 'timestamp' ) ) )
+						) . '</div>';
 					} else {
 						// echo '<div class="main_notice_msg">' . sprintf( esc_html__( 'You need to activate your license to use the following add-ons.', 'loginpress' ) ) . '</div>';
 
@@ -180,7 +182,7 @@ if ( ! class_exists( 'LoginPress_Addons' ) ) :
 				</svg>
 				</div>
 				<p>' . // translators: Activating the plugin
-				 sprintf( esc_html__( 'Activating %s...', 'loginpress' ), esc_html( $text ) ) . '</p>
+				sprintf( esc_html__( 'Activating %s...', 'loginpress' ), esc_html( $text ) ) . '</p>
 				</div>';
 			$html .= '<div id="loginpressActivatedAddon' . $slug . '" class="loginpress-install activated" style="display:none">
 				<svg class="circular-loader2" viewBox="25 25 50 50" >
@@ -198,7 +200,7 @@ if ( ! class_exists( 'LoginPress_Addons' ) ) :
 					</svg>
 				</div>
 				<p>' . // translators: Deactivating the plugin
-			 		sprintf( esc_html__( 'Deactivating %s...', 'loginpress' ), esc_html( $text ) ) . '</p>
+					sprintf( esc_html__( 'Deactivating %s...', 'loginpress' ), esc_html( $text ) ) . '</p>
 				</div>';
 			$html .= '<div id="loginpressDeactivatedAddon' . $slug . '" class="loginpress-uninstall activated" style="display:none">
 				<svg class="circular-loader2" viewBox="25 25 50 50" >
@@ -554,13 +556,13 @@ if ( ! class_exists( 'LoginPress_Addons' ) ) :
 					max-width: 100px;
 					position: absolute;
 					top: 5px;
-					left: 10px;
+					inset-inline-start: 10px;
 					height: auto;
 					width: auto;
 					max-height: 75px;
 					position: static;
 					vertical-align: middle;
-					margin-right: 20px;
+					margin-inline-end: 20px;
 					margin-top: 0;
 				}
 				.loginpress-extension p {
