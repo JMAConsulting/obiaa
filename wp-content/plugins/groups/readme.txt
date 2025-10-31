@@ -2,10 +2,10 @@
 Contributors: itthinx, proaktion
 Donate link: https://www.itthinx.com/shop/
 Tags: groups, access, access control, member, membership
-Requires at least: 6.3
+Requires at least: 6.7
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.5.0
+Stable tag: 3.8.0
 License: GPLv3
 
 Groups is an efficient and powerful solution, providing group-based user membership management, group-based capabilities and content access control.
@@ -71,6 +71,17 @@ Groups is light-weight and offers an easy user interface, while it acts as a fra
 ### Documentation ###
 
 The official documentation is located at the [Groups Documentation](https://docs.itthinx.com/document/groups/) pages.
+
+### Funding and Sponsors ###
+
+Your support matters!
+
+By getting an official extension or contributing, you help fund the work that is necessary to maintain and improve Groups.
+
+- Contribute directly to the Bitcoin address *bc1q7klf9ge8gvtl4h4qlh6c73tgk0cdehfv5vcq0g* where sats received are used to fund developers who help to maintain and develop Groups
+- Purchase an official [Extension for Groups](https://www.itthinx.com/product-category/groups/)
+- Purchase an extension on the [WooCommerce Marketplace](https://woocommerce.com/vendor/itthinx/)
+- Sponsor the development of new features: [get in touch](https://www.itthinx.com/contact/)
 
 ### Comprehensive Features ###
 
@@ -201,6 +212,14 @@ The official documentation is located at the [Groups Documentation](https://docs
 
 Official extensions are distributed exclusively via the [WooCommerce Marketplace](https://woocommerce.com/vendor/itthinx/) and [Extensions](https://www.itthinx.com/product-category/groups/) for Groups.
 
+= How can I help fund or contribute Bitcoin to the continued development of Groups? =
+
+The success of Groups and its continued development depends on your support. There are several ways in which you can help fund the project:
+
+- Purchase an official [Extension for Groups](https://www.itthinx.com/product-category/groups/)
+- Purchase an extension on the [WooCommerce Marketplace](https://woocommerce.com/vendor/itthinx/)
+- Contribute to the Bitcoin address *bc1q7klf9ge8gvtl4h4qlh6c73tgk0cdehfv5vcq0g* - sats received are used to fund developers who help to maintain and develop Groups
+
 = I want to sell group memberships, which extension do I need? Does it support subscriptions? =
 
 You can sell memberships with [Groups for WooCommerce](https://woocommerce.com/products/groups-woocommerce/), the best Group Membership and Access Control solution for WordPress and WooCommerce.
@@ -228,7 +247,7 @@ After you publish or update your posts, only members of the *Premium* group will
 
 Example: Advanced and Premium members
 
-1. Go to *Groups > Groups > New Group* and add two new  groups, let's call them *Advanced* and *Premium* - select *Advanced* as the *Parent* for the *Premium* group.
+1. Go to *Groups > Groups > New Group* and add two new groups, let's call them *Advanced* and *Premium* - select *Advanced* as the *Parent* for the *Premium* group.
 2. Now create an example post that only members of the *Advanced* group should be able to access and choose the *Advanced* group in the _Read_ field of the _Groups_ box.
 3. Create another post for members of the *Premium* group and choose the *Premium* group for that post.
 4. Assign test users to both groups, log in as each user in turn and see which posts will be accessible.
