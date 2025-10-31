@@ -69,6 +69,9 @@ class Options {
 			'api_key',
 			'has_pro_plan',
 		],
+		'mandrill'                 => [
+			'api_key',
+		],
 		'sendgrid'                 => [
 			'api_key',
 			'domain',
@@ -151,6 +154,7 @@ class Options {
 		'mailgun',
 		'mailjet',
 		'mailersend',
+		'mandrill',
 		'outlook',
 		'postmark',
 		'sendgrid',
@@ -655,6 +659,13 @@ class Options {
 				}
 				break; // phpcs:ignore WPForms.Formatting.Switch.AddEmptyLineBefore
 
+			case 'mandrill':
+				if ( $key === 'api_key' ) {
+					/** @noinspection PhpUndefinedConstantInspection */
+					$return = $this->is_const_defined( $group, $key ) ? EASY_WP_SMTP_MANDRILL_API_KEY : $value;
+				}
+				break;
+
 			case 'sendgrid':
 				switch ( $key ) {
 					case 'api_key':
@@ -1040,6 +1051,14 @@ class Options {
 
 					case 'has_pro_plan':
 						$return = defined( 'EASY_WP_SMTP_MAILERSEND_HAS_PRO_PLAN' );
+						break;
+				}
+				break; // phpcs:ignore WPForms.Formatting.Switch.AddEmptyLineBefore
+
+			case 'mandrill':
+				switch ( $key ) {  // phpcs:ignore WPForms.Formatting.Switch.AddEmptyLineBefore
+					case 'api_key':
+						$return = defined( 'EASY_WP_SMTP_MANDRILL_API_KEY' ) && EASY_WP_SMTP_MANDRILL_API_KEY;
 						break;
 				}
 				break; // phpcs:ignore WPForms.Formatting.Switch.AddEmptyLineBefore

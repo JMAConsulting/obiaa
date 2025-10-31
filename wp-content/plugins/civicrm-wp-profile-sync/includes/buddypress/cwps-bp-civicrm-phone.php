@@ -25,7 +25,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Phone {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync
 	 */
 	public $plugin;
 
@@ -34,7 +34,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Phone {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync_BuddyPress
 	 */
 	public $bp_loader;
 
@@ -43,7 +43,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Phone {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync_CiviCRM
 	 */
 	public $civicrm;
 
@@ -52,7 +52,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Phone {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_Profile_Sync_BP_XProfile
 	 */
 	public $xprofile;
 
@@ -208,7 +208,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Phone {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Intercept when a CiviCRM Phone Record has been updated.
@@ -267,13 +267,13 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Phone {
 
 			// Only "Phone" Fields with the matching Location Type.
 			$location_type_id = (int) $bp_field['field_meta']['entity_data']['location_type_id'];
-			if ( $phone->location_type_id != $location_type_id ) {
+			if ( (int) $phone->location_type_id !== (int) $location_type_id ) {
 				continue;
 			}
 
 			// Only "Phone" Fields with the matching Phone Type.
 			$phone_type_id = (int) $bp_field['field_meta']['entity_data']['phone_type_id'];
-			if ( $phone->phone_type_id != $phone_type_id ) {
+			if ( (int) $phone->phone_type_id !== (int) $phone_type_id ) {
 				continue;
 			}
 
@@ -376,7 +376,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Phone {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Save Phone(s) when BuddyPress Profile Fields have been saved.
@@ -531,7 +531,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Phone {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Returns the Phone Field choices for a Setting Field from when found.
@@ -612,7 +612,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Phone {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the core Fields for a CiviCRM Phone Type.
@@ -675,7 +675,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Phone {
 							$fields[] = $value;
 						}
 					} else {
-						if ( $field_type == $this->phone_fields[ $value['name'] ] ) {
+						if ( $field_type === $this->phone_fields[ $value['name'] ] ) {
 							$fields[] = $value;
 						}
 					}
@@ -695,7 +695,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Phone {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the BuddyPress Field Type for a Phone Field.
@@ -746,7 +746,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Phone {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Modify the Options of a special case BuddyPress "Checkbox" Field.

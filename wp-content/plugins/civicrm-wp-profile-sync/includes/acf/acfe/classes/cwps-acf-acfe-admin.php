@@ -25,7 +25,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Admin {
 	 *
 	 * @since 0.6.6
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync
 	 */
 	public $plugin;
 
@@ -34,7 +34,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Admin {
 	 *
 	 * @since 0.6.6
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync_ACF_Loader
 	 */
 	public $acf_loader;
 
@@ -43,7 +43,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Admin {
 	 *
 	 * @since 0.6.6
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_Profile_Sync_ACF_CiviCRM
 	 */
 	public $civicrm;
 
@@ -52,7 +52,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Admin {
 	 *
 	 * @since 0.6.6
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_Profile_Sync_ACF
 	 */
 	public $acf;
 
@@ -61,7 +61,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Admin {
 	 *
 	 * @since 0.6.6
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_Profile_Sync_ACF_ACFE
 	 */
 	public $acfe;
 
@@ -135,7 +135,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Admin {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Adds the default ACF Extended Forms Integration settings.
@@ -229,7 +229,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Admin {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Called when the Settings Page (or its parent) has been added.
@@ -283,7 +283,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Admin {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Gets the duration of the Form Action cache transient.

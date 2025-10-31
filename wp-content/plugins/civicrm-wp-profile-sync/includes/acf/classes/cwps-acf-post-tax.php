@@ -25,7 +25,7 @@ class CiviCRM_Profile_Sync_ACF_Post_Tax {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync
 	 */
 	public $plugin;
 
@@ -34,7 +34,7 @@ class CiviCRM_Profile_Sync_ACF_Post_Tax {
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync_ACF_Loader
 	 */
 	public $acf_loader;
 
@@ -43,7 +43,7 @@ class CiviCRM_Profile_Sync_ACF_Post_Tax {
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_Profile_Sync_ACF_Post
 	 */
 	public $post;
 
@@ -145,7 +145,7 @@ class CiviCRM_Profile_Sync_ACF_Post_Tax {
 		add_action( 'admin_init', [ $this, 'register_hooks_admin' ] );
 
 		// Listen for when a Post is about to be updated.
-		add_action( 'pre_post_update', [ $this, 'post_saved_pre' ], 10, 2 );
+		add_action( 'cwps/acf/mapper/post/saved/pre', [ $this, 'post_saved_pre' ], 10 );
 
 		// Listen for events that require Taxonomy updates.
 		add_action( 'cwps/acf/contact/post/saved', [ $this, 'post_saved' ], 10 );
@@ -249,7 +249,7 @@ class CiviCRM_Profile_Sync_ACF_Post_Tax {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Add a form element to the "Add Term" form.
@@ -356,7 +356,7 @@ class CiviCRM_Profile_Sync_ACF_Post_Tax {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Hook into the creation of a term.
@@ -497,7 +497,7 @@ class CiviCRM_Profile_Sync_ACF_Post_Tax {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the CiviCRM Group ID for a term.
@@ -671,7 +671,7 @@ class CiviCRM_Profile_Sync_ACF_Post_Tax {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the terms for a given CiviCRM Group.
@@ -727,7 +727,7 @@ class CiviCRM_Profile_Sync_ACF_Post_Tax {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the terms for a given WordPress Post Type.
@@ -804,7 +804,7 @@ class CiviCRM_Profile_Sync_ACF_Post_Tax {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the synced terms for a given WordPress Post Type.
@@ -1024,17 +1024,19 @@ class CiviCRM_Profile_Sync_ACF_Post_Tax {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Intercept when a WordPress Post is about to be updated.
 	 *
 	 * @since 0.4
 	 *
-	 * @param integer|string $post_id The ACF "Post ID".
-	 * @param array          $data The array of unslashed post data.
+	 * @param array $args The array of WordPress params.
 	 */
-	public function post_saved_pre( $post_id, $data ) {
+	public function post_saved_pre( $args ) {
+
+		// Get the Post ID.
+		$post_id = (int) $args['post_id'];
 
 		// Get the full Post.
 		$post = get_post( $post_id );
@@ -1184,7 +1186,7 @@ class CiviCRM_Profile_Sync_ACF_Post_Tax {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Process terms for Contacts when they are added or removed from a Group.
@@ -1242,7 +1244,7 @@ class CiviCRM_Profile_Sync_ACF_Post_Tax {
 					$terms_for_post = [];
 					foreach ( $term_ids_for_post as $term_id_for_post ) {
 						foreach ( $terms_for_group as $term_for_group ) {
-							if ( $term_for_group->term_id == $term_id_for_post ) {
+							if ( (int) $term_for_group->term_id === (int) $term_id_for_post ) {
 								$terms_for_post[ $term_for_group->term_id ] = $term_for_group;
 							}
 						}
@@ -1276,7 +1278,7 @@ class CiviCRM_Profile_Sync_ACF_Post_Tax {
 
 						foreach ( $term_ids_final as $term_id_final ) {
 							foreach ( $terms_in_post as $term_in_post ) {
-								if ( $term_in_post->term_id == $term_id_final ) {
+								if ( (int) $term_in_post->term_id === (int) $term_id_final ) {
 									$terms_in_post_new[] = $term_in_post;
 									continue;
 								}

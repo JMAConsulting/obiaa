@@ -452,9 +452,18 @@ echo '<div class="step-wrapper">';
 
 if ( get_option( '_loginpress_optin' ) == 'no' || ! get_option( '_loginpress_optin' ) ) {
 	echo "<div class='first-step step'>";
-	echo sprintf( 
+	echo sprintf(
 		// translators: 1: Opt-in disclaimer
-		__( '%1$s Hey %2$s,  %4$s If you opt-in some data about your installation of LoginPress will be sent to WPBrigade.com (This doesn\'t include stats)%4$s and You will receive new feature updates, security notifications etc %5$sNo Spam, I promise.%6$s %4$s%4$s Help us %7$sImprove LoginPress%8$s %4$s %4$s ', 'loginpress' ), '<p id="loginpress-splash-main-text">', '<strong>' . $name . '</strong>', '<strong>' . $website . '</strong>', '<br>', '<i>', '</i>', '<strong>', '</strong>' ) . '</p>';
+		__( '%1$s Hey %2$s,  %4$s If you opt-in some data about your installation of LoginPress will be sent to WPBrigade.com (This doesn\'t include stats)%4$s and You will receive new feature updates, security notifications etc %5$sNo Spam, I promise.%6$s %4$s%4$s Help us %7$sImprove LoginPress%8$s %4$s %4$s ', 'loginpress' ),
+		'<p id="loginpress-splash-main-text">',
+		'<strong>' . $name . '</strong>',
+		'<strong>' . $website . '</strong>',
+		'<br>',
+		'<i>',
+		'</i>',
+		'<strong>',
+		'</strong>'
+	) . '</p>';
 	echo "<button type='submit' id='loginpress-ga-submit-btn' class='loginpress-ga-button button button-primary' name='loginpress-submit-optin' >" . __( 'Allow and Continue  ', 'loginpress' ) . '</button><br>';
 	echo "<button type='submit' id='loginpress-ga-optout-btn' name='loginpress-submit-optout' >" . __( 'Skip This Step', 'loginpress' ) . '</button>';
 	echo '<div id="loginpress-splash-permissions" class="loginpress-splash-box">';

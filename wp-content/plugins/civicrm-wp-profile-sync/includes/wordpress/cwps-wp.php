@@ -21,11 +21,11 @@ defined( 'ABSPATH' ) || exit;
 class CiviCRM_WP_Profile_Sync_WordPress {
 
 	/**
-	 * Plugin (calling) object.
+	 * Plugin object.
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync
 	 */
 	public $plugin;
 
@@ -34,7 +34,7 @@ class CiviCRM_WP_Profile_Sync_WordPress {
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync_WordPress_User
 	 */
 	public $user;
 
@@ -266,6 +266,7 @@ class CiviCRM_WP_Profile_Sync_WordPress {
 		 * @see https://bugs.php.net/bug.php?id=45543
 		 * @see https://bugs.php.net/bug.php?id=45528
 		 */
+		// phpcs:ignore WordPress.PHP.StrictComparisons.LooseComparison
 		if ( empty( $tzstring ) && 0 != $offset && floor( $offset ) == $offset ) {
 			$offset_string = $offset > 0 ? "-$offset" : '+' . absint( $offset );
 			$tzstring      = 'Etc/GMT' . $offset_string;
@@ -287,6 +288,42 @@ class CiviCRM_WP_Profile_Sync_WordPress {
 
 		// --<
 		return $timezone;
+
+	}
+
+	/**
+	 * Initialises the WordPress Filesystem.
+	 *
+	 * @since 0.7.2
+	 *
+	 * @return WP_Filesystem|bool The WordPress Filesystem object if intialised, false otherwise.
+	 */
+	public function filesystem_init() {
+
+		global $wp_filesystem;
+
+		// If not yet intialised.
+		if ( ! $wp_filesystem || ! is_object( $wp_filesystem ) ) {
+
+			// Require file if init function is unavailable.
+			if ( ! function_exists( 'WP_Filesystem' ) ) {
+				require_once ABSPATH . 'wp-admin/includes/file.php';
+			}
+
+			// Suppress output to get direct access credentials.
+			ob_start();
+			$credentials = request_filesystem_credentials( '' );
+			ob_end_clean();
+
+			// Bail if init fails for some reason.
+			if ( false === $credentials || ! WP_Filesystem( $credentials ) ) {
+				return false;
+			}
+
+		}
+
+		// --<
+		return $wp_filesystem;
 
 	}
 

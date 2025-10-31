@@ -353,7 +353,8 @@ if ( ! class_exists( 'LoginPress_Notification' ) ) :
 					// translators: Winter deal ad
 					__(
 						'<strong>Biggest Winter Deal</strong> in the WordPress Universe! Get <strong>LoginPress Pro and all Premium Add-ons</strong> with <strong>20%% OFF</strong> [Limited Availability].<a href="https://loginpress.pro/pricing/?utm_source=loginpress-lite&utm_medium=freepluginbanner-button&utm_campaign=early20" target="_blank" style="text-decoration: none;"><span class="dashicons dashicons-smiley" style="margin-left: 10px;"></span> Grab The Deal</a>
-  					<a href="%1$s" style="text-decoration: none; margin-left: 10px;"><span class="dashicons dashicons-dismiss"></span> I\'m good with free version</a>', 'loginpress'
+  					<a href="%1$s" style="text-decoration: none; margin-left: 10px;"><span class="dashicons dashicons-dismiss"></span> I\'m good with free version</a>',
+						'loginpress'
 					),
 					$dismiss_url
 				);
@@ -384,7 +385,8 @@ if ( ! class_exists( 'LoginPress_Notification' ) ) :
 					// translators: Summer deal ad
 					__(
 						'<strong>Biggest Summer Deal</strong> in the WordPress Universe! Get <strong>LoginPress Pro and all Premium Add-ons</strong> with <strong>20%% OFF</strong> [Limited Availability].<a href="https://loginpress.pro/pricing/?utm_source=loginpress-lite&utm_medium=freepluginbanner-button&utm_campaign=early20" target="_blank" style="text-decoration: none;"><span class="dashicons dashicons-smiley" style="margin-left: 10px;"></span> Grab The Deal</a>
-					<a href="%1$s" style="text-decoration: none; margin-left: 10px;"><span class="dashicons dashicons-dismiss"></span> I\'m good with free version</a>', 'loginpress'
+					<a href="%1$s" style="text-decoration: none; margin-left: 10px;"><span class="dashicons dashicons-dismiss"></span> I\'m good with free version</a>',
+						'loginpress'
 					),
 					$dismiss_url
 				);

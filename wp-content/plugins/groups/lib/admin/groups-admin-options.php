@@ -24,12 +24,12 @@ if ( !defined( 'ABSPATH' ) ) {
 }
 
 /**
- * @var string options form nonce name
+ * @var string GROUPS_ADMIN_OPTIONS_NONCE options form nonce name
  */
 define( 'GROUPS_ADMIN_OPTIONS_NONCE', 'groups-admin-nonce' );
 
 /**
- * @var int 14 days in seconds
+ * @var int GROUPS_SHOW_EXTENSIONS_BOX_INTERVAL 14 days in seconds
  */
 define( 'GROUPS_SHOW_EXTENSIONS_BOX_INTERVAL', 1209600 );
 
@@ -58,7 +58,7 @@ function groups_admin_options() {
 		GROUPS_RESTRICT_ACCESS    => __( 'Restrict Access', 'groups' )
 	);
 
-	$previous_legacy_enable =  Groups_Options::get_option( GROUPS_LEGACY_ENABLE, GROUPS_LEGACY_ENABLE_DEFAULT );
+	$previous_legacy_enable = Groups_Options::get_option( GROUPS_LEGACY_ENABLE, GROUPS_LEGACY_ENABLE_DEFAULT );
 
 	//
 	// handle options form submission
@@ -68,6 +68,7 @@ function groups_admin_options() {
 
 			$post_types = get_post_types();
 			$selected_post_types = !empty( $_POST['add_meta_boxes'] ) && is_array( $_POST['add_meta_boxes'] ) ? $_POST['add_meta_boxes'] : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+			$handle_post_types = array();
 			foreach( $post_types as $post_type ) {
 				$handle_post_types[$post_type] = in_array( $post_type, $selected_post_types );
 			}
@@ -198,6 +199,8 @@ function groups_admin_options() {
 		$extensions_box .= '</div>';
 	}
 
+	$bitcoin_box = Groups_Admin_Notice::get_groups_bitcoin_box( array( 'where' => 'options' ) );
+
 	//
 	// print the options form
 	//
@@ -207,6 +210,7 @@ function groups_admin_options() {
 
 		'<p>' .
 		'<input class="button button-primary" type="submit" name="submit" value="' . esc_attr__( 'Save', 'groups' ) . '"/>' .
+		$bitcoin_box . // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		$extensions_box . // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		'</p>';
 
@@ -365,7 +369,11 @@ function groups_admin_options() {
 		echo ' ';
 		esc_html_e( 'Once you have adjusted your access restrictions based on groups, you can disable legacy access control.', 'groups' );
 		echo ' ';
-		echo wp_kses_post( __( 'Please refer to the <a target="_blank" href="https://docs.itthinx.com/document/groups/">Documentation</a> for details on how to switch to and use the new access restrictions.', 'groups' ) );
+		echo sprintf(
+			/* translators: documentation pages link */
+			esc_html__( 'Please refer to the %s for details on how to switch to and use the new access restrictions.', 'groups' ),
+			sprintf( '<a target="_blank" href="https://docs.itthinx.com/document/groups/">%s</a>', esc_html__( 'Documentation', 'groups' ) )
+		);
 		echo '</p>';
 		echo '</div>'; // .indent
 	}

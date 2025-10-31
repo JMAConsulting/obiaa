@@ -29,6 +29,13 @@ if ( !defined( 'ABSPATH' ) ) {
 class Groups_Shortcodes {
 
 	/**
+	 * Maximum amount of time to accept hashes for join and leave requests.
+	 *
+	 * @var int
+	 */
+	const MAX_TIME_DELTA = 3600;
+
+	/**
 	 * Adds shortcodes.
 	 */
 	public static function init() {
@@ -41,11 +48,11 @@ class Groups_Shortcodes {
 		// user groups
 		add_shortcode( 'groups_user_groups', array( __CLASS__, 'groups_user_groups' ) );
 		// groups
-		add_shortcode( 'groups_groups',  array( __CLASS__, 'groups_groups' ) );
+		add_shortcode( 'groups_groups', array( __CLASS__, 'groups_groups' ) );
 		// join a group
-		add_shortcode( 'groups_join',  array( __CLASS__, 'groups_join' ) );
+		add_shortcode( 'groups_join', array( __CLASS__, 'groups_join' ) );
 		// leave a group
-		add_shortcode( 'groups_leave',  array( __CLASS__, 'groups_leave' ) );
+		add_shortcode( 'groups_leave', array( __CLASS__, 'groups_leave' ) );
 	}
 
 	/**
@@ -456,8 +463,16 @@ class Groups_Shortcodes {
 
 	/**
 	 * Renders a form that lets a user join a group.
-	 * * Attributes:
+	 *
+	 * Attributes:
+	 *
 	 * - "group" : (required) group name or id
+	 * - "class" : (optional) container class to add
+	 * - "display_message" : (optional) whether to display the message
+	 * - "display_is_member" : (optional) whether to display the message that a user is a member
+	 * - "redirect" : (optional) whether to redirect after accepted submission
+	 * - "submit_class" : (optional) submit HTML element class to add
+	 * - "submit_text" : (optional) submit HTML element text to use
 	 *
 	 * @param array $atts attributes
 	 * @param string $content not used
@@ -465,15 +480,21 @@ class Groups_Shortcodes {
 	 * @return string
 	 */
 	public static function groups_join( $atts, $content = null ) {
+
+		global $groups_join_data_init;
+
 		$nonce_action = 'groups_action';
 		$nonce        = 'nonce_join';
 		$output       = '';
 
 		$options = shortcode_atts(
 			array(
+				'class'             => '',
 				'group'             => '',
 				'display_message'   => true,
 				'display_is_member' => false,
+				'redirect'          => true,
+				'submit_class'      => '',
 				/* translators: group name */
 				'submit_text'       => esc_html__( 'Join the %s group', 'groups' )
 			),
@@ -482,28 +503,35 @@ class Groups_Shortcodes {
 
 		$display_message = is_string( $options['display_message'] ) ? strtolower( $options['display_message'] ) : $options['display_message'];
 		$display_is_member = is_string( $options['display_is_member'] ) ? strtolower( $options['display_is_member'] ) : $options['display_is_member'];
+		$redirect = is_string( $options['redirect'] ) ? strtolower( $options['redirect'] ) : $options['redirect'];
 		$submit_text = $options['submit_text'];
+		$display_message = in_array( $display_message, array( 'true', 'yes', true ) );
+		$display_is_member = in_array( $display_is_member, array( 'true', 'yes', true ) );
 
-		switch ( $display_message ) {
-			case 'false':
-			case 'no':
-			case false:
-				$display_message = false;
-				break;
-			default:
-				$display_message = true;
+		if ( !is_bool( $redirect ) ) {
+			switch( $redirect ) {
+				case 'true':
+				case 'yes':
+					$redirect = true;
+					break;
+				case 'false':
+				case 'no':
+					$redirect = false;
+					break;
+				default:
+					if ( is_string( $redirect ) ) {
+						$redirect = trim( $redirect );
+						if ( strlen( $redirect ) === 0 ) {
+							$redirect = true;
+						}
+					} else {
+						$redirect = true;
+					}
+			}
 		}
 
-		switch ( $display_is_member ) {
-			case 'true':
-			case 'yes':
-			case true:
-				$display_is_member = true;
-				break;
-			default:
-				$display_is_member = false;
-		}
-
+		$class = trim( $options['class'] );
+		$submit_class = trim( $options['submit_class'] );
 		$group = trim( $options['group'] );
 		$current_group = Groups_Group::read( $group );
 		if ( !$current_group ) {
@@ -511,6 +539,7 @@ class Groups_Shortcodes {
 		}
 		if ( $current_group ) {
 			if ( $user_id = get_current_user_id() ) {
+				$joined        = false;
 				$submitted     = false;
 				$invalid_nonce = false;
 				if ( !empty( $_POST['groups_action'] ) && $_POST['groups_action'] == 'join' ) {
@@ -522,37 +551,86 @@ class Groups_Shortcodes {
 				}
 				if ( $submitted && !$invalid_nonce ) {
 					// add user to group
-					if ( isset( $_POST['group_id'] ) ) {
-						$join_group = Groups_Group::read( sanitize_text_field( $_POST['group_id'] ) );
-						Groups_User_Group::create(
-							array(
-								'group_id' => $join_group->group_id,
-								'user_id' => $user_id
-							)
-						);
+					if ( isset( $_POST['groups-join-data'] ) ) {
+						$hash = trim( sanitize_text_field( $_POST['groups-join-data'] ) );
+						$groups_join_data = get_user_meta( $user_id, 'groups-join-data', true );
+						if ( is_array( $groups_join_data ) && isset( $groups_join_data[$hash] ) ) {
+							if ( isset( $groups_join_data[$hash]['group_id'] ) && isset( $groups_join_data[$hash]['time'] ) ) {
+								$group_id = $groups_join_data[$hash]['group_id'];
+								$dt = time() - $groups_join_data[$hash]['time'];
+								if ( $dt < apply_filters( 'groups_join_submit_max_time_delta', self::MAX_TIME_DELTA ) ) {
+									$joined = Groups_User_Group::create(
+										array(
+											'group_id' => $group_id,
+											'user_id' => $user_id
+										)
+									);
+									if ( $joined ) {
+										/**
+										 * Whether to redirect after submit and successful addition to group.
+										 *
+										 * @since 3.6.0
+										 *
+										 * @param boolean|string $redirect true to redirect to current ULR, string to redirect to specific URL, false not to redirect
+										 * @param array $atts shortcode attributes
+										 * @param array $options evaluated shortcode options
+										 *
+										 * @return boolean|string
+										 */
+										if ( apply_filters( 'groups_join_submit_redirect', $redirect, $atts, $options ) !== false ) {
+											self::maybe_redirect( $redirect );
+										}
+									}
+								}
+							}
+						}
 					}
 				}
 				if ( !Groups_User::user_is_member( $user_id, $current_group->group_id ) ) {
-					$submit_text = sprintf( $options['submit_text'], wp_filter_nohtml_kses( $current_group->name ) );
-					$output .= '<div class="groups-join">';
+					if ( !isset( $groups_join_data_init ) ) {
+						$groups_join_data_init = true;
+						delete_user_meta( $user_id, 'groups-join-data' );
+					}
+					$data = array(
+						'user_id'  => $user_id,
+						'group_id' => $current_group->group_id,
+						'time'     => time(),
+						'salt'     => rand( 0, PHP_INT_MAX )
+					);
+					$hash = hash( 'sha256', json_encode( $data ) );
+					$groups_join_data = get_user_meta( $user_id, 'groups-join-data', true );
+					if ( !is_array( $groups_join_data ) ) {
+						$groups_join_data = array();
+					}
+					$groups_join_data[$hash] = $data;
+					update_user_meta( $user_id, 'groups-join-data', $groups_join_data );
+
+					$submit_text = sprintf( $options['submit_text'], stripslashes( wp_filter_nohtml_kses( $current_group->name ) ) );
+					$output .= sprintf(
+						'<div class="groups-join%s">',
+						strlen( $class ) > 0 ? ' ' . esc_attr( $class ) : '',
+					);
 					$output .= '<form action="#" method="post">';
 					$output .= '<input type="hidden" name="groups_action" value="join" />';
-					$output .= '<input type="hidden" name="group_id" value="' . esc_attr( $current_group->group_id ) . '" />';
-					$output .= '<input type="submit" value="' . esc_attr( $submit_text ) . '" />';
-					$output .=  wp_nonce_field( $nonce_action, $nonce, true, false );
+					$output .= '<input type="hidden" name="groups-join-data" value="' . esc_attr( $hash ) . '" />';
+					$output .= sprintf(
+						'<input class="groups-join-submit%s" type="submit" value="%s" />',
+						strlen( $submit_class ) > 0 ? ' ' . esc_attr( $submit_class ) : '',
+						esc_attr( $submit_text )
+					);
+					$output .= wp_nonce_field( $nonce_action, $nonce, true, false );
 					$output .= '</form>';
 					$output .= '</div>';
 				} else if ( $display_message ) {
-					if ( $submitted && !$invalid_nonce && isset( $join_group ) && $join_group->group_id === $current_group->group_id ) {
+					if ( $joined ) {
 						$output .= '<div class="groups-join joined">';
 						/* translators: group name */
-						$output .= sprintf( esc_html__( 'You have joined the %s group.', 'groups' ), wp_filter_nohtml_kses( $join_group->name ) );
+						$output .= sprintf( esc_html__( 'You have joined the %s group.', 'groups' ), stripslashes( wp_filter_nohtml_kses( $current_group->name ) ) );
 						$output .= '</div>';
-					}
-					else if ( $display_is_member && isset( $current_group ) && $current_group !== false ) {
+					} else if ( $display_is_member && $current_group !== false ) {
 						$output .= '<div class="groups-join member">';
 						/* translators: group name */
-						$output .= sprintf( esc_html__( 'You are a member of the %s group.', 'groups' ), wp_filter_nohtml_kses( $current_group->name ) );
+						$output .= sprintf( esc_html__( 'You are a member of the %s group.', 'groups' ), stripslashes( wp_filter_nohtml_kses( $current_group->name ) ) );
 						$output .= '</div>';
 					}
 				}
@@ -563,8 +641,15 @@ class Groups_Shortcodes {
 
 	/**
 	 * Renders a form that lets a user leave a group.
-	 * * Attributes:
+	 *
+	 * Attributes:
+	 *
 	 * - "group" : (required) group name or id
+	 * - "class" : (optional) container class to add
+	 * - "display_message" : (optional) whether to display the message
+	 * - "redirect" : (optional) whether to redirect after accepted submission
+	 * - "submit_class" : (optional) submit HTML element class to add
+	 * - "submit_text" : (optional) submit HTML element text to use
 	 *
 	 * @param array $atts attributes
 	 * @param string $content not used
@@ -572,14 +657,20 @@ class Groups_Shortcodes {
 	 * @return string
 	 */
 	public static function groups_leave( $atts, $content = null ) {
+
+		global $groups_leave_data_init;
+
 		$nonce_action = 'groups_action';
 		$nonce        = 'nonce_leave';
 		$output       = '';
 
 		$options = shortcode_atts(
 			array(
+				'class'           => '',
 				'group'           => '',
 				'display_message' => true,
+				'redirect'        => true,
+				'submit_class'    => '',
 				/* translators: group name */
 				'submit_text'     => esc_html__( 'Leave the %s group', 'groups' ),
 			),
@@ -587,18 +678,35 @@ class Groups_Shortcodes {
 		);
 
 		$display_message = is_string( $options['display_message'] ) ? strtolower( $options['display_message'] ) : $options['display_message'];
+		$redirect = is_string( $options['redirect'] ) ? strtolower( $options['redirect'] ) : $options['redirect'];
 		$submit_text = $options['submit_text'];
 
-		switch ( $display_message ) {
-			case 'false':
-			case 'no':
-			case false:
-				$display_message = false;
-				break;
-			default:
-				$display_message = true;
+		$display_message = in_array( $display_message, array( 'true', 'yes', true ) );
+
+		if ( !is_bool( $redirect ) ) {
+			switch( $redirect ) {
+				case 'true':
+				case 'yes':
+					$redirect = true;
+					break;
+				case 'false':
+				case 'no':
+					$redirect = false;
+					break;
+				default:
+					if ( is_string( $redirect ) ) {
+						$redirect = trim( $redirect );
+						if ( strlen( $redirect ) === 0 ) {
+							$redirect = true;
+						}
+					} else {
+						$redirect = true;
+					}
+			}
 		}
 
+		$class = trim( $options['class'] );
+		$submit_class = trim( $options['submit_class'] );
 		$group = trim( $options['group'] );
 		$current_group = Groups_Group::read( $group );
 		if ( !$current_group ) {
@@ -606,6 +714,7 @@ class Groups_Shortcodes {
 		}
 		if ( $current_group ) {
 			if ( $user_id = get_current_user_id() ) {
+				$left          = false;
 				$submitted     = false;
 				$invalid_nonce = false;
 				if ( !empty( $_POST['groups_action'] ) && $_POST['groups_action'] == 'leave' ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
@@ -617,26 +726,76 @@ class Groups_Shortcodes {
 				}
 				if ( $submitted && !$invalid_nonce ) {
 					// remove user from group
-					if ( isset( $_POST['group_id'] ) ) {
-						$leave_group = Groups_Group::read( sanitize_text_field( $_POST['group_id'] ) );
-						Groups_User_Group::delete( $user_id, $leave_group->group_id );
+					if ( isset( $_POST['groups-leave-data'] ) ) {
+						$hash = trim( sanitize_text_field( $_POST['groups-leave-data'] ) );
+						$groups_leave_data = get_user_meta( $user_id, 'groups-leave-data', true );
+						if ( is_array( $groups_leave_data ) && isset( $groups_leave_data[$hash] ) ) {
+							if ( isset( $groups_leave_data[$hash]['group_id'] ) && isset( $groups_leave_data[$hash]['time'] ) ) {
+								$group_id = $groups_leave_data[$hash]['group_id'];
+								$dt = time() - $groups_leave_data[$hash]['time'];
+								if ( $dt < apply_filters( 'groups_leave_submit_max_time_delta', self::MAX_TIME_DELTA ) ) {
+									$left = Groups_User_Group::delete( $user_id, $group_id );
+									if ( $left ) {
+										/**
+										 * Whether to redirect after acceptedsubmit and successful removal from group.
+										 *
+										 * @since 3.6.0
+										 *
+										 * @param boolean|string $redirect true to redirect to current ULR, string to redirect to specific URL, false not to redirect
+										 * @param array $atts shortcode attributes
+										 * @param array $options evaluated shortcode options
+										 *
+										 * @return boolean|string
+										 */
+										if ( apply_filters( 'groups_leave_submit_redirect', $redirect, $atts, $options ) !== false ) {
+											self::maybe_redirect( $redirect );
+										}
+									}
+								}
+							}
+						}
 					}
 				}
 				if ( Groups_User::user_is_member( $user_id, $current_group->group_id ) ) {
-					$submit_text = sprintf( $options['submit_text'], wp_filter_nohtml_kses( $current_group->name ) );
-					$output .= '<div class="groups-join">';
+					if ( !isset( $groups_leave_data_init ) ) {
+						$groups_leave_data_init = true;
+						delete_user_meta( $user_id, 'groups-leave-data' );
+					}
+					$data = array(
+						'user_id'  => $user_id,
+						'group_id' => $current_group->group_id,
+						'time'     => time(),
+						'salt'     => rand( 0, PHP_INT_MAX )
+					);
+					$hash = hash( 'sha256', json_encode( $data ) );
+					$groups_leave_data = get_user_meta( $user_id, 'groups-leave-data', true );
+					if ( !is_array( $groups_leave_data ) ) {
+						$groups_leave_data = array();
+					}
+					$groups_leave_data[$hash] = $data;
+					update_user_meta( $user_id, 'groups-leave-data', $groups_leave_data );
+
+					$submit_text = sprintf( $options['submit_text'], stripslashes( wp_filter_nohtml_kses( $current_group->name ) ) );
+					$output .= sprintf(
+						'<div class="groups-leave%s">',
+						strlen( $class ) > 0 ? ' ' . esc_attr( $class ) : '',
+					);
 					$output .= '<form action="#" method="post">';
 					$output .= '<input type="hidden" name="groups_action" value="leave" />';
-					$output .= '<input type="hidden" name="group_id" value="' . esc_attr( $current_group->group_id ) . '" />';
-					$output .= '<input type="submit" value="' . esc_attr( $submit_text ) . '" />';
-					$output .=  wp_nonce_field( $nonce_action, $nonce, true, false );
+					$output .= '<input type="hidden" name="groups-leave-data" value="' . esc_attr( $hash ) . '" />';
+					$output .= sprintf(
+						'<input class="groups-leave-submit%s" type="submit" value="%s" />',
+						strlen( $submit_class ) > 0 ? ' ' . esc_attr( $submit_class ) : '',
+						esc_attr( $submit_text )
+					);
+					$output .= wp_nonce_field( $nonce_action, $nonce, true, false );
 					$output .= '</form>';
 					$output .= '</div>';
 				} else if ( $display_message ) {
-					if ( $submitted && !$invalid_nonce && isset( $leave_group ) && $leave_group->group_id === $current_group->group_id ) {
+					if ( $left ) {
 						$output .= '<div class="groups-join left">';
 						/* translators: group name */
-						$output .= sprintf( esc_html__( 'You have left the %s group.', 'groups' ), wp_filter_nohtml_kses( $leave_group->name ) );
+						$output .= sprintf( esc_html__( 'You have left the %s group.', 'groups' ), stripslashes( wp_filter_nohtml_kses( $current_group->name ) ) );
 						$output .= '</div>';
 					}
 				}
@@ -644,5 +803,78 @@ class Groups_Shortcodes {
 		}
 		return $output;
 	}
+
+	/**
+	 * Try to redirect.
+	 *
+	 * No redirect will happen if $redirect is false.
+	 *
+	 * A redirect to the current URL is attempted if $redirect is an empty string.
+	 *
+	 * Relative paths will try to redirect to the path off the home URL and other URL components present.
+	 *
+	 * @since 3.6.0
+	 *
+	 * @param boolean|string $redirect
+	 */
+	private static function maybe_redirect( $redirect ) {
+
+		// Don't redirect
+		if ( is_bool( $redirect ) && !$redirect ) {
+			return;
+		}
+
+		// Use the current URL if no specific URL is provided
+		if ( is_string( $redirect ) && trim( $redirect ) !== '' ) {
+			$redirect_url = trim( $redirect );
+		} else {
+			$redirect_url = ( is_ssl() ? 'https://' : 'http://' ) . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		}
+
+		// Try to handle a relative URL, determine missing parts
+		$parts = parse_url( $redirect_url );
+		if ( !isset( $parts['scheme'] ) ) {
+			$parts['scheme'] = is_ssl() ? 'https' : 'http';
+		}
+		if ( !isset( $parts['host'] ) ) {
+			$parts['host'] = parse_url( home_url(), PHP_URL_HOST );
+		}
+		if ( !isset( $parts['path'] ) ) {
+			$parts['path'] = parse_url( home_url(), PHP_URL_PATH );
+		} else {
+			$home_path = parse_url( home_url(), PHP_URL_PATH );
+			if ( strpos( $parts['path'], $home_path ) !== 0 ) {
+				$parts['path'] = trailingslashit( $home_path ) . ltrim( $parts['path'], '/\\' );
+			}
+		}
+		// Put the absolute URL together
+		$url = $parts['scheme'] . ':';
+		if ( !empty( $parts['user'] ) && !empty( $parts['password'] ) ) {
+			$url .= $parts['user'] . ':' . $parts['password'] . '@';
+		}
+		$url .= '//' . $parts['host'];
+		if ( !empty( $parts['path'] ) ) {
+			$url .= $parts['path'];
+		}
+		if ( !empty( $parts['query'] ) ) {
+			$url .= '?' . $parts['query'];
+		}
+		if ( !empty( $parts['fragment'] ) ) {
+			$url .= '#' . $parts['fragment'];
+		}
+		$redirect_url = $url;
+
+		// validate the URL and restrict to allowed hosts, uses the allowed_redirect_hosts filter restricting to the domain of the current site
+		$redirect_url = wp_validate_redirect( $redirect_url ); // default fallback is ''
+		if ( is_string( $redirect_url ) ) {
+			$redirect_url = trim( $redirect_url );
+		}
+		if ( $redirect_url !== null && $redirect_url !== false && $redirect_url !== '' ) {
+			if ( wp_redirect( $redirect_url ) ) { // phpcs:ignore WordPress.Security.SafeRedirect.wp_redirect_wp_redirect
+				exit;
+			}
+		}
+	}
+
 }
 Groups_Shortcodes::init();

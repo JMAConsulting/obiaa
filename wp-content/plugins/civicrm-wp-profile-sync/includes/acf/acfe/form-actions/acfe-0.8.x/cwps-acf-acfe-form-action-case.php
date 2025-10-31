@@ -25,7 +25,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Case extends CiviCRM_Profile_Syn
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync
 	 */
 	public $plugin;
 
@@ -34,7 +34,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Case extends CiviCRM_Profile_Syn
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync_ACF_Loader
 	 */
 	public $acf_loader;
 
@@ -43,7 +43,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Case extends CiviCRM_Profile_Syn
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_Profile_Sync_ACF_ACFE
 	 */
 	public $acfe;
 
@@ -52,7 +52,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Case extends CiviCRM_Profile_Syn
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_Profile_Sync_ACF_ACFE_Form
 	 */
 	public $form;
 
@@ -61,7 +61,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Case extends CiviCRM_Profile_Syn
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_Profile_Sync_ACF_CiviCRM
 	 */
 	public $civicrm;
 
@@ -520,7 +520,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Case extends CiviCRM_Profile_Syn
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Defines additional Fields for the "Action" Tab.
@@ -683,7 +683,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Case extends CiviCRM_Profile_Syn
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Defines the "Mapping" Tab.
@@ -1079,7 +1079,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Case extends CiviCRM_Profile_Syn
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Builds Case data array from mapped Fields.
@@ -1378,7 +1378,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Case extends CiviCRM_Profile_Syn
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Builds Custom Field data array from mapped Fields.

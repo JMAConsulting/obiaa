@@ -84,10 +84,54 @@ class LoginPress_Background_Gallery_Control extends WP_Customize_Control {
 				</div>
 			<?php endforeach; ?>
 		</div>
-		<input name='presets_hidden' type="hidden" <?php $this->link(); ?> value="<?php echo $this->value(); ?>" />
 		<?php
 	}
 }
+
+/**
+ * This class is for the gallery selector in the Customizer.
+ *
+ * @access  public
+ * @since 6.0.0
+ */
+class LoginPress_Random_BG_Gallery_Control extends WP_Customize_Control {
+	public $type = 'loginpress_random_bg_gallery';
+
+	public function render_content() {
+		?>
+		<label>
+			<?php if ( ! empty( $this->label ) ) : ?>
+				<span class="customize-control-title"><?php echo esc_html( $this->label ); ?></span>
+			<?php endif; ?>
+			<?php if ( ! empty( $this->description ) ) : ?>
+				<span class="description customize-control-description"><?php echo esc_html( $this->description ); ?></span>
+			<?php endif; ?>
+		</label>
+		<div class="loginpress-gallery-container">
+			<ul class="loginpress-gallery-list">
+				<?php
+				$images = $this->value();
+				$images = ! empty( $images ) ? explode( ',', $images ) : array();
+
+				if ( ! empty( $images ) ) {
+					foreach ( $images as $image ) {
+						if ( ! empty( $image ) ) {
+							if ( filter_var( $image, FILTER_VALIDATE_URL ) ) {
+								echo '<li class="loginpress-gallery-item" style="width: 30%; display:inline-block; padding: 4px;"><img src="' . esc_url( $image ) . '" alt="' . esc_attr__( 'Image', 'loginpress' ) . '" /><span class="remove-image" style="color:red; cursor: pointer;"></br>x</span></li>';
+							}
+						}
+					}
+				}
+				?>
+			</ul>
+			<input type="hidden" <?php $this->link(); ?> value="<?php echo esc_attr( implode( ',', $images ) ); ?>" />
+			<button type="button" class="button loginpress-upload-gallery-button"><?php _e( 'Add Images', 'loginpress' ); ?></button>
+		</div>
+		<?php
+	}
+}
+
+
 
 /**
  * LoginPress Gallery Control CSS.

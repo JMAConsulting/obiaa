@@ -4,7 +4,7 @@ Tags: email, smtp, email logs, gmail, outlook
 Requires at least: 5.2
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 2.11.0
+Stable tag: 2.12.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -312,6 +312,10 @@ And we will try to help out as soon as possible.
 10. Setup Wizard - Step 2
 
 == Changelog ==
+
+= 2.12.0 - 2025-09-01 =
+* Added: New transactional mailer: Mandrill integration.
+* Fixed: References and In-Reply-To email headers are now correctly preserved for API-based mailers.
 
 = 2.11.0 - 2025-05-28 =
 - IMPORTANT: Support for PHP 7.2 has been discontinued. If you are running this version, you MUST upgrade PHP before installing or upgrading to Easy WP SMTP v2.11. Failure to do that will disable Easy WP SMTP functionality.

@@ -25,7 +25,7 @@ class CiviCRM_Profile_Sync_ACF_Field {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync
 	 */
 	public $plugin;
 
@@ -34,7 +34,7 @@ class CiviCRM_Profile_Sync_ACF_Field {
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync_ACF_Loader
 	 */
 	public $acf_loader;
 
@@ -43,7 +43,7 @@ class CiviCRM_Profile_Sync_ACF_Field {
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_Profile_Sync_ACF
 	 */
 	public $acf;
 
@@ -52,7 +52,7 @@ class CiviCRM_Profile_Sync_ACF_Field {
 	 *
 	 * @since 0.5.2
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_Profile_Sync_ACF_CiviCRM
 	 */
 	public $civicrm;
 
@@ -126,7 +126,7 @@ class CiviCRM_Profile_Sync_ACF_Field {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the type of WordPress Entity that a Field refers to.
@@ -226,7 +226,7 @@ class CiviCRM_Profile_Sync_ACF_Field {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get all mapped ACF Fields attached to a Post.
@@ -348,7 +348,7 @@ class CiviCRM_Profile_Sync_ACF_Field {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Update the value of an ACF Field.
@@ -518,7 +518,7 @@ class CiviCRM_Profile_Sync_ACF_Field {
 						$rounded = round( $item, 2 );
 
 						// Must be not have more than 2 decimal places.
-						if ( $rounded != $item ) {
+						if ( $rounded !== $item ) {
 							$valid = __( 'All values must have only two decimal places.', 'civicrm-wp-profile-sync' );
 						}
 
@@ -535,7 +535,7 @@ class CiviCRM_Profile_Sync_ACF_Field {
 					$rounded = round( $value, 2 );
 
 					// Must be not have more than 2 decimal places.
-					if ( $rounded != $value ) {
+					if ( $rounded !== $value ) {
 						$valid = __( 'Only two decimal places please.', 'civicrm-wp-profile-sync' );
 					}
 
@@ -549,7 +549,7 @@ class CiviCRM_Profile_Sync_ACF_Field {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the value of an ACF Field formatted for CiviCRM.
@@ -809,7 +809,7 @@ class CiviCRM_Profile_Sync_ACF_Field {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Add Setting to Field Settings.

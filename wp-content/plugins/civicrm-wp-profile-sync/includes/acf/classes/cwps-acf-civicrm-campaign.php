@@ -25,7 +25,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Campaign {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync
 	 */
 	public $plugin;
 
@@ -34,7 +34,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Campaign {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync_ACF_Loader
 	 */
 	public $acf_loader;
 
@@ -43,7 +43,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Campaign {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_Profile_Sync_ACF_CiviCRM
 	 */
 	public $civicrm;
 
@@ -75,7 +75,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Campaign {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Create a CiviCRM Campaign.
@@ -165,7 +165,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Campaign {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the data for a Campaign.
@@ -212,7 +212,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Campaign {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Gets the currently-active CiviCRM Campaigns.

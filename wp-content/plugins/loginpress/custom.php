@@ -12,6 +12,14 @@ class LoginPress_Entities {
 	public $loginpress_key;
 
 	/**
+	 * Variable that Check for LoginPress Settings.
+	 *
+	 * @var array
+	 * @since 6.0.0
+	 */
+	public $loginpress_settings;
+
+	/**
 	 * LoginPress template name.
 	 *
 	 * @since 1.6.4
@@ -24,8 +32,9 @@ class LoginPress_Entities {
 	 */
 	public function __construct() {
 
-		$this->loginpress_key    = get_option( 'loginpress_customization' );
-		$this->loginpress_preset = get_option( 'customize_presets_settings', true );
+		$this->loginpress_key      = get_option( 'loginpress_customization' );
+		$this->loginpress_settings = get_option( 'loginpress_setting' );
+		$this->loginpress_preset   = get_option( 'customize_presets_settings', true );
 		$this->_hooks();
 	}
 
@@ -34,7 +43,7 @@ class LoginPress_Entities {
 	 * Hook into actions and filters
 	 *
 	 * @since 1.0.0
-	 * @version 1.4.0
+	 * @version 6.0.0
 	 */
 	private function _hooks() {
 
@@ -45,14 +54,15 @@ class LoginPress_Entities {
 		} else {
 			add_filter( 'login_headertext', array( $this, 'login_page_logo_title' ) );
 		}
+
 		add_filter( 'login_errors', array( $this, 'login_error_messages' ) );
-		add_filter( 'login_message', array( $this, 'change_welcome_message' ) );
+		add_filter( 'login_message', array( $this, 'change_welcome_message' ), 1, 1 );
 		add_action( 'customize_register', array( $this, 'customize_login_panel' ) );
 		add_action( 'login_footer', array( $this, 'login_page_custom_footer' ) );
 		add_filter( 'site_icon_meta_tags', array( $this, 'login_page_custom_favicon' ), 1, 1 );
 		add_action( 'login_head', array( $this, 'login_page_custom_head' ) );
+		add_action( 'woocommerce_login_form', array( $this, 'loginpress_wc_login_page_url_redirection' ) );
 		add_action( 'init', array( $this, 'redirect_to_custom_page' ) );
-		add_action( 'init', array( $this, 'loginpress_lostpassword_url_changed' ) );
 		add_action( 'admin_menu', array( $this, 'menu_url' ), 10 );
 		add_filter( 'wp_login_errors', array( $this, 'remove_error_messages_in_wp_customizer' ), 10, 2 );
 		add_action( 'login_enqueue_scripts', array( $this, 'loginpress_login_page_scripts' ) );
@@ -72,9 +82,16 @@ class LoginPress_Entities {
 		 * The actions added here are triggered only in the Previewer and not in the Customizer.
 		 *
 		 * @since 1.0.23
+		 * @version 6.0.0
 		 */
 		add_action( 'customize_preview_init', array( $this, 'loginpress_customizer_previewer_js' ) );
 		add_filter( 'woocommerce_process_login_errors', array( $this, 'loginpress_woo_login_errors' ), 10, 3 );
+
+		if ( isset( $this->loginpress_settings['enable_special_chars'] ) && 'on' === $this->loginpress_settings['enable_special_chars']
+			&& isset( $this->loginpress_settings['allowed_username_characters'] ) && ! empty( $this->loginpress_settings['allowed_username_characters'] ) ) {
+
+			add_filter( 'sanitize_user', array( $this, 'loginpress_sanitize_username' ), 10, 3 );
+		}
 	}
 
 	/**
@@ -120,13 +137,13 @@ class LoginPress_Entities {
 	 * Enqueue jQuery and use wp_localize_script.
 	 *
 	 * @since 1.0.9
-	 * @version 3.0.0
+	 * @version 6.0.0
 	 */
 	function loginpress_customizer_js() {
 
 		wp_enqueue_script( 'jquery' );
 		wp_enqueue_script( 'loginpress-customize-control', plugins_url( 'js/customize-controls.js', LOGINPRESS_ROOT_FILE ), array( 'jquery' ), LOGINPRESS_VERSION, true );
-
+		wp_enqueue_script( 'loginpress-color-picker-iris-script', plugins_url( 'js/controls/loginpress-color-picker-alpha-iris.js', LOGINPRESS_ROOT_FILE ), array( 'wp-color-picker' ), LOGINPRESS_VERSION, true );
 		/*
 		 * Our Customizer script
 		 *
@@ -138,8 +155,7 @@ class LoginPress_Entities {
 		$user              = wp_get_current_user();
 		$name              = empty( $user->user_firstname ) ? ucfirst( $user->display_name ) : ucfirst( $user->user_firstname );
 		$loginpress_bg     = get_option( 'loginpress_customization' );
-		$loginpress_st     = get_option( 'loginpress_setting' );
-		$cap_type          = isset( $loginpress_st['recaptcha_type'] ) ? $loginpress_st['recaptcha_type'] : 'v2-robot'; // 1.2.1
+		$cap_type          = isset( $this->loginpress_settings['recaptcha_type'] ) ? $this->loginpress_settings['recaptcha_type'] : 'v2-robot'; // 1.2.1
 		$loginpress_bg_url = $loginpress_bg['setting_background'] ? $loginpress_bg['setting_background'] : false;
 
 		/**
@@ -169,7 +185,16 @@ class LoginPress_Entities {
 			),
 		);
 
+		$loginpress_customizer_localize = array(
+
+			'translations' => array(
+				'title'    => _x( 'Add Images to Gallery', 'Add Images to Gallery (Customizer)', 'loginpress' ),
+				'btn_text' => _x( 'Add to Gallery', 'Add to Gallery Button Text (Customizer)', 'loginpress' ),
+			),
+		);
+
 		wp_localize_script( 'loginpress-customize-control', 'loginpress_script', $loginpress_localize );
+		wp_localize_script( 'loginpress-control-script', 'loginpress_customizer', $loginpress_customizer_localize );
 	}
 
 	/**
@@ -296,19 +321,23 @@ class LoginPress_Entities {
 				'type'              => 'option',
 				'capability'        => 'manage_options',
 				'transport'         => 'postMessage',
-				'sanitize_callback' => 'sanitize_hex_color', // validates 3 or 6 digit HTML hex color code.
+				'sanitize_callback' => 'sanitize_text_field', // validates 3 or 6 digit HTML hex color code.
 			)
 		);
 
 		$wp_customize->add_control(
-			new WP_Customize_Color_Control(
+			new LoginPress_Color_Picker_Alpha(
 				$wp_customize,
 				"loginpress_customization[{$control[$index]}]",
 				array(
-					'label'    => $label[ $index ],
-					'section'  => $section,
-					'settings' => "loginpress_customization[{$control[$index]}]",
-					'priority' => $priority,
+					'label'       => $label[ $index ],
+					'section'     => $section,
+					'settings'    => "loginpress_customization[{$control[$index]}]",
+					'priority'    => $priority,
+					'input_attrs' => array(
+						'name'               => $label[ $index ],
+						'data-alpha-enabled' => 'true',
+					),
 				)
 			)
 		);
@@ -355,6 +384,7 @@ class LoginPress_Entities {
 	 * @param $wp_customize The WordPress Customize object.
 	 *
 	 * @since 1.0.0
+	 * @version 6.0.0
 	 */
 	public function customize_login_panel( $wp_customize ) {
 
@@ -369,6 +399,8 @@ class LoginPress_Entities {
 		include LOGINPRESS_ROOT_PATH . 'classes/controls/radio-button.php';
 
 		include LOGINPRESS_ROOT_PATH . 'classes/controls/miscellaneous.php';
+
+		include LOGINPRESS_ROOT_PATH . 'classes/controls/color-picker-alpha.php';
 
 		include LOGINPRESS_ROOT_PATH . 'include/customizer-strings.php';
 
@@ -668,19 +700,23 @@ class LoginPress_Entities {
 				'type'              => 'option',
 				'capability'        => 'manage_options',
 				'transport'         => 'postMessage',
-				'sanitize_callback' => 'sanitize_hex_color', // validates 3 or 6 digit HTML hex color code.
+				'sanitize_callback' => 'sanitize_text_field', // validates 3 or 6 digit HTML hex color code.
 			)
 		);
 
 		$wp_customize->add_control(
-			new WP_Customize_Color_Control(
+			new LoginPress_Color_Picker_Alpha(
 				$wp_customize,
 				'loginpress_customization[setting_background_color]',
 				array(
-					'label'    => __( 'Background Color:', 'loginpress' ),
-					'section'  => 'section_background',
-					'priority' => 5,
-					'settings' => 'loginpress_customization[setting_background_color]',
+					'label'       => __( 'Background Color:', 'loginpress' ),
+					'section'     => 'section_background',
+					'priority'    => 5,
+					'settings'    => 'loginpress_customization[setting_background_color]',
+					'input_attrs' => array(
+						'name'               => 'loginpress_customization[setting_background_color]',
+						'data-alpha-enabled' => 'true',
+					),
 				)
 			)
 		);
@@ -745,22 +781,31 @@ class LoginPress_Entities {
 			)
 		);
 
-		$wp_customize->add_setting( 'loginpress_customization[mobile_background]', array(
-			'type'              => 'option',
-			'capability'        => 'manage_options',
-			'transport'         => 'postMessage',
-			'sanitize_callback'	=> 'loginpress_sanitize_image'
-		));
-
-		$wp_customize->add_control( new WP_Customize_Image_Control( $wp_customize, 'loginpress_customization[mobile_background]', array(
-			'label'			=> __( 'Mobile Background Image:', 'loginpress' ),
-			'section'		=> 'section_background',
-			'priority'		=> 17,
-			'settings'		=> 'loginpress_customization[mobile_background]',
-			'button_labels'	=> array(
-				'select'	=> __( 'Select Image', 'loginpress' ),
+		$wp_customize->add_setting(
+			'loginpress_customization[mobile_background]',
+			array(
+				'type'              => 'option',
+				'capability'        => 'manage_options',
+				'transport'         => 'postMessage',
+				'sanitize_callback' => 'loginpress_sanitize_image',
 			)
-		)));
+		);
+
+		$wp_customize->add_control(
+			new WP_Customize_Image_Control(
+				$wp_customize,
+				'loginpress_customization[mobile_background]',
+				array(
+					'label'         => __( 'Mobile Background Image:', 'loginpress' ),
+					'section'       => 'section_background',
+					'priority'      => 17,
+					'settings'      => 'loginpress_customization[mobile_background]',
+					'button_labels' => array(
+						'select' => __( 'Select Image', 'loginpress' ),
+					),
+				)
+			)
+		);
 
 		/**
 		 * [ Add Background Gallery ]
@@ -911,6 +956,66 @@ class LoginPress_Entities {
 			)
 		);
 
+		$this->loginpress_hr_setting( $wp_customize, $close_control, 'section_form', 10, 31 );
+		$this->loginpress_group_setting( $wp_customize, $group_control, $group_label, $group_info, 'section_background', 10, 31 );
+
+		/**
+		 * [Enable / Disable Radom Background Images with LoginPress_Radio_Control]
+		 *
+		 * @since 6.0.0
+		 */
+		$wp_customize->add_setting(
+			'loginpress_customization[lp_random_bg_img_check]',
+			array(
+				'default'           => false,
+				'type'              => 'option',
+				'capability'        => 'manage_options',
+				'transport'         => 'postMessage',
+				'sanitize_callback' => 'loginpress_sanitize_checkbox',
+			)
+		);
+
+		$wp_customize->add_control(
+			new LoginPress_Radio_Control(
+				$wp_customize,
+				'loginpress_customization[lp_random_bg_img_check]',
+				array(
+					'settings' => 'loginpress_customization[lp_random_bg_img_check]',
+					'label'    => __( 'Enable Random Background Images?', 'loginpress' ),
+					'section'  => 'section_background',
+					'priority' => 32,
+					'type'     => 'ios', // light, ios, flat
+				)
+			)
+		);
+		$loginpress_default_backgrounds = array();
+		for ( $bg_count = 4; $bg_count <= 9; $bg_count++ ) {
+			$loginpress_default_backgrounds[] = plugins_url( "img/gallery/img-{$bg_count}.jpg", LOGINPRESS_ROOT_FILE );
+		}
+
+		$default_backgrounds_string = implode( ',', $loginpress_default_backgrounds );
+		$wp_customize->add_setting(
+			'loginpress_customization[lp_random_bg_img_upload]',
+			array(
+				'type'      => 'option',
+				'default'   => $default_backgrounds_string,
+				'transport' => 'postMessage',
+			)
+		);
+
+		$wp_customize->add_control(
+			new LoginPress_Random_BG_Gallery_Control(
+				$wp_customize,
+				'loginpress_customization[lp_random_bg_img_upload]',
+				array(
+					'label'    => __( 'Random Background Images', 'loginpress' ),
+					'section'  => 'section_background',
+					'settings' => 'loginpress_customization[lp_random_bg_img_upload]',
+					'priority' => 33,
+				)
+			)
+		);
+
 		$this->loginpress_hr_setting( $wp_customize, $close_control, 'section_form', 7, 35 );
 		$this->loginpress_group_setting( $wp_customize, $group_control, $group_label, $group_info, 'section_background', 7, 35 );
 		/**
@@ -1043,6 +1148,7 @@ class LoginPress_Entities {
 		 * Field for YouTube video ID.
 		 *
 		 * @since 3.0.0
+		 * @version 6.0.0
 		 */
 		$wp_customize->add_setting(
 			'loginpress_customization[yt_video_id]',
@@ -1058,9 +1164,8 @@ class LoginPress_Entities {
 			'loginpress_customization[yt_video_id]',
 			array(
 				'label'       => __( 'ID of the YouTube video', 'loginpress' ),
-				'description' => sprintf( 
-					// translators: Live Preview not Supported
-					__( 'YouTube video ID is correct though the Live Preview is not supported. The video on the %1$slogin page%2$s can be checked, once it is published.', 'loginpress' ), '<a href="' . wp_login_url() . '" target="_blank">', '</a>' ),
+				// translators: Live preview is not supported
+				'description' => sprintf( __( 'YouTube video ID is correct though the Live Preview is not supported. The video on the %1$slogin page%2$s can be checked, once it is published.', 'loginpress' ), '<a href="' . wp_login_url() . '" target="_blank">', '</a>' ),
 				'section'     => 'section_background',
 				'priority'    => 46,
 				'settings'    => 'loginpress_customization[yt_video_id]',
@@ -1085,6 +1190,7 @@ class LoginPress_Entities {
 			'loginpress_customization[background_video_object]',
 			array(
 				'settings' => 'loginpress_customization[background_video_object]',
+				// translators: Video Size.
 				'label'    => __( 'Video Size:', 'loginpress' ),
 				'section'  => 'section_background',
 				'priority' => 50,
@@ -1220,6 +1326,8 @@ class LoginPress_Entities {
 				)
 			)
 		);
+
+		$wp_customize->register_control_type( LoginPress_Color_Picker_Alpha::class );
 
 		$this->loginpress_color_setting( $wp_customize, $form_color_control, $form_color_label, 'section_form', 0, 7 );
 
@@ -1462,19 +1570,23 @@ class LoginPress_Entities {
 				'type'              => 'option',
 				'capability'        => 'manage_options',
 				'transport'         => 'postMessage',
-				'sanitize_callback' => 'sanitize_hex_color', // validates 3 or 6 digit HTML hex color code.
+				'sanitize_callback' => 'sanitize_text_field', // validates 3 or 6 digit HTML hex color code.
 			)
 		);
 
 		$wp_customize->add_control(
-			new WP_Customize_Color_Control(
+			new LoginPress_Color_Picker_Alpha(
 				$wp_customize,
 				'loginpress_customization[forget_form_background_color]',
 				array(
-					'label'    => __( 'Forget Form Background Color:', 'loginpress' ),
-					'section'  => 'section_forget_form',
-					'priority' => 10,
-					'settings' => 'loginpress_customization[forget_form_background_color]',
+					'label'       => __( 'Forget Form Background Color:', 'loginpress' ),
+					'section'     => 'section_forget_form',
+					'priority'    => 10,
+					'settings'    => 'loginpress_customization[forget_form_background_color]',
+					'input_attrs' => array(
+						'name'               => 'loginpress_customization[forget_form_background_color]',
+						'data-alpha-enabled' => 'true',
+					),
 				)
 			)
 		);
@@ -1604,19 +1716,23 @@ class LoginPress_Entities {
 				'type'              => 'option',
 				'capability'        => 'manage_options',
 				'transport'         => 'postMessage',
-				'sanitize_callback' => 'sanitize_hex_color', // validates 3 or 6 digit HTML hex color code.
+				'sanitize_callback' => 'sanitize_text_field', // validates 3 or 6 digit HTML hex color code.
 			)
 		);
 
 		$wp_customize->add_control(
-			new WP_Customize_Color_Control(
+			new LoginPress_Color_Picker_Alpha(
 				$wp_customize,
 				'loginpress_customization[message_background_color]',
 				array(
-					'label'    => __( 'Message Field Background Color:', 'loginpress' ),
-					'section'  => 'section_welcome',
-					'priority' => 30,
-					'settings' => 'loginpress_customization[message_background_color]',
+					'label'       => __( 'Message Field Background Color:', 'loginpress' ),
+					'section'     => 'section_welcome',
+					'priority'    => 30,
+					'settings'    => 'loginpress_customization[message_background_color]',
+					'input_attrs' => array(
+						'name'               => 'loginpress_customization[message_background_color]',
+						'data-alpha-enabled' => 'true',
+					),
 				)
 			)
 		);
@@ -1825,19 +1941,23 @@ class LoginPress_Entities {
 				'type'              => 'option',
 				'capability'        => 'manage_options',
 				'transport'         => 'postMessage',
-				'sanitize_callback' => 'sanitize_hex_color', // validates 3 or 6 digit HTML hex color code.
+				'sanitize_callback' => 'sanitize_text_field', // validates 3 or 6 digit HTML hex color code.
 			)
 		);
 
 		$wp_customize->add_control(
-			new WP_Customize_Color_Control(
+			new LoginPress_Color_Picker_Alpha(
 				$wp_customize,
 				'loginpress_customization[login_footer_color]',
 				array(
-					'label'    => __( 'Footer Text Color:', 'loginpress' ),
-					'section'  => 'section_footer',
-					'priority' => 20,
-					'settings' => 'loginpress_customization[login_footer_color]',
+					'label'       => __( 'Footer Text Color:', 'loginpress' ),
+					'section'     => 'section_footer',
+					'priority'    => 20,
+					'settings'    => 'loginpress_customization[login_footer_color]',
+					'input_attrs' => array(
+						'name'               => 'loginpress_customization[login_footer_color]',
+						'data-alpha-enabled' => 'true',
+					),
 				)
 			)
 		);
@@ -1849,19 +1969,23 @@ class LoginPress_Entities {
 				'type'              => 'option',
 				'capability'        => 'manage_options',
 				'transport'         => 'postMessage',
-				'sanitize_callback' => 'sanitize_hex_color', // validates 3 or 6 digit HTML hex color code.
+				'sanitize_callback' => 'sanitize_text_field', // validates 3 or 6 digit HTML hex color code.
 			)
 		);
 
 		$wp_customize->add_control(
-			new WP_Customize_Color_Control(
+			new LoginPress_Color_Picker_Alpha(
 				$wp_customize,
 				'loginpress_customization[login_footer_color_hover]',
 				array(
-					'label'    => __( 'Footer Text Hover Color:', 'loginpress' ),
-					'section'  => 'section_footer',
-					'priority' => 25,
-					'settings' => 'loginpress_customization[login_footer_color_hover]',
+					'label'       => __( 'Footer Text Hover Color:', 'loginpress' ),
+					'section'     => 'section_footer',
+					'priority'    => 25,
+					'settings'    => 'loginpress_customization[login_footer_color_hover]',
+					'input_attrs' => array(
+						'name'               => 'loginpress_customization[login_footer_color_hover]',
+						'data-alpha-enabled' => 'true',
+					),
 				)
 			)
 		);
@@ -1911,19 +2035,23 @@ class LoginPress_Entities {
 				'type'              => 'option',
 				'capability'        => 'manage_options',
 				'transport'         => 'postMessage',
-				'sanitize_callback' => 'sanitize_hex_color', // validates 3 or 6 digit HTML hex color code.
+				'sanitize_callback' => 'sanitize_text_field', // validates 3 or 6 digit HTML hex color code.
 			)
 		);
 
 		$wp_customize->add_control(
-			new WP_Customize_Color_Control(
+			new LoginPress_Color_Picker_Alpha(
 				$wp_customize,
 				'loginpress_customization[login_footer_bg_color]',
 				array(
-					'label'    => __( 'Footer Background Color:', 'loginpress' ),
-					'section'  => 'section_footer',
-					'priority' => 35,
-					'settings' => 'loginpress_customization[login_footer_bg_color]',
+					'label'       => __( 'Footer Background Color:', 'loginpress' ),
+					'section'     => 'section_footer',
+					'priority'    => 35,
+					'settings'    => 'loginpress_customization[login_footer_bg_color]',
+					'input_attrs' => array(
+						'name'               => 'loginpress_customization[login_footer_bg_color]',
+						'data-alpha-enabled' => 'true',
+					),
 				)
 			)
 		);
@@ -1999,19 +2127,23 @@ class LoginPress_Entities {
 				'type'              => 'option',
 				'capability'        => 'manage_options',
 				'transport'         => 'postMessage',
-				'sanitize_callback' => 'sanitize_hex_color', // validates 3 or 6 digit HTML hex color code.
+				'sanitize_callback' => 'sanitize_text_field', // validates 3 or 6 digit HTML hex color code.
 			)
 		);
 
 		$wp_customize->add_control(
-			new WP_Customize_Color_Control(
+			new LoginPress_Color_Picker_Alpha(
 				$wp_customize,
 				'loginpress_customization[login_back_color]',
 				array(
-					'label'    => __( '"Back to" Text Color:', 'loginpress' ),
-					'section'  => 'section_footer',
-					'priority' => 55,
-					'settings' => 'loginpress_customization[login_back_color]',
+					'label'       => __( '"Back to" Text Color:', 'loginpress' ),
+					'section'     => 'section_footer',
+					'priority'    => 55,
+					'settings'    => 'loginpress_customization[login_back_color]',
+					'input_attrs' => array(
+						'name'               => 'loginpress_customization[login_back_color]',
+						'data-alpha-enabled' => 'true',
+					),
 				)
 			)
 		);
@@ -2023,19 +2155,23 @@ class LoginPress_Entities {
 				'type'              => 'option',
 				'capability'        => 'manage_options',
 				'transport'         => 'postMessage',
-				'sanitize_callback' => 'sanitize_hex_color', // validates 3 or 6 digit HTML hex color code.
+				'sanitize_callback' => 'sanitize_text_field', // validates 3 or 6 digit HTML hex color code.
 			)
 		);
 
 		$wp_customize->add_control(
-			new WP_Customize_Color_Control(
+			new LoginPress_Color_Picker_Alpha(
 				$wp_customize,
 				'loginpress_customization[login_back_color_hover]',
 				array(
-					'label'    => __( '"Back to" Text Hover Color:', 'loginpress' ),
-					'section'  => 'section_footer',
-					'priority' => 60,
-					'settings' => 'loginpress_customization[login_back_color_hover]',
+					'label'       => __( '"Back to" Text Hover Color:', 'loginpress' ),
+					'section'     => 'section_footer',
+					'priority'    => 60,
+					'settings'    => 'loginpress_customization[login_back_color_hover]',
+					'input_attrs' => array(
+						'name'               => 'loginpress_customization[login_back_color_hover]',
+						'data-alpha-enabled' => 'true',
+					),
 				)
 			)
 		);
@@ -2095,19 +2231,23 @@ class LoginPress_Entities {
 				'type'              => 'option',
 				'capability'        => 'manage_options',
 				'transport'         => 'postMessage',
-				'sanitize_callback' => 'sanitize_hex_color', // validates 3 or 6 digit HTML hex color code.
+				'sanitize_callback' => 'sanitize_text_field', // validates 3 or 6 digit HTML hex color code.
 			)
 		);
 
 		$wp_customize->add_control(
-			new WP_Customize_Color_Control(
+			new LoginPress_Color_Picker_Alpha(
 				$wp_customize,
 				'loginpress_customization[login_back_bg_color]',
 				array(
-					'label'    => __( '"Back to" Background Color:', 'loginpress' ),
-					'section'  => 'section_footer',
-					'priority' => 70,
-					'settings' => 'loginpress_customization[login_back_bg_color]',
+					'label'       => __( '"Back to" Background Color:', 'loginpress' ),
+					'section'     => 'section_footer',
+					'priority'    => 70,
+					'settings'    => 'loginpress_customization[login_back_bg_color]',
+					'input_attrs' => array(
+						'name'               => 'loginpress_customization[login_back_bg_color]',
+						'data-alpha-enabled' => 'true',
+					),
 				)
 			)
 		);
@@ -2152,19 +2292,23 @@ class LoginPress_Entities {
 				'type'              => 'option',
 				'capability'        => 'manage_options',
 				'transport'         => 'postMessage',
-				'sanitize_callback' => 'sanitize_hex_color', // validates 3 or 6 digit HTML hex color code.
+				'sanitize_callback' => 'sanitize_text_field',
 			)
 		);
 
 		$wp_customize->add_control(
-			new WP_Customize_Color_Control(
+			new LoginPress_Color_Picker_Alpha(
 				$wp_customize,
 				'loginpress_customization[copyright_background_color]',
 				array(
-					'label'    => __( '"Copyright" Background Color:', 'loginpress' ),
-					'section'  => 'section_footer',
-					'priority' => 74,
-					'settings' => 'loginpress_customization[copyright_background_color]',
+					'label'       => __( '"Copyright" Background Color:', 'loginpress' ),
+					'section'     => 'section_footer',
+					'priority'    => 74,
+					'settings'    => 'loginpress_customization[copyright_background_color]',
+					'input_attrs' => array(
+						'name'               => 'loginpress_customization[copyright_background_color]',
+						'data-alpha-enabled' => 'true',
+					),
 				)
 			)
 		);
@@ -2177,19 +2321,23 @@ class LoginPress_Entities {
 				'type'              => 'option',
 				'capability'        => 'manage_options',
 				'transport'         => 'postMessage',
-				'sanitize_callback' => 'sanitize_hex_color', // validates 3 or 6 digit HTML hex color code.
+				'sanitize_callback' => 'sanitize_text_field',
 			)
 		);
 
 		$wp_customize->add_control(
-			new WP_Customize_Color_Control(
+			new LoginPress_Color_Picker_Alpha(
 				$wp_customize,
 				'loginpress_customization[copyright_text_color]',
 				array(
-					'label'    => __( '"Copyright" Text Color:', 'loginpress' ),
-					'section'  => 'section_footer',
-					'priority' => 75,
-					'settings' => 'loginpress_customization[copyright_text_color]',
+					'label'       => __( '"Copyright" Text Color:', 'loginpress' ),
+					'section'     => 'section_footer',
+					'priority'    => 75,
+					'settings'    => 'loginpress_customization[copyright_text_color]',
+					'input_attrs' => array(
+						'name'               => 'loginpress_customization[copyright_text_color]',
+						'data-alpha-enabled' => 'true',
+					),
 				)
 			)
 		);
@@ -2197,9 +2345,12 @@ class LoginPress_Entities {
 		$wp_customize->add_setting(
 			'loginpress_customization[login_footer_copy_right]',
 			array(
-				'default'           => sprintf( 
+				'default'           => sprintf(
 					// translators: Rights Reserved
-					__( '© %1$s %2$s, All Rights Reserved.', 'loginpress' ), date( 'Y' ), get_bloginfo( 'name' ) ),
+					__( '© %1$s %2$s, All Rights Reserved.', 'loginpress' ),
+					date( 'Y' ),
+					get_bloginfo( 'name' )
+				),
 				'type'              => 'option',
 				'capability'        => 'manage_options',
 				'transport'         => 'postMessage',
@@ -2231,9 +2382,12 @@ class LoginPress_Entities {
 		$wp_customize->add_setting(
 			'loginpress_customization[login_footer_copy_right]',
 			array(
-				'default'           => sprintf( 
+				'default'           => sprintf(
 					// translators: Rights Reserved
-					__( '© %1$s %2$s, All Rights Reserved.', 'loginpress' ), '$YEAR$', get_bloginfo( 'name' ) ),
+					__( '© %1$s %2$s, All Rights Reserved.', 'loginpress' ),
+					'$YEAR$',
+					get_bloginfo( 'name' )
+				),
 				'type'              => 'option',
 				'capability'        => 'manage_options',
 				'transport'         => 'postMessage',
@@ -2244,9 +2398,11 @@ class LoginPress_Entities {
 			'loginpress_customization[login_footer_copy_right]',
 			array(
 				'label'       => __( 'Copyright Note:', 'loginpress' ),
-				'description' => sprintf( 
+				'description' => sprintf(
 					// translators: Copyright Note
-					__( '%1$s will be replaced with the current year.', 'loginpress' ), '<code>$YEAR$</code>' ),
+					__( '%1$s will be replaced with the current year.', 'loginpress' ),
+					'<code>$YEAR$</code>'
+				),
 				'type'        => 'textarea',
 				'section'     => 'section_footer',
 				'priority'    => 77,
@@ -2337,9 +2493,12 @@ class LoginPress_Entities {
 				'section'     => 'loginpress_custom_css_js',
 				'priority'    => 5,
 				'settings'    => 'loginpress_customization[loginpress_custom_css]',
-				'description' => sprintf( 
+				'description' => sprintf(
 					// translators: Customize CSS
-					__( 'Custom CSS doesn\'t make effect live. For preview please save the setting and visit %1$s login%2$s page or after save refresh the customizer.', 'loginpress' ), '<a href="' . wp_login_url() . '"title="Login" target="_blank">', '</a>' ),
+					__( 'Custom CSS doesn\'t make effect live. For preview please save the setting and visit %1$s login%2$s page or after save refresh the customizer.', 'loginpress' ),
+					'<a href="' . wp_login_url() . '"title="Login" target="_blank">',
+					'</a>'
+				),
 			)
 		);
 
@@ -2360,9 +2519,12 @@ class LoginPress_Entities {
 				'section'     => 'loginpress_custom_css_js',
 				'priority'    => 10,
 				'settings'    => 'loginpress_customization[loginpress_custom_js]',
-				'description' => sprintf( 
+				'description' => sprintf(
 					// translators: Customize JS
-					__( 'Custom JS doesn\'t make effect live. For preview please save the setting and visit %1$s login%2$s page or after save refresh the customizer.', 'loginpress' ), '<a href="' . wp_login_url() . '"title="Login" target="_blank">', '</a>' ),
+					__( 'Custom JS doesn\'t make effect live. For preview please save the setting and visit %1$s login%2$s page or after save refresh the customizer.', 'loginpress' ),
+					'<a href="' . wp_login_url() . '"title="Login" target="_blank">',
+					'</a>'
+				),
 			)
 		);
 	}
@@ -2424,9 +2586,12 @@ class LoginPress_Entities {
 				}
 
 				// Show a default value if not changed or show the changed text string for 'login_footer_copy_right'
-				$footer_text = ( array_key_exists( 'login_footer_copy_right', $this->loginpress_key ) && ! empty( $this->loginpress_key['login_footer_copy_right'] ) ) ? $this->loginpress_key['login_footer_copy_right'] : sprintf( 
+				$footer_text = ( array_key_exists( 'login_footer_copy_right', $this->loginpress_key ) && ! empty( $this->loginpress_key['login_footer_copy_right'] ) ) ? $this->loginpress_key['login_footer_copy_right'] : sprintf(
 					// translators: Rights Reserved
-					__( '© %1$s %2$s, All Rights Reserved.', 'loginpress' ), date( 'Y' ), get_bloginfo( 'name' ) );
+					__( '© %1$s %2$s, All Rights Reserved.', 'loginpress' ),
+					date( 'Y' ),
+					get_bloginfo( 'name' )
+				);
 
 				echo '<div class="copyRight">' . apply_filters( 'loginpress_footer_copyright', $footer_text ) . '</div>';
 			}
@@ -2445,12 +2610,9 @@ class LoginPress_Entities {
 	 * Manage the Login Head
 	 *
 	 * @since 1.0.0
-	 * @version 3.0.8
+	 * @version 6.0.0
 	 */
 	public function login_page_custom_head() {
-
-		$loginpress_setting = get_option( 'loginpress_setting' );
-		$lostpassword_url   = isset( $loginpress_setting['lostpassword_url'] ) ? $loginpress_setting['lostpassword_url'] : 'off';
 
 		add_filter( 'gettext', array( $this, 'change_lostpassword_message' ), 20, 3 );
 		add_filter( 'gettext', array( $this, 'change_username_label' ), 20, 3 );
@@ -2469,7 +2631,7 @@ class LoginPress_Entities {
 
 		if ( ! $disable_default_style || 'default1' !== $this->loginpress_preset ) {
 			include LOGINPRESS_DIR_PATH . 'css/style-presets.php';
-			include LOGINPRESS_DIR_PATH . 'css/style-login.php';
+			include_once LOGINPRESS_DIR_PATH . 'css/style-login.php';
 		}
 
 		do_action( 'loginpress_header_menu' );
@@ -2497,17 +2659,32 @@ class LoginPress_Entities {
 	}
 
 	/**
+	 * Redirecting the WooCommerce lost password url to default WP lost password url.
+	 *
+	 * @since 3.0.8
+	 */
+	function loginpress_wc_login_page_url_redirection() {
+
+		$loginpress_setting = get_option( 'loginpress_setting' );
+		$lostpassword_url   = isset( $loginpress_setting['lostpassword_url'] ) ? $loginpress_setting['lostpassword_url'] : 'off';
+
+		if ( 'on' == $lostpassword_url ) {
+			remove_filter( 'lostpassword_url', 'wc_lostpassword_url', 10 );
+		}
+	}
+
+	/**
 	 * Filters the Languages select input activation on the login screen.
 	 *
 	 * @param bool $arg Whether to display the Languages select input on the login screen.
 	 *
 	 * @since 1.5.11
+	 * @version 6.0.0
 	 * @return bool
 	 */
 	function loginpress_language_switch( $arg ) {
 
-		$loginpress_setting = get_option( 'loginpress_setting' );
-		$language_switcher  = isset( $loginpress_setting['enable_language_switcher'] ) ? $loginpress_setting['enable_language_switcher'] : 'off';
+		$language_switcher = isset( $this->loginpress_settings['enable_language_switcher'] ) ? $this->loginpress_settings['enable_language_switcher'] : 'off';
 
 		if ( 'off' === $language_switcher ) {
 			return true;
@@ -2581,45 +2758,75 @@ class LoginPress_Entities {
 
 			if ( $this->loginpress_key ) {
 
-				$invalid_username = array_key_exists( 'incorrect_username', $this->loginpress_key ) && ! empty( $this->loginpress_key['incorrect_username'] ) ? $this->loginpress_key['incorrect_username'] : sprintf( 
+				$invalid_username = array_key_exists( 'incorrect_username', $this->loginpress_key ) && ! empty( $this->loginpress_key['incorrect_username'] ) ? $this->loginpress_key['incorrect_username'] : sprintf(
 					// translators: Username not valid
-					__( '%1$sError:%2$s Invalid Username.', 'loginpress' ), '<strong>', '</strong>' );
+					__( '%1$sError:%2$s Invalid Username.', 'loginpress' ),
+					'<strong>',
+					'</strong>'
+				);
 
-				$invalid_password = array_key_exists( 'incorrect_password', $this->loginpress_key ) && ! empty( $this->loginpress_key['incorrect_password'] ) ? $this->loginpress_key['incorrect_password'] : sprintf( 
+				$invalid_password = array_key_exists( 'incorrect_password', $this->loginpress_key ) && ! empty( $this->loginpress_key['incorrect_password'] ) ? $this->loginpress_key['incorrect_password'] : sprintf(
 					// translators: Password not valid
-					__( '%1$sError:%2$s Invalid Password.', 'loginpress' ), '<strong>', '</strong>' );
+					__( '%1$sError:%2$s Invalid Password.', 'loginpress' ),
+					'<strong>',
+					'</strong>'
+				);
 
-				$empty_username = array_key_exists( 'empty_username', $this->loginpress_key ) && ! empty( $this->loginpress_key['empty_username'] ) ? $this->loginpress_key['empty_username'] : sprintf( 
+				$empty_username = array_key_exists( 'empty_username', $this->loginpress_key ) && ! empty( $this->loginpress_key['empty_username'] ) ? $this->loginpress_key['empty_username'] : sprintf(
 					// translators: Username field empty
-					__( '%1$sError:%2$s The username field is empty.', 'loginpress' ), '<strong>', '</strong>' );
+					__( '%1$sError:%2$s The username field is empty.', 'loginpress' ),
+					'<strong>',
+					'</strong>'
+				);
 
-				$empty_password = array_key_exists( 'empty_password', $this->loginpress_key ) && ! empty( $this->loginpress_key['empty_password'] ) ? $this->loginpress_key['empty_password'] : sprintf( 
+				$empty_password = array_key_exists( 'empty_password', $this->loginpress_key ) && ! empty( $this->loginpress_key['empty_password'] ) ? $this->loginpress_key['empty_password'] : sprintf(
 					// translators: Password field empty
-					__( '%1$sError:%2$s The password field is empty.', 'loginpress' ), '<strong>', '</strong>' );
+					__( '%1$sError:%2$s The password field is empty.', 'loginpress' ),
+					'<strong>',
+					'</strong>'
+				);
 
-				$invalid_email = array_key_exists( 'invalid_email', $this->loginpress_key ) && ! empty( $this->loginpress_key['invalid_email'] ) ? $this->loginpress_key['invalid_email'] : sprintf( 
+				$invalid_email = array_key_exists( 'invalid_email', $this->loginpress_key ) && ! empty( $this->loginpress_key['invalid_email'] ) ? $this->loginpress_key['invalid_email'] : sprintf(
 					// translators: Incorrect email
-					__( '%1$sError:%2$s The email address isn\'t correct..', 'loginpress' ), '<strong>', '</strong>' );
+					__( '%1$sError:%2$s The email address isn\'t correct..', 'loginpress' ),
+					'<strong>',
+					'</strong>'
+				);
 
-				$empty_email = array_key_exists( 'empty_email', $this->loginpress_key ) && ! empty( $this->loginpress_key['empty_email'] ) ? $this->loginpress_key['empty_email'] : sprintf( 
+				$empty_email = array_key_exists( 'empty_email', $this->loginpress_key ) && ! empty( $this->loginpress_key['empty_email'] ) ? $this->loginpress_key['empty_email'] : sprintf(
 					// translators: Enter email
-					__( '%1$sError:%2$s Please type your email address.', 'loginpress' ), '<strong>', '</strong>' );
+					__( '%1$sError:%2$s Please type your email address.', 'loginpress' ),
+					'<strong>',
+					'</strong>'
+				);
 
-				$username_exists = array_key_exists( 'username_exists', $this->loginpress_key ) && ! empty( $this->loginpress_key['username_exists'] ) ? $this->loginpress_key['username_exists'] : sprintf( 
+				$username_exists = array_key_exists( 'username_exists', $this->loginpress_key ) && ! empty( $this->loginpress_key['username_exists'] ) ? $this->loginpress_key['username_exists'] : sprintf(
 					// translators: Username already taken
-					__( '%1$sError:%2$s This username is already registered. Please choose another one.', 'loginpress' ), '<strong>', '</strong>' );
+					__( '%1$sError:%2$s This username is already registered. Please choose another one.', 'loginpress' ),
+					'<strong>',
+					'</strong>'
+				);
 
-				$email_exists = array_key_exists( 'email_exists', $this->loginpress_key ) && ! empty( $this->loginpress_key['email_exists'] ) ? $this->loginpress_key['email_exists'] : sprintf( 
+				$email_exists = array_key_exists( 'email_exists', $this->loginpress_key ) && ! empty( $this->loginpress_key['email_exists'] ) ? $this->loginpress_key['email_exists'] : sprintf(
 					// translators: Email already taken
-					__( '%1$sError:%2$s This email is already registered, please choose another one.', 'loginpress' ), '<strong>', '</strong>' );
+					__( '%1$sError:%2$s This email is already registered, please choose another one.', 'loginpress' ),
+					'<strong>',
+					'</strong>'
+				);
 
-				$password_mismatch = array_key_exists( 'password_mismatch', $this->loginpress_key ) && ! empty( $this->loginpress_key['password_mismatch'] ) ? $this->loginpress_key['password_mismatch'] : sprintf( 
+				$password_mismatch = array_key_exists( 'password_mismatch', $this->loginpress_key ) && ! empty( $this->loginpress_key['password_mismatch'] ) ? $this->loginpress_key['password_mismatch'] : sprintf(
 					// translators: Password mismatch
-					__( '%1$sError:%2$s Passwords Don\'t match.', 'loginpress' ), '<strong>', '</strong>' );
+					__( '%1$sError:%2$s Passwords Don\'t match.', 'loginpress' ),
+					'<strong>',
+					'</strong>'
+				);
 
-				$invalidcombo = array_key_exists( 'invalidcombo_message', $this->loginpress_key ) && ! empty( $this->loginpress_key['invalidcombo_message'] ) ? $this->loginpress_key['invalidcombo_message'] : sprintf( 
+				$invalidcombo = array_key_exists( 'invalidcombo_message', $this->loginpress_key ) && ! empty( $this->loginpress_key['invalidcombo_message'] ) ? $this->loginpress_key['invalidcombo_message'] : sprintf(
 					// translators: Username or Password not vaild
-					__( '%1$sError:%2$s Invalid username or email.', 'loginpress' ), '<strong>', '</strong>' );
+					__( '%1$sError:%2$s Invalid username or email.', 'loginpress' ),
+					'<strong>',
+					'</strong>'
+				);
 
 				if ( in_array( 'invalid_username', $error_codes ) ) {
 					return $invalid_username;
@@ -2686,10 +2893,11 @@ class LoginPress_Entities {
 	 * Checks if the Lost password URL is enabled
 	 *
 	 * @since 3.1.1
+	 * @version 6.0.0
 	 */
 	public function loginpress_lostpassword_url_changed() {
-		$loginpress_setting = get_option( 'loginpress_setting' );
-		$lostpassword_url   = isset( $loginpress_setting['lostpassword_url'] ) ? $loginpress_setting['lostpassword_url'] : 'off';
+
+		$lostpassword_url = isset( $this->loginpress_settings['lostpassword_url'] ) ? $this->loginpress_settings['lostpassword_url'] : 'off';
 
 		if ( 'on' == $lostpassword_url ) {
 			add_filter( 'lostpassword_url', array( $this, 'loginpress_reset_pass_url_in_notify' ), 11, 0 );
@@ -2723,27 +2931,25 @@ class LoginPress_Entities {
 	 * @param string $domain The text domain.
 	 *
 	 * @since 1.1.3
-	 * @version 3.0.0
+	 * @version 6.0.0
 	 * @return string
 	 */
 	public function change_username_label( $translated_text, $text, $domain ) {
 
-		$loginpress_setting = get_option( 'loginpress_setting' );
-
-		if ( $loginpress_setting ) {
+		if ( $this->loginpress_settings ) {
 
 			$default = 'Username or Email Address';
 			// $options = $this->loginpress_key;
 			// $label   = array_key_exists( 'form_username_label', $options ) ? $options['form_username_label'] : '';
-			$login_order = isset( $loginpress_setting['login_order'] ) ? $loginpress_setting['login_order'] : '';
+			$login_order = isset( $this->loginpress_settings['login_order'] ) ? $this->loginpress_settings['login_order'] : '';
 
 			// If the option does not exist, return the text unchanged.
-			if ( ! $loginpress_setting && $default === $text ) {
+			if ( ! $this->loginpress_settings && $default === $text ) {
 				return $translated_text;
 			}
 
 			// If options exist, then translate away.
-			if ( $loginpress_setting && $default === $text ) {
+			if ( $this->loginpress_settings && $default === $text ) {
 				// Check if the option exists.
 				if ( '' != $login_order && 'default' != $login_order ) {
 					if ( 'username' == $login_order ) {
@@ -2806,7 +3012,9 @@ class LoginPress_Entities {
 	 * @return string
 	 */
 	public function change_welcome_message( $message ) {
-
+		if ( strpos( $message, __( 'Please enter your username or email address. You will receive an email message with instructions on how to reset your password.', 'loginpress' ) ) == true ) {
+			return $message;
+		}
 		if ( $this->loginpress_key ) {
 
 			// Check, User Logged out.
@@ -2843,11 +3051,12 @@ class LoginPress_Entities {
 			// }
 
 			// @since 1.0.18
-			elseif ( strpos( $message, __( 'Your password has been reset.' , 'loginpress' ) ) == true ) {
+
+			elseif ( strpos( $message, __( 'Your password has been reset.', 'loginpress' ) ) == true ) {
 
 				// if ( array_key_exists( 'after_reset_message', $this->loginpress_key ) && ! empty( $this->loginpress_key['after_reset_message'] ) ) {
 
-				$loginpress_message = __( 'Your password has been reset.', 'loginpress' ) . ' <a href="' . esc_url( wp_login_url() ) . '">' . __( 'Log in' , 'loginpress' ) . '</a></p>';
+				$loginpress_message = __( 'Your password has been reset.', 'loginpress' ) . ' <a href="' . esc_url( wp_login_url() ) . '">' . __( 'Log in', 'loginpress' ) . '</a></p>';
 				// }
 			} elseif ( array_key_exists( 'welcome_message', $this->loginpress_key ) && ! empty( $this->loginpress_key['welcome_message'] ) ) {
 
@@ -2929,6 +3138,48 @@ class LoginPress_Entities {
 				}
 			}
 		}
+	}
+
+	/**
+	 * Sanitize username with allowed characters.
+	 *
+	 * @since 6.0.0
+	 *
+	 * @param string $username The username to sanitize.
+	 * @param string $raw_username The raw username input.
+	 * @param bool   $strict Whether to apply strict sanitization.
+	 *
+	 * @return string Sanitized username.
+	 */
+	public function loginpress_sanitize_username( $username, $raw_username, $strict ) {
+
+		$allowed_chars = isset( $this->loginpress_settings['allowed_username_characters'] ) && is_array( $this->loginpress_settings['allowed_username_characters'] ) ? array_keys( $this->loginpress_settings['allowed_username_characters'] ) : array();
+		if ( ! is_array( $allowed_chars ) ) {
+			$allowed_chars = array();
+		}
+
+		$unicode_map = array(
+			'arabic'   => '\\p{Arabic}',
+			'latin'    => '\\p{Latin}',
+			'armenian' => '\\p{Armenian}',
+			'bengali'  => '\\p{Bengali}',
+			'bopomofo' => '\\p{Bopomofo}',
+			'cyrillic' => '\\p{Cyrillic}',
+			'georgian' => '\\p{Georgian}',
+			'greek'    => '\\p{Greek}',
+		);
+		// Validate unicode_map keys to prevent injection
+		$allowed_chars = array_intersect( (array) $allowed_chars, array_keys( $unicode_map ) );
+		$pattern       = '|[^a-z0-9 _.\-@' . implode( '', array_intersect_key( $unicode_map, array_flip( $allowed_chars ) ) ) . ']|iu';
+
+		$username = wp_strip_all_tags( $raw_username );
+		$username = remove_accents( $username );
+		$username = preg_replace(
+			array( '|%([a-fA-F0-9][a-fA-F0-9])|', '/&.+?;/', $pattern, '|\s+|' ),
+			array( '', '', '', ' ' ),
+			trim( $username )
+		);
+		return $username;
 	}
 
 	/**

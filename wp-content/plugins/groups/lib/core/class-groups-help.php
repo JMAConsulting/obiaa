@@ -84,7 +84,14 @@ class Groups_Help {
 			if ( $show_groups_help ) {
 				$help = '<h3><a href="https://www.itthinx.com/plugins/groups" target="_blank">'. $help_title .'</a></h3>';
 				$help .= '<p>';
-				$help .= __( 'The complete documentation is available on the <a href="https://docs.itthinx.com/document/groups">Documentation</a> pages for Groups.', 'groups' );
+				$help .= sprintf(
+					/* translators: documentation pages link */
+					__( 'The complete documentation is available on the %s pages for Groups.', 'groups' ),
+					sprintf(
+						'<a href="https://docs.itthinx.com/document/groups">%s</a>',
+						__( 'Documentation', 'groups' )
+					)
+				);
 				$help .= '</p>';
 				switch ( $screen_id ) {
 					case 'groups-admin' :
@@ -110,7 +117,8 @@ class Groups_Help {
 	/**
 	 * Provides the footer text for Groups on relevant screens.
 	 *
-	 * @param string $footer_text
+	 * @param string $text
+	 *
 	 * @return mixed
 	 */
 	public static function admin_footer_text( $text ) {
@@ -134,11 +142,18 @@ class Groups_Help {
 	 * Returns or renders the footer.
 	 *
 	 * @param boolean $render
+	 *
+	 * @return string|null
 	 */
 	public static function footer( $render = true ) {
 		$footer =
 			'<span class="groups-footer">' .
-			__( 'Thank you for using <a href="https://www.itthinx.com/plugins/groups" target="_blank">Groups</a> by <a href="https://www.itthinx.com" target="_blank">itthinx</a>.', 'groups' ) .
+			sprintf(
+				/* translators: 1: link 2: link */
+				__( 'Thank you for using %1$s by %2$s.', 'groups' ),
+				'<a href="https://www.itthinx.com/plugins/groups" target="_blank">Groups</a>',
+				'<a href="https://www.itthinx.com" target="_blank">itthinx</a>'
+			) .
 			' ' .
 			sprintf(
 				/* translators: link */
@@ -148,7 +163,8 @@ class Groups_Help {
 			'</span>';
 		$footer = apply_filters( 'groups_footer', $footer );
 		if ( $render ) {
-			echo $footer; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			echo $footer; // @phpstan-ignore return.missing
 		} else {
 			return $footer;
 		}

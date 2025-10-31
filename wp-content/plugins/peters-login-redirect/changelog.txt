@@ -1,5 +1,13 @@
 == Changelog ==
 
+= 3.0.8.8 =
+
+* Fixed: Resolved the "s" error issue from the plugin.
+
+= 3.0.8.7 =
+* Fixed: LoginWP redirections were bypassing the DW Block User Account plugin, preventing the display of blocked status for users.
+* Fixed: Fixed issue where incorrect WordPress login credentials were not displaying an error notice. Added "Failed login redirect" in the plugin settings.
+
 = 3.0.8.6 =
 * Fixed: Custom login page redirects to the default WordPress login page when incorrect credentials are entered.
 

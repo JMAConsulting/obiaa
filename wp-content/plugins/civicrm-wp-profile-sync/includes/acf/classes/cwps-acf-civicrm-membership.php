@@ -25,7 +25,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Membership {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync
 	 */
 	public $plugin;
 
@@ -34,7 +34,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Membership {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync_ACF_Loader
 	 */
 	public $acf_loader;
 
@@ -43,7 +43,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Membership {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_Profile_Sync_ACF_CiviCRM
 	 */
 	public $civicrm;
 
@@ -79,7 +79,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Membership {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get all free CiviCRM Membership Types.
@@ -134,7 +134,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Membership {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Gets the current CiviCRM Memberships for a Contact.
@@ -369,7 +369,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Membership {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Gets the CiviCRM Membership Fields.

@@ -122,6 +122,15 @@ trait MailCatcherTrait {
 
 		// Do not send emails if admin desired that.
 		if ( $this->is_emailing_blocked ) {
+			/**
+			 * Fires when an email is blocked from being sent.
+			 *
+			 * @since 2.12.0
+			 *
+			 * @param MailCatcherInterface $mailcatcher The MailCatcher object.
+			 */
+			do_action( 'easy_wp_smtp_mailcatcher_send_blocked', $this );
+
 			return false;
 		}
 

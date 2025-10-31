@@ -25,7 +25,7 @@ class CiviCRM_Profile_Sync_ACF_Field_Group {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync
 	 */
 	public $plugin;
 
@@ -34,7 +34,7 @@ class CiviCRM_Profile_Sync_ACF_Field_Group {
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync_ACF_Loader
 	 */
 	public $acf_loader;
 
@@ -43,7 +43,7 @@ class CiviCRM_Profile_Sync_ACF_Field_Group {
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_Profile_Sync_ACF
 	 */
 	public $acf;
 
@@ -101,7 +101,7 @@ class CiviCRM_Profile_Sync_ACF_Field_Group {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Hook into Field Group updates.
@@ -211,7 +211,7 @@ class CiviCRM_Profile_Sync_ACF_Field_Group {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get Field Group from Field data.
@@ -274,7 +274,7 @@ class CiviCRM_Profile_Sync_ACF_Field_Group {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get Field Group from CiviCRM Custom Group ID.
@@ -301,7 +301,7 @@ class CiviCRM_Profile_Sync_ACF_Field_Group {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the ACF Fields for a given Field Group.
@@ -328,7 +328,7 @@ class CiviCRM_Profile_Sync_ACF_Field_Group {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Check if a Field Group has been mapped to a WordPress Entity.

@@ -32,6 +32,31 @@ function obiaareport_civicrm_enable(): void {
   _obiaareport_civix_civicrm_enable();
 }
 
+function obiaareport_civicrm_alterReportVar($varType, &$var, $reportForm) {
+  if (get_class($reportForm) == 'CRM_Report_Form_Contact_Detail') {
+   $result = \Civi\Api4\CustomField::get(FALSE)
+     ->addSelect('custom_group_id.table_name', 'column_name')
+     ->addWhere('custom_group_id:name', '=', 'Business_Details')
+     ->addWhere('name', '=', 'Open_Date')
+     ->execute()->first();
+   $tableName = $result['custom_group_id.table_name'];
+   $columnName = $result['column_name'];
+   if ($varType == 'columns' && !empty($var[$tableName])) {
+     $var[$tableName]['fields']['bia_anniversary_date'] = [
+       'name' => 'bia_anniversary_date',
+       'title' => ts('Anniversary'),
+       'type' => CRM_Utils_Type::T_INT,
+       'operatoType' => CRM_Report_Form::OP_INT,
+       'dbAlias' => "TIMESTAMPDIFF(YEAR, $columnName, DATE_ADD(CURDATE(), INTERVAL 1 MONTH))",
+     ];
+   }
+  }
+
+  if ($varType == 'sql' && !empty($var->getVar('_params')['fields']['bia_anniversary_date'])) {
+    $var->_where .= " AND MONTH($columnName) = MONTH(DATE_ADD(CURDATE(), INTERVAL 1 MONTH))";
+  }
+}
+
 // --- Functions below this ship commented out. Uncomment as required. ---
 
 /**

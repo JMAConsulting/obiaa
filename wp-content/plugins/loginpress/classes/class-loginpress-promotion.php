@@ -82,9 +82,12 @@ if ( ! class_exists( 'LoginPress_Promotion_tabs' ) ) :
 				),
 				array(
 					'id'    => 'loginpress_premium',
-					'title' => sprintf( 
+					'title' => sprintf(
 						// translators: Upgrade to Pro
-						__( 'Upgrade to Pro%1$s for More Features%2$s', 'loginpress' ), '<span>', '</span>' ),
+						__( 'Upgrade to Pro%1$s for More Features%2$s', 'loginpress' ),
+						'<span>',
+						'</span>'
+					),
 				),
 			);
 			$loginpress_promotion_tab  = array_merge( $loginpress_tabs, $_loginpress_promotion_tab );
@@ -124,7 +127,7 @@ if ( ! class_exists( 'LoginPress_Promotion_tabs' ) ) :
 					'LoginPress integrates with the most popular WordPress plugins to enhance your login experience. Our Social Login, CAPTCHA and Limit Login Attempts features among others are easily integrated into these platforms, helping you streamline user access and enhance security.',
 					'loginpress'
 				) . '</p>';
-			
+
 				$integrations = array(
 					array(
 						'key'        => 'woocommerce',
@@ -133,7 +136,7 @@ if ( ! class_exists( 'LoginPress_Promotion_tabs' ) ) :
 						'title'      => __( 'WooCommerce', 'loginpress' ),
 						'desc'       => __( 'Quick, secure logins for your WooCommerce store.', 'loginpress' ),
 						'dataTarget' => '.enable_captcha_woo, .enable_social_woo',
-						'utmContent'  => 'WOO+UPGRADE+CTA',
+						'utmContent' => 'WOO+UPGRADE+CTA',
 					),
 					array(
 						'key'        => 'edd',
@@ -181,10 +184,10 @@ if ( ! class_exists( 'LoginPress_Promotion_tabs' ) ) :
 						'utmContent' => 'LEARNDASH+UPGRADE+CTA',
 					),
 				);
-			
+
 				$desc .= '<div id="loginpress-integration-management">
 					<div id="integration-cards-container" class="loginpress-integration-container" style="display: flex; flex-wrap: wrap;">';
-			
+
 				foreach ( $integrations as $integration ) {
 					$desc .= '<div class="loginpress-integration-card" data-integration="' . esc_attr( $integration['key'] ) . '" data-target="' . esc_attr( $integration['dataTarget'] ) . '">
 						<div class="loginpress-integration-head">
@@ -196,15 +199,15 @@ if ( ! class_exists( 'LoginPress_Promotion_tabs' ) ) :
 						</div>
 						<div class="loginpress-integration-foot">
 							<a href="https://loginpress.pro/pricing/?utm_source=loginpress-lite&utm_medium=integrations-settings&utm_campaign=pro-upgrade&utm_content=' . esc_attr( $integration['utmContent'] ) . '" target="_blank" class="loginpress-integration-button">'
-							 . esc_html__( 'Upgrade Now', 'loginpress' ) . 
+							. esc_html__( 'Upgrade Now', 'loginpress' ) .
 							'</a>
 						</div>
 					</div>';
 				}
-			
+
 				$desc .= '</div></div>';
 			}
-			
+
 			return $desc;
 		}
 
@@ -216,10 +219,10 @@ if ( ! class_exists( 'LoginPress_Promotion_tabs' ) ) :
 		public function _addon_video( $title, $code ) {
 			return '<hr /><div class="loginpress-addon-promotion-video">
 				<h3><span class="dashicons dashicons-dashboard"></span>&nbsp;&nbsp;' . sprintf(
-            // translators: Video title.
-						esc_html__( 'Video: %s', 'loginpress' ),
-						$title 
-					) .  '</h3>
+			// translators: Video title.
+				esc_html__( 'Video: %s', 'loginpress' ),
+				$title
+			) . '</h3>
 				<div class="inside">
 					<iframe width="800" height="400" src="https://www.youtube.com/embed/' . $code . '?showinfo=0&enablejsapi=1" frameborder="0" allowfullscreen="" style=" max-width: 100%;" class="loginPress-feature-video"></iframe>
 				</div>

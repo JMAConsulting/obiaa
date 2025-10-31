@@ -25,7 +25,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Website extends CiviCRM_Profile_Sync_ACF_
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync
 	 */
 	public $plugin;
 
@@ -34,7 +34,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Website extends CiviCRM_Profile_Sync_ACF_
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync_ACF_Loader
 	 */
 	public $acf_loader;
 
@@ -43,7 +43,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Website extends CiviCRM_Profile_Sync_ACF_
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_Profile_Sync_ACF_CiviCRM
 	 */
 	public $civicrm;
 
@@ -224,7 +224,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Website extends CiviCRM_Profile_Sync_ACF_
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Update a CiviCRM Contact's Fields with data from ACF Fields.
@@ -308,7 +308,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Website extends CiviCRM_Profile_Sync_ACF_
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the data for a Website.
@@ -355,7 +355,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Website extends CiviCRM_Profile_Sync_ACF_
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the Websites for a given Contact ID.
@@ -411,7 +411,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Website extends CiviCRM_Profile_Sync_ACF_
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Intercept when a Post is been synced from a Contact.
@@ -455,7 +455,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Website extends CiviCRM_Profile_Sync_ACF_
 				}
 
 				// Skip if it's not the right Website Type.
-				if ( $website_field != $website->website_type_id ) {
+				if ( (int) $website_field !== (int) $website->website_type_id ) {
 					continue;
 				}
 
@@ -471,7 +471,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Website extends CiviCRM_Profile_Sync_ACF_
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * A CiviCRM Contact's Website is about to be edited.
@@ -681,7 +681,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Website extends CiviCRM_Profile_Sync_ACF_
 			}
 
 			// Skip if it's not the right Website Type.
-			if ( $website_field != $website->website_type_id ) {
+			if ( (int) $website_field !== (int) $website->website_type_id ) {
 				continue;
 			}
 
@@ -692,7 +692,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Website extends CiviCRM_Profile_Sync_ACF_
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Gets the CiviCRM Website Fields.
@@ -760,7 +760,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Website extends CiviCRM_Profile_Sync_ACF_
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Filter the Custom Field ID.
@@ -792,7 +792,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Website extends CiviCRM_Profile_Sync_ACF_
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the Website Types that can be mapped to an ACF Field.
@@ -1004,7 +1004,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Website extends CiviCRM_Profile_Sync_ACF_
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Appends an array of Setting Field choices for a Bypass ACF Field Group when found.
@@ -1038,7 +1038,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Website extends CiviCRM_Profile_Sync_ACF_
 		$public_fields     = $this->civicrm_fields_get( 'public' );
 		$fields_for_entity = [];
 		foreach ( $public_fields as $key => $value ) {
-			if ( $field['type'] == $this->website_fields[ $value['name'] ] ) {
+			if ( $field['type'] === $this->website_fields[ $value['name'] ] ) {
 				$fields_for_entity[] = $value;
 			}
 		}

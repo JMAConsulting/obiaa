@@ -89,13 +89,19 @@ if ( ! class_exists( 'LoginPress_Login_Order' ) ) :
 
 				$error = new WP_Error();
 
-				$empty_username = isset( $this->loginpress_key['empty_username'] ) && ! empty( $this->loginpress_key['empty_username'] ) ? $this->loginpress_key['empty_username'] : sprintf( 
+				$empty_username = isset( $this->loginpress_key['empty_username'] ) && ! empty( $this->loginpress_key['empty_username'] ) ? $this->loginpress_key['empty_username'] : sprintf(
 					// translators: Username field empty
-					__( '%1$sError:%2$s The username field is empty.', 'loginpress' ), '<strong>', '</strong>' );
+					__( '%1$sError:%2$s The username field is empty.', 'loginpress' ),
+					'<strong>',
+					'</strong>'
+				);
 
-				$empty_password = isset( $this->loginpress_key['empty_password'] ) && ! empty( $this->loginpress_key['empty_password'] ) ? $this->loginpress_key['empty_password'] : sprintf( 
+				$empty_password = isset( $this->loginpress_key['empty_password'] ) && ! empty( $this->loginpress_key['empty_password'] ) ? $this->loginpress_key['empty_password'] : sprintf(
 					// translators: Password field empty
-					__( '%1$sError:%2$s The password field is empty.', 'loginpress' ), '<strong>', '</strong>' );
+					__( '%1$sError:%2$s The password field is empty.', 'loginpress' ),
+					'<strong>',
+					'</strong>'
+				);
 
 				if ( empty( $username ) ) {
 					$error->add( 'empty_username', $empty_username );
@@ -118,9 +124,12 @@ if ( ! class_exists( 'LoginPress_Login_Order' ) ) :
 
 					$error = new WP_Error();
 
-					$force_email_login = isset( $this->loginpress_key['force_email_login'] ) && ! empty( $this->loginpress_key['force_email_login'] ) ? $this->loginpress_key['force_email_login'] : sprintf( 
+					$force_email_login = isset( $this->loginpress_key['force_email_login'] ) && ! empty( $this->loginpress_key['force_email_login'] ) ? $this->loginpress_key['force_email_login'] : sprintf(
 						// translators: Email address not valid
-						__( '%1$sError:%2$s Invalid Email Address', 'loginpress' ), '<strong>', '</strong>' );
+						__( '%1$sError:%2$s Invalid Email Address', 'loginpress' ),
+						'<strong>',
+						'</strong>'
+					);
 
 					$error->add( 'loginpress_use_email', $force_email_login );
 
@@ -143,9 +152,12 @@ if ( ! class_exists( 'LoginPress_Login_Order' ) ) :
 			if ( 'username' === $login_order ) {
 				$user = get_user_by( 'login', $username );
 
-				$invalid_usrname = array_key_exists( 'incorrect_username', $this->loginpress_key ) && ! empty( $this->loginpress_key['incorrect_username'] ) ? $this->loginpress_key['incorrect_username'] : sprintf( 
+				$invalid_usrname = array_key_exists( 'incorrect_username', $this->loginpress_key ) && ! empty( $this->loginpress_key['incorrect_username'] ) ? $this->loginpress_key['incorrect_username'] : sprintf(
 					// translators: Username field invalid
-					__( '%1$sError:%2$s Invalid Username.', 'loginpress' ), '<strong>', '</strong>' );
+					__( '%1$sError:%2$s Invalid Username.', 'loginpress' ),
+					'<strong>',
+					'</strong>'
+				);
 
 				if ( ! $user ) {
 					return new WP_Error( 'invalid_username', $invalid_usrname );

@@ -25,7 +25,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Event extends CiviCRM_Profile_Sy
 	 *
 	 * @since 0.5.4
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync
 	 */
 	public $plugin;
 
@@ -34,7 +34,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Event extends CiviCRM_Profile_Sy
 	 *
 	 * @since 0.5.4
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync_ACF_Loader
 	 */
 	public $acf_loader;
 
@@ -43,7 +43,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Event extends CiviCRM_Profile_Sy
 	 *
 	 * @since 0.5.4
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_Profile_Sync_ACF_ACFE
 	 */
 	public $acfe;
 
@@ -52,7 +52,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Event extends CiviCRM_Profile_Sy
 	 *
 	 * @since 0.5.4
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_Profile_Sync_ACF_ACFE_Form
 	 */
 	public $form;
 
@@ -61,7 +61,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Event extends CiviCRM_Profile_Sy
 	 *
 	 * @since 0.5.4
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_Profile_Sync_ACF_CiviCRM
 	 */
 	public $civicrm;
 
@@ -857,7 +857,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Event extends CiviCRM_Profile_Sy
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Defines additional Fields for the "Action" Tab.
@@ -882,7 +882,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Event extends CiviCRM_Profile_Sy
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Defines the "Mapping" Tab.
@@ -2243,7 +2243,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Event extends CiviCRM_Profile_Sy
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Builds Event data array from mapped Fields.
@@ -2536,7 +2536,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Event extends CiviCRM_Profile_Sy
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Builds Custom Field data array from mapped Fields.
@@ -2715,7 +2715,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Event extends CiviCRM_Profile_Sy
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Builds LocBlock data array from mapped Fields.
@@ -2916,7 +2916,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Event extends CiviCRM_Profile_Sy
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Builds Address data array from mapped Fields.
@@ -3083,7 +3083,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Event extends CiviCRM_Profile_Sy
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Builds Email data array from mapped Fields.
@@ -3243,7 +3243,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Event extends CiviCRM_Profile_Sy
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Builds Phone data array from mapped Fields.
@@ -3410,7 +3410,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Event extends CiviCRM_Profile_Sy
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Builds Registration data array from mapped Fields.
@@ -3826,7 +3826,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Event extends CiviCRM_Profile_Sy
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Finds the linked Contact ID when it has been mapped.

@@ -25,7 +25,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Email extends CiviCRM_Profile_Sync_ACF_Ci
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync
 	 */
 	public $plugin;
 
@@ -34,7 +34,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Email extends CiviCRM_Profile_Sync_ACF_Ci
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync_ACF_Loader
 	 */
 	public $acf_loader;
 
@@ -43,7 +43,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Email extends CiviCRM_Profile_Sync_ACF_Ci
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_Profile_Sync_ACF_CiviCRM
 	 */
 	public $civicrm;
 
@@ -206,7 +206,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Email extends CiviCRM_Profile_Sync_ACF_Ci
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Update CiviCRM Email Fields with data from ACF Fields.
@@ -294,7 +294,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Email extends CiviCRM_Profile_Sync_ACF_Ci
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the data for an Email.
@@ -499,7 +499,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Email extends CiviCRM_Profile_Sync_ACF_Ci
 			$existing_data = array_pop( $primary_email['values'] );
 
 			// Bail if it hasn't changed.
-			if ( $existing_data['email'] == $value ) {
+			if ( $existing_data['email'] === $value ) {
 				return $existing_data;
 			}
 
@@ -557,7 +557,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Email extends CiviCRM_Profile_Sync_ACF_Ci
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the Emails for a given Contact ID.
@@ -613,7 +613,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Email extends CiviCRM_Profile_Sync_ACF_Ci
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Sends an Email when the Email API Extension is present.
@@ -665,7 +665,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Email extends CiviCRM_Profile_Sync_ACF_Ci
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Gets the set of Email Templates.
@@ -755,7 +755,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Email extends CiviCRM_Profile_Sync_ACF_Ci
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Intercept when a Post is been synced from a Contact.
@@ -800,7 +800,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Email extends CiviCRM_Profile_Sync_ACF_Ci
 				}
 
 				// Skip if the Location Types don't match.
-				if ( $email_field != $email->location_type_id ) {
+				if ( (int) $email_field !== (int) $email->location_type_id ) {
 					continue;
 				}
 
@@ -873,7 +873,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Email extends CiviCRM_Profile_Sync_ACF_Ci
 			$existing_data = array_pop( $existing_email['values'] );
 
 			// Bail if it hasn't changed.
-			if ( $existing_data['email'] == $value ) {
+			if ( $existing_data['email'] === $value ) {
 				return $existing_data;
 			}
 
@@ -1023,7 +1023,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Email extends CiviCRM_Profile_Sync_ACF_Ci
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Intercept when a CiviCRM Email has been updated.
@@ -1116,7 +1116,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Email extends CiviCRM_Profile_Sync_ACF_Ci
 			}
 
 			// Skip if the Location Types don't match.
-			if ( $email_field != $email->location_type_id ) {
+			if ( (int) $email_field !== (int) $email->location_type_id ) {
 				continue;
 			}
 
@@ -1127,7 +1127,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Email extends CiviCRM_Profile_Sync_ACF_Ci
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Gets the CiviCRM Email Fields.
@@ -1195,7 +1195,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Email extends CiviCRM_Profile_Sync_ACF_Ci
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the Location Types that can be mapped to an ACF Field.
@@ -1415,7 +1415,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Email extends CiviCRM_Profile_Sync_ACF_Ci
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Appends an array of Setting Field choices for a Bypass ACF Field Group when found.
@@ -1449,7 +1449,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Email extends CiviCRM_Profile_Sync_ACF_Ci
 		$public_fields     = $this->civicrm_fields_get( 'public' );
 		$fields_for_entity = [];
 		foreach ( $public_fields as $key => $value ) {
-			if ( $field['type'] == $this->email_fields[ $value['name'] ] ) {
+			if ( $field['type'] === $this->email_fields[ $value['name'] ] ) {
 				$fields_for_entity[] = $value;
 			}
 		}
