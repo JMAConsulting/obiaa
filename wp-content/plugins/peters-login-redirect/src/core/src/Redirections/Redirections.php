@@ -25,9 +25,12 @@ class Redirections
         add_action('wp_login_failed', [$this, 'login_failed_redirect'], 1, 2);
     }
 
-    public function login_failed_redirect($username, $error)
+    public static function login_failed_redirect($username, $error)
     {
         if (defined('DOING_AJAX') && DOING_AJAX) return;
+
+        $disable_failed_login_redirect = loginwp_var(get_option('loginwp_settings', []), 'disable_failed_login_redirect');
+        if ($disable_failed_login_redirect == 'true') return;
 
         $referer = wp_get_referer();
         if ($referer) {
