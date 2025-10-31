@@ -25,7 +25,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Email {
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync
 	 */
 	public $plugin;
 
@@ -34,7 +34,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Email {
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync_CiviCRM
 	 */
 	public $civicrm;
 
@@ -164,7 +164,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Email {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the current value of the CiviCRM "Sync CMS Email" setting.
@@ -353,7 +353,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Email {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Creates a CiviCRM Email record.
@@ -502,7 +502,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Email {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Listens for when a CiviCRM Contact's Primary Email address is about to be edited.
@@ -667,7 +667,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Email {
 		} else {
 
 			// Only update if the Email has changed.
-			if ( $primary_email->email != $user->user_email ) {
+			if ( $primary_email->email !== $user->user_email ) {
 
 				/*
 				 * Construct params to update the Email record.
@@ -721,7 +721,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Email {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get a CiviCRM Email record by its ID.

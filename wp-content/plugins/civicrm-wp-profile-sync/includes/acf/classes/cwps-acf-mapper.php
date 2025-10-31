@@ -26,7 +26,7 @@ class CiviCRM_Profile_Sync_ACF_Mapper {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync
 	 */
 	public $plugin;
 
@@ -35,7 +35,7 @@ class CiviCRM_Profile_Sync_ACF_Mapper {
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync_ACF_Loader
 	 */
 	public $acf_loader;
 
@@ -164,7 +164,7 @@ class CiviCRM_Profile_Sync_ACF_Mapper {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Store the Entity being edited that originally triggered the callbacks.
@@ -203,7 +203,7 @@ class CiviCRM_Profile_Sync_ACF_Mapper {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Register WordPress hooks.
@@ -229,6 +229,9 @@ class CiviCRM_Profile_Sync_ACF_Mapper {
 	 * @since 0.4
 	 */
 	public function hooks_wordpress_post_add() {
+
+		// Intercept Post update in WordPress prior to save.
+		add_action( 'pre_post_update', [ $this, 'post_saved_pre' ], 20, 2 );
 
 		// Intercept Post update in WordPress super-early.
 		add_action( 'save_post', [ $this, 'post_saved' ], 1, 3 );
@@ -270,7 +273,7 @@ class CiviCRM_Profile_Sync_ACF_Mapper {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Remove WordPress hooks.
@@ -297,7 +300,8 @@ class CiviCRM_Profile_Sync_ACF_Mapper {
 	 */
 	public function hooks_wordpress_post_remove() {
 
-		// Remove Post update hook.
+		// Remove Post update callbacks.
+		remove_action( 'pre_post_update', [ $this, 'post_saved_pre' ], 20 );
 		remove_action( 'save_post', [ $this, 'post_saved' ], 1 );
 
 	}
@@ -310,7 +314,7 @@ class CiviCRM_Profile_Sync_ACF_Mapper {
 	public function hooks_wordpress_acf_remove() {
 
 		// Remove ACF Fields callbacks.
-		remove_action( 'acf/save_post', [ $this, 'acf_fields_saved' ], 5 );
+		remove_action( 'acf/save_post', [ $this, 'acf_fields_saved_pre' ], 5 );
 		remove_action( 'acf/save_post', [ $this, 'acf_fields_saved' ], 20 );
 
 	}
@@ -331,7 +335,7 @@ class CiviCRM_Profile_Sync_ACF_Mapper {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Register CiviCRM hooks.
@@ -394,8 +398,10 @@ class CiviCRM_Profile_Sync_ACF_Mapper {
 		// Intercept Contact updates in CiviCRM.
 		add_action( 'civicrm_pre', [ $this, 'contact_pre_create' ], 10, 4 );
 		add_action( 'civicrm_pre', [ $this, 'contact_pre_edit' ], 10, 4 );
+		add_action( 'civicrm_pre', [ $this, 'contact_pre_delete' ], 10, 4 );
 		add_action( 'civicrm_post', [ $this, 'contact_created' ], 10, 4 );
 		add_action( 'civicrm_post', [ $this, 'contact_edited' ], 10, 4 );
+		add_action( 'civicrm_post', [ $this, 'contact_deleted' ], 10, 4 );
 
 	}
 
@@ -579,7 +585,7 @@ class CiviCRM_Profile_Sync_ACF_Mapper {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Remove CiviCRM hooks.
@@ -642,8 +648,10 @@ class CiviCRM_Profile_Sync_ACF_Mapper {
 		// Remove Contact update hooks.
 		remove_action( 'civicrm_pre', [ $this, 'contact_pre_create' ], 10 );
 		remove_action( 'civicrm_pre', [ $this, 'contact_pre_edit' ], 10 );
+		remove_action( 'civicrm_pre', [ $this, 'contact_pre_delete' ], 10 );
 		remove_action( 'civicrm_post', [ $this, 'contact_created' ], 10 );
 		remove_action( 'civicrm_post', [ $this, 'contact_edited' ], 10 );
+		remove_action( 'civicrm_post', [ $this, 'contact_deleted' ], 10 );
 
 	}
 
@@ -827,7 +835,7 @@ class CiviCRM_Profile_Sync_ACF_Mapper {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Declare CiviCRM available and register listeners.
@@ -1151,7 +1159,7 @@ class CiviCRM_Profile_Sync_ACF_Mapper {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Fires just before a CiviCRM Entity is created.
@@ -1242,6 +1250,55 @@ class CiviCRM_Profile_Sync_ACF_Mapper {
 		 * @param array $args The array of CiviCRM params.
 		 */
 		do_action( 'cwps/acf/mapper/contact/edit/pre', $args );
+
+	}
+
+	/**
+	 * Intercept when a CiviCRM Contact is about to be deleted.
+	 *
+	 * @since 0.7.2
+	 *
+	 * @param string  $op The type of database operation.
+	 * @param string  $object_name The type of object.
+	 * @param integer $object_id The ID of the object.
+	 * @param object  $object_ref The object.
+	 */
+	public function contact_pre_delete( $op, $object_name, $object_id, $object_ref ) {
+
+		// Target our operation.
+		if ( 'delete' !== $op ) {
+			return;
+		}
+
+		// Bail if it's not a Contact.
+		if ( ! ( $object_ref instanceof CRM_Contact_DAO_Contact ) ) {
+			return;
+		}
+
+		// Bail if this is not a Contact.
+		$top_level_types = $this->plugin->civicrm->contact_type->types_get_top_level();
+		if ( ! in_array( $object_name, $top_level_types, true ) ) {
+			return;
+		}
+
+		// Let's make an array of the params.
+		$args = [
+			'op'         => $op,
+			'objectName' => $object_name,
+			'objectId'   => $object_id,
+		];
+
+		// Maybe cast objectRef as object.
+		$args['objectRef'] = is_object( $object_ref ) ? $object_ref : (object) $object_ref;
+
+		/**
+		 * Broadcast that a CiviCRM Contact is about to be deleted.
+		 *
+		 * @since 0.7.2
+		 *
+		 * @param array $args The array of CiviCRM params.
+		 */
+		do_action( 'cwps/acf/mapper/contact/delete/pre', $args );
 
 	}
 
@@ -1380,7 +1437,56 @@ class CiviCRM_Profile_Sync_ACF_Mapper {
 
 	}
 
-	// -------------------------------------------------------------------------
+	/**
+	 * Intercept when a CiviCRM Contact is deleted.
+	 *
+	 * @since 0.7.2
+	 *
+	 * @param string  $op The type of database operation.
+	 * @param string  $object_name The type of object.
+	 * @param integer $object_id The ID of the object.
+	 * @param object  $object_ref The object.
+	 */
+	public function contact_deleted( $op, $object_name, $object_id, $object_ref ) {
+
+		// Target our operation.
+		if ( 'delete' !== $op ) {
+			return;
+		}
+
+		// Bail if it's not a Contact.
+		if ( ! ( $object_ref instanceof CRM_Contact_DAO_Contact ) ) {
+			return;
+		}
+
+		// Bail if this is not a Contact.
+		$top_level_types = $this->plugin->civicrm->contact_type->types_get_top_level();
+		if ( ! in_array( $object_name, $top_level_types, true ) ) {
+			return;
+		}
+
+		// Let's make an array of the CiviCRM params.
+		$args = [
+			'op'         => $op,
+			'objectName' => $object_name,
+			'objectId'   => $object_id,
+		];
+
+		// Maybe cast objectRef as object.
+		$args['objectRef'] = is_object( $object_ref ) ? $object_ref : (object) $object_ref;
+
+		/**
+		 * Broadcast that a CiviCRM Contact has been deleted.
+		 *
+		 * @since 0.7.2
+		 *
+		 * @param array $args The array of CiviCRM params.
+		 */
+		do_action( 'cwps/acf/mapper/contact/deleted', $args );
+
+	}
+
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Intercept when a CiviCRM Email is created.
@@ -1511,7 +1617,7 @@ class CiviCRM_Profile_Sync_ACF_Mapper {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Intercept when a CiviCRM Website is about to be edited.
@@ -1728,7 +1834,7 @@ class CiviCRM_Profile_Sync_ACF_Mapper {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Intercept when a CiviCRM Phone is about to be deleted.
@@ -1902,7 +2008,7 @@ class CiviCRM_Profile_Sync_ACF_Mapper {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Intercept when a CiviCRM Instant Messenger is about to be deleted.
@@ -2076,7 +2182,7 @@ class CiviCRM_Profile_Sync_ACF_Mapper {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Intercept when a CiviCRM Relationship is about to be edited.
@@ -2250,7 +2356,7 @@ class CiviCRM_Profile_Sync_ACF_Mapper {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Intercept when a CiviCRM Address is about to be edited.
@@ -2467,7 +2573,7 @@ class CiviCRM_Profile_Sync_ACF_Mapper {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Intercept when a set of Custom Fields is about to be updated.
@@ -2550,7 +2656,7 @@ class CiviCRM_Profile_Sync_ACF_Mapper {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Intercept a CiviCRM group prior to it being deleted.
@@ -2595,7 +2701,7 @@ class CiviCRM_Profile_Sync_ACF_Mapper {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Intercept when a CiviCRM Contact is added to a Group.
@@ -2745,7 +2851,7 @@ class CiviCRM_Profile_Sync_ACF_Mapper {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Fires just before a CiviCRM Activity is created.
@@ -2980,7 +3086,7 @@ class CiviCRM_Profile_Sync_ACF_Mapper {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Fires just before a CiviCRM Participant is created.
@@ -3258,7 +3364,7 @@ class CiviCRM_Profile_Sync_ACF_Mapper {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Intercept when a CiviCRM File is about to be deleted.
@@ -3555,7 +3661,39 @@ class CiviCRM_Profile_Sync_ACF_Mapper {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
+
+	/**
+	 * Intercept when a Post is about to be saved.
+	 *
+	 * @since 0.7.2
+	 *
+	 * @param integer $post_id The WordPress Post ID.
+	 * @param array   $data The array of unslashed post data.
+	 */
+	public function post_saved_pre( $post_id, $data ) {
+
+		// Bail if there was a Multisite switch.
+		if ( is_multisite() && ms_is_switched() ) {
+			return;
+		}
+
+		// Let's make an array of the params.
+		$args = [
+			'post_id' => $post_id,
+			'data'    => $data,
+		];
+
+		/**
+		 * Broadcast that a WordPress Post is about to be saved.
+		 *
+		 * @since 0.7.2
+		 *
+		 * @param array $args The array of WordPress params.
+		 */
+		do_action( 'cwps/acf/mapper/post/saved/pre', $args );
+
+	}
 
 	/**
 	 * Intercept the Post saved operation.
@@ -3658,7 +3796,7 @@ class CiviCRM_Profile_Sync_ACF_Mapper {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Hook into updates to a term before the term is updated.

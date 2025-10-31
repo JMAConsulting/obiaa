@@ -25,7 +25,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Address {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync
 	 */
 	public $plugin;
 
@@ -34,7 +34,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Address {
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync_ACF_Loader
 	 */
 	public $acf_loader;
 
@@ -43,7 +43,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Address {
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_Profile_Sync_ACF_CiviCRM
 	 */
 	public $civicrm;
 
@@ -153,7 +153,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Address {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Gets the CiviCRM Address Fields.
@@ -287,7 +287,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Address {
 		$public_fields     = $this->civicrm_fields_get( 'public' );
 		$fields_for_entity = [];
 		foreach ( $public_fields as $key => $value ) {
-			if ( $field['type'] == $this->address_fields[ $value['name'] ] ) {
+			if ( $field['type'] === $this->address_fields[ $value['name'] ] ) {
 				// Skip the ones that are not needed in ACFE Forms.
 				if ( ! array_key_exists( $value['name'], $this->bypass_fields_to_remove ) ) {
 					$fields_for_entity[] = $value;
@@ -431,9 +431,9 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Address {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 	// Retained methods to provide backwards compatibility.
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the data for an Address.

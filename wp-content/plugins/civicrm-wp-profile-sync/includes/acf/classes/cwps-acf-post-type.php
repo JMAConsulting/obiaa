@@ -25,7 +25,7 @@ class CiviCRM_Profile_Sync_ACF_Post_Type {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync
 	 */
 	public $plugin;
 
@@ -34,7 +34,7 @@ class CiviCRM_Profile_Sync_ACF_Post_Type {
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync_ACF_Loader
 	 */
 	public $acf_loader;
 
@@ -89,7 +89,7 @@ class CiviCRM_Profile_Sync_ACF_Post_Type {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get all Post Types.
@@ -126,7 +126,7 @@ class CiviCRM_Profile_Sync_ACF_Post_Type {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get all Post Types that a Contact Type may be synced with.
@@ -157,7 +157,7 @@ class CiviCRM_Profile_Sync_ACF_Post_Type {
 		if ( count( $post_types ) > 0 ) {
 			foreach ( $post_types as $post_type ) {
 				$used = in_array( $post_type->name, $used_post_types, true );
-				$mine = ( $post_type->name == $existing_post_type ) ? true : false;
+				$mine = ( $post_type->name === $existing_post_type ) ? true : false;
 				if ( ! $used || $mine ) {
 					$filtered[] = $post_type;
 				}
@@ -184,7 +184,7 @@ class CiviCRM_Profile_Sync_ACF_Post_Type {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get all Post Types that an Activity Type may be synced with.
@@ -215,7 +215,7 @@ class CiviCRM_Profile_Sync_ACF_Post_Type {
 		if ( count( $post_types ) > 0 ) {
 			foreach ( $post_types as $post_type ) {
 				$used = in_array( $post_type->name, $used_post_types, true );
-				$mine = ( $post_type->name == $existing_post_type ) ? true : false;
+				$mine = ( $post_type->name === $existing_post_type ) ? true : false;
 				if ( ! $used || $mine ) {
 					$filtered[] = $post_type;
 				}
@@ -242,7 +242,7 @@ class CiviCRM_Profile_Sync_ACF_Post_Type {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get all Post Types that a Participant Role may be synced with.
@@ -273,7 +273,7 @@ class CiviCRM_Profile_Sync_ACF_Post_Type {
 		if ( count( $post_types ) > 0 ) {
 			foreach ( $post_types as $post_type ) {
 				$used = in_array( $post_type->name, $used_post_types, true );
-				$mine = ( $post_type->name == $existing_post_type ) ? true : false;
+				$mine = ( $post_type->name === $existing_post_type ) ? true : false;
 				if ( ! $used || $mine ) {
 					$filtered[] = $post_type;
 				}
@@ -300,7 +300,7 @@ class CiviCRM_Profile_Sync_ACF_Post_Type {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the number of Posts in a WordPress Post Type.
@@ -336,7 +336,7 @@ class CiviCRM_Profile_Sync_ACF_Post_Type {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get all Post Types that are mapped to an Entity Type.
@@ -486,7 +486,7 @@ class CiviCRM_Profile_Sync_ACF_Post_Type {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the singular label for a given Post Type.
@@ -514,7 +514,7 @@ class CiviCRM_Profile_Sync_ACF_Post_Type {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Listen for queries for supported Location Rules.
@@ -535,7 +535,7 @@ class CiviCRM_Profile_Sync_ACF_Post_Type {
 		}
 
 		// Test for this Location Rule.
-		if ( $rule['param'] == $this->rule_name && ! empty( $params[ $this->rule_name ] ) ) {
+		if ( $rule['param'] === $this->rule_name && ! empty( $params[ $this->rule_name ] ) ) {
 			$supported = true;
 		}
 

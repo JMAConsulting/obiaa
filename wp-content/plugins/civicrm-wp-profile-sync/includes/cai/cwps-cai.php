@@ -21,11 +21,11 @@ defined( 'ABSPATH' ) || exit;
 class CiviCRM_WP_Profile_Sync_CAI {
 
 	/**
-	 * Plugin (calling) object.
+	 * Plugin object.
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync
 	 */
 	public $plugin;
 
@@ -34,7 +34,7 @@ class CiviCRM_WP_Profile_Sync_CAI {
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var object|bool
+	 * @var CiviCRM_ACF_Integration|bool
 	 */
 	public $cai = false;
 
@@ -359,7 +359,7 @@ class CiviCRM_WP_Profile_Sync_CAI {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Update the CiviCRM Contact when the ACF Fields on a WordPress User have been edited.
@@ -465,7 +465,7 @@ class CiviCRM_WP_Profile_Sync_CAI {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Update a WordPress User when a CiviCRM Contact has been edited.
@@ -508,7 +508,7 @@ class CiviCRM_WP_Profile_Sync_CAI {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Update an Email ACF Field on a User when a CiviCRM Contact has been edited.
@@ -547,7 +547,7 @@ class CiviCRM_WP_Profile_Sync_CAI {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * A CiviCRM Contact's Website is about to be edited.
@@ -618,7 +618,7 @@ class CiviCRM_WP_Profile_Sync_CAI {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Update Phone ACF Fields on a User when a CiviCRM Contact has been edited.
@@ -712,7 +712,7 @@ class CiviCRM_WP_Profile_Sync_CAI {
 		$phone_id = (int) $args['objectId'];
 
 		// Sanity check.
-		if ( $phone_id != $this->phone_pre->id ) {
+		if ( (int) $phone_id !== (int) $this->phone_pre->id ) {
 			return;
 		}
 
@@ -747,7 +747,7 @@ class CiviCRM_WP_Profile_Sync_CAI {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Update Instant Messenger ACF Fields on a User when a CiviCRM Contact has been edited.
@@ -841,7 +841,7 @@ class CiviCRM_WP_Profile_Sync_CAI {
 		$im_id = (int) $args['objectId'];
 
 		// Sanity check.
-		if ( $im_id != $this->im_pre->id ) {
+		if ( (int) $im_id !== (int) $this->im_pre->id ) {
 			return;
 		}
 
@@ -876,7 +876,7 @@ class CiviCRM_WP_Profile_Sync_CAI {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Update a Relationship ACF Field on a User when a CiviCRM Contact has been edited.
@@ -932,7 +932,7 @@ class CiviCRM_WP_Profile_Sync_CAI {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Update Address ACF Fields on a User when a CiviCRM Contact has been edited.
@@ -1026,7 +1026,7 @@ class CiviCRM_WP_Profile_Sync_CAI {
 		$address_id = (int) $args['objectId'];
 
 		// Sanity check.
-		if ( $address_id != $this->address_pre->id ) {
+		if ( (int) $address_id !== (int) $this->address_pre->id ) {
 			return;
 		}
 
@@ -1061,7 +1061,7 @@ class CiviCRM_WP_Profile_Sync_CAI {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * A CiviCRM Contact's Address is about to be edited.
@@ -1303,7 +1303,7 @@ class CiviCRM_WP_Profile_Sync_CAI {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Update City ACF Fields on a User when a CiviCRM Contact has been edited.
@@ -1393,7 +1393,7 @@ class CiviCRM_WP_Profile_Sync_CAI {
 		$address_id = (int) $args['objectId'];
 
 		// Sanity check.
-		if ( $address_id != $this->city_address_pre->id ) {
+		if ( (int) $address_id !== (int) $this->city_address_pre->id ) {
 			return;
 		}
 
@@ -1425,7 +1425,7 @@ class CiviCRM_WP_Profile_Sync_CAI {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Update City ACF Fields on a User when a CiviCRM Contact has been edited.
@@ -1515,7 +1515,7 @@ class CiviCRM_WP_Profile_Sync_CAI {
 		$address_id = (int) $args['objectId'];
 
 		// Sanity check.
-		if ( $address_id != $this->state_address_pre->id ) {
+		if ( (int) $address_id !== (int) $this->state_address_pre->id ) {
 			return;
 		}
 
@@ -1547,7 +1547,7 @@ class CiviCRM_WP_Profile_Sync_CAI {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Update a Contact ID ACF Field on a User when a CiviCRM Contact has been edited.
@@ -1586,7 +1586,7 @@ class CiviCRM_WP_Profile_Sync_CAI {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Update ACF Fields when a set of CiviCRM Custom Fields has been updated.
@@ -1610,7 +1610,7 @@ class CiviCRM_WP_Profile_Sync_CAI {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Listen for queries from the Field Group class.
@@ -1917,7 +1917,7 @@ class CiviCRM_WP_Profile_Sync_CAI {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Filter the Contact data.

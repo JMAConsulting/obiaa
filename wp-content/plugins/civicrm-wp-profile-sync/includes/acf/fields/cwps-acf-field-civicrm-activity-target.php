@@ -25,7 +25,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Activity_Target extends acf_field {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync
 	 */
 	public $plugin;
 
@@ -34,7 +34,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Activity_Target extends acf_field {
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync_ACF_Loader
 	 */
 	public $acf_loader;
 
@@ -43,7 +43,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Activity_Target extends acf_field {
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_Profile_Sync_ACF
 	 */
 	public $acf;
 
@@ -146,9 +146,9 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Activity_Target extends acf_field {
 
 		// Define category.
 		if ( function_exists( 'acfe' ) ) {
-			$this->category = __( 'CiviCRM Post Type Sync only', 'civicrm-wp-profile-sync' );
+			$this->category = __( 'CiviCRM Activity Post Type Sync only', 'civicrm-wp-profile-sync' );
 		} else {
-			$this->category = __( 'CiviCRM Post Type Sync', 'civicrm-wp-profile-sync' );
+			$this->category = __( 'CiviCRM Activity Post Type Sync', 'civicrm-wp-profile-sync' );
 		}
 
 		// Define translations.

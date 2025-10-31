@@ -21,11 +21,11 @@ defined( 'ABSPATH' ) || exit;
 class CiviCRM_WP_Profile_Sync_Admin {
 
 	/**
-	 * Plugin (calling) object.
+	 * Plugin object.
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync
 	 */
 	public $plugin;
 
@@ -34,7 +34,7 @@ class CiviCRM_WP_Profile_Sync_Admin {
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync_Admin_Multisite
 	 */
 	public $multisite;
 
@@ -255,7 +255,7 @@ class CiviCRM_WP_Profile_Sync_Admin {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Do stuff when an upgrade is required.
@@ -459,7 +459,7 @@ class CiviCRM_WP_Profile_Sync_Admin {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Add admin menu item(s) for this plugin.
@@ -597,7 +597,7 @@ class CiviCRM_WP_Profile_Sync_Admin {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get Settings Page Tab URLs.
@@ -675,7 +675,7 @@ class CiviCRM_WP_Profile_Sync_Admin {
 		do_action( 'cwps/admin/page/settings/add_meta_boxes', $screen->id, null );
 
 		// Grab columns.
-		$columns = ( 1 == $screen->get_columns() ? '1' : '2' );
+		$columns = ( 1 === (int) $screen->get_columns() ? '1' : '2' );
 
 		// Include template file.
 		include CIVICRM_WP_PROFILE_SYNC_PATH . 'assets/templates/wordpress/pages/page-admin-settings.php';
@@ -788,7 +788,7 @@ class CiviCRM_WP_Profile_Sync_Admin {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Register meta boxes.
@@ -899,7 +899,7 @@ class CiviCRM_WP_Profile_Sync_Admin {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get default settings for this plugin.
@@ -1028,7 +1028,7 @@ class CiviCRM_WP_Profile_Sync_Admin {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Save array as option.
@@ -1104,7 +1104,7 @@ class CiviCRM_WP_Profile_Sync_Admin {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Test existence of a specified option.
@@ -1117,7 +1117,7 @@ class CiviCRM_WP_Profile_Sync_Admin {
 	public function option_exists( $option_name = '' ) {
 
 		// Test by getting option with unlikely default.
-		if ( $this->option_get( $option_name, 'fenfgehgefdfdjgrkj' ) == 'fenfgehgefdfdjgrkj' ) {
+		if ( $this->option_get( $option_name, 'fenfgehgefdfdjgrkj' ) === 'fenfgehgefdfdjgrkj' ) {
 			return false;
 		} else {
 			return true;

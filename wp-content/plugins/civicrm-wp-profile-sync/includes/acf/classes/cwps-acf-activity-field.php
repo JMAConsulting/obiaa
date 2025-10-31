@@ -25,7 +25,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Field {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync
 	 */
 	public $plugin;
 
@@ -34,7 +34,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Field {
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync_ACF_Loader
 	 */
 	public $acf_loader;
 
@@ -43,7 +43,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Field {
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_Profile_Sync_ACF_CiviCRM
 	 */
 	public $civicrm;
 
@@ -140,7 +140,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Field {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Validate the content of a Field.
@@ -185,7 +185,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Field {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Intercept when a Post has been updated from an Activity via the Mapper.
@@ -250,7 +250,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Field {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the value of an Activity Field, formatted for ACF.
@@ -335,7 +335,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Field {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the "select" options for a given CiviCRM Activity Field.
@@ -381,7 +381,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Field {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the CiviCRM Activity Fields for an ACF Field.
@@ -428,7 +428,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Field {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the Activity Field options for a given Field ID.
@@ -532,7 +532,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Field {
 
 				// Skip all but those mapped to the type of ACF Field.
 				foreach ( $public_fields as $key => $value ) {
-					if ( $field_type == $this->activity_fields[ $value['name'] ] ) {
+					if ( $field_type === $this->activity_fields[ $value['name'] ] ) {
 						$fields[] = $value;
 					}
 				}
@@ -652,7 +652,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Field {
 
 		// Skip all but those mapped to the type of ACF Field.
 		foreach ( $this->activity_fields as $key => $value ) {
-			if ( $type == $value ) {
+			if ( $type === $value ) {
 				$activity_fields[ $key ] = $value;
 			}
 		}
@@ -685,7 +685,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Field {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Modify the Settings of an ACF "Select" Field.
@@ -795,7 +795,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Field {
 			// Override if we get the default.
 			$config = CRM_Core_Config::singleton();
 			// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-			if ( $config->dateInputFormat == $format ) {
+			if ( $config->dateInputFormat === $format ) {
 				$format = '';
 			}
 
@@ -811,7 +811,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Field {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Maybe sync the Activity "Date" Fields to the ACF Fields on a WordPress Post.

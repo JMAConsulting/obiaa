@@ -25,7 +25,7 @@ class CiviCRM_Profile_Sync_ACF_Admin_Migrate {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync
 	 */
 	public $plugin;
 
@@ -34,7 +34,7 @@ class CiviCRM_Profile_Sync_ACF_Admin_Migrate {
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync_ACF_Loader
 	 */
 	public $acf_loader;
 
@@ -127,7 +127,7 @@ class CiviCRM_Profile_Sync_ACF_Admin_Migrate {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Show a notice when CiviCRM ACF Integration is present.
@@ -175,7 +175,7 @@ class CiviCRM_Profile_Sync_ACF_Admin_Migrate {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Add our admin page(s) to the WordPress admin menu.
@@ -284,7 +284,7 @@ class CiviCRM_Profile_Sync_ACF_Admin_Migrate {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Show our "ACF Integration" page.
@@ -318,7 +318,7 @@ class CiviCRM_Profile_Sync_ACF_Admin_Migrate {
 		do_action( 'cwps/acf/admin/migrate/page/add_meta_boxes', $screen->id, null );
 
 		// Grab columns.
-		$columns = ( 1 == $screen->get_columns() ? '1' : '2' );
+		$columns = ( 1 === (int) $screen->get_columns() ? '1' : '2' );
 
 		// Get admin page URLs.
 		$urls = $this->plugin->admin->page_tab_urls_get();
@@ -416,7 +416,7 @@ class CiviCRM_Profile_Sync_ACF_Admin_Migrate {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Register meta boxes.
@@ -588,7 +588,7 @@ class CiviCRM_Profile_Sync_ACF_Admin_Migrate {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Test existence of a specified option.
@@ -601,7 +601,7 @@ class CiviCRM_Profile_Sync_ACF_Admin_Migrate {
 	public function option_exists( $option_name ) {
 
 		// Test by getting option with unlikely default.
-		if ( $this->option_get( $option_name, 'fenfgehgefdfdjgrkj' ) == 'fenfgehgefdfdjgrkj' ) {
+		if ( $this->option_get( $option_name, 'fenfgehgefdfdjgrkj' ) === 'fenfgehgefdfdjgrkj' ) {
 			return false;
 		} else {
 			return true;
