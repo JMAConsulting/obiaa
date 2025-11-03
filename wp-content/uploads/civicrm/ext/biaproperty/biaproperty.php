@@ -132,7 +132,10 @@ function biaproperty_civicrm_links($op, $objectName, $objectId, &$links, &$mask,
 function biaproperty_civicrm_buildForm($formName, &$form) {
   if ($formName == 'CRM_Activity_Form_ActivityLinks') {
     // hide activity type actions for all type of contacts
-    $form->assign('activityTypes', []);
+    $allowedLabels = ['Meeting', 'Phone Call', 'Send an Email'];
+    $form->assign('activityTypes', array_filter($form->getTemplate()->getTemplateVars('activityTypes'), function ($type) use ($allowedLabels) {
+      return in_array($type['label'], $allowedLabels);
+    }));
     CRM_Core_Resources::singleton()->addScript(
       "CRM.$(function($) {
         $('li.crm-activity-tab').hide();
