@@ -126,7 +126,12 @@ class PropertyOwnerImport extends Generic\AbstractEntity {
       ];
       $spec[] = [
         'name' => 'owner_' . $owner . '_supplemental_address_1',
-        'title' => E::ts('Individual Owner %1 Supplemental Address', [1 => $owner]),
+        'title' => E::ts('Individual Owner %1 Supplemental Address 1', [1 => $owner]),
+        'data_type' => 'String',
+      ];
+      $spec[] = [
+        'name' => 'owner_' . $owner . '_supplemental_address_2',
+        'title' => E::ts('Individual Owner %1 Supplemental Address 2', [1 => $owner]),
         'data_type' => 'String',
       ];
       $spec[] = [

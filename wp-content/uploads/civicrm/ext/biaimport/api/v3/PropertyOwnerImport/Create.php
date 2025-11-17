@@ -75,7 +75,11 @@ function _civicrm_api3_property_owner_import_create_spec(&$spec) {
       'type' => CRM_Utils_Type::T_STRING,
     ];
     $spec['owner_' . $owner . '_supplemental_address_1'] = [
-      'title' => E::ts('Owner %1 Supplemental Address', [1 => $owner]),
+      'title' => E::ts('Owner %1 Supplemental Address 1', [1 => $owner]),
+      'type' => CRM_Utils_Type::T_STRING,
+    ];
+    $spec['owner_' . $owner . '_supplemental_address_2'] = [
+      'title' => E::ts('Owner %1 Supplemental Address 2', [1 => $owner]),
       'type' => CRM_Utils_Type::T_STRING,
     ];
     $spec['owner_' . $owner . '_city'] = [
@@ -273,7 +277,7 @@ function civicrm_api3_property_owner_import_create($params) {
     }
     if (!empty($params['owner_' . $owner . '_phone'])) {
       // now create the email address against the property record
-      $currentPhones = Phone::get(FALSE)->addWhere('contact_id', '=', $contactParams['id'])->addWhere('email', '=', $params['owner_' . $owner . '_phone'])->execute();
+      $currentPhones = Phone::get(FALSE)->addWhere('contact_id', '=', $contactParams['id'])->addWhere('phone', '=', $params['owner_' . $owner . '_phone'])->execute();
       $currentPrimaryPhone = Phone::get(FALSE)->addWhere('contact_id', '=', $contactParams['id'])->addWhere('is_primary', '=', 1)->execute();
       if (count($currentPhones) == 0) {
         Phone::create(FALSE)
