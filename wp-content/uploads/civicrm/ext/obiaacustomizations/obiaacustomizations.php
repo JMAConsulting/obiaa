@@ -316,6 +316,12 @@ function obiaacustomizations_civicrm_alterMailContent(&$content) {
 //
 //}
 
+function obiaacustomizations_civicrm_apiWrappers(&$wrappers, $apiRequest) {
+//  \CRM_Core_Error::debug('apiRequest', $apiRequest);
+  if ($apiRequest['entity'] == 'Contact' && $apiRequest['version'] == '3' && $apiRequest['action'] == 'getlist') {
+    $wrappers[] = new CRM_Obiaacustomizations_Contact();
+  }
+}
 
 function obiaacustomizations_civicrm_navigationMenu(&$menu) {
   $civiMobile = [
