@@ -49,6 +49,13 @@ function redirect_invalid_checksum($template) {
   exit();
 }
 
+add_action('acfe/init', 'my_acfe_init');
+
+function my_acfe_init() {
+
+  require_once plugin_dir_path(__FILE__) . '/acf-form/update-business.php';
+}
+
 add_filter('acf/load_field/name=property_address', 'acf_load_property_choices');
 
 function acf_load_property_choices($field) {
@@ -221,6 +228,35 @@ function acf_load_unit_choices($field) {
   return $field;
 }
 
+add_action('acfe/form/validate_form/form=update-business', 'validate_business_address');
+
+function validate_business_address($form) {
+    $fv = $_POST['acf'] ?? [];
+
+    // Outer repeater (or group)
+    $bdGroup = get_acf_key('business_details');
+    $baGroup = get_acf_key('business_address');
+    $outer = $fv[$bdGroup][$baGroup] ?? [];
+
+    $notFound = true;
+
+    if (!empty($outer)) {
+        foreach ($outer as $row) {
+            foreach ($row as $subgroup) {
+                foreach ($subgroup as $value) {
+                    if (!empty($value)) {
+                        $notFound = false;
+                        break 3; // exit all loops
+                    }
+                }
+            }
+        }
+    }
+
+    if ($notFound) {
+        acfe_add_validation_error('', 'You need to provide at least one business address.');
+    }
+}
 
 add_filter('acf/validate_value/name=property_address', 'validate_tax_roll', 10, 4);
 
@@ -374,15 +410,12 @@ function validate_property_present($valid, $value, $field, $input) {
   return $valid;
 }
 
-add_action('acf/save_post', 'add_business_form_handler_save_post');
+add_action('acfe/form/submit/update-contact-detail', 'add_business_form_handler_save_post', 10, 2);
 
-function add_business_form_handler_save_post($post_id) {
+function add_business_form_handler_save_post($form, $action) {
   // Check if this is an ACF form and either an Add a Business form or Update Business form
-  if (isset($_POST['acf']) && ($_POST['_acf_post_id'] == 443 || $_POST['_acf_post_id'] == 491)) {
-
     // Process submitted ACF fields
     $form_data = $_POST['acf'];
-
     $optionGroups = [
       'unit_status' => 'unit_status',
       'category' => 'Business_Category_Parent_Class',
@@ -445,7 +478,7 @@ function add_business_form_handler_save_post($post_id) {
     ];
     $params = [];
     foreach ($fields as $field) {
-      $params[$field] = array_find_key_recursive($form_data, get_acf_key($field));
+      $params[$field] = wp_unslash(array_find_key_recursive($form_data, get_acf_key($field)));
     }
     if (empty($params['opt_out_of_public_listings'])) {
       $params['opt_out_of_public_listings'] = 'No';
@@ -811,7 +844,6 @@ function add_business_form_handler_save_post($post_id) {
       ->addValue('Business_Details.Full_Time_Employees_at_this_location', $params['number_of_employees'])
       ->addWhere('id', '=', $contact['id'])
       ->execute();
-  }
 }
 
 /**
