@@ -32,6 +32,16 @@ function obiaareport_civicrm_enable(): void {
   _obiaareport_civix_civicrm_enable();
 }
 
+function obiaareport_civicrm_buildForm($formName, &$form) {
+  if (is_user_logged_in() && in_array('bia_staff', (wp_get_current_user()->roles ?? [])) && get_parent_class($form) == 'CRM_Report_Form') {
+    CRM_Core_Resources::singleton()->addScript(
+      "CRM.$(function($) {
+        $('tr.crm-report-instanceForm-form-block-email_to, tr.crm-report-instanceForm-form-block-email_cc, tr.crm-report-instanceForm-form-block-parent_id, .crm-report-instanceForm-form-block-is_navigation, .crm-report-instanceForm-form-block-role, .crm-report-instanceForm-form-block-isReserved, .crm-report-instanceForm-form-block-permission').hide();
+      });"
+    );
+  }
+}
+
 function obiaareport_civicrm_alterReportVar($varType, &$var, $reportForm) {
   if (get_class($reportForm) == 'CRM_Report_Form_Contact_Detail') {
    $result = \Civi\Api4\CustomField::get(FALSE)
