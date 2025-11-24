@@ -57,7 +57,13 @@ function obiaareport_civicrm_alterReportVar($varType, &$var, $reportForm) {
        'title' => ts('Anniversary'),
        'type' => CRM_Utils_Type::T_INT,
        'operatoType' => CRM_Report_Form::OP_INT,
-       'dbAlias' => "TIMESTAMPDIFF(YEAR, $columnName, DATE_ADD(CURDATE(), INTERVAL 1 MONTH))",
+       'dbAlias' => "
+       IF(
+          TIMESTAMPDIFF(YEAR, $columnName, DATE_ADD(CURDATE(), INTERVAL 1 MONTH)) = 0 AND YEAR($columnName) - YEAR(CURDATE()) <> 0,
+          1,
+          TIMESTAMPDIFF(YEAR, $columnName, DATE_ADD(CURDATE(), INTERVAL 1 MONTH))
+        )
+       ",
      ];
    }
   }
