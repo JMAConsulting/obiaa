@@ -25,7 +25,9 @@ class CRM_Biaproperty_Utils {
       UnitBusiness::delete(FALSE)
       ->addWhere('id', '=', $entry['id'])
       ->execute();
-
+      if (UnitBusiness::get(FALSE)->addWhere('unit_id', '=', $uid)->execute()->count() == 0) {
+        \Civi\Api4\Unit::update(FALSE)->addValue('unit_status.name', 'Vacant_Under_Development')->addWhere('id', '=', $entry['unit_id'])->execute();
+      }
       Activity::create(FALSE)
         ->addValue('activity_type_id:name', 'Business closed')
         ->addValue('activity_date_time', date('YmdHis', strtotime($closeDate)))
