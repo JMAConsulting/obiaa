@@ -229,6 +229,7 @@ add_action('init', 'obiaa_admin_role');
  */
 function bia_staff_role_permissions() {
   $capabilities_to_remove = [
+    'activate_plugins',
     'create_posts',
     'create_users',
     'delete_others_pages',
@@ -258,6 +259,7 @@ function bia_staff_role_permissions() {
     'read',
     'read_private_pages',
     'read_private_posts',
+    'resume_plugins',
     'update_core',
     'update_plugins',
     'update_themes',
