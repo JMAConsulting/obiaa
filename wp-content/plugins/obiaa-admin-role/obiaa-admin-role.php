@@ -223,3 +223,64 @@ function obiaa_admin_role() {
 }
 
 add_action('init', 'obiaa_admin_role');
+
+/**
+ * Ensure that BIA Staff Role does not have any ability to publish posts / create users or do system admin
+ */
+function bia_staff_role_permissions() {
+  $capabilities_to_remove = [
+    'activate_plugins',
+    'create_posts',
+    'create_users',
+    'delete_others_pages',
+    'delete_others_posts',
+    'delete_pages',
+    'delete_plugins',
+    'delete_posts',
+    'delete_private_pages',
+    'delete_private_posts',
+    'delete_published_pages',
+    'delete_published_posts',
+    'delete_themes',
+    'delete_users',
+    'edit_pages',
+    'edit_plugins',
+    'edit_posts',
+    'edit_private_pages',
+    'edit_private_posts',
+    'edit_published_pages',
+    'edit_published_posts',
+    'edit_users',
+    'install_languages',
+    'install_plugins',
+    'install_themes',
+    'publish_pages',
+    'publish_posts',
+    'read',
+    'read_private_pages',
+    'read_private_posts',
+    'resume_plugins',
+    'update_core',
+    'update_plugins',
+    'update_themes',
+    'upload_files',
+    'ure_create_capabilities',
+    'ure_create_roles',
+    'ure_delete_capabilities',
+    'ure_delete_roles',
+    'ure_edit_roles',
+    'ure_manage_options',
+    'ure_reset_roles',
+    'edit_groups',
+  ];
+  $role = get_role('bia_staff');
+  if ($role) {
+    foreach ($capabilities_to_remove as $capability) {
+      if ($role->has_cap($capability)) {
+        $role->remove_cap($capability);
+      }
+    }
+  }
+}
+
+add_action('init', 'bia_staff_role_permissions');
