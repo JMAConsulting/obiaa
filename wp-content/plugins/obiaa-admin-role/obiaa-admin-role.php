@@ -290,9 +290,8 @@ function bia_staff_role_permissions() {
         $role->remove_cap($capability);
       }
     }
+    $role->add_cap('read', true);
   }
-  // Add back Read
-  $role->add_cap('read');
 }
 
 add_action('init', 'bia_staff_role_permissions');
