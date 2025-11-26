@@ -151,7 +151,7 @@ class CRM_Biaproperty_GeocodeAddress {
         s.name as state,
         o.name as country
       FROM civicrm_address a
-      LEFT JOIN civicrm_unit c
+      LEFT JOIN civicrm_unit u
         ON a.id = u.address_id
       LEFT JOIN civicrm_country o
         ON a.country_id = o.id
