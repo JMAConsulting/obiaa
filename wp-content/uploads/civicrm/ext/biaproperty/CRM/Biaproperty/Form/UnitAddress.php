@@ -179,7 +179,7 @@ class CRM_Biaproperty_Form_UnitAddress extends CRM_Core_Form {
     }
     else {
       $values = $this->controller->exportValues();
-      $values['is_primary'] = 1;
+      $values['is_primary'] = 1; 
       if (empty($values['street_unit'])) {
         $values['street_unit'] = NULL;
       }
@@ -198,6 +198,8 @@ class CRM_Biaproperty_Form_UnitAddress extends CRM_Core_Form {
       else {
         $address = civicrm_api4('Address', 'update', [
           'values' => $values,
+          'fixAddress' => FALSE,
+          'where' => [['id', '=', $this->getEntityId()]],
           'checkPermissions' => FALSE,
         ])->first()['id'];
         $this->_id = $this->getEntityId();
