@@ -67,7 +67,7 @@ function biamailingreplyto_civicrm_pre($op, $objectName, $id, &$params) {
  * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_navigationMenu
  */
 function biamailingreplyto_civicrm_navigationMenu(&$menu): void {
-  _biamailingreplyto_civix_insert_navigation_menu($menu, 'Administer/CiviMail', [
+  _biamailingreplyto_civix_insert_navigation_menu($menu, 'BIA Administration', [
     'label' => E::ts('BIA Mailing Reply To Extension Settings'),
     'name' => 'biamailingreplyto_settings',
     'url' => 'civicrm/admin/setting/biamailingreplyto',
