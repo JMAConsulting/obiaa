@@ -258,9 +258,9 @@ function civicrm_api3_business_import_Create($params) {
   // Try and Find matching business (member) record.
   $organizationName = !empty($params['organization_name']) ? $params['organization_name'] : $params['first_name'] . '  ' . $params['last_name'];
   $organizationNameFieldDefinition = Contact::getFields(FALSE)->addWhere('name', '=', 'organization_name')->execute()->first();
-  if (mb_strlen($organizationName) > $organizationNameFieldDefinition['input_attrs']['maxlength']) {
+  /*if (mb_strlen($organizationName) > $organizationNameFieldDefinition['input_attrs']['maxlength']) {
     $organizationName = CRM_Utils_String::ellipsify($organizationName, $organizationNameFieldDefinition['input_attrs']['maxlength']);
-  }
+  }*/
   $phoneOnBiz = empty($params['organization_name']);
   $dedupeParams = [
     'contact_sub_type' => 'Members_Businesses_',

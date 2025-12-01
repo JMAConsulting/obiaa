@@ -229,6 +229,7 @@ add_action('init', 'obiaa_admin_role');
  */
 function bia_staff_role_permissions() {
   $capabilities_to_remove = [
+    'activate_plugins',
     'create_posts',
     'create_users',
     'delete_others_pages',
@@ -242,6 +243,17 @@ function bia_staff_role_permissions() {
     'delete_published_posts',
     'delete_themes',
     'delete_users',
+    'edit_dashboard',
+    'export',
+    'import',
+    'manage_categories',
+    'manage_links',
+    'manage_options',
+    'unfiltered_html',
+    'unfiltered_upload',
+    'view_site_health_checks',
+    'promote_users',
+    'remove_users',
     'edit_pages',
     'edit_plugins',
     'edit_posts',
@@ -255,9 +267,9 @@ function bia_staff_role_permissions() {
     'install_themes',
     'publish_pages',
     'publish_posts',
-    'read',
     'read_private_pages',
     'read_private_posts',
+    'resume_plugins',
     'update_core',
     'update_plugins',
     'update_themes',
@@ -278,6 +290,7 @@ function bia_staff_role_permissions() {
         $role->remove_cap($capability);
       }
     }
+    $role->add_cap('read', true);
   }
 }
 
