@@ -280,7 +280,7 @@ class Conflicts {
 			 * Url: https://wordpress.org/plugins/wp-smtp/
 			 */
 			[
-				'name'  => 'WP SMTP',
+				'name'  => 'Solid Mail',
 				'slug'  => 'wp-smtp/wp-smtp.php',
 				'class' => 'WP_SMTP',
 			],

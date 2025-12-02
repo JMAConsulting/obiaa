@@ -1226,6 +1226,7 @@ class SetupWizard {
 			'EASY_WP_SMTP_ZOHO_DOMAIN'                   => [ 'zoho', 'domain' ],
 			'EASY_WP_SMTP_ZOHO_CLIENT_ID'                => [ 'zoho', 'client_id' ],
 			'EASY_WP_SMTP_ZOHO_CLIENT_SECRET'            => [ 'zoho', 'client_secret' ],
+			'EASY_WP_SMTP_RESEND_API_KEY'                => [ 'resend', 'api_key' ],
 			'EASY_WP_SMTP_SMTP_HOST'                     => [ 'smtp', 'host' ],
 			'EASY_WP_SMTP_SMTP_PORT'                     => [ 'smtp', 'port' ],
 			'EASY_WP_SMTP_SSL'                           => [ 'smtp', 'encryption' ],

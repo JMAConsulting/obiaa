@@ -2,9 +2,9 @@
 Contributors: sendlayer, jaredatch, smub, capuderg
 Tags: email, smtp, email logs, gmail, outlook
 Requires at least: 5.2
-Tested up to: 6.8
+Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 2.12.0
+Stable tag: 2.13.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -312,6 +312,14 @@ And we will try to help out as soon as possible.
 10. Setup Wizard - Step 2
 
 == Changelog ==
+
+= 2.13.1 - 2025-11-27 =
+Added: WordPress playground blueprint file.
+Changed: Added Return-Path option to align with WordPress core.
+
+= 2.13.0 - 2025-11-19 =
+* Added: New transactional mailer: Resend integration.
+* Fixed: Recurring task filling up task meta table.
 
 = 2.12.0 - 2025-09-01 =
 * Added: New transactional mailer: Mandrill integration.
