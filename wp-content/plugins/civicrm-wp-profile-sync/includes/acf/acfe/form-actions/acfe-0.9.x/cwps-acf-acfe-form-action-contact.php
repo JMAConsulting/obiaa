@@ -306,7 +306,6 @@ class CWPS_ACF_ACFE_Form_Action_Contact extends CWPS_ACF_ACFE_Form_Action_Base {
 		$this->plugin     = civicrm_wp_profile_sync();
 		$this->acf_loader = $this->plugin->acf;
 		$this->acfe       = $this->acf_loader->acfe;
-		$this->form       = $this->acfe->form;
 		$this->civicrm    = $this->acf_loader->civicrm;
 
 		// Label this Form Action.
@@ -1264,6 +1263,9 @@ class CWPS_ACF_ACFE_Form_Action_Contact extends CWPS_ACF_ACFE_Form_Action_Base {
 		// Populate Email data array.
 		$emails = $this->form_email_data( $form, $action );
 
+		// Populate Address data array.
+		$addresses = $this->form_address_data( $form, $action );
+
 		// Build Contact Custom Field args.
 		$args = [
 			'custom_groups' => $this->custom_fields,
@@ -1273,7 +1275,7 @@ class CWPS_ACF_ACFE_Form_Action_Contact extends CWPS_ACF_ACFE_Form_Action_Base {
 		$contact_custom_fields = $this->form_entity_custom_fields_data( $action['contact'], $args );
 
 		// Get the Contact ID with the data from the Form.
-		$contact_id = $this->form_contact_id_get( $contact, $emails, $action );
+		$contact_id = $this->form_contact_id_get( $contact, $emails, $addresses, $action );
 
 		// Parse Relationships.
 		$relationship_data = [];
@@ -1321,7 +1323,6 @@ class CWPS_ACF_ACFE_Form_Action_Contact extends CWPS_ACF_ACFE_Form_Action_Base {
 			}
 
 			// Save the Address(es) with the data from the Form.
-			$addresses         = $this->form_address_data( $form, $action );
 			$result['address'] = $this->form_address_save( $result['contact'], $addresses );
 
 			// Save the Website(s) with the data from the Form.
@@ -4176,8 +4177,11 @@ class CWPS_ACF_ACFE_Form_Action_Contact extends CWPS_ACF_ACFE_Form_Action_Base {
 		// Get the Emails.
 		$emails = $this->form_email_data( $form, $action );
 
+		// Get the Addresses.
+		$addresses = $this->form_address_data( $form, $action );
+
 		// Get the Contact ID with the data from the Form.
-		$contact_id = $this->form_contact_id_get( $contact, $emails, $action );
+		$contact_id = $this->form_contact_id_get( $contact, $emails, $addresses, $action );
 
 		// All's well if we get a Contact ID.
 		if ( ! empty( $contact_id ) ) {
@@ -4408,10 +4412,11 @@ class CWPS_ACF_ACFE_Form_Action_Contact extends CWPS_ACF_ACFE_Form_Action_Base {
 	 *
 	 * @param array $contact_data The array of Contact data.
 	 * @param array $email_data The array of Email data.
+	 * @param array $address_data The array of Address data.
 	 * @param array $action The array of Action data.
 	 * @return integer|bool $contact_id The numeric ID of the Contact, or false if not found.
 	 */
-	private function form_contact_id_get( $contact_data, $email_data, $action ) {
+	private function form_contact_id_get( $contact_data, $email_data, $address_data, $action ) {
 
 		// Init return.
 		$contact_id = false;
@@ -4423,7 +4428,7 @@ class CWPS_ACF_ACFE_Form_Action_Contact extends CWPS_ACF_ACFE_Form_Action_Base {
 		}
 
 		// Try the "Deduped Contact".
-		$deduped = $this->form_contact_id_get_deduped( $contact_data, $email_data, $action );
+		$deduped = $this->form_contact_id_get_deduped( $contact_data, $email_data, $address_data, $action );
 		if ( $deduped ) {
 			return $deduped;
 		}
@@ -4608,13 +4613,30 @@ class CWPS_ACF_ACFE_Form_Action_Contact extends CWPS_ACF_ACFE_Form_Action_Base {
 	 *
 	 * @param array $contact_data The array of Contact data.
 	 * @param array $email_data The array of Email data.
+	 * @param array $address_data The array of Address data.
 	 * @param array $action The array of Action data.
 	 * @return integer|bool $contact_id The numeric ID of the Contact, or false if not found.
 	 */
-	private function form_contact_id_get_deduped( $contact_data, $email_data, $action ) {
+	private function form_contact_id_get_deduped( $contact_data, $email_data, $address_data, $action ) {
 
 		// Init return.
 		$contact_id = false;
+
+		// Get the chosen Dedupe Rule.
+		$dedupe_rule_id = $action['settings']['dedupe_rule'];
+
+		/*
+		 * We may have a Dedupe Rule that does not check the Email Address.
+		 *
+		 * NOTE: This cannot be the default unsupervised rule because we must have an
+		 * Email Address to use that rule.
+		 */
+		if ( empty( $email_data ) && ! empty( $dedupe_rule_id ) ) {
+			$contact_id = $this->civicrm->contact->get_by_dedupe_rule( $contact_data, $contact_data['contact_type'], $dedupe_rule_id );
+			if ( ! empty( $contact_id ) ) {
+				return $contact_id;
+			}
+		}
 
 		// Dedupe on each available Email.
 		foreach ( $email_data as $email ) {
@@ -4628,15 +4650,11 @@ class CWPS_ACF_ACFE_Form_Action_Contact extends CWPS_ACF_ACFE_Form_Action_Base {
 			$dedupe          = $contact_data;
 			$dedupe['email'] = $email['email'];
 
-			// Get the chosen Dedupe Rule.
-			$dedupe_rule_id = $action['settings']['dedupe_rule'];
-
 			// If a Dedupe Rule is selected, use it.
 			if ( ! empty( $dedupe_rule_id ) ) {
 				$contact_id = $this->civicrm->contact->get_by_dedupe_rule( $dedupe, $dedupe['contact_type'], $dedupe_rule_id );
 			} else {
 				// Use the default unsupervised rule.
-				// NOTE: We need the Email Address to use the default unsupervised rule.
 				$contact_id = $this->civicrm->contact->get_by_dedupe_unsupervised( $dedupe, $dedupe['contact_type'] );
 			}
 

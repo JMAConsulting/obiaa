@@ -58,7 +58,6 @@ class CWPS_ACF_ACFE_Form_Action_Email extends CWPS_ACF_ACFE_Form_Action_Base {
 		$this->plugin     = civicrm_wp_profile_sync();
 		$this->acf_loader = $this->plugin->acf;
 		$this->acfe       = $this->acf_loader->acfe;
-		$this->form       = $this->acfe->form;
 		$this->civicrm    = $this->acf_loader->civicrm;
 
 		// Label this Form Action.
@@ -268,7 +267,7 @@ class CWPS_ACF_ACFE_Form_Action_Email extends CWPS_ACF_ACFE_Form_Action_Base {
 		$email = $this->form_email_data( $form, $action );
 
 		// Check Conditional.
-		if ( $this->form_conditional_check( $action ) ) {
+		if ( $this->form_conditional_check( [ 'action' => $action ] ) ) {
 
 			// Send the Email with the data from the Form.
 			$result['email'] = $this->form_email_save( $email );
@@ -840,7 +839,7 @@ class CWPS_ACF_ACFE_Form_Action_Email extends CWPS_ACF_ACFE_Form_Action_Base {
 		*/
 
 		// Reject the submission if the Template ID is missing.
-		if ( empty( $email['template_id'] ) ) {
+		if ( empty( $email['settings']['template_id'] ) ) {
 			acfe_add_validation_error(
 				'',
 				sprintf(
