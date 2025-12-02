@@ -134,11 +134,6 @@ function mtnc_add_custom_scripts()
 
     wp_register_script('_frontend', MTNC_URI . 'load/js/jquery.frontend.js', 'jquery', filemtime(MTNC_DIR . 'load/js/jquery.frontend.js'), true);
 
-    // IE scripts
-    wp_register_script('jquery_ie', $wp_scripts->registered['jquery-core']->src, array(), true, array());
-
-    wp_script_add_data('jquery_ie', 'conditional', 'lte IE 10');
-
     if (!empty($mt_options['body_bg']) && empty($mt_options['gallery_array']['attachment_ids'])) {
         $bg                    = wp_get_attachment_image_src($mt_options['body_bg'], 'full');
         $js_options['body_bg'] = esc_url($bg[0]);
@@ -147,17 +142,8 @@ function mtnc_add_custom_scripts()
     $js_options['font_link'] = mtnc_add_bunny_fonts();
     wp_localize_script('_frontend', 'mtnc_front_options', $js_options);
 
-    $wp_scripts->do_items('jquery_ie');
-    $wp_scripts->do_items('jquery_migrate_ie');
-    $wp_scripts->do_items('_placeholder_ie');
-    $wp_scripts->do_items('_frontend_ie');
-
-    echo '<!--[if !IE]><!-->';
     $wp_scripts->do_items('jquery');
-    echo '<!--<![endif]-->';
-
     $wp_scripts->do_items('_backstretch');
-
     $wp_scripts->do_items('_frontend');
 }
 
