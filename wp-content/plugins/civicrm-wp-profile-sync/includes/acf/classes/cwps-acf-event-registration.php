@@ -25,7 +25,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Registration {
 	 *
 	 * @since 0.5.4
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync
 	 */
 	public $plugin;
 
@@ -34,7 +34,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Registration {
 	 *
 	 * @since 0.5.4
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync_ACF_Loader
 	 */
 	public $acf_loader;
 
@@ -43,7 +43,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Registration {
 	 *
 	 * @since 0.5.4
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_Profile_Sync_ACF_CiviCRM
 	 */
 	public $civicrm;
 
@@ -202,7 +202,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Registration {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Getter for the public Event Registration Fields.
@@ -279,7 +279,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Registration {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Validate the content of a Field.
@@ -324,7 +324,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Registration {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the value of an Event Registration Field, formatted for ACF.
@@ -409,7 +409,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Registration {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the "select" options for a given CiviCRM Event Registration Field.
@@ -446,7 +446,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Registration {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the CiviCRM Event Registration Fields for an ACF Field.
@@ -493,7 +493,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Registration {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the Event Registration Field options for a given Field ID.
@@ -581,7 +581,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Registration {
 				// Skip all but those mapped to the type of ACF Field.
 				$fields = [];
 				foreach ( $filtered as $key => $value ) {
-					if ( $field_type == $public_fields[ $value['name'] ] ) {
+					if ( $field_type === $public_fields[ $value['name'] ] ) {
 						$fields[] = $value;
 					}
 				}
@@ -602,7 +602,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Registration {
 				// Skip all but those mapped to the type of ACF Field.
 				$fields = [];
 				foreach ( $filtered as $key => $value ) {
-					if ( $field_type == $settings_fields[ $value['name'] ] ) {
+					if ( $field_type === $settings_fields[ $value['name'] ] ) {
 						$fields[] = $value;
 					}
 				}
@@ -620,7 +620,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Registration {
 				// Skip all but those mapped to the type of ACF Field.
 				$fields = [];
 				foreach ( $filtered as $key => $value ) {
-					if ( $field_type == $this->registration_screen_fields[ $value['name'] ] ) {
+					if ( $field_type === $this->registration_screen_fields[ $value['name'] ] ) {
 						$fields[] = $value;
 					}
 				}
@@ -638,7 +638,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Registration {
 				// Skip all but those mapped to the type of ACF Field.
 				$fields = [];
 				foreach ( $filtered as $key => $value ) {
-					if ( $field_type == $this->confirm_screen_fields[ $value['name'] ] ) {
+					if ( $field_type === $this->confirm_screen_fields[ $value['name'] ] ) {
 						$fields[] = $value;
 					}
 				}
@@ -656,7 +656,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Registration {
 				// Skip all but those mapped to the type of ACF Field.
 				$fields = [];
 				foreach ( $filtered as $key => $value ) {
-					if ( $field_type == $this->thankyou_screen_fields[ $value['name'] ] ) {
+					if ( $field_type === $this->thankyou_screen_fields[ $value['name'] ] ) {
 						$fields[] = $value;
 					}
 				}
@@ -674,7 +674,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Registration {
 				// Skip all but those mapped to the type of ACF Field.
 				$fields = [];
 				foreach ( $filtered as $key => $value ) {
-					if ( $field_type == $this->confirmation_email_fields[ $value['name'] ] ) {
+					if ( $field_type === $this->confirmation_email_fields[ $value['name'] ] ) {
 						$fields[] = $value;
 					}
 				}
@@ -982,7 +982,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Registration {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the Fields for an ACF Field and mapped to a CiviCRM Event Type.
@@ -999,7 +999,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Registration {
 
 		// Skip all but those mapped to the type of ACF Field.
 		foreach ( $this->event_fields as $key => $value ) {
-			if ( $type == $value ) {
+			if ( $type === $value ) {
 				$event_fields[ $key ] = $value;
 			}
 		}
@@ -1032,7 +1032,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Registration {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Modify the Settings of an ACF "Number" Field.
@@ -1192,7 +1192,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Registration {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Checks if a CiviCRM Event has a Registration Profile.

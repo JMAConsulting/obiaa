@@ -25,7 +25,7 @@ class CiviCRM_Profile_Sync_ACF_Admin {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync
 	 */
 	public $plugin;
 
@@ -34,7 +34,7 @@ class CiviCRM_Profile_Sync_ACF_Admin {
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync_ACF_Loader
 	 */
 	public $acf_loader;
 
@@ -160,7 +160,7 @@ class CiviCRM_Profile_Sync_ACF_Admin {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Adds the default ACF Integration settings.
@@ -235,7 +235,7 @@ class CiviCRM_Profile_Sync_ACF_Admin {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Add our admin page(s) to the WordPress admin menu.
@@ -592,7 +592,7 @@ class CiviCRM_Profile_Sync_ACF_Admin {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Show our "Manual Sync" page.
@@ -703,7 +703,7 @@ class CiviCRM_Profile_Sync_ACF_Admin {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Register sync meta boxes.
@@ -1008,7 +1008,7 @@ class CiviCRM_Profile_Sync_ACF_Admin {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Route settings updates to relevant methods.
@@ -2738,7 +2738,7 @@ class CiviCRM_Profile_Sync_ACF_Admin {
 		$option = '_cwps_acf_' . $key . '_offset';
 
 		// If the offset value doesn't exist.
-		if ( 'fgffgs' == get_option( $option, 'fgffgs' ) ) {
+		if ( 'fgffgs' === get_option( $option, 'fgffgs' ) ) {
 
 			// Start at the beginning.
 			$offset = 0;
@@ -2791,7 +2791,7 @@ class CiviCRM_Profile_Sync_ACF_Admin {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get all step counts.

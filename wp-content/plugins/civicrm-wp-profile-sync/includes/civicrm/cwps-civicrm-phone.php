@@ -25,7 +25,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Phone {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync
 	 */
 	public $plugin;
 
@@ -34,7 +34,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Phone {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync_CiviCRM
 	 */
 	public $civicrm;
 
@@ -86,7 +86,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Phone {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the data for a Phone Record.
@@ -243,7 +243,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Phone {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Update a CiviCRM Contact's Phone Record.
@@ -350,7 +350,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Phone {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the Phone Types that are defined in CiviCRM.
@@ -397,7 +397,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Phone {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the Phone Field options for a given Field Name.

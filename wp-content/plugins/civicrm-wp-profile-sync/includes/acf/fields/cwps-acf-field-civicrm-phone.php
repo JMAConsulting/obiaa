@@ -25,7 +25,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Phone_Field extends acf_field {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync
 	 */
 	public $plugin;
 
@@ -34,7 +34,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Phone_Field extends acf_field {
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync_ACF_Loader
 	 */
 	public $acf_loader;
 
@@ -43,7 +43,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Phone_Field extends acf_field {
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_Profile_Sync_ACF
 	 */
 	public $acf;
 
@@ -52,7 +52,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Phone_Field extends acf_field {
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_Profile_Sync_ACF_CiviCRM
 	 */
 	public $civicrm;
 
@@ -440,21 +440,15 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Phone_Field extends acf_field {
 		$field['min'] = (int) $field['min'];
 		$field['max'] = (int) $field['max'];
 
-		// Init Subfields.
-		$sub_fields = [];
-
-		// Maybe append to Field.
+		// Validate Subfields.
 		if ( ! empty( $field['sub_fields'] ) ) {
-
-			// Validate Field first.
-			foreach ( $field['sub_fields'] as $sub_field ) {
-				$sub_fields[] = acf_validate_field( $sub_field );
-			}
-
+			array_walk(
+				$field['sub_fields'],
+				function( &$item ) {
+					$item = acf_validate_field( $item );
+				}
+			);
 		}
-
-		// Overwrite subfields.
-		$field['sub_fields'] = $sub_fields;
 
 		// --<
 		return $field;
@@ -471,8 +465,18 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Phone_Field extends acf_field {
 	 */
 	public function update_field( $field ) {
 
-		// Modify the Field with our settings.
+		// Modify the Field with defaults.
 		$field = $this->modify_field( $field );
+
+		// Delete any existing subfields to prevent duplication.
+		if ( ! empty( $field['sub_fields'] ) ) {
+			foreach ( $field['sub_fields'] as $sub_field ) {
+				acf_delete_field( $sub_field['name'] );
+			}
+		}
+
+		// Add our Subfields.
+		$field['sub_fields'] = $this->sub_fields_get( $field );
 
 		// --<
 		return $field;
@@ -480,12 +484,102 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Phone_Field extends acf_field {
 	}
 
 	/**
-	 * Modify the Field with defaults and Subfield definitions.
+	 * Deletes any subfields after the Field has been deleted from the database.
+	 *
+	 * This is more complicated than it ought to be because previous versions of this
+	 * Field added an extra set of Sub-fields to the database every time that the
+	 * Field Group they were part of was saved. We need to remove them all to retain
+	 * the integrity of the Field Group.
+	 *
+	 * @since 0.7.2
+	 *
+	 * @param array $field The Field array holding all the Field options.
+	 */
+	public function delete_field( $field ) {
+
+		// Bail early if no subfields.
+		if ( empty( $field['sub_fields'] ) ) {
+			return;
+		}
+
+		// We need our list of subfields.
+		$sub_fields_data = $this->sub_fields_get( $field );
+
+		// Define common query args.
+		$args = [
+			'posts_per_page'         => -1,
+			'post_type'              => 'acf-field',
+			'orderby'                => 'menu_order',
+			'order'                  => 'ASC',
+			'suppress_filters'       => true, // DO NOT allow WPML to modify the query.
+			'cache_results'          => false,
+			'update_post_meta_cache' => false,
+			'update_post_term_cache' => false,
+			'post_status'            => [ 'publish', 'trash' ],
+		];
+
+		// Delete all the subfields.
+		foreach ( $sub_fields_data as $sub_field ) {
+
+			// Finalise query.
+			$args['name']        = $sub_field['key'];
+			$args['post_parent'] = $field['parent'];
+
+			// Skip to next if we don't get any results.
+			$acf_posts = get_posts( $args );
+			if ( empty( $acf_posts ) ) {
+				continue;
+			}
+
+			// Delete all the subfields with this name.
+			foreach ( $acf_posts as $acf_post ) {
+
+				// Get the Field data.
+				$acf_field = (array) acf_maybe_unserialize( $acf_post->post_content );
+
+				// Validate the Field.
+				$acf_field = acf_validate_field( $acf_field );
+
+				// Set input prefix.
+				$acf_field['prefix'] = 'acf';
+
+				/**
+				 * Filters the Field array after it has been loaded.
+				 *
+				 * @since ACF 5.0.0
+				 *
+				 * @param array $acf_field The ACF Field array.
+				 */
+				$acf_field = apply_filters( 'acf/load_field', $acf_field );
+
+				// Delete the Post.
+				wp_delete_post( $acf_post->ID, true );
+
+				// Flush Field cache.
+				acf_flush_field_cache( $acf_field );
+
+				/**
+				 * Fires immediately after a Field has been deleted.
+				 *
+				 * @since ACF 5.0.0
+				 *
+				 * @param array $acf_field The ACF Field array.
+				 */
+				do_action( 'acf/delete_field', $acf_field );
+
+			}
+
+		}
+
+	}
+
+	/**
+	 * Modify the Field with defaults.
 	 *
 	 * @since 0.4
 	 *
 	 * @param array $field The Field array holding all the Field options.
-	 * @return array $subfields The subfield array.
+	 * @return array $field The modified Field array.
 	 */
 	public function modify_field( $field ) {
 
@@ -501,10 +595,24 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Phone_Field extends acf_field {
 		$field['layout']       = 'table';
 		$field['button_label'] = __( 'Add Phone Number', 'civicrm-wp-profile-sync' );
 		$field['collapsed']    = '';
-		$field['prefix']       = '';
 
 		// Set wrapper class.
 		$field['wrapper']['class'] = 'civicrm_phone';
+
+		// --<
+		return $field;
+
+	}
+
+	/**
+	 * Get the Subfield definitions.
+	 *
+	 * @since 0.7.2
+	 *
+	 * @param array $field The Field array holding all the Field options.
+	 * @return array $sub_fields The subfield array.
+	 */
+	public function sub_fields_get( $field ) {
 
 		// Define Phone Number subfield.
 		$number = [
@@ -676,10 +784,10 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Phone_Field extends acf_field {
 		];
 
 		// Add Subfields.
-		$field['sub_fields'] = [ $number, $extension, $location, $type, $primary, $phone_id ];
+		$sub_fields = [ $number, $extension, $location, $type, $primary, $phone_id ];
 
 		// --<
-		return $field;
+		return $sub_fields;
 
 	}
 

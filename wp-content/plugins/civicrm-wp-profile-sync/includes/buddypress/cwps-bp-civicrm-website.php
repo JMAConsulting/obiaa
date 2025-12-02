@@ -25,7 +25,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Website {
 	 *
 	 * @since 0.5.2
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync
 	 */
 	public $plugin;
 
@@ -34,7 +34,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Website {
 	 *
 	 * @since 0.5.2
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync_BuddyPress
 	 */
 	public $bp_loader;
 
@@ -43,7 +43,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Website {
 	 *
 	 * @since 0.5.2
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync_CiviCRM
 	 */
 	public $civicrm;
 
@@ -52,7 +52,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Website {
 	 *
 	 * @since 0.5.2
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_Profile_Sync_BP_XProfile
 	 */
 	public $xprofile;
 
@@ -208,7 +208,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Website {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Fires when a CiviCRM Contact's Website is about to be edited.
@@ -519,7 +519,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Website {
 
 			// Only "Website" Fields with the matching Website Type.
 			$website_type_id = (int) $bp_field['field_meta']['entity_data']['website_type_id'];
-			if ( $website->website_type_id != $website_type_id ) {
+			if ( (int) $website->website_type_id !== (int) $website_type_id ) {
 				continue;
 			}
 
@@ -616,7 +616,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Website {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Save Website(s) when BuddyPress Profile Fields have been saved.
@@ -733,7 +733,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Website {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Returns the Website Field choices for a Setting Field from when found.
@@ -815,7 +815,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Website {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the core Fields for a CiviCRM Website Type.
@@ -878,7 +878,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Website {
 							$fields[] = $value;
 						}
 					} else {
-						if ( $field_type == $this->website_fields[ $value['name'] ] ) {
+						if ( $field_type === $this->website_fields[ $value['name'] ] ) {
 							$fields[] = $value;
 						}
 					}
@@ -898,7 +898,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Website {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the BuddyPress Field Type for a Website Field.

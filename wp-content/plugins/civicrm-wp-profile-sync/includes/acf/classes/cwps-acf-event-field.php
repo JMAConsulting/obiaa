@@ -25,7 +25,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Field {
 	 *
 	 * @since 0.5.4
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync
 	 */
 	public $plugin;
 
@@ -34,7 +34,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Field {
 	 *
 	 * @since 0.5.4
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync_ACF_Loader
 	 */
 	public $acf_loader;
 
@@ -43,7 +43,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Field {
 	 *
 	 * @since 0.5.4
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_Profile_Sync_ACF_CiviCRM
 	 */
 	public $civicrm;
 
@@ -102,27 +102,32 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Field {
 	 * @var array
 	 */
 	public $fee_fields = [
-		// phpcs:disable WordPress.Arrays.ArrayIndentation.ItemNotAligned
-		'is_monetary'             => 'true_false',
-		'currency'                => 'select',
+		// phpcs:disable Squiz.Commenting.InlineComment.InvalidEndChar
+
+		'is_monetary'         => 'true_false',
+		'currency'            => 'select',
 		// 'payment_processor' => 'select',
-			// Pay Later.
-			'is_pay_later'        => 'true_false',
-			'pay_later_text'      => 'textarea',
-			'pay_later_receipt'   => 'wysiwyg',
-			'is_billing_required' => 'true_false',
-		'fee_label'               => 'text',
+
+		// Pay Later.
+		'is_pay_later'        => 'true_false',
+		'pay_later_text'      => 'textarea',
+		'pay_later_receipt'   => 'wysiwyg',
+		'is_billing_required' => 'true_false',
+		'fee_label'           => 'text',
 		// 'financial_type_id' => 'select',
 		// 'price_set_id' => 'select',
+
 		// Internal "pseudo" Price Set.
 		// 'default_fee_id' => 'select',
 		// 'default_discount_fee_id' => 'select',
-			// Partial Payment - CiviCRM admin only.
-			// 'is_partial_payment' => 'true_false',
-			// 'initial_amount_label' => 'text',
-			// 'initial_amount_help_text' => 'textarea',
-			// 'min_initial_amount' => 'number',
-		// phpcs:enable WordPress.Arrays.ArrayIndentation.ItemNotAligned
+
+		// Partial Payment - CiviCRM admin only.
+		// 'is_partial_payment' => 'true_false',
+		// 'initial_amount_label' => 'text',
+		// 'initial_amount_help_text' => 'textarea',
+		// 'min_initial_amount' => 'number',
+
+		// phpcs:enable Squiz.Commenting.InlineComment.InvalidEndChar
 	];
 
 	/**
@@ -197,7 +202,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Field {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Getter for the public Event Fields.
@@ -255,7 +260,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Field {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Validate the content of a Field.
@@ -300,7 +305,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Field {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the value of an Event Field, formatted for ACF.
@@ -385,7 +390,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Field {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the "select" options for a given CiviCRM Event Field.
@@ -433,7 +438,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Field {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the CiviCRM Event Fields for an ACF Field.
@@ -480,7 +485,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Field {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the Event Field options for a given Field ID.
@@ -532,7 +537,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Field {
 			return $pseudocache[ $filter ][ $field_type ];
 		}
 
-		// Get all Event Location Fields.
+		// Get all Event Fields.
 		$fields = $this->data_get_by_action();
 
 		// Check for filter.
@@ -555,7 +560,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Field {
 				// Skip all but those mapped to the type of ACF Field.
 				$fields = [];
 				foreach ( $filtered as $key => $value ) {
-					if ( $field_type == $public_fields[ $value['name'] ] ) {
+					if ( $field_type === $public_fields[ $value['name'] ] ) {
 						$fields[] = $value;
 					}
 				}
@@ -735,29 +740,6 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Field {
 					}
 				}
 
-			} elseif ( 'registration' === $filter ) {
-
-				// Skip all but those defined in our Online Registration Fields array.
-				$filtered = [];
-				foreach ( $fields as $key => $value ) {
-					if ( array_key_exists( $value['name'], $this->registration_fields ) ) {
-						$filtered[] = $value;
-					}
-				}
-
-				// Maybe order them by our Online Registration Fields array.
-				$fields = [];
-				if ( ! empty( $filtered ) ) {
-					foreach ( $this->registration_fields as $key => $field_type ) {
-						foreach ( $filtered as $value ) {
-							if ( $value['name'] === $key ) {
-								$fields[] = $value;
-								break;
-							}
-						}
-					}
-				}
-
 			}
 
 		}
@@ -814,7 +796,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Field {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the Fields for an ACF Field and mapped to a CiviCRM Event Type.
@@ -831,7 +813,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Field {
 
 		// Skip all but those mapped to the type of ACF Field.
 		foreach ( $this->public_fields_get() as $key => $value ) {
-			if ( $type == $value ) {
+			if ( $type === $value ) {
 				$event_fields[ $key ] = $value;
 			}
 		}
@@ -864,7 +846,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Field {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Modify the Settings of an ACF "Number" Field.
@@ -1036,7 +1018,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Field {
 			// Override if we get the default.
 			$config = CRM_Core_Config::singleton();
 			// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-			if ( $config->dateInputFormat == $format ) {
+			if ( $config->dateInputFormat === $format ) {
 				$format = '';
 			}
 

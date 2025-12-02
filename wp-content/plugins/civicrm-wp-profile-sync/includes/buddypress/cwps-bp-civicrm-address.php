@@ -25,7 +25,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Address {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync
 	 */
 	public $plugin;
 
@@ -34,7 +34,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Address {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync_BuddyPress
 	 */
 	public $bp_loader;
 
@@ -43,7 +43,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Address {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync_CiviCRM
 	 */
 	public $civicrm;
 
@@ -52,7 +52,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Address {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_Profile_Sync_BP_XProfile
 	 */
 	public $xprofile;
 
@@ -221,7 +221,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Address {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Intercept when a CiviCRM Address Record has been updated.
@@ -298,7 +298,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Address {
 
 			// Only "Address" Fields with the matching Location Type.
 			$location_type_id = (int) $bp_field['field_meta']['entity_data']['location_type_id'];
-			if ( $address->location_type_id != $location_type_id ) {
+			if ( (int) $address->location_type_id !== (int) $location_type_id ) {
 				continue;
 			}
 
@@ -406,7 +406,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Address {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Save Address(es) when BuddyPress Profile Fields have been saved.
@@ -546,7 +546,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Address {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Returns the Address Field choices for a Setting Field from when found.
@@ -627,7 +627,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Address {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the core Fields for a CiviCRM Address Type.
@@ -685,7 +685,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Address {
 
 				// Skip all but those mapped to the type of ACF Field.
 				foreach ( $public_fields as $key => $value ) {
-					if ( $field_type == $this->address_fields[ $value['name'] ] ) {
+					if ( $field_type === $this->address_fields[ $value['name'] ] ) {
 						$fields[] = $value;
 					}
 				}
@@ -704,7 +704,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Address {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the BuddyPress Field Type for an Address Field.
@@ -755,7 +755,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Address {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the BuddyPress "selectbox" options for a given CiviCRM Contact Field.
@@ -804,7 +804,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Address {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Listen for queries from the Custom Field class.
@@ -866,7 +866,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Address {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Modify the Options of a BuddyPress "Select" Field.
@@ -930,7 +930,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Address {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Modify the Options of a special case BuddyPress "Checkbox" Field.

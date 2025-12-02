@@ -25,7 +25,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Custom_Field {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync
 	 */
 	public $plugin;
 
@@ -34,7 +34,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Custom_Field {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync_CiviCRM
 	 */
 	public $civicrm;
 
@@ -83,7 +83,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Custom_Field {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the CiviCRM Custom Field data for a given ID.
@@ -186,7 +186,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Custom_Field {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the values for a given CiviCRM Contact ID and set of Custom Fields.
@@ -245,7 +245,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Custom_Field {
 		// Overwrite return.
 		foreach ( $result['values'] as $item ) {
 			foreach ( $item as $key => $value ) {
-				if ( substr( $key, 0, 7 ) == 'custom_' ) {
+				if ( substr( $key, 0, 7 ) === 'custom_' ) {
 					$index                  = (int) str_replace( 'custom_', '', $key );
 					$contact_data[ $index ] = $value;
 				}
@@ -259,7 +259,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Custom_Field {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the Custom Fields for a given CiviCRM Contact.

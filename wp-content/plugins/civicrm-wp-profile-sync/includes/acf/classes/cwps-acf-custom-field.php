@@ -25,7 +25,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Custom_Field {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync
 	 */
 	public $plugin;
 
@@ -34,7 +34,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Custom_Field {
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync_ACF_Loader
 	 */
 	public $acf_loader;
 
@@ -43,7 +43,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Custom_Field {
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_Profile_Sync_ACF_CiviCRM
 	 */
 	public $civicrm;
 
@@ -228,7 +228,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Custom_Field {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Intercept when a Post has been updated from a Contact via the Mapper.
@@ -257,7 +257,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Custom_Field {
 		foreach ( $custom_field_ids as $selector => $custom_field_id ) {
 			foreach ( $custom_fields_for_contact as $label => $custom_fields_data ) {
 				foreach ( $custom_fields_data as $key => $custom_field_data ) {
-					if ( $custom_field_data['id'] == $custom_field_id ) {
+					if ( (int) $custom_field_data['id'] === (int) $custom_field_id ) {
 						$filtered[ $selector ] = $custom_field_data;
 						break;
 					}
@@ -341,7 +341,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Custom_Field {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Intercept when a Post has been updated from an Activity via the Mapper.
@@ -369,7 +369,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Custom_Field {
 		$filtered = [];
 		foreach ( $custom_field_ids as $selector => $custom_field_id ) {
 			foreach ( $custom_fields_for_activity as $key => $custom_field_data ) {
-				if ( $custom_field_data['id'] == $custom_field_id ) {
+				if ( (int) $custom_field_data['id'] === (int) $custom_field_id ) {
 					$filtered[ $selector ] = $custom_field_data;
 					break;
 				}
@@ -465,7 +465,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Custom_Field {
 		// Overwrite return.
 		foreach ( $result['values'] as $item ) {
 			foreach ( $item as $key => $value ) {
-				if ( substr( $key, 0, 7 ) == 'custom_' ) {
+				if ( substr( $key, 0, 7 ) === 'custom_' ) {
 					$index                   = (int) str_replace( 'custom_', '', $key );
 					$activity_data[ $index ] = $value;
 				}
@@ -479,7 +479,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Custom_Field {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the values for a given CiviCRM Case ID and set of Custom Fields.
@@ -538,7 +538,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Custom_Field {
 		// Overwrite return.
 		foreach ( $result['values'] as $item ) {
 			foreach ( $item as $key => $value ) {
-				if ( substr( $key, 0, 7 ) == 'custom_' ) {
+				if ( substr( $key, 0, 7 ) === 'custom_' ) {
 					$index               = (int) str_replace( 'custom_', '', $key );
 					$case_data[ $index ] = $value;
 				}
@@ -552,7 +552,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Custom_Field {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the values for a given CiviCRM Event ID and set of Custom Fields.
@@ -561,7 +561,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Custom_Field {
 	 *
 	 * @param integer $event_id The numeric ID of the CiviCRM Event to query.
 	 * @param array   $custom_field_ids The Custom Field IDs to query.
-	 * @return array $case_data An array of Case data.
+	 * @return array $case_data An array of Event data.
 	 */
 	public function values_get_by_event_id( $event_id, $custom_field_ids = [] ) {
 
@@ -584,7 +584,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Custom_Field {
 			$codes[] = 'custom_' . $custom_field_id;
 		}
 
-		// Define params to get queried Case.
+		// Define params to get queried Event.
 		$params = [
 			'version'    => 3,
 			'sequential' => 1,
@@ -611,7 +611,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Custom_Field {
 		// Overwrite return.
 		foreach ( $result['values'] as $item ) {
 			foreach ( $item as $key => $value ) {
-				if ( substr( $key, 0, 7 ) == 'custom_' ) {
+				if ( substr( $key, 0, 7 ) === 'custom_' ) {
 					$index                = (int) str_replace( 'custom_', '', $key );
 					$event_data[ $index ] = $value;
 				}
@@ -625,7 +625,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Custom_Field {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Intercept when a Post has been updated from a Participant via the Mapper.
@@ -653,7 +653,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Custom_Field {
 		$filtered = [];
 		foreach ( $custom_field_ids as $selector => $custom_field_id ) {
 			foreach ( $custom_fields_for_participant as $key => $custom_field_data ) {
-				if ( $custom_field_data['id'] == $custom_field_id ) {
+				if ( (int) $custom_field_data['id'] === (int) $custom_field_id ) {
 					$filtered[ $selector ] = $custom_field_data;
 					break;
 				}
@@ -749,7 +749,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Custom_Field {
 		// Overwrite return.
 		foreach ( $result['values'] as $item ) {
 			foreach ( $item as $key => $value ) {
-				if ( substr( $key, 0, 7 ) == 'custom_' ) {
+				if ( substr( $key, 0, 7 ) === 'custom_' ) {
 					$index                      = (int) str_replace( 'custom_', '', $key );
 					$participant_data[ $index ] = $value;
 				}
@@ -763,7 +763,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Custom_Field {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Callback for the CiviCRM Add/Edit Custom Field postSave hook.
@@ -831,7 +831,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Custom_Field {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Called when a set of CiviCRM Custom Fields is about to be updated.
@@ -964,7 +964,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Custom_Field {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the value of a Custom Field, formatted for ACF.
@@ -1001,32 +1001,44 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Custom_Field {
 
 			// Contact Reference Fields may return the Contact's "sort_name".
 			case 'ContactReference':
-				// Test for a numeric value.
-				// phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedIf
+				// Test for a non-numeric value.
 				if ( ! is_numeric( $value ) ) {
 
-					/*
-					 * This definitely happens when Contact Reference Fields are
-					 * attached to Events - when retrieving the Event from the
-					 * CiviCRM API, the Custom Field values are helpfully added
-					 * to the returned data. However, the value in "custom_N" is
-					 * the Contact's "sort_name". The numeric ID is also returned,
-					 * but this is added under the key "custom_N_id" instead.
-					 */
+					// Convert if the value has the special CiviCRM array-like format.
+					if ( is_string( $value ) ) {
+						if ( false !== strpos( $value, CRM_Core_DAO::VALUE_SEPARATOR ) ) {
+							$value = CRM_Utils_Array::explodePadded( $value );
+						}
+					}
 
-					/*
-					$e = new \Exception();
-					$trace = $e->getTraceAsString();
-					$log = [
-						'method' => __METHOD__,
-						'value' => $value,
-						'field' => $field,
-						'selector' => $selector,
-						'post_id' => $post_id,
-						'backtrace' => $trace,
-					];
-					$this->plugin->log_error( $log );
-					*/
+					// Check if it's still a string.
+					// phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedIf
+					if ( is_string( $value ) ) {
+
+						/*
+						 * This definitely happens when Contact Reference Fields are
+						 * attached to Events - when retrieving the Event from the
+						 * CiviCRM API, the Custom Field values are helpfully added
+						 * to the returned data. However, the value in "custom_N" can be
+						 * the Contact's "sort_name". The numeric ID is also returned,
+						 * but this is added under the key "custom_N_id" instead.
+						 */
+
+						/*
+						$e = new \Exception();
+						$trace = $e->getTraceAsString();
+						$log = [
+							'method' => __METHOD__,
+							'value' => $value,
+							'field' => $field,
+							'selector' => $selector,
+							'post_id' => $post_id,
+							'backtrace' => $trace,
+						];
+						$this->plugin->log_error( $log );
+						*/
+
+					}
 
 				}
 				break;
@@ -1058,7 +1070,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Custom_Field {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the CiviCRM Custom Fields for an ACF Field.
@@ -1113,7 +1125,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Custom_Field {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the mapped Custom Field ID if present.
@@ -1209,7 +1221,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Custom_Field {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Modify the Settings of an ACF "Select" Field.

@@ -25,7 +25,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync
 	 */
 	public $plugin;
 
@@ -34,7 +34,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync_ACF_Loader
 	 */
 	public $acf_loader;
 
@@ -43,7 +43,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_Profile_Sync_ACF_CiviCRM
 	 */
 	public $civicrm;
 
@@ -52,7 +52,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_Profile_Sync_ACF_CiviCRM_Participant
 	 */
 	public $participant;
 
@@ -61,7 +61,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax
 	 */
 	public $tax;
 
@@ -70,7 +70,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Term_HTML
 	 */
 	public $term_html;
 
@@ -402,7 +402,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Act when the CPT is enabled via the CiviCRM Event Component settings.
@@ -439,7 +439,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Update a CiviCRM Participant when a WordPress Post is synced.
@@ -592,7 +592,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Prepare the required CiviCRM Participant data from a set of ACF Fields.
@@ -778,7 +778,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Create the WordPress Post when a CiviCRM Participant is being synced.
@@ -860,7 +860,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 		 *
 		 * Instead, the Participant ID needs to be reverse synced to the Post.
 		 */
-		if ( 'post' === $entity['entity'] && $this->post_type_name == $entity['type'] ) {
+		if ( 'post' === $entity['entity'] && $this->post_type_name === $entity['type'] ) {
 
 			// Save correspondence and skip.
 			$this->acf_loader->post->participant_id_set( $entity['id'], $args['objectId'] );
@@ -933,7 +933,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 		$entity = $this->acf_loader->mapper->entity_get();
 
 		// Exclude "reverse" edits when a Post is the originator.
-		if ( 'post' === $entity['entity'] && $post_id == $entity['id'] ) {
+		if ( 'post' === $entity['entity'] && (int) $post_id === (int) $entity['id'] ) {
 			return;
 		}
 
@@ -1022,7 +1022,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Listen for queries from the Field Group class.
@@ -1197,7 +1197,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Filter the Post Types mapped to a Field Group.
@@ -1282,7 +1282,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Add a link to action links on the Pages and Posts list tables.
@@ -1370,10 +1370,10 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 			if ( $screen instanceof WP_Screen && 'post' !== $screen->base ) {
 				return;
 			}
-			if ( $screen->id != $this->post_type_name ) {
+			if ( $screen->id !== $this->post_type_name ) {
 				return;
 			}
-			if ( 'add' === $screen->id ) {
+			if ( 'add' === $screen->action ) {
 				return;
 			}
 		}
@@ -1449,7 +1449,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Create our Custom Post Type.
@@ -1519,6 +1519,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 		];
 
 		// Set up the Post Type called "Participant".
+		// phpcs:ignore WordPress.NamingConventions.ValidPostTypeSlug.NotStringLiteral
 		register_post_type( $this->post_type_name, $args );
 
 		// phpcs:ignore Squiz.Commenting.InlineComment.InvalidEndChar
@@ -1650,7 +1651,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Create our Custom Taxonomy.
@@ -1759,7 +1760,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 	public function taxonomy_fix_metabox( $args, $post_id ) {
 
 		// If rendering metabox for our Taxonomy.
-		if ( isset( $args['taxonomy'] ) && $args['taxonomy'] == $this->taxonomy_name ) {
+		if ( isset( $args['taxonomy'] ) && $args['taxonomy'] === $this->taxonomy_name ) {
 
 			// Setting 'checked_ontop' to false seems to fix this.
 			$args['checked_ontop'] = false;
@@ -1799,7 +1800,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 		global $typenow;
 
 		// Bail if not our Post Type.
-		if ( $typenow != $this->post_type_name ) {
+		if ( $typenow !== $this->post_type_name ) {
 			return;
 		}
 
@@ -1824,7 +1825,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Adds the ACF Field Group.
@@ -1895,7 +1896,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Gets the "Registration Date" Field data.
@@ -1985,7 +1986,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Maybe hide a Field.
@@ -2088,7 +2089,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Filter the mapped Post Types to include this one.

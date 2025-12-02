@@ -25,7 +25,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact_Field {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync
 	 */
 	public $plugin;
 
@@ -34,7 +34,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact_Field {
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync_ACF_Loader
 	 */
 	public $acf_loader;
 
@@ -43,7 +43,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact_Field {
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_Profile_Sync_ACF_CiviCRM
 	 */
 	public $civicrm;
 
@@ -193,7 +193,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact_Field {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Intercept when a Post has been updated from a Contact via the Mapper.
@@ -275,7 +275,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact_Field {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the value of a Contact Field, formatted for ACF.
@@ -377,7 +377,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact_Field {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the "date format" for a given CiviCRM Contact Field.
@@ -412,7 +412,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact_Field {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the "select" options for a given CiviCRM Contact Field.
@@ -481,7 +481,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact_Field {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the CiviCRM Contact Fields for an ACF Field.
@@ -560,7 +560,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact_Field {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the core Fields for a CiviCRM Contact Type.
@@ -636,7 +636,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact_Field {
 
 				// Skip all but those mapped to the type of ACF Field.
 				foreach ( $public_fields as $key => $value ) {
-					if ( $field_type == $contact_fields[ $value['name'] ] ) {
+					if ( $field_type === $contact_fields[ $value['name'] ] ) {
 						$fields[] = $value;
 					}
 				}
@@ -818,7 +818,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact_Field {
 
 		// Skip all but those mapped to the type of ACF Field.
 		foreach ( $public_fields as $key => $value ) {
-			if ( $type == $value ) {
+			if ( $type === $value ) {
 				$contact_fields[ $key ] = $value;
 			}
 		}
@@ -857,7 +857,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact_Field {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Modify the Settings of an ACF "Select" Field.
@@ -1137,7 +1137,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact_Field {
 			$full_size = wp_get_attachment_image_url( (int) $existing, 'full' );
 
 			// If the URL has changed.
-			if ( ! empty( $full_size ) && $full_size != $value ) {
+			if ( ! empty( $full_size ) && $full_size !== $value ) {
 
 				// Sync the new image.
 				$sync = true;
@@ -1254,7 +1254,10 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact_Field {
 
 		// Handle sideload errors.
 		if ( is_wp_error( $attachment_id ) ) {
-			@unlink( $files['tmp_name'] );
+			$wp_filesystem = $this->plugin->wp->filesystem_init();
+			if ( $wp_filesystem ) {
+				$wp_filesystem->delete( $files['tmp_name'] );
+			}
 			return '';
 		}
 

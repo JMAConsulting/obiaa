@@ -25,7 +25,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Location {
 	 *
 	 * @since 0.5.4
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync
 	 */
 	public $plugin;
 
@@ -34,7 +34,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Location {
 	 *
 	 * @since 0.5.4
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync_ACF_Loader
 	 */
 	public $acf_loader;
 
@@ -43,7 +43,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Location {
 	 *
 	 * @since 0.5.4
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_Profile_Sync_ACF_CiviCRM
 	 */
 	public $civicrm;
 
@@ -163,7 +163,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Location {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Getter for the public Event Location Fields.
@@ -212,7 +212,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Location {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Validate the content of a Field.
@@ -257,7 +257,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Location {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the value of an Event Location Field, formatted for ACF.
@@ -342,7 +342,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Location {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the "select" options for a given CiviCRM Event Location Field.
@@ -374,7 +374,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Location {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Gets all Event Locations.
@@ -508,7 +508,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Location {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Create a CiviCRM Event Location for a given set of data.
@@ -606,7 +606,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Location {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the CiviCRM Event Location Fields for an ACF Field.
@@ -653,7 +653,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Location {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the Event Location Field options for a given Field ID.
@@ -739,7 +739,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Location {
 				// Skip all but those mapped to the type of ACF Field.
 				$fields = [];
 				foreach ( $filtered as $key => $value ) {
-					if ( $field_type == $this->settings_fields[ $value['name'] ] ) {
+					if ( $field_type === $this->settings_fields[ $value['name'] ] ) {
 						$fields[] = $value;
 					}
 				}
@@ -787,7 +787,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Location {
 				// Skip all but those mapped to the type of ACF Field.
 				$filtered = [];
 				foreach ( $fields as $key => $value ) {
-					if ( $field_type == $this->address_fields[ $value['name'] ] ) {
+					if ( $field_type === $this->address_fields[ $value['name'] ] ) {
 						$filtered[] = $value;
 					}
 				}
@@ -838,7 +838,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Location {
 				// Skip all but those mapped to the type of ACF Field.
 				$filtered = [];
 				foreach ( $fields as $key => $value ) {
-					if ( $field_type == $this->email_fields[ $value['name'] ] ) {
+					if ( $field_type === $this->email_fields[ $value['name'] ] ) {
 						$filtered[] = $value;
 					}
 				}
@@ -889,7 +889,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Location {
 				// Skip all but those mapped to the type of ACF Field.
 				$filtered = [];
 				foreach ( $fields as $key => $value ) {
-					if ( $field_type == $this->phone_fields[ $value['name'] ] ) {
+					if ( $field_type === $this->phone_fields[ $value['name'] ] ) {
 						$filtered[] = $value;
 					}
 				}
@@ -1149,7 +1149,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Location {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the Fields for an ACF Field and mapped to a CiviCRM Event Type.
@@ -1166,7 +1166,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Location {
 
 		// Skip all but those mapped to the type of ACF Field.
 		foreach ( $this->event_fields as $key => $value ) {
-			if ( $type == $value ) {
+			if ( $type === $value ) {
 				$event_fields[ $key ] = $value;
 			}
 		}
@@ -1199,7 +1199,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Event_Location {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Modify the Settings of an ACF "Select" Field.

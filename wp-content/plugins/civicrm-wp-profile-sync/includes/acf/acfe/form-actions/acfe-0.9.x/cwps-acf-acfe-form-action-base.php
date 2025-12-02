@@ -25,7 +25,7 @@ class CWPS_ACF_ACFE_Form_Action_Base extends acfe_module_form_action {
 	 *
 	 * @since 0.7.0
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync
 	 */
 	public $plugin;
 
@@ -34,7 +34,7 @@ class CWPS_ACF_ACFE_Form_Action_Base extends acfe_module_form_action {
 	 *
 	 * @since 0.7.0
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync_ACF_Loader
 	 */
 	public $acf_loader;
 
@@ -43,25 +43,16 @@ class CWPS_ACF_ACFE_Form_Action_Base extends acfe_module_form_action {
 	 *
 	 * @since 0.7.0
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_Profile_Sync_ACF_ACFE
 	 */
 	public $acfe;
-
-	/**
-	 * ACFE Form object.
-	 *
-	 * @since 0.7.0
-	 * @access public
-	 * @var object
-	 */
-	public $form;
 
 	/**
 	 * CiviCRM object.
 	 *
 	 * @since 0.7.0
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_Profile_Sync_ACF_CiviCRM
 	 */
 	public $civicrm;
 

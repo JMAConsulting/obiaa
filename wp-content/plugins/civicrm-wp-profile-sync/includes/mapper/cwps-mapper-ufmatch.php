@@ -21,11 +21,11 @@ defined( 'ABSPATH' ) || exit;
 class CiviCRM_WP_Profile_Sync_Mapper_UFMatch {
 
 	/**
-	 * Plugin (calling) object.
+	 * Plugin object.
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync
 	 */
 	public $plugin;
 
@@ -34,7 +34,7 @@ class CiviCRM_WP_Profile_Sync_Mapper_UFMatch {
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync_Mapper
 	 */
 	public $mapper;
 
@@ -92,7 +92,7 @@ class CiviCRM_WP_Profile_Sync_Mapper_UFMatch {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get a CiviCRM Contact ID for a given WordPress User ID.
@@ -188,7 +188,7 @@ class CiviCRM_WP_Profile_Sync_Mapper_UFMatch {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get a WordPress User ID given a CiviCRM Contact ID.
@@ -272,7 +272,7 @@ class CiviCRM_WP_Profile_Sync_Mapper_UFMatch {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Create a link between a WordPress User and a CiviCRM Contact.
@@ -436,7 +436,7 @@ class CiviCRM_WP_Profile_Sync_Mapper_UFMatch {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the UFMatch data for a given CiviCRM Contact ID.
@@ -717,7 +717,7 @@ class CiviCRM_WP_Profile_Sync_Mapper_UFMatch {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Updates the UFMatch entry in the current Domain for a CiviCRM Contact when
