@@ -2,6 +2,14 @@
 
 namespace EasyWPSMTP\Compatibility;
 
+use EasyWPSMTP\Compatibility\Plugin\Admin2020;
+use EasyWPSMTP\Compatibility\Plugin\Polylang;
+use EasyWPSMTP\Compatibility\Plugin\PolylangPro;
+use EasyWPSMTP\Compatibility\Plugin\WooCommerce;
+use EasyWPSMTP\Compatibility\Plugin\WPForms;
+use EasyWPSMTP\Compatibility\Plugin\WPFormsLite;
+use EasyWPSMTP\Compatibility\Plugin\WPML;
+
 /**
  * Compatibility.
  * Class for managing compatibility with other plugins.
@@ -37,10 +45,13 @@ class Compatibility {
 	public function setup_compatibility() {
 
 		$plugins = [
-			'admin-2020'   => '\EasyWPSMTP\Compatibility\Plugin\Admin2020',
-			'wpforms-lite' => '\EasyWPSMTP\Compatibility\Plugin\WPFormsLite',
-			'wpforms'      => '\EasyWPSMTP\Compatibility\Plugin\WPForms',
-			'woocommerce'  => '\EasyWPSMTP\Compatibility\Plugin\WooCommerce',
+			'admin-2020'   => Admin2020::class,
+			'wpforms-lite' => WPFormsLite::class,
+			'wpforms'      => WPForms::class,
+			'woocommerce'  => WooCommerce::class,
+			'wpml'         => WPML::class,
+			'polylang'     => Polylang::class,
+			'polylang-pro' => PolylangPro::class,
 		];
 
 		foreach ( $plugins as $key => $classname ) {

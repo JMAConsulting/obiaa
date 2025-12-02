@@ -133,7 +133,7 @@ class UserFeedback {
 				<p><?php esc_html_e( 'That’s awesome! Could you please do me a BIG favor and give it a 5-star rating on WordPress to help us spread the word and boost our motivation?', 'easy-wp-smtp' ); ?></p>
 				<p><strong><?php esc_html_e( '~ Easy WP SMTP team', 'easy-wp-smtp' ); ?></strong></p>
 				<p>
-					<a href="https://wordpress.org/support/plugin/easy-wp-smtp/reviews/?filter=5#new-post"
+					<a href="https://wordpress.org/support/plugin/easy-wp-smtp/reviews/#new-post"
 						 class="easy-wp-smtp-dismiss-review-notice easy-wp-smtp-review-out" target="_blank"
 						 rel="noopener noreferrer">
 						<?php esc_html_e( 'OK, you deserve it', 'easy-wp-smtp' ); ?>
