@@ -36,6 +36,7 @@ class Helpers {
 				'elasticemail',
 				'mailersend',
 				'mandrill',
+				'resend',
 			],
 			true
 		);

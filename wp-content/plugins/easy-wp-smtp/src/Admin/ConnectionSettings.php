@@ -4,6 +4,7 @@ namespace EasyWPSMTP\Admin;
 
 use EasyWPSMTP\ConnectionInterface;
 use EasyWPSMTP\Debug;
+use EasyWPSMTP\Helpers\UI;
 use EasyWPSMTP\Options;
 
 /**
@@ -400,6 +401,32 @@ class ConnectionSettings {
 						</div>
 					</div>
 
+					<!-- Return Path -->
+					<div class="easy-wp-smtp-row easy-wp-smtp-setting-row easy-wp-smtp-setting-row--text<?php echo ! $connection_options->get( 'mail', 'advanced' ) ? ' easy-wp-smtp-hidden' : ''; ?> js-easy-wp-smtp-setting-return-path" style="display: <?php echo empty( $mailer_supported_settings['return_path'] ) ? 'none' : 'flex'; ?>;">
+						<div class="easy-wp-smtp-setting-row__label">
+							<label for="easy-wp-smtp-setting-return_path">
+								<?php esc_html_e( 'Return Path', 'easy-wp-smtp' ); ?>
+							</label>
+						</div>
+						<div class="easy-wp-smtp-setting-row__field">
+							<?php
+							UI::toggle(
+								[
+									'name'     => 'easy-wp-smtp[mail][return_path]',
+									'id'       => 'easy-wp-smtp-setting-return_path',
+									'value'    => 'true',
+									'checked'  => (bool) $connection_options->get( 'mail', 'return_path' ),
+									'disabled' => $connection_options->is_const_defined( 'mail', 'return_path' ),
+								]
+							);
+							?>
+
+							<p class="desc">
+								<?php esc_html_e( 'Return Path specifies the address that should receive non-delivery notices (bounce messages).', 'easy-wp-smtp' ); ?><br/>
+								<?php esc_html_e( 'If this option is disabled, bounce messages may not reach you.', 'easy-wp-smtp' ); ?>
+							</p>
+						</div>
+					</div>
 				<?php endif; ?>
 			</div>
 		</div>
@@ -422,6 +449,9 @@ class ConnectionSettings {
 		}
 		if ( ! isset( $data['mail']['from_name_force'] ) ) {
 			$data['mail']['from_name_force'] = false;
+		}
+		if ( ! isset( $data['mail']['return_path'] ) ) {
+			$data['mail']['return_path'] = false;
 		}
 		if ( ! isset( $data['mail']['advanced'] ) ) {
 			$data['mail']['advanced'] = false;

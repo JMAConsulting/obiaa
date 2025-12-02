@@ -1,9 +1,9 @@
 <?php return array(
     'root' => array(
         'name' => 'awesomemotive/easy-wp-smtp',
-        'pretty_version' => 'dev-develop',
-        'version' => 'dev-develop',
-        'reference' => '8232fea2875b738c23d85176edffb31a2a96dfb2',
+        'pretty_version' => 'dev-2.13.1-release',
+        'version' => 'dev-2.13.1-release',
+        'reference' => 'a23a8d1ac7115a2b34fb90f7b5f382259f923b5b',
         'type' => 'wordpress-plugin',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -11,9 +11,9 @@
     ),
     'versions' => array(
         'awesomemotive/easy-wp-smtp' => array(
-            'pretty_version' => 'dev-develop',
-            'version' => 'dev-develop',
-            'reference' => '8232fea2875b738c23d85176edffb31a2a96dfb2',
+            'pretty_version' => 'dev-2.13.1-release',
+            'version' => 'dev-2.13.1-release',
+            'reference' => 'a23a8d1ac7115a2b34fb90f7b5f382259f923b5b',
             'type' => 'wordpress-plugin',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

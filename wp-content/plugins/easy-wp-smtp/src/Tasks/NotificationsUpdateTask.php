@@ -53,7 +53,6 @@ class NotificationsUpdateTask extends Task {
 			easy_wp_smtp()->get_notifications()->get_notification_update_task_interval()
 		)
 		     ->unique()
-		     ->params()
 		     ->register();
 	}
 

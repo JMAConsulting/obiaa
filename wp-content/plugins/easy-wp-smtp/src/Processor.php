@@ -141,6 +141,11 @@ class Processor {
 		// It's basically always 'smtp'.
 		$phpmailer->Mailer = $mailer;
 
+		// Set the Sender (return-path) if required.
+		if ( $connection_options->get( 'mail', 'return_path' ) ) {
+			$phpmailer->Sender = $phpmailer->From;
+		}
+
 		// Set the SMTPSecure value, if set to none, leave this blank. Possible values: 'ssl', 'tls', ''.
 		if ( 'none' === $connection_options->get( $mailer, 'encryption' ) ) {
 			$phpmailer->SMTPSecure = '';
