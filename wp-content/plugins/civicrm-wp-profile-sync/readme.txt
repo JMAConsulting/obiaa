@@ -5,7 +5,7 @@ Tags:              civicrm, buddypress, acf, profile, sync
 Requires PHP:      7.4
 Requires at least: 4.9
 Tested up to:      6.8
-Stable tag:        0.7.2
+Stable tag:        0.7.3
 License:           GPLv2 or later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -85,6 +85,12 @@ I'll say it again: test early, test often and - above all - test on a developmen
 
 
 == Changelog ==
+
+= 0.7.3 =
+
+* CiviCRM Email Form Action fixes
+* Fixes sync of Multi-select Contact Reference data
+* Fixes result of APIv3 and APIv4 operations in GroupContact callbacks
 
 = 0.7.2 =
 
