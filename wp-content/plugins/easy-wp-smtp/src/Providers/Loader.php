@@ -32,6 +32,7 @@ class Loader {
 		'mandrill'     => 'EasyWPSMTP\Providers\Mandrill\\',
 		'outlook'      => 'EasyWPSMTP\Providers\Outlook\\',
 		'postmark'     => 'EasyWPSMTP\Providers\Postmark\\',
+		'resend'       => 'EasyWPSMTP\Providers\Resend\\',
 		'sendgrid'     => 'EasyWPSMTP\Providers\Sendgrid\\',
 		'smtpcom'      => 'EasyWPSMTP\Providers\SMTPcom\\',
 		'smtp2go'      => 'EasyWPSMTP\Providers\SMTP2GO\\',
