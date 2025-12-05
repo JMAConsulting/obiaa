@@ -281,11 +281,16 @@ class CRM_Biaproperty_Form_Unit extends CRM_Core_Form {
       $defaults['state_province_id'] = Civi::settings()->get('defaultContactStateProvince');
       $defaults['city'] = $property['city'];
       $defaults['postal_code'] = $property['postal_code'];
-      if ($this->_pid !== 0) {$defaults['property_id'] = $this->_pid;}
+      if ($this->_pid !== 0) {
+        $defaults['property_id'] = $this->_pid;
+      }
     }
     if ($this->_bid && $this->_bid !== 0) {
       $defaults['business_id'] = $this->_bid;
-      $defaults['unit_status'] = 1;
+      // Only set default status if we aren't modifying a unit
+      if (empty($this->_id)) {
+        $defaults['unit_status'] = 1;
+      }
     }
     return $defaults;
   }
