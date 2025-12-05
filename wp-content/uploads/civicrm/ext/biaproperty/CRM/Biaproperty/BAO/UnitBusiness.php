@@ -28,10 +28,15 @@ class CRM_Biaproperty_BAO_UnitBusiness extends CRM_Biaproperty_DAO_UnitBusiness 
         ->addValue('status_id:name', 'Completed')
         ->addValue('subject', 'Business opened')
         ->execute();
+      // Set any any unit to be status of occupied.
+      \Civi\Api4\Unit::update(FALSE)
+        ->addValue('status_id', 1)
+        ->addWhere('id', '=', $instance->unit_id)
+        ->execute();
     }
     CRM_Utils_Hook::post($hook, $entityName, $instance->id, $instance);
 
     return $instance;
-  } 
+  }
 
 }
