@@ -35,6 +35,8 @@ class Helpers {
 				'mailjet',
 				'elasticemail',
 				'mailersend',
+				'mandrill',
+				'resend',
 			],
 			true
 		);

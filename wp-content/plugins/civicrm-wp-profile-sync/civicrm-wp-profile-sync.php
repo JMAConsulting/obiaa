@@ -6,7 +6,7 @@
  * Description:       Keeps a WordPress User profile in sync with a CiviCRM Contact and integrates WordPress and CiviCRM Entities with data synced via Advanced Custom Fields.
  * Plugin URI:        https://github.com/christianwach/civicrm-wp-profile-sync
  * GitHub Plugin URI: https://github.com/christianwach/civicrm-wp-profile-sync
- * Version:           0.7.1
+ * Version:           0.7.3
  * Author:            Christian Wach
  * Author URI:        https://haystack.co.uk
  * License:           GPLv2 or later
@@ -35,7 +35,7 @@
 defined( 'ABSPATH' ) || exit;
 
 // Set plugin version here.
-define( 'CIVICRM_WP_PROFILE_SYNC_VERSION', '0.7.1' );
+define( 'CIVICRM_WP_PROFILE_SYNC_VERSION', '0.7.3' );
 
 // Set our bulk operations flag here.
 if ( ! defined( 'CIVICRM_WP_PROFILE_SYNC_BULK' ) ) {
@@ -76,7 +76,7 @@ class CiviCRM_WP_Profile_Sync {
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync_Admin
 	 */
 	public $admin;
 
@@ -85,7 +85,7 @@ class CiviCRM_WP_Profile_Sync {
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync_Mapper
 	 */
 	public $mapper;
 
@@ -94,7 +94,7 @@ class CiviCRM_WP_Profile_Sync {
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync_WordPress
 	 */
 	public $wp;
 
@@ -103,7 +103,7 @@ class CiviCRM_WP_Profile_Sync {
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync_CiviCRM
 	 */
 	public $civicrm;
 
@@ -112,7 +112,7 @@ class CiviCRM_WP_Profile_Sync {
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync_BuddyPress
 	 */
 	public $bp;
 
@@ -121,7 +121,7 @@ class CiviCRM_WP_Profile_Sync {
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync_ACF_Loader
 	 */
 	public $acf;
 
@@ -130,7 +130,7 @@ class CiviCRM_WP_Profile_Sync {
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync_CAI
 	 */
 	public $cai;
 
@@ -213,7 +213,7 @@ class CiviCRM_WP_Profile_Sync {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Add BuddyPress sync hooks.
@@ -316,7 +316,7 @@ class CiviCRM_WP_Profile_Sync {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Check if this plugin is network activated.
@@ -447,7 +447,7 @@ class CiviCRM_WP_Profile_Sync {
 		}
 
 		// Bail if not hidden.
-		if ( $cau->multisite->setting_get( 'main_site_only', '0' ) == '0' ) {
+		if ( $cau->multisite->setting_get( 'main_site_only', '0' ) === '0' ) {
 			$civicrm_hidden = false;
 			return $civicrm_hidden;
 		}

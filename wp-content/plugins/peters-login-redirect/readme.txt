@@ -4,7 +4,7 @@ Tags: after registration redirect, login redirect, logout redirect
 Requires at least: 4.9
 Requires PHP: 7.4
 Tested up to: 6.6
-Stable tag: 3.0.8.6
+Stable tag: 3.0.8.8
 License: GPL-2.0+
 
 Redirect users to different locations after they log in, log out and register based on different conditions.
@@ -74,6 +74,14 @@ Please visit the [plugin page](https://loginwp.com/?utm_source=wprepo&utm_medium
 Login redirects not working? This plugin uses WordPress's standard login_redirect hook. The usual cause of problems is that another plugin is using the hook first, or there is a custom login form that isn't even running through the standard WordPress login functions.
 
 == Changelog ==
+
+= 3.0.8.8 =
+
+* Fixed: Resolved the "s" error issue from the plugin.
+
+= 3.0.8.7 =
+* Fixed: LoginWP redirections were bypassing the DW Block User Account plugin, preventing the display of blocked status for users.
+* Fixed: Fixed issue where incorrect WordPress login credentials were not displaying an error notice. Added "Failed login redirect" in the plugin settings.
 
 = 3.0.8.6 =
 * Fixed: Custom login page redirects to the default WordPress login page when incorrect credentials are entered.

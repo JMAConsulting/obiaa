@@ -33,7 +33,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Group {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync
 	 */
 	public $plugin;
 
@@ -42,7 +42,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Group {
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync_ACF_Loader
 	 */
 	public $acf_loader;
 
@@ -51,7 +51,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Group {
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_Profile_Sync_ACF_CiviCRM
 	 */
 	public $civicrm;
 
@@ -122,9 +122,6 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Group {
 		// Intercept CiviCRM's delete Contacts from Group.
 		add_action( 'cwps/acf/mapper/group/contacts/deleted', [ $this, 'group_contacts_deleted' ], 10 );
 
-		// Intercept CiviCRM's rejoin Contacts to Group.
-		add_action( 'cwps/acf/mapper/group/contacts/rejoined', [ $this, 'group_contacts_rejoined' ], 10 );
-
 		// Declare registered.
 		$this->mapper_hooks = true;
 
@@ -146,14 +143,13 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Group {
 		remove_action( 'cwps/acf/mapper/group/delete/pre', [ $this, 'group_deleted_pre' ], 10 );
 		remove_action( 'cwps/acf/mapper/group/contacts/created', [ $this, 'group_contacts_created' ], 10 );
 		remove_action( 'cwps/acf/mapper/group/contacts/deleted', [ $this, 'group_contacts_deleted' ], 10 );
-		remove_action( 'cwps/acf/mapper/group/contacts/rejoined', [ $this, 'group_contacts_rejoined' ], 10 );
 
 		// Declare unregistered.
 		$this->mapper_hooks = false;
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Intercept when a Post is been synced from a Contact.
@@ -242,7 +238,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Group {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get all mapped CiviCRM Groups.
@@ -557,7 +553,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Group {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the number of Contacts who are members of a CiviCRM Group.
@@ -603,6 +599,66 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Group {
 
 		// --<
 		return empty( $result['count'] ) ? 0 : (int) $result['count'];
+
+	}
+
+	/**
+	 * Gets a CiviCRM GroupContact.
+	 *
+	 * Pass an array of `[ 'group_id' => $group_id, 'contact_id' => $contact_id ]` or
+	 * an integer GroupContact ID.
+	 *
+	 * @since 0.7.3
+	 *
+	 * @param array|integer $params An associative array containing the Group ID and Contact ID, or an integer GroupContact ID.
+	 * @return array|bool $group_contact The GroupContact data, or false otherwise.
+	 */
+	public function group_contact_get( $params ) {
+
+		// Try and init CiviCRM.
+		if ( ! $this->civicrm->is_initialised() ) {
+			return false;
+		}
+
+		try {
+
+			// Build common query.
+			$query = \Civi\Api4\GroupContact::get( false )
+				->addSelect( '*' );
+
+			// Add to query.
+			if ( is_array( $params ) ) {
+				$query->addWhere( 'group_id', '=', (int) $params['group_id'] );
+				$query->addWhere( 'contact_id', '=', (int) $params['contact_id'] );
+			} elseif ( is_numeric( $params ) ) {
+				$query->addWhere( 'id', '=', (int) $params );
+			} else {
+				return false;
+			}
+
+			// Call the API.
+			$result = $query->execute();
+
+		} catch ( CRM_Core_Exception $e ) {
+			$log = [
+				'method'    => __METHOD__,
+				'error'     => $e->getMessage(),
+				'backtrace' => $e->getTraceAsString(),
+			];
+			$this->plugin->log_error( $log );
+			return false;
+		}
+
+		// Return if nothing found.
+		if ( 0 === $result->count() ) {
+			return false;
+		}
+
+		// The first result is what we're after.
+		$group_contact = $result->first();
+
+		// --<
+		return $group_contact;
 
 	}
 
@@ -749,7 +805,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Group {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Add a CiviCRM Contact to a CiviCRM Group with Double Opt In.
@@ -812,7 +868,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Group {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get "chunked" CiviCRM API Group Contact data for a given Group ID.
@@ -872,7 +928,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Group {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Intercept a CiviCRM group prior to it being deleted.
@@ -898,7 +954,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Group {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Intercept when a CiviCRM Contact is added to a Group.
@@ -925,24 +981,6 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Group {
 
 		// Process terms for Group Contacts.
 		$this->acf_loader->post->tax->terms_update_for_group_contacts( $args['objectId'], $args['objectRef'], 'remove' );
-
-	}
-
-	/**
-	 * Intercept when a CiviCRM Contact is re-added to a Group.
-	 *
-	 * The issue here is that CiviCRM fires 'civicrm_pre' with $op = 'delete' regardless
-	 * of whether the Contact is being removed or deleted. If a Contact is later re-added
-	 * to the Group, then 'create' !== $op, so we need to intercept $op = 'edit'.
-	 *
-	 * @since 0.4
-	 *
-	 * @param array $args The array of CiviCRM params.
-	 */
-	public function group_contacts_rejoined( $args ) {
-
-		// Process terms for Group Contacts.
-		$this->acf_loader->post->tax->terms_update_for_group_contacts( $args['objectId'], $args['objectRef'], 'add' );
 
 	}
 

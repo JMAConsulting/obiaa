@@ -25,7 +25,7 @@ class CiviCRM_Profile_Sync_ACF_Field {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync
 	 */
 	public $plugin;
 
@@ -34,7 +34,7 @@ class CiviCRM_Profile_Sync_ACF_Field {
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync_ACF_Loader
 	 */
 	public $acf_loader;
 
@@ -43,7 +43,7 @@ class CiviCRM_Profile_Sync_ACF_Field {
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_Profile_Sync_ACF
 	 */
 	public $acf;
 
@@ -52,7 +52,7 @@ class CiviCRM_Profile_Sync_ACF_Field {
 	 *
 	 * @since 0.5.2
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_Profile_Sync_ACF_CiviCRM
 	 */
 	public $civicrm;
 
@@ -126,7 +126,7 @@ class CiviCRM_Profile_Sync_ACF_Field {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the type of WordPress Entity that a Field refers to.
@@ -226,7 +226,7 @@ class CiviCRM_Profile_Sync_ACF_Field {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get all mapped ACF Fields attached to a Post.
@@ -348,7 +348,7 @@ class CiviCRM_Profile_Sync_ACF_Field {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Update the value of an ACF Field.
@@ -423,10 +423,12 @@ class CiviCRM_Profile_Sync_ACF_Field {
 							if ( strlen( $item ) > $field_data['text_length'] ) {
 								/* translators: %s: The number of characters */
 								$valid = sprintf( __( 'Must be maximum %s characters.', 'civicrm-wp-profile-sync' ), $field_data['text_length'] );
+								return $valid;
 							}
 						} else {
 							if ( strlen( $item ) > 255 ) {
 								$valid = __( 'Must be maximum 255 characters.', 'civicrm-wp-profile-sync' );
+								return $valid;
 							}
 						}
 					}
@@ -456,6 +458,7 @@ class CiviCRM_Profile_Sync_ACF_Field {
 					foreach ( $value as $item ) {
 						if ( ! ctype_digit( $item ) ) {
 							$valid = __( 'Values must all be integers.', 'civicrm-wp-profile-sync' );
+							return $valid;
 						}
 					}
 
@@ -463,6 +466,7 @@ class CiviCRM_Profile_Sync_ACF_Field {
 					foreach ( $value as $item ) {
 						if ( (int) $value > 2147483647 ) {
 							$valid = __( 'Values must all be less than 2147483647.', 'civicrm-wp-profile-sync' );
+							return $valid;
 						}
 					}
 
@@ -489,6 +493,7 @@ class CiviCRM_Profile_Sync_ACF_Field {
 					foreach ( $value as $item ) {
 						if ( ! is_numeric( $item ) ) {
 							$valid = __( 'Values must all be numbers.', 'civicrm-wp-profile-sync' );
+							return $valid;
 						}
 					}
 
@@ -509,34 +514,36 @@ class CiviCRM_Profile_Sync_ACF_Field {
 					// Make sure values are all numeric.
 					foreach ( $value as $item ) {
 
-						// Must be a number.
+						// Must be a numeric value.
 						if ( ! is_numeric( $item ) ) {
 							$valid = __( 'All values must be a valid money format.', 'civicrm-wp-profile-sync' );
-						}
+							return $valid;
+						} else {
 
-						// Round the number.
-						$rounded = round( $item, 2 );
+							// Check decimal places.
+							$decimals = $this->value_get_decimals( $item );
+							if ( strlen( $decimals ) > 2 ) {
+								$valid = __( 'Only two decimal places please.', 'civicrm-wp-profile-sync' );
+								return $valid;
+							}
 
-						// Must be not have more than 2 decimal places.
-						if ( $rounded != $item ) {
-							$valid = __( 'All values must have only two decimal places.', 'civicrm-wp-profile-sync' );
 						}
 
 					}
 
 				} else {
 
-					// Must be a number.
+					// Must be a numeric value.
 					if ( ! is_numeric( $value ) ) {
 						$valid = __( 'Must be a valid money format.', 'civicrm-wp-profile-sync' );
-					}
+					} else {
 
-					// Round the number.
-					$rounded = round( $value, 2 );
+						// Check decimal places.
+						$decimals = $this->value_get_decimals( $value );
+						if ( strlen( $decimals ) > 2 ) {
+							$valid = __( 'Only two decimal places please.', 'civicrm-wp-profile-sync' );
+						}
 
-					// Must be not have more than 2 decimal places.
-					if ( $rounded != $value ) {
-						$valid = __( 'Only two decimal places please.', 'civicrm-wp-profile-sync' );
 					}
 
 				}
@@ -549,7 +556,43 @@ class CiviCRM_Profile_Sync_ACF_Field {
 
 	}
 
-	// -------------------------------------------------------------------------
+	/**
+	 * Gets the numeric value after the decimal separator.
+	 *
+	 * @since 0.7.3
+	 *
+	 * @param mixed $value The ACF Field value.
+	 * @return string $decimals The numeric value after the decimal separator.
+	 */
+	public function value_get_decimals( $value ) {
+
+		// Convert to string for processing.
+		$value = (string) $value;
+
+		// The only decimal operator that passes is_numeric() is ".".
+		$tmp = explode( '.', $value );
+
+		/*
+		// Ensure a leading zero.
+		if ( empty( $tmp[0] ) ) {
+			$tmp[0] = '0';
+		}
+		*/
+
+		// Ensure trailing zeroes.
+		if ( empty( $tmp[1] ) ) {
+			$tmp[1] = '00';
+		}
+
+		// Pad to two decimal places.
+		$decimals = str_pad( $tmp[1], 2, '0' );
+
+		// --<
+		return $decimals;
+
+	}
+
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the value of an ACF Field formatted for CiviCRM.
@@ -809,7 +852,7 @@ class CiviCRM_Profile_Sync_ACF_Field {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Add Setting to Field Settings.

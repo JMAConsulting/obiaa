@@ -25,7 +25,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync
 	 */
 	public $plugin;
 
@@ -34,7 +34,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync_ACF_Loader
 	 */
 	public $acf_loader;
 
@@ -43,25 +43,16 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_Profile_Sync_ACF_ACFE
 	 */
 	public $acfe;
-
-	/**
-	 * ACFE Form object.
-	 *
-	 * @since 0.5
-	 * @access public
-	 * @var object
-	 */
-	public $form;
 
 	/**
 	 * CiviCRM object.
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_Profile_Sync_ACF_CiviCRM
 	 */
 	public $civicrm;
 
@@ -380,7 +371,6 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 		$this->plugin     = $parent->acf_loader->plugin;
 		$this->acf_loader = $parent->acf_loader;
 		$this->acfe       = $parent->acfe;
-		$this->form       = $parent;
 		$this->civicrm    = $this->acf_loader->civicrm;
 
 		// Label this Form Action.
@@ -1377,7 +1367,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Checks if this Action is auto-filling values.
@@ -1442,7 +1432,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Defines additional Fields for the "Action" Tab.
@@ -1615,7 +1605,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Defines the "Mapping" Tab.
@@ -3705,7 +3695,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Defines "Relationship" Tab.
@@ -4120,7 +4110,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Builds Contact data array from mapped Fields.
@@ -4651,7 +4641,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 			if ( ! empty( $field['id'] ) ) {
 
 				// Use Contact ID that is NOT the related Contact.
-				if ( $related_contact['id'] === $field['contact_id_a'] ) {
+				if ( (int) $related_contact['id'] === (int) $field['contact_id_a'] ) {
 					$contact_id = $field['contact_id_b'];
 				} else {
 					$contact_id = $field['contact_id_a'];
@@ -4683,6 +4673,22 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 		// Init return.
 		$contact_id = false;
 
+		// Get the chosen Dedupe Rule.
+		$dedupe_rule_id = get_sub_field( $this->field_key . 'dedupe_rules' );
+
+		/*
+		 * We may have a Dedupe Rule that does not check the Email Address.
+		 *
+		 * NOTE: This cannot be the default unsupervised rule because we must have an
+		 * Email Address to use that rule.
+		 */
+		if ( empty( $email_data ) && ! empty( $dedupe_rule_id ) ) {
+			$contact_id = $this->civicrm->contact->get_by_dedupe_rule( $contact_data, $contact_data['contact_type'], $dedupe_rule_id );
+			if ( ! empty( $contact_id ) ) {
+				return $contact_id;
+			}
+		}
+
 		// Dedupe on each available Email.
 		foreach ( $email_data as $email ) {
 
@@ -4695,15 +4701,11 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 			$dedupe          = $contact_data;
 			$dedupe['email'] = $email['email'];
 
-			// Get the chosen Dedupe Rule.
-			$dedupe_rule_id = get_sub_field( $this->field_key . 'dedupe_rules' );
-
 			// If a Dedupe Rule is selected, use it.
 			if ( ! empty( $dedupe_rule_id ) ) {
 				$contact_id = $this->civicrm->contact->get_by_dedupe_rule( $dedupe, $dedupe['contact_type'], $dedupe_rule_id );
 			} else {
 				// Use the default unsupervised rule.
-				// NOTE: We need the Email Address to use the default unsupervised rule.
 				$contact_id = $this->civicrm->contact->get_by_dedupe_unsupervised( $dedupe, $dedupe['contact_type'] );
 			}
 
@@ -4748,7 +4750,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Builds Custom Field data array from mapped Fields.
@@ -4927,7 +4929,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Builds Email data array from mapped Fields.
@@ -5114,7 +5116,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Builds Relationship data array from mapped Fields.
@@ -5571,7 +5573,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 		foreach ( $form_actions as $key => $form_action ) {
 
 			// Skip the "previous Action of this kind".
-			if ( $key == $this->action_name ) {
+			if ( $key === $this->action_name ) {
 				continue;
 			}
 
@@ -5592,14 +5594,14 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 				$relationship = (array) $relationship;
 
 				// Skip any that aren't of the same Relationship Type.
-				if ( $relationship['relationship_type_id'] != $type_id ) {
+				if ( (int) $relationship['relationship_type_id'] !== (int) $type_id ) {
 					continue;
 				}
 
 				// Skip when neither Contact ID is the related Contact for "equal" Relationships.
 				if ( 'equal' === $direction ) {
-					if ( $relationship['contact_id_b'] != $related_contact_id ) {
-						if ( $relationship['contact_id_a'] != $related_contact_id ) {
+					if ( (int) $relationship['contact_id_b'] !== (int) $related_contact_id ) {
+						if ( (int) $relationship['contact_id_a'] !== (int) $related_contact_id ) {
 							continue;
 						}
 					}
@@ -5879,7 +5881,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Builds Website data array from mapped Fields.
@@ -6003,7 +6005,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Builds Address data array from mapped Fields.
@@ -6169,7 +6171,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Builds Phone data array from mapped Fields.
@@ -6312,7 +6314,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Builds Instant Messenger data array from mapped Fields.
@@ -6457,7 +6459,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Builds Group data array from mapped Fields.
@@ -6630,7 +6632,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Builds Membership data array from mapped Fields.
@@ -6763,7 +6765,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Builds Note data array from mapped Fields.
@@ -7045,7 +7047,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Builds Tag data array from mapped Fields.

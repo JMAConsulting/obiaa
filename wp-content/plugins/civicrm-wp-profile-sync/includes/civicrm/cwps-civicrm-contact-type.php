@@ -25,7 +25,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Contact_Type {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync
 	 */
 	public $plugin;
 
@@ -34,7 +34,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Contact_Type {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync_CiviCRM
 	 */
 	public $civicrm;
 
@@ -96,7 +96,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Contact_Type {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get all top-level CiviCRM Contact Types.
@@ -225,7 +225,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Contact_Type {
 		foreach ( $top_level as $item ) {
 			$item['children'] = [];
 			foreach ( $contact_types as $contact_type ) {
-				if ( isset( $contact_type['parent_id'] ) && $contact_type['parent_id'] == $item['id'] ) {
+				if ( isset( $contact_type['parent_id'] ) && (int) $contact_type['parent_id'] === (int) $item['id'] ) {
 					$item['children'][] = $contact_type;
 				}
 			}
@@ -237,7 +237,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Contact_Type {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the CiviCRM Contact Type and Sub-type for a given Contact Type.
@@ -305,7 +305,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Contact_Type {
 		}
 
 		// Clear subtype if identical to type.
-		if ( $contact_type_name == $top_level_type ) {
+		if ( $contact_type_name === $top_level_type ) {
 			$contact_subtype   = '';
 			$contact_type_name = $top_level_type;
 		} else {
@@ -445,7 +445,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Contact_Type {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the CiviCRM Contact Type data for a given ID or name.

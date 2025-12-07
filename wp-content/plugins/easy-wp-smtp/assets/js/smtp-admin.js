@@ -516,6 +516,13 @@ EasyWPSMTP.Admin.Settings = EasyWPSMTP.Admin.Settings || ( function( document, w
 			$mainSettingInGroup.closest( '.easy-wp-smtp-setting-row' ).toggle(
 				mailerSupportedSettings[ 'from_name' ] || mailerSupportedSettings[ 'from_name_force' ]
 			);
+
+			// Special case: "return path" (group settings).
+			$mainSettingInGroup = $( '.js-easy-wp-smtp-setting-return-path' );
+
+			$mainSettingInGroup.closest( '.easy-wp-smtp-setting-row' ).toggle(
+				!!mailerSupportedSettings[ 'return_path' ]
+			);
 		},
 
 		/**

@@ -32,7 +32,7 @@ class CiviCRM_Profile_Sync_ACF_Mapping {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync
 	 */
 	public $plugin;
 
@@ -41,9 +41,18 @@ class CiviCRM_Profile_Sync_ACF_Mapping {
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync_ACF_Loader
 	 */
 	public $acf_loader;
+
+	/**
+	 * Bridging variable for the Contact ID.
+	 *
+	 * @since 0.4
+	 * @access private
+	 * @var int
+	 */
+	private $saved_contact_type_id;
 
 	/**
 	 * Sync mappings.
@@ -222,7 +231,7 @@ class CiviCRM_Profile_Sync_ACF_Mapping {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Register directory that CiviCRM searches in for our form template file.
@@ -249,7 +258,7 @@ class CiviCRM_Profile_Sync_ACF_Mapping {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Enable a WordPress Custom Post Type to be linked to a CiviCRM Contact Type.
@@ -481,7 +490,7 @@ class CiviCRM_Profile_Sync_ACF_Mapping {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Enable a WordPress Custom Post Type to be linked to a CiviCRM Activity Type.
@@ -657,7 +666,7 @@ class CiviCRM_Profile_Sync_ACF_Mapping {
 		$activity_types_id = $this->acf_loader->civicrm->activity_type->option_group_id_get();
 
 		// Bail if not in Activity Types Option Group.
-		if ( $object_ref->option_group_id != $activity_types_id ) {
+		if ( (int) $object_ref->option_group_id !== (int) $activity_types_id ) {
 			return;
 		}
 
@@ -763,7 +772,7 @@ class CiviCRM_Profile_Sync_ACF_Mapping {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Enable a WordPress Custom Post Type to be linked to a CiviCRM Participant Role.
@@ -781,7 +790,7 @@ class CiviCRM_Profile_Sync_ACF_Mapping {
 		}
 
 		// Is this a Participant Role form?
-		if ( $form->get( 'gName' ) != 'participant_role' ) {
+		if ( $form->get( 'gName' ) !== 'participant_role' ) {
 			return;
 		}
 
@@ -922,7 +931,7 @@ class CiviCRM_Profile_Sync_ACF_Mapping {
 		$participant_roles_id = $this->acf_loader->civicrm->participant_role->option_group_id_get();
 
 		// Bail if not in Participant Roles Option Group.
-		if ( $object_ref->option_group_id != $participant_roles_id ) {
+		if ( (int) $object_ref->option_group_id !== (int) $participant_roles_id ) {
 			return;
 		}
 
@@ -1031,7 +1040,7 @@ class CiviCRM_Profile_Sync_ACF_Mapping {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Enable or disable the "Participant" Custom Post Type provided by this plugin.
@@ -1149,7 +1158,7 @@ class CiviCRM_Profile_Sync_ACF_Mapping {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get all Entity Type to Post Type mappings.
@@ -1182,7 +1191,7 @@ class CiviCRM_Profile_Sync_ACF_Mapping {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get all Contact Type to Post Type mappings.
@@ -1264,7 +1273,7 @@ class CiviCRM_Profile_Sync_ACF_Mapping {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get all Activity Type to Post Type mappings.
@@ -1346,7 +1355,7 @@ class CiviCRM_Profile_Sync_ACF_Mapping {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get all Participant Role to Post Type mappings.
@@ -1428,7 +1437,7 @@ class CiviCRM_Profile_Sync_ACF_Mapping {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get all mapped settings.
@@ -1516,7 +1525,7 @@ class CiviCRM_Profile_Sync_ACF_Mapping {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Test existence of a specified option.
@@ -1529,7 +1538,7 @@ class CiviCRM_Profile_Sync_ACF_Mapping {
 	public function option_exists( $option_name ) {
 
 		// Test by getting option with unlikely default.
-		if ( $this->option_get( $option_name, 'fenfgehgefdfdjgrkj' ) == 'fenfgehgefdfdjgrkj' ) {
+		if ( $this->option_get( $option_name, 'fenfgehgefdfdjgrkj' ) === 'fenfgehgefdfdjgrkj' ) {
 			return false;
 		} else {
 			return true;

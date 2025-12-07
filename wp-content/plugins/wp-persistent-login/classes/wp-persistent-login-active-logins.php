@@ -17,6 +17,23 @@ class WP_Persistent_Login_Active_Logins {
 	 */
 	public function __construct() {
 
+        // Check if the active logins feature is enabled.
+        $featureOptions = get_option( 'persistent_login_feature_flags', array() );
+
+        // Compatibility shim: migrate legacy underscore keys to camelCase in memory only.
+        // (Do not write to DB here to avoid unexpected writes during page load.)
+        if( isset($featureOptions['enable_active_logins']) && !isset($featureOptions['enableActiveLogins']) ) {
+            $featureOptions['enableActiveLogins'] = $featureOptions['enable_active_logins'];
+        }
+        if( isset($featureOptions['enable_persistent_login']) && !isset($featureOptions['enablePersistentLogin']) ) {
+            $featureOptions['enablePersistentLogin'] = $featureOptions['enable_persistent_login'];
+        }
+
+        // Use camelCase going forward.
+        if( !isset($featureOptions['enableActiveLogins']) || $featureOptions['enableActiveLogins'] !== '1' ) {
+            return; // stop processing if active logins is not enabled
+        }
+
         if( !isset($this->limit) ) {
             $this->limit = 1;
         }

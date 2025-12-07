@@ -25,7 +25,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync
 	 */
 	public $plugin;
 
@@ -34,7 +34,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity {
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync_ACF_Loader
 	 */
 	public $acf_loader;
 
@@ -43,7 +43,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity {
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_Profile_Sync_ACF_CiviCRM
 	 */
 	public $civicrm;
 
@@ -201,7 +201,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Update a CiviCRM Activity when a WordPress Post is synced.
@@ -388,7 +388,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get "chunked" CiviCRM API Activity data for a given Activity Type.
@@ -444,7 +444,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Check whether an Activity's Activity Type is mapped to a Post Type.
@@ -584,7 +584,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the CiviCRM Activity data for a given ID.
@@ -654,7 +654,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the CiviCRM Activity Target Contact IDs for a given ID.
@@ -780,7 +780,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Create a CiviCRM Activity for a given set of data.
@@ -921,7 +921,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Prepare the required CiviCRM Activity data from a WordPress Post.
@@ -1051,7 +1051,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Prepare the required CiviCRM Activity data from a set of ACF Fields.
@@ -1182,7 +1182,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Return the "CiviCRM Field" ACF Settings Field.
@@ -1283,7 +1283,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Returns the choices for a Setting Field from this Entity when found.
@@ -1430,7 +1430,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity {
 
 		// Prepend the ones that are needed in ACFE Forms (i.e. Subject and Details).
 		foreach ( $this->civicrm->activity_field->bypass_fields as $name => $field_type ) {
-			if ( $field_type == $field['type'] ) {
+			if ( $field_type === $field['type'] ) {
 				array_unshift( $fields_for_entity, $this->civicrm->activity_field->get_by_name( $name ) );
 			}
 		}
@@ -1745,7 +1745,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Check if a Field Group has been mapped to one or more Activity Post Types.

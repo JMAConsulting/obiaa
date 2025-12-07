@@ -25,7 +25,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Multiple_Record_Set extends acf_field 
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync
 	 */
 	public $plugin;
 
@@ -34,7 +34,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Multiple_Record_Set extends acf_field 
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync_ACF_Loader
 	 */
 	public $acf_loader;
 
@@ -43,7 +43,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Multiple_Record_Set extends acf_field 
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_Profile_Sync_ACF
 	 */
 	public $acf;
 
@@ -52,7 +52,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Multiple_Record_Set extends acf_field 
 	 *
 	 * @since 0.4
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_Profile_Sync_ACF_CiviCRM
 	 */
 	public $civicrm;
 
@@ -396,21 +396,15 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Multiple_Record_Set extends acf_field 
 		$field['min'] = (int) $field['min'];
 		$field['max'] = (int) $field['max'];
 
-		// Init Subfields.
-		$sub_fields = [];
-
-		// Maybe append to Field.
+		// Validate Subfields.
 		if ( ! empty( $field['sub_fields'] ) ) {
-
-			// Validate Field first.
-			foreach ( $field['sub_fields'] as $sub_field ) {
-				$sub_fields[] = acf_validate_field( $sub_field );
-			}
-
+			array_walk(
+				$field['sub_fields'],
+				function( &$item ) {
+					$item = acf_validate_field( $item );
+				}
+			);
 		}
-
-		// Overwrite subfields.
-		$field['sub_fields'] = $sub_fields;
 
 		// --<
 		return $field;
@@ -427,8 +421,18 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Multiple_Record_Set extends acf_field 
 	 */
 	public function update_field( $field ) {
 
-		// Modify the Field with our settings.
+		// Modify the Field with defaults.
 		$field = $this->modify_field( $field );
+
+		// Delete any existing subfields to prevent duplication.
+		if ( ! empty( $field['sub_fields'] ) ) {
+			foreach ( $field['sub_fields'] as $sub_field ) {
+				acf_delete_field( $sub_field['name'] );
+			}
+		}
+
+		// Add our Subfields.
+		$field['sub_fields'] = $this->sub_fields_get( $field );
 
 		// --<
 		return $field;
@@ -436,23 +440,34 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Multiple_Record_Set extends acf_field 
 	}
 
 	/**
-	 * This action is fired after a Field is deleted from the database.
+	 * Deletes any subfields after the Field has been deleted.
 	 *
 	 * @since 0.4
 	 *
 	 * @param array $field The Field array holding all the Field options.
+	 */
 	public function delete_field( $field ) {
 
+		// Bail early if no subfields.
+		if ( empty( $field['sub_fields'] ) ) {
+			return;
+		}
+
+		// Delete any subfields.
+		foreach ( $field['sub_fields'] as $sub_field ) {
+			acf_delete_field( $sub_field['name'] );
+		}
+
 	}
-	 */
+
 
 	/**
-	 * Modify the Field with defaults and Subfield definitions.
+	 * Modify the Field with defaults.
 	 *
 	 * @since 0.4
 	 *
 	 * @param array $field The Field array holding all the Field options.
-	 * @return array $subfields The subfield array.
+	 * @return array $field The modified Field array.
 	 */
 	public function modify_field( $field ) {
 
@@ -475,10 +490,24 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Multiple_Record_Set extends acf_field 
 		// Set sensible defaults.
 		$field['button_label'] = __( 'Add Record Set', 'civicrm-wp-profile-sync' );
 		$field['collapsed']    = '';
-		$field['prefix']       = '';
 
 		// Set wrapper class.
 		$field['wrapper']['class'] = 'civicrm_multiset';
+
+		// --<
+		return $field;
+
+	}
+
+	/**
+	 * Get the Subfield definitions.
+	 *
+	 * @since 0.7.2
+	 *
+	 * @param array $field The Field array holding all the Field options.
+	 * @return array $sub_fields The subfield array.
+	 */
+	public function sub_fields_get( $field ) {
 
 		/*
 		// Define Multiple Record Set "Name" subfield.
@@ -619,11 +648,11 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Multiple_Record_Set extends acf_field 
 		];
 
 		// Add Subfields.
-		$field['sub_fields'] = [ $number, $location, $provider, $primary, $im_id ];
+		$sub_fields = [ $number, $location, $provider, $primary, $im_id ];
 		*/
 
 		// --<
-		return $field;
+		return $sub_fields;
 
 	}
 

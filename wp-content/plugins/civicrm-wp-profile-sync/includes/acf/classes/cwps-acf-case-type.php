@@ -25,7 +25,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Case_Type {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync
 	 */
 	public $plugin;
 
@@ -34,7 +34,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Case_Type {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync_ACF_Loader
 	 */
 	public $acf_loader;
 
@@ -43,7 +43,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Case_Type {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_Profile_Sync_ACF_CiviCRM
 	 */
 	public $civicrm;
 
@@ -88,7 +88,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Case_Type {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the data for a "Case Type" by ID.
@@ -144,7 +144,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Case_Type {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the number of Cases for a given CiviCRM Case Type.
@@ -196,7 +196,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Case_Type {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the Case Type that is mapped to a Post Type.
@@ -225,7 +225,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Case_Type {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Gets the CiviCRM Case Types as choices for an ACF "Select" Field.
@@ -291,7 +291,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Case_Type {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get all Case Types.

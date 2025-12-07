@@ -25,7 +25,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Contact_Field {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync
 	 */
 	public $plugin;
 
@@ -34,7 +34,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Contact_Field {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync_BuddyPress
 	 */
 	public $bp_loader;
 
@@ -43,7 +43,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Contact_Field {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync_CiviCRM
 	 */
 	public $civicrm;
 
@@ -52,7 +52,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Contact_Field {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_Profile_Sync_BP_XProfile
 	 */
 	public $xprofile;
 
@@ -225,7 +225,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Contact_Field {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Returns the Contact Field choices for a Setting Field from when found.
@@ -425,7 +425,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Contact_Field {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the BuddyPress Field Type for a Contact Field.
@@ -460,7 +460,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Contact_Field {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get the core Contact Fields for a CiviCRM Contact Type.
@@ -536,7 +536,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Contact_Field {
 
 				// Skip all but those mapped to the type of BuddyPress Field.
 				foreach ( $public_fields as $key => $value ) {
-					if ( $field_type == $contact_fields[ $value['name'] ] ) {
+					if ( $field_type === $contact_fields[ $value['name'] ] ) {
 						$fields[] = $value;
 					}
 				}
@@ -700,7 +700,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Contact_Field {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Modify the Options of a BuddyPress "Checkbox" Field.
@@ -869,7 +869,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Contact_Field {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Modify the Options of a special case BuddyPress "Checkbox" Field.

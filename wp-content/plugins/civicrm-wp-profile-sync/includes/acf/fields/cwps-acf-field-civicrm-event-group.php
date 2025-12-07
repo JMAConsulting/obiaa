@@ -23,7 +23,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Event_Group extends acf_field {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync
 	 */
 	public $plugin;
 
@@ -32,7 +32,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Event_Group extends acf_field {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync_ACF_Loader
 	 */
 	public $acf_loader;
 
@@ -41,9 +41,18 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Event_Group extends acf_field {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_Profile_Sync_ACF
 	 */
 	public $acf;
+
+	/**
+	 * ACF Field Type object.
+	 *
+	 * @since 0.5
+	 * @access public
+	 * @var CiviCRM_Profile_Sync_ACF_Field_Type
+	 */
+	public $acf_type;
 
 	/**
 	 * Field Type name.
@@ -264,6 +273,13 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Event_Group extends acf_field {
 		// Modify the Field with our settings.
 		$field = $this->modify_field( $field );
 
+		// Delete any existing Subfields to prevent duplication.
+		if ( ! empty( $field['sub_fields'] ) ) {
+			foreach ( $field['sub_fields'] as $sub_field ) {
+				acf_delete_field( $sub_field['name'] );
+			}
+		}
+
 		// Add Subfields to Field.
 		$field['sub_fields'] = $this->get_subfield_definitions();
 
@@ -273,12 +289,33 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Event_Group extends acf_field {
 	}
 
 	/**
-	 * Modify the Field with defaults and Subfield definitions.
+	 * Deletes any subfields after the Field has been deleted from the database.
+	 *
+	 * @since 0.7.2
+	 *
+	 * @param array $field The Field array holding all the Field options.
+	 */
+	public function delete_field( $field ) {
+
+		// Bail early if no subfields.
+		if ( empty( $field['sub_fields'] ) ) {
+			return;
+		}
+
+		// Delete any subfields.
+		foreach ( $field['sub_fields'] as $sub_field ) {
+			acf_delete_field( $sub_field['name'] );
+		}
+
+	}
+
+	/**
+	 * Modify the Field with defaults.
 	 *
 	 * @since 0.5
 	 *
 	 * @param array $field The Field array holding all the Field options.
-	 * @return array $subfields The subfield array.
+	 * @return array $field The modified Field array.
 	 */
 	public function modify_field( $field ) {
 

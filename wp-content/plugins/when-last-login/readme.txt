@@ -1,11 +1,11 @@
 === When Last Login ===
 Contributors: andrewza, yoohooplugins, travislima
-Tags: last login, user login, user login time, when last login, login record
+Tags: last login, user login, user login time, last logged in, last seen
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=4GC4JEZH7KSKL
 Requires at least: 5.0
-Tested up to: 6.7
+Tested up to: 6.8
 Requires PHP: 7.2
-Stable tag: 1.2.2
+Stable tag: 1.2.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -42,10 +42,10 @@ You are able to track which members login to your site by simply sorting your de
 = Plugins that When Last Login integrates with =
 Here is a list of plugins we currently support:
 
-* Paid Memberships Pro
+* [Paid Memberships Pro](https://www.paidmembershipspro.com/)
+* [Two Factor Authentication](https://wordpress.org/plugins/two-factor/)
 
 If you have a plugin and would like to integrate with When Last Login, please open a support thread.
-
 
 = Need Help =
 Something not working as intended or have a question about functionality of When Last Login. [Open a support thread](https://wordpress.org/support/plugin/when-last-login)
@@ -63,6 +63,9 @@ When Last Login allows you to see when last users have logged into your WordPres
 
 = Is When Last Login GDPR ready? =
 Since version 1.0, we have made it easier to be GDPR compliant. With this being said, you need to take the necessary steps in order to become GDPR compliant - we are not a law firm!
+
+= Does this work with 2FA? =
+Yes, this integrates with the [Two Factor Authentication](https://wordpress.org/plugins/two-factor/) plugin.
 
 = Is this plugin free? =
 Yes, When Last Login is a free plugin for WordPress. We are looking into possibilities of creating a Pro version with a lot more features around the user data of WordPress users. We rely heavily on donations to keep all of our plugins free. If you wish to donate, please click on the donation link on the WordPress repository.
@@ -86,16 +89,17 @@ Inside your WordPress dashboard navigate to 'When Last Login' -> 'Settings' and 
 = How can I hide the 'Top 3 Users' widget? =
 Add the following snippet of code to your theme's functions.php or custom plugin - add_filter( 'when_last_login_show_admin_widget', '__return_false' );
 
-
 == Screenshots ==
 1. When Last Login - User's list custom last login field with sorting according to "Last Login" time.
 2. When Last Login - Show top 3 user login (includes 'administrators' in free version)
 
 == Changelog ==
+= 1.2.3 - 2025-07-21 =
+* ENHANCEMENT: Added support for 2FA plugin.
 
 = 1.2.2 - 2023-02-28 =
 * SECURITY: Added in nonce for hiding the admin notice shown on the settings page.
-* BUG FIX: Fixed minor issue where admins weren't being correctly excluded from the user query for the login widget.
+* BUG FIX: Fixed minor issue where admins weren’t being correctly excluded from the user query for the login widget.
 
 = 1.2.1 - 2021-09-21 =
 * Enhancement: Removed admin users from being tracked in WLL dashboard statistics.
@@ -160,6 +164,9 @@ Add the following snippet of code to your theme's functions.php or custom plugin
 * First Release
 
 == Upgrade Notice ==
+= 1.2.3 =
+* Upgrade to support 2FA plugin.
+
 = 1.2.2 =
 * Upgrade for minor security and bug improvements.
 

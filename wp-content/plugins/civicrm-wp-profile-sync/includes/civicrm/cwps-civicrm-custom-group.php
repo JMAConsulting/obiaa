@@ -25,7 +25,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Custom_Group {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync
 	 */
 	public $plugin;
 
@@ -34,7 +34,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Custom_Group {
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object
+	 * @var CiviCRM_WP_Profile_Sync_CiviCRM
 	 */
 	public $civicrm;
 
@@ -139,7 +139,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Custom_Group {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Get all Custom Groups.
@@ -282,7 +282,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Custom_Group {
 
 	}
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------
 
 	/**
 	 * Gets the Custom Groups for all CiviCRM Contacts.
