@@ -105,7 +105,7 @@ class CRM_CiviMobileAPI_Form_Venue extends CRM_Core_Form {
       $this->add('number', 'weight', E::ts('Order'), [], TRUE);
       $this->add('hidden', 'color', E::ts('Color'), [], TRUE);
       CRM_Core_BAO_File::buildAttachment($this, 'civicrm_civimobile_location_venue', $this->id, NULL, TRUE);
-      $numAttachments = $this->get_template_vars('numAttachments');
+      $numAttachments = $this->getTemplateVars('numAttachments');
 
       for ($i = 1; $i <= $numAttachments; $i++) {
         $this->addRule("attachFile_$i",

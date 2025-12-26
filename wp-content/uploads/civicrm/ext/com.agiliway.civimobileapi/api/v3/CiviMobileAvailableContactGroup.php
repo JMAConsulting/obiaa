@@ -8,11 +8,11 @@ use CRM_CiviMobileAPI_ExtensionUtil as E;
  * @param array $params
  *
  * @return array
- * @throws \api_Exception
+ * @throws \CRM_Core_Exception
  */
 function civicrm_api3_civi_mobile_available_contact_group_get($params) {
   if (!CRM_CiviMobileAPI_Utils_Permission::isEnoughPermissionForGetAvailableContactGroup()) {
-    throw new api_Exception('Permission required.', 'permission_required');
+    throw new CRM_Core_Exception('Permission required.', 'permission_required');
   }
 
   $result = (new CRM_CiviMobileAPI_Api_CiviMobileAvailableContactGroup_Get($params))->getResult();

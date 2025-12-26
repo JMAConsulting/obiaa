@@ -99,11 +99,11 @@ class ProcessMOTO extends \Civi\Api4\Generic\AbstractAction {
 
     if (empty($this->amount) && !$this->setup) {
       \Civi::log('stripe')->error(__CLASS__ . 'missing amount and not setup');
-      throw new \API_Exception('Bad request');
+      throw new \CRM_Core_Exception('Bad request');
     }
     if (empty($this->paymentProcessorID)) {
       \Civi::log('stripe')->error(__CLASS__ . ' missing paymentProcessorID');
-      throw new \API_Exception('Bad request');
+      throw new \CRM_Core_Exception('Bad request');
     }
     /** @var \CRM_Core_Payment_Stripe $paymentProcessor */
     $paymentProcessor = \Civi\Payment\System::singleton()->getById($this->paymentProcessorID);
@@ -128,7 +128,7 @@ class ProcessMOTO extends \Civi\Api4\Generic\AbstractAction {
       $result->exchangeArray($processIntentResult->data);
     }
     else {
-      throw new \API_Exception($processIntentResult->message);
+      throw new \CRM_Core_Exception($processIntentResult->message);
     }
   }
 

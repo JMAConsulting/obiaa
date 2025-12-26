@@ -16,13 +16,14 @@ class CRM_CiviMobileAPI_Utils_ContactFieldsFilter {
    * Get filter contacts Id
    *
    * @param $params
+   *
    * @return array
    */
   public function filterContacts($params) {
     if (!empty($params['is_membership'])) {
       if (!empty($params['membership_contact_id']) && !empty($params['membership_contact_id']['IN'])) {
         $listOfContactsId = $params['membership_contact_id']['IN'];
-      } elseif (!empty($params['membership_contact_id']) && !empty((int)$params['membership_contact_id'])) {
+      } elseif (!empty($params['membership_contact_id']) && !empty((int) $params['membership_contact_id'])) {
         $listOfContactsId = [$params['membership_contact_id']];
       } else {
         $listOfContactsId = CRM_CiviMobileAPI_Utils_Statistic_Utils::getListOfMembershipContactIds();
@@ -44,6 +45,7 @@ class CRM_CiviMobileAPI_Utils_ContactFieldsFilter {
    * Get contacts Id filter by tags
    *
    * @param $selectedContactTagsId
+   *
    * @return array
    */
   public function filterContactByTags($selectedContactTagsId) {
@@ -73,6 +75,7 @@ class CRM_CiviMobileAPI_Utils_ContactFieldsFilter {
    * Get tags names by tags Id
    *
    * @param $selectedTagsId
+   *
    * @return array
    */
   public function getSelectedTagsNames($selectedTagsId) {
@@ -101,6 +104,7 @@ class CRM_CiviMobileAPI_Utils_ContactFieldsFilter {
    * Get contact's Id filter by display name or types
    *
    * @param $contactDisplayName
+   *
    * @return array
    */
   public function filterContactByNameOrTypes($contactDisplayName, $contactTypes, $listOfContributionContactsId) {
@@ -116,9 +120,9 @@ class CRM_CiviMobileAPI_Utils_ContactFieldsFilter {
           'contact_is_deleted' => 0,
           'contact_type' => $contactTypesParam,
           'options' => ['limit' => 0],
-          'return' => ["id"]
+          'return' => ["id"],
         ])['values'];
-      } catch (CiviCRM_API3_Exception $e) {
+      } catch (CRM_Core_Exception $e) {
         return [];
       }
 
@@ -156,7 +160,7 @@ class CRM_CiviMobileAPI_Utils_ContactFieldsFilter {
         $dao = CRM_Core_DAO::executeQuery($sql);
         while ($dao->fetch()) {
           $contactGroupsRelationList[] = [
-            'contact_id' => $dao->contact_id
+            'contact_id' => $dao->contact_id,
           ];
         }
       } catch (Exception $e) {
@@ -167,10 +171,9 @@ class CRM_CiviMobileAPI_Utils_ContactFieldsFilter {
 
       if (!empty($contactGroupsRelationList)) {
         foreach ($contactGroupsRelationList as $contactGroupsRelation) {
-          $this->contactsId[] = (int)$contactGroupsRelation['contact_id'];
+          $this->contactsId[] = (int) $contactGroupsRelation['contact_id'];
         }
       }
-
     }
   }
 

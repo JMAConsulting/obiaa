@@ -18,15 +18,17 @@ class CRM_CiviMobileAPI_Utils_Activity {
    * @param $activityId
    * @return bool
    */
-  public static function isActivityInCase($activityId) {
+  public static function getCaseIdByActivity($activityId) {
     if (CoreUtil::getApiClass('CaseActivity'))
     {
-      return civicrm_api4('CaseActivity', 'get', [
+      $caseActivity = civicrm_api4('CaseActivity', 'get', [
         'where' => [
           ['activity_id', '=', $activityId],
         ],
         'checkPermissions' => FALSE,
-      ])->count() > 0;
+      ])->first();
+
+      return $caseActivity['case_id'];
     }
 
     return false;

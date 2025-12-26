@@ -25,3 +25,9 @@ See Documentation above.
 
 The extension will show up in the extensions browser for automated installation.
 Otherwise, download and install as you would for any other CiviCRM extension.
+
+## Support and Maintenance
+
+This extension is supported and maintained with the help and support of the CiviCRM community by [MJW](https://www.mjwconsult.co.uk).
+
+We offer paid [support and development](https://mjw.pt/support) as well as a [troubleshooting/investigation service](https://mjw.pt/investigation).

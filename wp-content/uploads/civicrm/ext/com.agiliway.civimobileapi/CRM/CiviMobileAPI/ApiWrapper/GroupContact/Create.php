@@ -25,7 +25,7 @@ class CRM_CiviMobileAPI_ApiWrapper_GroupContact_Create implements API_Wrapper {
    * @param $result
    *
    * @return array
-   * @throws API_Exception
+   * @throws CRM_Core_Exception
    */
   public function toApiOutput($apiRequest, $result) {
     $status = !empty($apiRequest['params']['status']) ? $apiRequest['params']['status'] : NULL;
@@ -37,8 +37,8 @@ class CRM_CiviMobileAPI_ApiWrapper_GroupContact_Create implements API_Wrapper {
           'return' => ["title"],
           'id' => $groupId,
         ]);
-      } catch (CiviCRM_API3_Exception $e) {
-        throw new \API_Exception(E::ts("Something wrong with getting info for group: " . $e->getMessage()));
+      } catch (CRM_Core_Exception $e) {
+        throw new \CRM_Core_Exception(E::ts("Something wrong with getting info for group: " . $e->getMessage()));
       }
 
       $result['title'] = !empty($groupInfo['title']) ? $groupInfo['title'] : '';

@@ -35,27 +35,43 @@ class CRM_CiviMobileAPI_ApiWrapper_Relationship_Get implements API_Wrapper {
       $relationship->selectAdd('contact_id_b, is_active');
       $relationship->find(TRUE);
 
-      $result['total_count'] = $this->getTotalCount($relationship);
+      $result['total_count'] = $this->getTotalCount($apiRequest['params']['contact_id_b']);
     }
 
     return $result;
   }
 
-  private function getTotalCount($relationship) {
+  private function getTotalCount($contactIdB) {
+    if (is_array($contactIdB)) {
+      $contactIds = $contactIdB['IN'] ?? $contactIdB;
+    } else {
+      $contactIds = [$contactIdB];
+    }
 
-    $relatedContact = !empty($relationship->contact_id_b) ? $relationship->contact_id_b : CRM_Core_DAO::getFieldValue('CRM_Contact_DAO_Relationship', $relationship->id, 'contact_id_b');
+    $contactIds = array_filter(array_map('intval', (array) $contactIds));
 
-    $query = '
-      SELECT COUNT(r.id)
-      FROM civicrm_relationship r
-      LEFT JOIN civicrm_contact ct ON ct.id = r.contact_id_a
-      WHERE r.contact_id_b = %1 AND r.is_active = 1 AND ct.is_deleted = 0
-    ';
+    if (empty($contactIds)) {
+      return 0;
+    }
 
-    $numRelated = CRM_Core_DAO::singleValueQuery($query, [
-      1 => [$relatedContact, 'Integer']
-    ]);
+    $params = [];
+    $placeholders = [];
 
-    return $numRelated;
+    foreach ($contactIds as $index => $contactId) {
+      $key = $index + 1;
+      $placeholders[] = "%{$key}";
+      $params[$key] = [$contactId, 'Integer'];
+    }
+
+    $query = "
+    SELECT COUNT(r.id) AS total
+    FROM civicrm_relationship r
+    LEFT JOIN civicrm_contact ct ON ct.id = r.contact_id_a
+    WHERE r.is_active = 1
+      AND ct.is_deleted = 0
+      AND r.contact_id_b IN (" . implode(',', $placeholders) . ")
+  ";
+
+    return (int) CRM_Core_DAO::singleValueQuery($query, $params);
   }
 }

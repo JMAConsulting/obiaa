@@ -5,8 +5,8 @@ class CRM_CiviMobileAPI_Hook_BuildForm_ContributionPayment {
   /**
    * @param $formName
    * @param $form
+   *
    * @throws CRM_Core_Exception
-   * @throws api_Exception
    */
   public function run($formName, &$form) {
     $session = CRM_Core_Session::singleton();
@@ -14,7 +14,7 @@ class CRM_CiviMobileAPI_Hook_BuildForm_ContributionPayment {
     $customizeForms = [
       'CRM_Contribute_Form_Contribution_Main',
       'CRM_Contribute_Form_Contribution_Confirm',
-      'CRM_Contribute_Form_Contribution_ThankYou'
+      'CRM_Contribute_Form_Contribution_ThankYou',
     ];
 
     if ($formName == 'CRM_Contribute_Form_Contribution_Main' && CRM_Utils_Request::retrieve('civimobile', 'Integer')) {
@@ -34,7 +34,6 @@ class CRM_CiviMobileAPI_Hook_BuildForm_ContributionPayment {
         $session->set('contribution_is_civimobile', NULL);
       }
     }
-
   }
 
   /**
@@ -52,7 +51,9 @@ class CRM_CiviMobileAPI_Hook_BuildForm_ContributionPayment {
       $absURL = Civi::paths()->getUrl('[civicrm.root]/', 'absolute');
 
       $template->assign('absURL', $absURL);
-      $template->assign('buttonColor', (!empty(Civi::settings()->get('civimobile_event_registration_button_color'))) ? Civi::settings()->get('civimobile_event_registration_button_color') : "#5589B7");
+      $template->assign('buttonColor', (!empty(Civi::settings()
+        ->get('civimobile_event_registration_button_color'))) ? Civi::settings()
+        ->get('civimobile_event_registration_button_color') : "#5589B7");
 
       CRM_Core_Region::instance('page-body')->add([
         'template' => 'CRM/CiviMobileAPI/CustomizeContributionPayment.tpl',

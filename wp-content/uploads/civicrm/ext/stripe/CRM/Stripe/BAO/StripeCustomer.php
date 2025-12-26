@@ -24,21 +24,6 @@ class CRM_Stripe_BAO_StripeCustomer extends CRM_Stripe_DAO_StripeCustomer {
       ->execute()
       ->first();
 
-    if (version_compare(\CRM_Utils_System::version(), '5.53.0', '<')) {
-      // @todo: Remove when we drop support for CiviCRM < 5.53
-      // APIv4 - Read & write contact primary and billing locations as implicit joins
-      // https://github.com/civicrm/civicrm-core/pull/23972 was added in 5.53
-      $emailResult = Email::get(FALSE)
-        ->addWhere('contact_id', '=', $contactID)
-        ->addOrderBy('is_primary', 'DESC')
-        ->addOrderBy('is_billing', 'DESC')
-        ->execute()
-        ->first();
-      if (!empty($emailResult['email'])) {
-        $contact['email_primary.email'] = $emailResult['email'];
-      }
-    }
-
     $extVersion = Extension::get(FALSE)
       ->addWhere('file', '=', E::SHORT_NAME)
       ->execute()

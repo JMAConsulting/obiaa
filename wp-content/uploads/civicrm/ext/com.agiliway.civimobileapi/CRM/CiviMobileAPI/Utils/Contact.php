@@ -10,7 +10,7 @@ class CRM_CiviMobileAPI_Utils_Contact {
   /**
    * @param int $contactId
    *
-   * @throws \CiviCRM_API3_Exception
+   * @throws \CRM_Core_Exception
    */
   public static function logoutFromMobile($contactId) {
     civicrm_api4('Contact', 'update', [
@@ -69,10 +69,10 @@ class CRM_CiviMobileAPI_Utils_Contact {
   public static function getCurrentContactId() {
     $session = CRM_Core_Session::singleton();
     if (CRM_Contact_BAO_Contact_Utils::isContactId($session->get('userID'))) {
-      return  $session->get('userID');
+      return $session->get('userID');
     }
 
-    return false;
+    return FALSE;
   }
 
   /**
@@ -98,14 +98,14 @@ class CRM_CiviMobileAPI_Utils_Contact {
         'checkPermissions' => FALSE,
       ]);
     } catch (CRM_Core_Exception $e) {
-      return false;
+      return FALSE;
     }
 
     if (!empty($avatarFileName)) {
       return CRM_CiviMobileAPI_Utils_File::removeUploadFile($avatarFileName);
     }
 
-    return true;
+    return TRUE;
   }
 
   /**

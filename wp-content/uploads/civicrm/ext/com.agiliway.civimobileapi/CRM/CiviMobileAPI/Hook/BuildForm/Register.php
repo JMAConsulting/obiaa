@@ -7,8 +7,8 @@ class CRM_CiviMobileAPI_Hook_BuildForm_Register {
   /**
    * @param $formName
    * @param $form
+   *
    * @throws CRM_Core_Exception
-   * @throws api_Exception
    */
   public function run($formName, &$form) {
     // remove $cmbHash if we are not using call from mobile application
@@ -38,12 +38,13 @@ class CRM_CiviMobileAPI_Hook_BuildForm_Register {
         CRM_CiviMobileAPI_Utils_Extension::hideCiviMobileQrPopup();
         if ($tmpData = CRM_CiviMobileAPI_BAO_CivimobileEventPaymentInfo::getByHash($cmbHash)) {
           if (!empty($tmpData['contact_id'])) {
-            CRM_Core_Session::singleton()->set('userID', $tmpData['contact_id']);
+            CRM_Core_Session::singleton()
+              ->set('userID', $tmpData['contact_id']);
           }
 
           CRM_Core_Smarty::singleton()->assign('showCMS', FALSE);
 
-          $priceSet = json_decode($tmpData['price_set'], true);
+          $priceSet = json_decode($tmpData['price_set'], TRUE);
           $personalFields = $this->findPersonalFields($tmpData);
           $billingFields = $this->findBillingFields($tmpData);
           $billingLocationID = CRM_Core_BAO_LocationType::getBilling();
@@ -150,7 +151,9 @@ class CRM_CiviMobileAPI_Hook_BuildForm_Register {
       $template->assign('isDrupal6', $currentCMS == CRM_CiviMobileAPI_Utils_CmsUser::CMS_DRUPAL6);
       $template->assign('isWordpress', $currentCMS == CRM_CiviMobileAPI_Utils_CmsUser::CMS_WORDPRESS);
       $template->assign('isJoomla', $currentCMS == CRM_CiviMobileAPI_Utils_CmsUser::CMS_JOOMLA);
-      $template->assign('eventButtonColor', (!empty(Civi::settings()->get('civimobile_event_registration_button_color'))) ? Civi::settings()->get('civimobile_event_registration_button_color') : "#5589B7");
+      $template->assign('eventButtonColor', (!empty(Civi::settings()
+        ->get('civimobile_event_registration_button_color'))) ? Civi::settings()
+        ->get('civimobile_event_registration_button_color') : "#5589B7");
 
       CRM_Core_Region::instance('page-body')->add([
         'template' => 'CRM/CiviMobileAPI/CustomizeEventRegistration.tpl',
@@ -171,16 +174,20 @@ class CRM_CiviMobileAPI_Hook_BuildForm_Register {
             $element = $form->getElement($priceFieldName);
             if ($element->getType() == 'select') {
               $element->setValue(key($psFieldValueId));
-            } else if ($element->getAttribute('type') == 'text' && !empty($psFieldValueId[key($psFieldValueId)])) {
-              $element = $form->getElement($priceFieldName);
-              $element->setValue($psFieldValueId[key($psFieldValueId)]);
             } else {
-              $elements = $element->getElements();
-              foreach ($elements as $el) {
-                if ($el->getAttribute('type') == 'checkbox' && $el->getAttribute('name') == key($psFieldValueId)) {
-                  $el->setAttribute('checked', 'checked');
-                } else if ($el->getAttribute('type') == 'radio' && $el->getAttribute('value') == key($psFieldValueId)) {
-                  $el->setAttribute('checked', 'checked');
+              if ($element->getAttribute('type') == 'text' && !empty($psFieldValueId[key($psFieldValueId)])) {
+                $element = $form->getElement($priceFieldName);
+                $element->setValue($psFieldValueId[key($psFieldValueId)]);
+              } else {
+                $elements = $element->getElements();
+                foreach ($elements as $el) {
+                  if ($el->getAttribute('type') == 'checkbox' && $el->getAttribute('name') == key($psFieldValueId)) {
+                    $el->setAttribute('checked', 'checked');
+                  } else {
+                    if ($el->getAttribute('type') == 'radio' && $el->getAttribute('value') == key($psFieldValueId)) {
+                      $el->setAttribute('checked', 'checked');
+                    }
+                  }
                 }
               }
             }
@@ -199,21 +206,22 @@ class CRM_CiviMobileAPI_Hook_BuildForm_Register {
 
   /**
    * @param $tmpData
+   *
    * @return array
    */
   private function findPersonalFields($tmpData) {
     $contactId = $tmpData['contact_id'];
-    $email = null;
+    $email = NULL;
 
     if ($contactId) {
       try {
         $contact = civicrm_api3('Contact', 'getsingle', [
           'return' => ["first_name", "last_name", "middle_name"],
           'sequential' => 1,
-          'id' => $contactId
+          'id' => $contactId,
         ]);
-      } catch (CiviCRM_API3_Exception $e) {
-        throw new api_Exception(E::ts('Contact (id = %1) User can not be registered because contact do not exist', [1 => $contactId]), 'contact_does_not_exist');
+      } catch (CRM_Core_Exception $e) {
+        throw new CRM_Core_Exception(E::ts('Contact (id = %1) User can not be registered because contact do not exist', [1 => $contactId]), 'contact_does_not_exist');
       }
 
       try {
@@ -223,8 +231,8 @@ class CRM_CiviMobileAPI_Hook_BuildForm_Register {
           'contact_id' => $contactId,
           'is_primary' => 1,
         ]);
-      } catch (CiviCRM_API3_Exception $e) {
-        throw new api_Exception(E::ts('User was not registered.'), 'contact_cannot_be_registered');
+      } catch (CRM_Core_Exception $e) {
+        throw new CRM_Core_Exception(E::ts('User was not registered.'), 'contact_cannot_be_registered');
       }
 
       $firstName = $contact['first_name'];
@@ -250,6 +258,7 @@ class CRM_CiviMobileAPI_Hook_BuildForm_Register {
 
   /**
    * @param $tmpData
+   *
    * @return array
    */
   private function findBillingFields($tmpData) {
@@ -262,7 +271,7 @@ class CRM_CiviMobileAPI_Hook_BuildForm_Register {
           'contact_id' => $contactId,
           'is_billing' => 1,
         ]);
-      } catch (CiviCRM_API3_Exception $e) {
+      } catch (CRM_Core_Exception $e) {
         return [];
       }
 

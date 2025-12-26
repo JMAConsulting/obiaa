@@ -84,7 +84,8 @@ class CRM_CiviMobileAPI_Upgrader extends CRM_Extension_Upgrader_Base {
 
   public function upgrade_0017() {
     try {
-      $fields = CRM_Core_DAO::executeQuery("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'civicrm_civimobile_location_venue' AND COLUMN_NAME IN ('attached_file_type', 'attached_file_url')")->fetchAll();
+      $fields = CRM_Core_DAO::executeQuery("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'civicrm_civimobile_location_venue' AND COLUMN_NAME IN ('attached_file_type', 'attached_file_url')")
+        ->fetchAll();
 
       if (count($fields) == 2) {
         $query = CRM_Utils_SQL_Select::from(CRM_CiviMobileAPI_DAO_LocationVenue::getTableName());
@@ -118,14 +119,14 @@ class CRM_CiviMobileAPI_Upgrader extends CRM_Extension_Upgrader_Base {
 
   public function upgrade_0021() {
     try {
-      $customGroupId = (int)civicrm_api3('CustomGroup', 'getvalue', [
+      $customGroupId = (int) civicrm_api3('CustomGroup', 'getvalue', [
         'name' => CRM_CiviMobileAPI_Install_Entity_CustomGroup::ALLOW_MOBILE_REGISTRATION,
-        'return' => 'id'
+        'return' => 'id',
       ]);
 
       civicrm_api3('CustomGroup', 'create', [
         'id' => $customGroupId,
-        'is_public' => 0
+        'is_public' => 0,
       ]);
     } catch (Exception $e) {
       return FALSE;
@@ -147,11 +148,17 @@ class CRM_CiviMobileAPI_Upgrader extends CRM_Extension_Upgrader_Base {
     try {
       $unusedOptions = civicrm_api3('OptionValue', 'get', [
         'sequential' => 1,
-        'name' => ['IN' => ["civi_mobile_tab_news", "civi_mobile_tab_petitions", "civi_mobile_tab_donations"]],
+        'name' => [
+          'IN' => [
+            "civi_mobile_tab_news",
+            "civi_mobile_tab_petitions",
+            "civi_mobile_tab_donations",
+          ],
+        ],
       ]);
       foreach ($unusedOptions['values'] as $getIds) {
         civicrm_api3('OptionValue', 'delete', [
-          'id' => $getIds['id']
+          'id' => $getIds['id'],
         ]);
       }
     } catch (Exception $e) {
@@ -181,10 +188,10 @@ class CRM_CiviMobileAPI_Upgrader extends CRM_Extension_Upgrader_Base {
 
     return TRUE;
   }
-  
+
   public function upgrade_0027() {
     Civi::settings()->set('civimobile_is_allow_registration', 1);
-    
+
     return TRUE;
   }
 
@@ -206,17 +213,16 @@ class CRM_CiviMobileAPI_Upgrader extends CRM_Extension_Upgrader_Base {
       CRM_CiviMobileAPI_Utils_Calendar::isCiviCalendarInstalled()
       && CRM_CiviMobileAPI_Utils_Calendar::isCiviCalendarCompatible()
     );
-    
+
     Civi::settings()->set('civimobile_is_allow_registration', 1);
   }
 
   /**
    * Uninstalls scheduled job
    *
-   * @throws \CiviCRM_API3_Exception
+   * @throws \CRM_Core_Exception
    */
   public function uninstall() {
-
     $this->executeSqlFile('sql/drop_event_session_speaker.sql');
     $this->executeSqlFile('sql/drop_favourite_event_session.sql');
     $this->executeSqlFile('sql/drop_event_agenda_config.sql');
@@ -262,14 +268,15 @@ class CRM_CiviMobileAPI_Upgrader extends CRM_Extension_Upgrader_Base {
     $isAllowMobileRegistrationField = "custom_" . CRM_CiviMobileAPI_Utils_CustomField::getId(CRM_CiviMobileAPI_Install_Entity_CustomGroup::ALLOW_MOBILE_REGISTRATION, CRM_CiviMobileAPI_Install_Entity_CustomField::IS_MOBILE_EVENT_REGISTRATION);
     $events = civicrm_api3('Event', 'get', [
       'sequential' => 1,
-      'options' => ['limit' => 0]
+      'options' => ['limit' => 0],
     ]);
 
     foreach ($events['values'] as $event) {
       civicrm_api3('CustomValue', 'create', [
         'entity_id' => $event['id'],
-        $isAllowMobileRegistrationField => 1
+        $isAllowMobileRegistrationField => 1,
       ]);
     }
   }
+
 }

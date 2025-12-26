@@ -20,7 +20,7 @@ class ParticipantPushNotification extends BasePushNotification {
     $this->actionText = [
       'create' => '%display_name ' . E::ts('has created participant.'),
       'edit' => '%display_name ' . E::ts('has edited your event\'s participation.'),
-      'delete' => '%display_name' . E::ts('has deleted you from event.')
+      'delete' => '%display_name ' . E::ts('has deleted you from event.')
     ];
   }
 
@@ -35,7 +35,7 @@ class ParticipantPushNotification extends BasePushNotification {
 
     $data = [
       'entity' => $this->entity,
-      'id' => strval($this->id),
+      'id' => strval($this->entityInstance->event_id),
       'body' => $message
     ];
 
@@ -87,9 +87,15 @@ class ParticipantPushNotification extends BasePushNotification {
     $message = $this->getMessage();
     $title = $this->getTitle();
 
+    $eventId = $this->getEventIdByParticipantId($this->id);
+
+    if (empty($eventId)) {
+      return;
+    }
+
     $data = [
       'entity' => $this->entity,
-      'id' => $this->id,
+      'id' => strval($eventId),
       'body' => $message
     ];
 
@@ -145,5 +151,17 @@ class ParticipantPushNotification extends BasePushNotification {
     }
 
     return array_unique($contacts);
+  }
+
+  protected function getEventIdByParticipantId($participantId) {
+    return civicrm_api4('Participant', 'get', [
+      'select' => [
+        'event_id',
+      ],
+      'where' => [
+        ['id', '=', $participantId],
+      ],
+      'checkPermissions' => FALSE,
+    ])->first()['event_id'];
   }
 }

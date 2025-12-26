@@ -26,6 +26,25 @@ This extension does not do anything out of the box. It is available for other ex
 
 ## Changelog
 
+#### 1.8.0 (2025-10-27)
+
+* [!8](https://lab.civicrm.org/extensions/sweetalert/-/merge_requests/8) Adds a CiviRules display-message action.
+* [!11](https://lab.civicrm.org/extensions/sweetalert/-/merge_requests/11) Overload CRM.alert. This adds a setting to "Display Settings" and defaults to replacing CRM.alert with Sweetalert on the frontend for much prettier messages.
+
+#### 1.7.1 (2025-10-23)
+
+* Fix for SweetAlert library update
+
+#### 1.7 (2025-10-14)
+
+* Update SweetAlert from 10.16.7 to 11.26.2 -  [Changelog](https://github.com/sweetalert2/sweetalert2/blob/master/CHANGELOG.md)
+* Add composer.json
+* Upgrade civix
+
+#### 1.6
+
+* Upgrade Civix
+
 #### 1.5
 *SweetAlert introduces a number of breaking changes from release 11. Release 10 provides both legacy methods and new methods so allows existing integrations to transition.*
 *

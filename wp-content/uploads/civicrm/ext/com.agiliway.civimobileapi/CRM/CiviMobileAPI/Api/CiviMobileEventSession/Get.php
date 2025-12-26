@@ -13,7 +13,7 @@ class CRM_CiviMobileAPI_Api_CiviMobileEventSession_Get extends CRM_CiviMobileAPI
    * Returns results to api
    *
    * @return array
-   * @throws api_Exception
+   * @throws CRM_Core_Exception
    */
   public function getResult() {
     $config = CRM_Core_Config::singleton();
@@ -43,7 +43,7 @@ class CRM_CiviMobileAPI_Api_CiviMobileEventSession_Get extends CRM_CiviMobileAPI
           'start_time_formatted' => CRM_Utils_Date::customFormat($session["start_time"], $config->dateformatTime),
           'end_time_formatted' => CRM_Utils_Date::customFormat($session["end_time"], $config->dateformatTime),
           'is_display' => $displayInfo['is_display'],
-          'display_status' =>  $displayInfo['display_status'],
+          'display_status' => $displayInfo['display_status'],
         ];
 
         if (CRM_Core_Session::getLoggedInContactID()) {
@@ -52,7 +52,7 @@ class CRM_CiviMobileAPI_Api_CiviMobileEventSession_Get extends CRM_CiviMobileAPI
         $favoriteParticipants = CRM_CiviMobileAPI_BAO_FavouriteEventSession::getAll(['event_session_id' => $session["id"]]);
         $favoriteParticipantIds = [];
         foreach ($favoriteParticipants as $participant) {
-          $favoriteParticipantIds[] = (int)$participant['contact_id'];
+          $favoriteParticipantIds[] = (int) $participant['contact_id'];
         }
 
         $preparedEventSession['participants'] = CRM_CiviMobileAPI_Utils_Participant::getParticipantsNames($favoriteParticipantIds, $session["event_id"]);
@@ -70,11 +70,11 @@ class CRM_CiviMobileAPI_Api_CiviMobileEventSession_Get extends CRM_CiviMobileAPI
    * @param $params
    *
    * @return array
-   * @throws api_Exception
+   * @throws CRM_Core_Exception
    */
   protected function getValidParams($params) {
     if (!CRM_CiviMobileAPI_Utils_Permission::isEnoughPermissionForGetEventSession()) {
-      throw new api_Exception('You don`t have enough permissions.', 'do_not_have_enough_permissions');
+      throw new CRM_Core_Exception('You don`t have enough permissions.', 'do_not_have_enough_permissions');
     }
 
     foreach ($params as $key => $value) {
@@ -89,6 +89,7 @@ class CRM_CiviMobileAPI_Api_CiviMobileEventSession_Get extends CRM_CiviMobileAPI
    * Returns Event by Id
    *
    * @param $eventId
+   *
    * @return CRM_Event_BAO_Event
    */
   private function getCachedEventById($eventId) {
@@ -105,6 +106,7 @@ class CRM_CiviMobileAPI_Api_CiviMobileEventSession_Get extends CRM_CiviMobileAPI
    * Returns display info
    *
    * @param $session
+   *
    * @return array
    */
   private function getDisplayInfo($session) {

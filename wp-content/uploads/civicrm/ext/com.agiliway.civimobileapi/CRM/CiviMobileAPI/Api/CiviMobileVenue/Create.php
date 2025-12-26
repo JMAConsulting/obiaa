@@ -6,7 +6,7 @@ class CRM_CiviMobileAPI_Api_CiviMobileVenue_Create extends CRM_CiviMobileAPI_Api
    * Returns results to api
    *
    * @return array
-   * @throws api_Exception
+   * @throws CRM_Core_Exception
    */
   public function getResult() {
     $geoCode = CRM_CiviMobileAPI_Utils_Agenda_Venue::getVenueGeocoderData($this->validParams);
@@ -14,7 +14,8 @@ class CRM_CiviMobileAPI_Api_CiviMobileVenue_Create extends CRM_CiviMobileAPI_Api
     $this->validParams['longitude'] = $geoCode['longitude'];
     $venueId = CRM_CiviMobileAPI_BAO_LocationVenue::create($this->validParams)->id;
     $venue = civicrm_api3('CiviMobileVenue', 'getsingle', [
-      'id' => $venueId]);
+      'id' => $venueId,
+    ]);
 
     return [$venue];
   }
@@ -25,16 +26,16 @@ class CRM_CiviMobileAPI_Api_CiviMobileVenue_Create extends CRM_CiviMobileAPI_Api
    * @param $params
    *
    * @return array
-   * @throws api_Exception
+   * @throws CRM_Core_Exception
    */
   protected function getValidParams($params) {
     if (!CRM_CiviMobileAPI_Utils_Permission::isEnoughPermissionForCreateEventVenues()) {
-      throw new api_Exception('You don`t have enough permissions.', 'do_not_have_enough_permissions');
+      throw new CRM_Core_Exception('You don`t have enough permissions.', 'do_not_have_enough_permissions');
     }
 
     if (!empty($params['id'])) {
       if (empty(CRM_CiviMobileAPI_BAO_LocationVenue::getAll($params['id']))) {
-        throw new api_Exception('Wrong venue id');
+        throw new CRM_Core_Exception('Wrong venue id');
       }
     } else {
       $this->checkLocation($params);
@@ -44,7 +45,7 @@ class CRM_CiviMobileAPI_Api_CiviMobileVenue_Create extends CRM_CiviMobileAPI_Api
         $params['background_color'] = $colorParams['background'];
         $params['border_color'] = $colorParams['border'];
       } elseif (strlen($params['background_color']) > 30 || strlen($params['border_color']) > 30) {
-        throw new api_Exception('Color has to contain less than 30 characters.');
+        throw new CRM_Core_Exception('Color has to contain less than 30 characters.');
       }
       if (!isset($params['is_active'])) {
         $params['is_active'] = 1;
@@ -52,7 +53,7 @@ class CRM_CiviMobileAPI_Api_CiviMobileVenue_Create extends CRM_CiviMobileAPI_Api
     }
 
     if (isset($params['is_active']) && (int) $params['is_active'] !== 1 && (int) $params['is_active'] !== 0) {
-      throw new api_Exception('Wrong is active parameter');
+      throw new CRM_Core_Exception('Wrong is active parameter');
     }
     if (!isset($params['id'])) {
       $this->checkLocation($params);
@@ -61,7 +62,7 @@ class CRM_CiviMobileAPI_Api_CiviMobileVenue_Create extends CRM_CiviMobileAPI_Api
 
     $sameNameVenue = CRM_CiviMobileAPI_BAO_LocationVenue::getAll([
       'name' => !empty($params['name']) ? $params['name'] : '',
-      'location_id' => !empty($params['location_id']) ? $params['location_id'] : ''
+      'location_id' => !empty($params['location_id']) ? $params['location_id'] : '',
     ]);
 
     if (!empty($sameNameVenue)
@@ -70,7 +71,7 @@ class CRM_CiviMobileAPI_Api_CiviMobileVenue_Create extends CRM_CiviMobileAPI_Api
       && !empty($params["id"])
       && $params["id"] != $sameNameVenue[0]['id']
       && !empty($params["name"])) {
-      throw new api_Exception ('Venue with same name already exists for this location.', 'venue_with_same_name_already_exist');
+      throw new CRM_Core_Exception ('Venue with same name already exists for this location.', 'venue_with_same_name_already_exist');
     }
 
     return $params;
@@ -80,15 +81,16 @@ class CRM_CiviMobileAPI_Api_CiviMobileVenue_Create extends CRM_CiviMobileAPI_Api
    * Check venue name parameter
    *
    * @param $params
-   * @throws api_Exception
+   *
+   * @throws CRM_Core_Exception
    */
   private function checkName($params) {
     if (empty($params['name'])) {
-      throw new api_Exception('Empty name');
+      throw new CRM_Core_Exception('Empty name');
     }
 
     if (strlen(($params['name'])) > 255) {
-      throw new api_Exception('Name length must be less than 255 characters.');
+      throw new CRM_Core_Exception('Name length must be less than 255 characters.');
     }
   }
 
@@ -96,17 +98,18 @@ class CRM_CiviMobileAPI_Api_CiviMobileVenue_Create extends CRM_CiviMobileAPI_Api
    * Check venue location parameter
    *
    * @param $params
-   * @throws api_Exception
+   *
+   * @throws CRM_Core_Exception
    */
   private function checkLocation($params) {
     if (empty($params['location_id'])) {
-      throw new api_Exception('Empty location id');
+      throw new CRM_Core_Exception('Empty location id');
     }
 
     $event = new CRM_Event_BAO_Event();
     $event->loc_block_id = $params['location_id'];
     if (!$event->find(TRUE)) {
-      throw new api_Exception('Wrong location id');
+      throw new CRM_Core_Exception('Wrong location id');
     }
   }
 

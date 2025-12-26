@@ -6,7 +6,7 @@ class CRM_CiviMobileAPI_Api_CiviMobileSurveyRespondent_Reserve extends CRM_CiviM
    * Returns results to api
    *
    * @return array
-   * @throws api_Exception
+   * @throws CRM_Core_Exception
    */
   public function getResult() {
     $survey = civicrm_api4('Survey', 'get', [
@@ -17,11 +17,11 @@ class CRM_CiviMobileAPI_Api_CiviMobileSurveyRespondent_Reserve extends CRM_CiviM
     ])->first();
 
     if (empty($survey)) {
-      throw new api_Exception('The survey doesn`t exists.', 'survey_does_not_exists');
+      throw new CRM_Core_Exception('The survey doesn`t exists.', 'survey_does_not_exists');
     }
 
     if (!empty($survey['default_number_of_contacts']) && count($this->validParams['contact_ids']) > $survey['default_number_of_contacts']) {
-      throw new api_Exception('You can reserve no more than ' . $survey['default_number_of_contacts'] . ' contacts per interviewer at one time.', 'too_much_contacts_per_interviewer_at_one_time');
+      throw new CRM_Core_Exception('You can reserve no more than ' . $survey['default_number_of_contacts'] . ' contacts per interviewer at one time.', 'too_much_contacts_per_interviewer_at_one_time');
     }
 
     $surveyActivityTypesIds = CRM_CiviMobileAPI_Utils_Survey::getSurveyActivityTypesIds();
@@ -37,7 +37,7 @@ class CRM_CiviMobileAPI_Api_CiviMobileSurveyRespondent_Reserve extends CRM_CiviM
     ])->getArrayCopy();
 
     if (count($activities) > 0) {
-      throw new api_Exception('Some contacts already reserved.', 'some_contacts_already_reserved');
+      throw new CRM_Core_Exception('Some contacts already reserved.', 'some_contacts_already_reserved');
     }
 
     if (!empty($survey['max_number_of_contacts'])) {
@@ -48,7 +48,7 @@ class CRM_CiviMobileAPI_Api_CiviMobileSurveyRespondent_Reserve extends CRM_CiviM
       ]);
 
       if ($reservedRespondents['count'] + count($this->validParams['contact_ids']) > $survey['max_number_of_contacts']) {
-        throw new api_Exception('You can reserve no more than ' . $survey['max_number_of_contacts'] . ' contacts per interviewer.', 'too_much_contacts_per_interviewer');
+        throw new CRM_Core_Exception('You can reserve no more than ' . $survey['max_number_of_contacts'] . ' contacts per interviewer.', 'too_much_contacts_per_interviewer');
       }
     }
 
@@ -76,11 +76,11 @@ class CRM_CiviMobileAPI_Api_CiviMobileSurveyRespondent_Reserve extends CRM_CiviM
    * @param $params
    *
    * @return array
-   * @throws api_Exception`
+   * @throws CRM_Core_Exception`
    */
   protected function getValidParams($params) {
     if (!CRM_CiviMobileAPI_Utils_Permission::isEnoughPermissionToReserveRespondents()) {
-      throw new API_Exception(ts('Permission is required.'));
+      throw new CRM_Core_Exception(ts('Permission is required.'));
     }
 
     $loggedInContactId = CRM_Core_Session::getLoggedInContactID();
@@ -89,7 +89,7 @@ class CRM_CiviMobileAPI_Api_CiviMobileSurveyRespondent_Reserve extends CRM_CiviM
       $this->validParams['interviewer_id'] != $loggedInContactId &&
       !CRM_CiviMobileAPI_Utils_Permission::isEnoughPermissionToChangeInterviewer()
     ) {
-      throw new API_Exception(ts('Permission is required.'));
+      throw new CRM_Core_Exception(ts('Permission is required.'));
     }
 
     $params['interviewer_id'] = !empty($params['interviewer_id']) ? $params['interviewer_id'] : $loggedInContactId;
@@ -107,7 +107,7 @@ class CRM_CiviMobileAPI_Api_CiviMobileSurveyRespondent_Reserve extends CRM_CiviM
     ])->count();
 
     if (count($params['contact_ids']) != $contactsCount) {
-      throw new api_Exception('Some contacts don`t exists or you don`t have permissions to view them.', 'some_contacts_do_not_exists');
+      throw new CRM_Core_Exception('Some contacts don`t exists or you don`t have permissions to view them.', 'some_contacts_do_not_exists');
     }
 
     return $params;

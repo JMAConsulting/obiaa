@@ -452,7 +452,7 @@ class CRM_Core_Payment_Stripe extends CRM_Core_Payment {
    * @return array
    */
   public function getBillingAddressFields($billingLocationID = NULL): array {
-    if ((boolean) \Civi::settings()->get('stripe_nobillingaddress')) {
+    if ((bool) \Civi::settings()->get('stripe_nobillingaddress')) {
       return [];
     }
     else {
@@ -469,7 +469,7 @@ class CRM_Core_Payment_Stripe extends CRM_Core_Payment {
    *    Array of metadata for address fields.
    */
   public function getBillingAddressFieldsMetadata($billingLocationID = NULL): array {
-    if ((boolean) \Civi::settings()->get('stripe_nobillingaddress')) {
+    if ((bool) \Civi::settings()->get('stripe_nobillingaddress')) {
       return [];
     }
     else {
@@ -520,7 +520,7 @@ class CRM_Core_Payment_Stripe extends CRM_Core_Payment {
       'publishableKey' => CRM_Core_Payment_Stripe::getPublicKeyById($form->_paymentProcessor['id']),
       'paymentProcessorTypeID' => $form->_paymentProcessor['payment_processor_type_id'],
       'locale' => CRM_Stripe_Api::mapCiviCRMLocaleToStripeLocale(),
-      'apiVersion' => CRM_Stripe_Check::API_VERSION,
+      'apiVersion' => \Civi\Stripe\Check::API_VERSION,
       'csrfToken' => NULL,
       'country' => \Civi::settings()->get('stripe_country'),
       'moto' => $motoEnabled,
@@ -533,20 +533,11 @@ class CRM_Core_Payment_Stripe extends CRM_Core_Payment {
 
     // Add CSS via region (it won't load on drupal webform if added via \Civi::resources()->addStyleFile)
     CRM_Core_Region::instance('billing-block')->add([
-      'styleUrl' => \Civi::service('asset_builder')->getUrl(
-        'elements.css',
-        [
-          'path' => E::path('css/elements.css'),
-          'mimetype' => 'text/css',
-        ]
-      ),
+      'styleUrl' => \Civi::resources()->getUrl(E::LONG_NAME, 'css/elements.css'),
       'weight' => -1,
     ]);
     CRM_Core_Region::instance('billing-block')->add([
-      'scriptFile' => [
-        E::LONG_NAME,
-        'js/civicrmStripe.js',
-      ],
+      'scriptUrl' => \Civi::resources()->getUrl(E::LONG_NAME, 'js/civicrmStripe.js'),
       // Load after other scripts on form (default = 1)
       'weight' => 100,
     ]);
@@ -1043,7 +1034,7 @@ class CRM_Core_Payment_Stripe extends CRM_Core_Payment {
 
         case 'requires_action':
           // We fall through to this in requires_capture / requires_action so we always set a receipt_email
-          if ((boolean) \Civi::settings()->get('stripe_oneoffreceipt')) {
+          if ((bool) \Civi::settings()->get('stripe_oneoffreceipt')) {
             // Send a receipt from Stripe - we have to set the receipt_email after the charge has been captured,
             //   as the customer receives an email as soon as receipt_email is updated and would receive two if we updated before capture.
             $this->stripeClient->paymentIntents->update($intent->id, ['receipt_email' => $email]);
@@ -1538,7 +1529,7 @@ class CRM_Core_Payment_Stripe extends CRM_Core_Payment {
    *   Override setting of email receipt if set to 0, 1
    *
    * @return bool
-   * @throws \API_Exception
+   * @throws \CRM_Core_Exception
    * @throws \Civi\API\Exception\UnauthorizedException
    * @throws \Civi\Payment\Exception\PaymentProcessorException
    * @deprecated

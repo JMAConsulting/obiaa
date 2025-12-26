@@ -9,6 +9,7 @@ class CRM_CiviMobileAPI_Hook_Post_Register {
    * @param $objectName
    * @param $objectId
    * @param $objectRef
+   *
    * @return bool
    * @throws CRM_Core_Exception
    */
@@ -25,13 +26,13 @@ class CRM_CiviMobileAPI_Hook_Post_Register {
               );
             $result = civicrm_api3('Participant', 'create', [
               'id' => $objectId,
-              $publicKeyFieldId => $tmpData['public_key']
+              $publicKeyFieldId => $tmpData['public_key'],
             ]);
 
             $session->set('cmbHash');
             return TRUE;
           }
-          catch (CiviCRM_API3_Exception $e) {
+          catch (CRM_Core_Exception $e) {
             throw new CRM_Core_Exception(E::ts('Failed to update participant public_key in database'));
           }
         }

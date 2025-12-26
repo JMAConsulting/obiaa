@@ -4,9 +4,11 @@ use CRM_CiviMobileAPI_ExtensionUtil as E;
 
 /**
  * Gets participant payment link for proceed mobile app payment
+ *
  * @param $params
+ *
  * @return array
- * @throws api_Exception
+ * @throws CRM_Core_Exception
  */
 function civicrm_api3_civi_mobile_participant_link_get($params) {
   $result[] = (new CRM_CiviMobileAPI_Api_CiviMobileParticipantLink_Get($params))->getResult();

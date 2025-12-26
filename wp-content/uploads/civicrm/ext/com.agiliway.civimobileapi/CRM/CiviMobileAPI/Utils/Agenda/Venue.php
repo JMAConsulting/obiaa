@@ -6,6 +6,7 @@ class CRM_CiviMobileAPI_Utils_Agenda_Venue {
    * Returns full data about venues by EventId
    *
    * @param $eventId
+   *
    * @return array
    */
   public static function getVenuesByEventId($eventId) {
@@ -19,7 +20,7 @@ class CRM_CiviMobileAPI_Utils_Agenda_Venue {
       'sequential' => 1,
       'location_id' => $locationBlockId,
       'is_active' => 1,
-      'options' => ['sort' => "weight asc"]
+      'options' => ['sort' => "weight asc"],
     ])['values'];
   }
 
@@ -27,8 +28,9 @@ class CRM_CiviMobileAPI_Utils_Agenda_Venue {
    * Returns venues names by EventId
    *
    * @param $eventId
+   *
    * @return array
-   * @throws CiviCRM_API3_Exception
+   * @throws CRM_Core_Exception
    */
   public static function getVenuesNamesByEventId($eventId) {
     $venuesNames = [];
@@ -69,6 +71,7 @@ class CRM_CiviMobileAPI_Utils_Agenda_Venue {
    *
    * @param $id
    * @param $eventId
+   *
    * @return bool
    */
   public static function issetVenue($id, $eventId) {
@@ -86,12 +89,11 @@ class CRM_CiviMobileAPI_Utils_Agenda_Venue {
       civicrm_api3('CiviMobileVenue', 'getsingle', [
         'id' => $id,
         'location_id' => $locationBlockId,
-        'is_active' => 1
+        'is_active' => 1,
       ]);
-    } catch (CiviCRM_API3_Exception $e) {
+    } catch (CRM_Core_Exception $e) {
       return FALSE;
     }
-
 
     return TRUE;
   }
@@ -174,44 +176,44 @@ class CRM_CiviMobileAPI_Utils_Agenda_Venue {
     return [
       [
         'background' => 'rgb(178,223,219)',
-        'border' => 'rgb(128,203,196)'
+        'border' => 'rgb(128,203,196)',
       ],
       [
         'background' => 'rgb(187,222,251)',
-        'border' => 'rgb(144,202,249)'
+        'border' => 'rgb(144,202,249)',
       ],
       [
         'background' => 'rgb(197,202,233)',
-        'border' => 'rgb(159,168,218)'
+        'border' => 'rgb(159,168,218)',
       ],
       [
         'background' => 'rgb(248,187,208)',
-        'border' => 'rgb(244,143,177)'
+        'border' => 'rgb(244,143,177)',
       ],
       [
         'background' => 'rgb(255,205,210)',
-        'border' => 'rgb(239,154,154)'
+        'border' => 'rgb(239,154,154)',
       ],
       [
         'background' => 'rgb(255,248,225)',
-        'border' => 'rgb(255,236,179)'
+        'border' => 'rgb(255,236,179)',
       ],
       [
         'background' => 'rgb(255,224,178)',
-        'border' => 'rgb(255,204,128)'
+        'border' => 'rgb(255,204,128)',
       ],
       [
         'background' => 'rgb(215,204,200)',
-        'border' => 'rgb(188,170,164)'
+        'border' => 'rgb(188,170,164)',
       ],
       [
         'background' => 'rgb(227,253,244)',
-        'border' => 'rgb(155,219,197)'
+        'border' => 'rgb(155,219,197)',
       ],
       [
         'background' => 'rgb(200,230,201)',
-        'border' => 'rgb(165,214,167)'
-      ]
+        'border' => 'rgb(165,214,167)',
+      ],
     ];
   }
 
@@ -219,6 +221,7 @@ class CRM_CiviMobileAPI_Utils_Agenda_Venue {
    * Return next color in list of available colors by location id
    *
    * @param $locationId
+   *
    * @return array
    */
   public static function getNextColorInListForLocation($locationId) {
@@ -242,4 +245,5 @@ class CRM_CiviMobileAPI_Utils_Agenda_Venue {
 
     return $color;
   }
+
 }

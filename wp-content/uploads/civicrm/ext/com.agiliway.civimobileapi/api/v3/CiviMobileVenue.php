@@ -11,7 +11,7 @@ use CRM_CiviMobileAPI_ExtensionUtil as E;
  */
 function civicrm_api3_civi_mobile_venue_get($params) {
   if (!CRM_CiviMobileAPI_Utils_Permission::isEnoughPermissionForGetEventVenues()) {
-    throw new api_Exception('You don`t have enough permissions.', 'do_not_have_enough_permissions');
+    throw new CRM_Core_Exception('You don`t have enough permissions.', 'do_not_have_enough_permissions');
   }
   $currentCMS = CRM_CiviMobileAPI_Utils_CmsUser::getInstance()->getSystem();
   $preparedVenues = [];
@@ -21,13 +21,16 @@ function civicrm_api3_civi_mobile_venue_get($params) {
     $venueFiles = CRM_Core_BAO_File::getEntityFile('civicrm_civimobile_location_venue', $venue['id']);
     $preparedFiles = [];
     foreach ($venueFiles as $file) {
-      $url = CRM_Utils_System::url('civicrm/file', ['filename' => $file['fileName'], 'mime-type' => $file['mime_type']], TRUE);
+      $url = CRM_Utils_System::url('civicrm/file', [
+        'filename' => $file['fileName'],
+        'mime-type' => $file['mime_type'],
+      ], TRUE);
       if ($currentCMS == CRM_CiviMobileAPI_Utils_CmsUser::CMS_JOOMLA) {
         $url = preg_replace('/administrator\//', 'index.php', $url);
       }
       $preparedFiles[] = [
         'url' => $url,
-        'type' => $file['mime_type']
+        'type' => $file['mime_type'],
       ];
     }
 
@@ -44,7 +47,7 @@ function civicrm_api3_civi_mobile_venue_get($params) {
       'background_color' => $venue['background_color'],
       'border_color' => $venue['border_color'],
       'weight' => $venue['weight'],
-      'attached_files' => $preparedFiles
+      'attached_files' => $preparedFiles,
     ];
 
     if (!empty($params['sequential'])) {
@@ -61,6 +64,7 @@ function civicrm_api3_civi_mobile_venue_get($params) {
  * Adjust Metadata for get action
  *
  * The metadata is used for setting defaults, documentation & validation
+ *
  * @param array $params array or parameters determined by getfields
  */
 function _civicrm_api3_civi_mobile_venue_get_spec(&$params) {
@@ -118,6 +122,7 @@ function civicrm_api3_civi_mobile_venue_create($params) {
  * Adjust Metadata for create action
  *
  * The metadata is used for setting defaults, documentation & validation
+ *
  * @param array $params array or parameters determined by getfields
  */
 function _civicrm_api3_civi_mobile_venue_create_spec(&$params) {
@@ -182,19 +187,19 @@ function _civicrm_api3_civi_mobile_venue_create_spec(&$params) {
  */
 function civicrm_api3_civi_mobile_venue_delete($params) {
   if (!CRM_CiviMobileAPI_Utils_Permission::isEnoughPermissionForDeleteEventVenues()) {
-    throw new api_Exception('You don`t have enough permissions.', 'do_not_have_enough_permissions');
+    throw new CRM_Core_Exception('You don`t have enough permissions.', 'do_not_have_enough_permissions');
   }
   try {
     $venue = CRM_CiviMobileAPI_BAO_LocationVenue::findById($params['id']);
   } catch (Exception $e) {
-    throw new api_Exception('Venue does not exists.', 'venue_does not exists.');
+    throw new CRM_Core_Exception('Venue does not exists.', 'venue_does not exists.');
   }
 
   CRM_Core_BAO_File::deleteEntityFile('civicrm_civimobile_location_venue', $params['id']);
   $venue->del($params['id']);
 
   return civicrm_api3_create_success([
-    'message' => 'The EventVenue was deleted.'
+    'message' => 'The EventVenue was deleted.',
   ]);
 }
 
@@ -202,6 +207,7 @@ function civicrm_api3_civi_mobile_venue_delete($params) {
  * Adjust Metadata for delete action
  *
  * The metadata is used for setting defaults, documentation & validation
+ *
  * @param array $params array or parameters determined by getfields
  */
 function _civicrm_api3_civi_mobile_venue_delete_spec(&$params) {
@@ -209,7 +215,7 @@ function _civicrm_api3_civi_mobile_venue_delete_spec(&$params) {
     'title' => 'Venue Id',
     'description' => E::ts('Venue Id'),
     'type' => CRM_Utils_Type::T_INT,
-    'api.required' => 1
+    'api.required' => 1,
   ];
 }
 
@@ -235,6 +241,7 @@ function _civicrm_api3_civi_mobile_venue_getlist_params(&$request) {
  *
  * @param $entity
  * @param $fields
+ *
  * @return array
  * @see _civicrm_api3_generic_getlist_output
  *
@@ -245,7 +252,7 @@ function _civicrm_api3_civi_mobile_venue_getlist_output($result, $request, $enti
     $output[] = [
       'id' => $venue['id'],
       'label' => $venue['name'],
-      'description' => []
+      'description' => [],
     ];
   }
 

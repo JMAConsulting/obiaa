@@ -87,3 +87,9 @@
 {htxt id="is-disallow-event-participant-registration-overlap-help"}
   <p>{ts domain="com.agiliway.civimobileapi"}By checking the checkbox you will disallow user registration for events that overlap with other events{/ts}</p>
 {/htxt}
+{htxt id="reminder-before-due-help-title"}
+{ts domain="com.agiliway.civimobileapi"}Reminder about task due{/ts}
+{/htxt}
+{htxt id="reminder-before-due-help"}
+<p>{ts domain="com.agiliway.civimobileapi"}Set the time before a task is due when a push notification reminder should be sent. Specify the number of days, hours, and minutes before the due date/time.{/ts}</p>
+{/htxt}

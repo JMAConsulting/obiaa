@@ -9,10 +9,11 @@ class CRM_CiviMobileAPI_Utils_Statistic_ContactsMembership {
    * @param $params
    * @param $status
    * @param bool $isRenewal
+   *
    * @return int
    */
   public static function getMembershipsCount($contactsId, $params, $status = NULL, $isRenewal = FALSE) {
-    $prepareReceiveDate = (new CRM_CiviMobileAPI_Utils_Statistic_ChartBar)->getPrepareReceiveDate($params);
+    $prepareReceiveDate = (new CRM_CiviMobileAPI_Utils_Statistic_ChartBar())->getPrepareReceiveDate($params);
     $startDate = $prepareReceiveDate['start_date'];
     $endDate = $prepareReceiveDate['end_date'];
     $renewalMembershipsParam = (!empty(CRM_CiviMobileAPI_Utils_Statistic_Utils::getRenewalMembershipIds())) ? ["IN" => CRM_CiviMobileAPI_Utils_Statistic_Utils::getRenewalMembershipIds()] : NULL;
@@ -27,7 +28,7 @@ class CRM_CiviMobileAPI_Utils_Statistic_ContactsMembership {
         'membership_type_id' => !empty($params['membership_type_id']) ? $params['membership_type_id'] : NULL,
         'status_id' => $status,
       ])['values'];
-    } catch (CiviCRM_API3_Exception $e) {
+    } catch (CRM_Core_Exception $e) {
       return 0;
     }
 

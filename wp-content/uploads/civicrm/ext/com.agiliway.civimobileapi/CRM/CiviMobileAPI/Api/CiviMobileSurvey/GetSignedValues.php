@@ -6,7 +6,7 @@ class CRM_CiviMobileAPI_Api_CiviMobileSurvey_GetSignedValues extends CRM_CiviMob
    * Returns results to api
    *
    * @return array
-   * @throws api_Exception
+   * @throws CRM_Core_Exception
    */
   public function getResult() {
     $preparedValues = [];
@@ -17,11 +17,11 @@ class CRM_CiviMobileAPI_Api_CiviMobileSurvey_GetSignedValues extends CRM_CiviMob
 
     if (!$surveyStructure['is_petition']) {
       if (!CRM_CiviMobileAPI_Utils_Permission::isEnoughPermissionToViewRespondentDetails()) {
-        throw new API_Exception(ts('Permission is required.'));
+        throw new CRM_Core_Exception(ts('Permission is required.'));
       }
     } else {
       if (!CRM_CiviMobileAPI_Utils_Permission::isEnoughPermissionToViewPetitionAnswers()) {
-        throw new API_Exception(ts('Permission is required.'));
+        throw new CRM_Core_Exception(ts('Permission is required.'));
       }
     }
 
@@ -30,10 +30,10 @@ class CRM_CiviMobileAPI_Api_CiviMobileSurvey_GetSignedValues extends CRM_CiviMob
         'target_contact_id' => $this->validParams['contact_id'],
         'source_record_id' => $this->validParams['survey_id'],
         'activity_type_id' => $surveyStructure['activity_type_id'],
-        'status_id' => "Completed"
+        'status_id' => "Completed",
       ]);
     } catch (Exception $e) {
-      throw new api_Exception('Survey is not signed. ' . $e->getMessage(), 'survey_is_not_signed');
+      throw new CRM_Core_Exception('Survey is not signed. ' . $e->getMessage(), 'survey_is_not_signed');
     }
 
     $preparedValues['note'] = $activity['details'];
@@ -58,7 +58,7 @@ class CRM_CiviMobileAPI_Api_CiviMobileSurvey_GetSignedValues extends CRM_CiviMob
    * @param $params
    *
    * @return array
-   * @throws api_Exception
+   * @throws CRM_Core_Exception
    */
   protected function getValidParams($params) {
     return [
@@ -73,6 +73,7 @@ class CRM_CiviMobileAPI_Api_CiviMobileSurvey_GetSignedValues extends CRM_CiviMob
    * @param $profile
    * @param $contactId
    * @param $activityId
+   *
    * @return array
    */
   protected function getProfileValues($profile, $contactId, $activityId) {
@@ -80,7 +81,7 @@ class CRM_CiviMobileAPI_Api_CiviMobileSurvey_GetSignedValues extends CRM_CiviMob
     $profileValues = civicrm_api3('Profile', 'get', [
       'profile_id' => $profile['id'],
       'contact_id' => $contactId,
-      'activity_id' => $activityId
+      'activity_id' => $activityId,
     ])['values'];
 
     foreach ($profile['fields'] as $field) {
@@ -112,10 +113,10 @@ class CRM_CiviMobileAPI_Api_CiviMobileSurvey_GetSignedValues extends CRM_CiviMob
    *
    * @param $profile
    * @param $activityId
+   *
    * @return mixed
    */
   protected function getProfileValuesByActivity($profile, $activity) {
-
     foreach ($profile['fields'] as &$field) {
       $field['value'] = isset($activity[$field['name']]) ? $activity[$field['name']] : NULL;
     }

@@ -62,16 +62,16 @@ function civicrm_api3_civi_mobile_public_participant_get_ticket($params) {
       CRM_CiviMobileAPI_Install_Entity_CustomField::PUBLIC_KEY
     );
 
-  try{
+  try {
     $participant = civicrm_api3('Participant', 'getsingle', [$publicKeyFieldId => $params['public_key']]);
-  } catch (CiviCRM_API3_Exception $e) {
-    throw new api_Exception(E::ts('Ticket not found.'), 'ticket_not_found');
+  } catch (CRM_Core_Exception $e) {
+    throw new CRM_Core_Exception(E::ts('Ticket not found.'), 'ticket_not_found');
   }
 
-  try{
+  try {
     $event = civicrm_api3('Event', 'getsingle', ['id' => $participant['event_id']]);
-  } catch (CiviCRM_API3_Exception $e) {
-    throw new api_Exception(E::ts('Event which is attached to ticket does not exist.'), 'event_does_not_exist');
+  } catch (CRM_Core_Exception $e) {
+    throw new CRM_Core_Exception(E::ts('Event which is attached to ticket does not exist.'), 'event_does_not_exist');
   }
 
   return civicrm_api3_create_success([CRM_CiviMobileAPI_Utils_EventTicket::prepareTicket($participant, $event)]);
