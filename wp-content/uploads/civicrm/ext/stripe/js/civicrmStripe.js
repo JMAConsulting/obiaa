@@ -167,17 +167,43 @@
             CRM.payment.debugging(script.name, 'StripePaymentintent.Process done (setupIntent)');
             if (paymentIntentProcessResponse.status === 'requires_action') {
               // Use Stripe.js to handle a pending card action (eg. 3d-secure)
+              CRM.payment.debugging(script.name, 'card action required (setupIntent)');
               script.paymentData.clientSecret = paymentIntentProcessResponse.client_secret;
-              let cardActionResult = await stripe.confirmCardSetup(script.paymentData.clientSecret);
-              if (cardActionResult.error) {
-                // Show error in payment form
-                CRM.payment.displayError(cardActionResult.error.message, true);
-              }
-              else {
-                // The card action has been handled
-                // The PaymentIntent can be confirmed again on the
-                // server
-                script.successHandler('setupIntentID', cardActionResult.setupIntent.id);
+
+              if (typeof Swal === 'function') {
+                // Display a message indicating 0 amount display on the 3DS verification popup is normal.
+                const handle3DSecureAuthentication = async () => {
+                  let zero_amount = CRM.formatMoney(0);
+                  Swal.fire({
+                    title: ts('3D Secure Authentication'),
+                    text: ts("The next step will complete your 3D Secure authentification. Don't worry if the amount displayed is %1, it's just an authorisation for your recurring payments. Please click continue to proceed.", { 1: zero_amount }),
+                    icon: 'success',
+                    confirmButtonText: 'Continue'
+                  }).then(async (result) => {
+                    if (result.isConfirmed) {
+                      let cardActionResult = await stripe.confirmCardSetup(script.paymentData.clientSecret);
+                      if (cardActionResult.error) {
+                        // Show error in payment form
+                        CRM.payment.displayError(cardActionResult.error.message, true);
+                      } else {
+                        // The card action has been handled
+                        // The PaymentIntent can be confirmed again on the server
+                        script.successHandler('setupIntentID', cardActionResult.setupIntent.id);
+                      }
+                    }
+                  });
+                };
+                await handle3DSecureAuthentication();
+              } else {
+                let cardActionResult = await stripe.confirmCardSetup(script.paymentData.clientSecret);
+                if (cardActionResult.error) {
+                  // Show error in payment form
+                  CRM.payment.displayError(cardActionResult.error.message, true);
+                } else {
+                  // The card action has been handled
+                  // The PaymentIntent can be confirmed again on the server
+                  script.successHandler('setupIntentID', cardActionResult.setupIntent.id);
+                }
               }
             }
             // WordPress returns a 200 not 500 HTTP response because headers are sent beforehand.  So we check for an error code in the response.

@@ -11,26 +11,27 @@
 
 namespace Civi\Api4\Action\StripeCharge;
 
-use Stripe\Event;
+use Civi\Api4\Generic\AbstractAction;
+use Civi\Api4\Generic\Result;
 
 /**
  * @inheritDoc
  */
-class GetBalanceTransactionDetails extends \Civi\Api4\Generic\AbstractAction {
+class GetBalanceTransactionDetails extends AbstractAction {
 
   /**
    * Stripe Charge ID
    *
    * @var string
    */
-  protected $chargeID = '';
+  protected string $chargeID = '';
 
   /**
    * The CiviCRM Payment Processor ID
    *
    * @var int
    */
-  protected $paymentProcessorID;
+  protected int $paymentProcessorID;
 
   /**
    * @param \Civi\Api4\Generic\Result $result
@@ -39,7 +40,7 @@ class GetBalanceTransactionDetails extends \Civi\Api4\Generic\AbstractAction {
    * @throws \CRM_Core_Exception
    * @throws \Stripe\Exception\ApiErrorException
    */
-  public function _run(\Civi\Api4\Generic\Result $result) {
+  public function _run(Result $result) {
     if (empty($this->chargeID)) {
       throw new \CRM_Core_Exception('Missing chargeID');
     }

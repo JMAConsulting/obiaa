@@ -25,16 +25,16 @@ class CRM_CiviMobileAPI_ApiWrapper_GroupContact_Get implements API_Wrapper {
    * @return array
    */
   public function toApiOutput($apiRequest, $result) {
-    if (!empty($apiRequest['params']['smart_group']) && $apiRequest['params']['smart_group'] == 1 ) {
+    if (!empty($apiRequest['params']['smart_group']) && $apiRequest['params']['smart_group'] == 1) {
       if (empty($apiRequest['params']['contact_id'])) {
-        throw new api_Exception('Field \'contact_id\' is required field.', 'required_field');
+        throw new CRM_Core_Exception('Field \'contact_id\' is required field.', 'required_field');
       }
 
       $contact = new CRM_Contact_BAO_Contact();
       $contact->id = $apiRequest['params']['contact_id'];
       $contactExistence = $contact->find(TRUE);
       if (empty($contactExistence)) {
-        throw new api_Exception('Contact(id=' . $apiRequest['params']['contact_id'] . ') does not exist.', 'contact_does_not_exist');
+        throw new CRM_Core_Exception('Contact(id=' . $apiRequest['params']['contact_id'] . ') does not exist.', 'contact_does_not_exist');
       }
 
       $contactGroups = CRM_Contact_BAO_GroupContactCache::contactGroup($apiRequest['params']['contact_id']);

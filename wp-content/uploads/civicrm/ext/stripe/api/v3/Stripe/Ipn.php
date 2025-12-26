@@ -43,7 +43,7 @@ function _civicrm_api3_stripe_Ipn_spec(&$spec) {
  * @param array $params
  *
  * @return array
- * @throws \API_Exception
+ * @throws \CRM_Core_Exception
  * @throws \CRM_Core_Exception
  */
 function civicrm_api3_stripe_Ipn($params) {
@@ -55,7 +55,7 @@ function civicrm_api3_stripe_Ipn($params) {
     // Read from civicrm SystemLog
     $data = civicrm_api3('SystemLog', 'getsingle', ['id' => $params['id'], 'return' => ['message', 'context']]);
     if (empty($data)) {
-      throw new API_Exception('Failed to find that entry in the system log', 3234);
+      throw new CRM_Core_Exception('Failed to find that entry in the system log', 3234);
     }
     $stripeObject = json_decode($data['context']);
     if (preg_match('/processor_id=([0-9]+)$/', $data['message'], $matches)) {
@@ -63,20 +63,20 @@ function civicrm_api3_stripe_Ipn($params) {
       $paymentProcessor = \Civi\Payment\System::singleton()->getById($paymentProcessorID);
     }
     else {
-      throw new API_Exception('Failed to find payment processor id in system log', 3235);
+      throw new CRM_Core_Exception('Failed to find payment processor id in system log', 3235);
     }
   }
   elseif (array_key_exists('evtid', $params)) {
     // Read directly from Stripe using event_id
     if (!array_key_exists('ppid', $params)) {
-      throw new API_Exception('Please pass the payment processor id (ppid) if using evtid.', 3236);
+      throw new CRM_Core_Exception('Please pass the payment processor id (ppid) if using evtid.', 3236);
     }
     $paymentProcessorID = $params['ppid'];
     $paymentProcessor = \Civi\Payment\System::singleton()->getById($paymentProcessorID);
     $stripeObject = $paymentProcessor->stripeClient->events->retrieve($params['evtid']);
   }
   else {
-    throw new API_Exception('Missing parameters. You must specify id or evtid', 3237);
+    throw new CRM_Core_Exception('Missing parameters. You must specify id or evtid', 3237);
   }
 
   // By default, set emailReceipt to NULL so the default receipt setting

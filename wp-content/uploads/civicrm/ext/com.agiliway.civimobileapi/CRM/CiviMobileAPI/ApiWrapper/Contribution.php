@@ -17,7 +17,10 @@ class CRM_CiviMobileAPI_ApiWrapper_Contribution implements API_Wrapper {
       if (is_string($apiRequest['params']['return'])) {
         $apiRequest['params']['return'] = explode(',', $apiRequest['params']['return']);
       }
-      $apiRequest['params']['return'] = array_unique(array_merge($apiRequest['params']['return'], ['currency', 'financial_type_id']));
+      $apiRequest['params']['return'] = array_unique(array_merge($apiRequest['params']['return'], [
+        'currency',
+        'financial_type_id',
+      ]));
     }
 
     if (CRM_CiviMobileAPI_Hook_Utils::is_mobile_request()) {
@@ -37,8 +40,7 @@ class CRM_CiviMobileAPI_ApiWrapper_Contribution implements API_Wrapper {
         || $apiRequest['params']['contact_tags']
         || $apiRequest['params']['contact_groups']
       ) {
-
-        $contactsId = (new CRM_CiviMobileAPI_Utils_ContactFieldsFilter)->filterContacts($apiRequest['params']);
+        $contactsId = (new CRM_CiviMobileAPI_Utils_ContactFieldsFilter())->filterContacts($apiRequest['params']);
 
         if (!empty($contactsId)) {
           $apiRequest['params']['contact_id'] = ['IN' => $contactsId];
@@ -69,7 +71,7 @@ class CRM_CiviMobileAPI_ApiWrapper_Contribution implements API_Wrapper {
             'id' => ["IN" => $contactsId],
             'options' => ['limit' => 0],
           ])['values'];
-        } catch (CiviCRM_API3_Exception $e) {
+        } catch (CRM_Core_Exception $e) {
           $contacts = [];
         }
 
@@ -103,6 +105,7 @@ class CRM_CiviMobileAPI_ApiWrapper_Contribution implements API_Wrapper {
    * Get contribution contact's Id
    *
    * @param $contributions
+   *
    * @return array
    */
   public function getContributionContactsId($contributions) {
@@ -130,7 +133,7 @@ class CRM_CiviMobileAPI_ApiWrapper_Contribution implements API_Wrapper {
     try {
       $dao = CRM_Core_DAO::executeQuery($sql);
       while ($dao->fetch()) {
-        $maxTotalAmount = (int)$dao->max_total_amount;
+        $maxTotalAmount = (int) $dao->max_total_amount;
       }
     } catch (Exception $e) {
       return $maxTotalAmount;
@@ -221,9 +224,9 @@ class CRM_CiviMobileAPI_ApiWrapper_Contribution implements API_Wrapper {
    */
   public function getIdsByCurrency($currency) {
     $table = CRM_Contribute_DAO_Contribution::getTableName();
-    $sql =  "SELECT id as contribution_id FROM $table WHERE currency = %1"; 
+    $sql = "SELECT id as contribution_id FROM $table WHERE currency = %1";
     $params = [
-      1 => [$currency, 'String']
+      1 => [$currency, 'String'],
     ];
     $contributionsByCurrenciesList = [];
     try {
@@ -237,4 +240,5 @@ class CRM_CiviMobileAPI_ApiWrapper_Contribution implements API_Wrapper {
 
     return $contributionsByCurrenciesList;
   }
+
 }

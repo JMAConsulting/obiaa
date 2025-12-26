@@ -4,7 +4,7 @@ class CRM_CiviMobileAPI_Hook_PageRun_ManageEvent {
 
   public static function run() {
     $smarty = CRM_Core_Smarty::singleton();
-    foreach ($smarty->get_template_vars()["rows"] as $key => &$row) {
+    foreach ($smarty->getTemplateVars()["rows"] as $key => &$row) {
       if ($key == 'tab') {
         continue;
       }

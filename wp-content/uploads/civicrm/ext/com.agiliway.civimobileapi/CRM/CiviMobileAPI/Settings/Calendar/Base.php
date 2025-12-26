@@ -37,14 +37,14 @@ class CRM_CiviMobileAPI_Settings_Calendar_Base {
 
     return $prepareName;
   }
-  
+
   /**
    * Get settings
    *
    * @param array $settings of settings (eg. array(username, password))
    *
    * @return array
-   * @throws \CiviCRM_API3_Exception
+   * @throws \CRM_Core_Exception
    */
   public static function get($settings) {
     $domainID = CRM_Core_Config::domainID();
@@ -56,7 +56,7 @@ class CRM_CiviMobileAPI_Settings_Calendar_Base {
 
     try {
       $settingsResult = civicrm_api3('setting', 'get', ['return' => $prefixedSettings]);
-    } catch (CiviCRM_API3_Exception $e) {
+    } catch (CRM_Core_Exception $e) {
       return [];
     }
 
@@ -83,7 +83,7 @@ class CRM_CiviMobileAPI_Settings_Calendar_Base {
 
     try {
       $settingsResult = civicrm_api3('setting', 'get', ['return' => static::getName($setting, TRUE)]);
-    } catch (CiviCRM_API3_Exception $e) {
+    } catch (CRM_Core_Exception $e) {
       return '';
     }
 

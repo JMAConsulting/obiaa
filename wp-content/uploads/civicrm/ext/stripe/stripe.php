@@ -69,16 +69,6 @@ function stripe_civicrm_buildForm($formName, &$form) {
 }
 
 /**
- * Implements hook_civicrm_check().
- *
- * @throws \CRM_Core_Exception
- */
-function stripe_civicrm_check(&$messages) {
-  $checks = new CRM_Stripe_Check($messages);
-  $messages = $checks->checkRequirements();
-}
-
-/**
  * Implements hook_civicrm_alterLogTables().
  *
  * Exclude tables from logging tables since they hold mostly temp data.

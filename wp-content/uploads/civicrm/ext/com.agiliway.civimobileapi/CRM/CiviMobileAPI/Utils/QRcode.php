@@ -11,7 +11,7 @@ class CRM_CiviMobileAPI_Utils_QRcode {
    *
    * @param $participantId
    *
-   * @throws \api_Exception
+   * @throws \CRM_Core_Exception
    */
   public static function generateQRcode($participantId) {
     $participant = new CRM_Event_BAO_Participant();
@@ -19,7 +19,7 @@ class CRM_CiviMobileAPI_Utils_QRcode {
     $participantExist = $participant->find(TRUE);
 
     if (empty($participantExist)) {
-      throw new api_Exception('Participant does not exist.', 'participant_does_not_exist');
+      throw new CRM_Core_Exception('Participant does not exist.', 'participant_does_not_exist');
     }
 
     $contactId = $participant->contact_id;
@@ -37,17 +37,16 @@ class CRM_CiviMobileAPI_Utils_QRcode {
           'uri' => $path,
           'location' => $path,
           'description' => '',
-          'type' => 'image/png'
+          'type' => 'image/png',
         ],
       ];
 
       \PHPQRCode\QRcode::png("http://civimobile.org/events?qr=" . $participantId . '_' . $hashCode, $path, 'L', 9, 3);
       CRM_Core_BAO_File::processAttachment($params, 'civicrm_participant', $participantId);
-      $fileUrl = CRM_CiviMobileAPI_Utils_File::getFileUrl($participantId,'civicrm_participant', self::generateImageName($participantId));
+      $fileUrl = CRM_CiviMobileAPI_Utils_File::getFileUrl($participantId, 'civicrm_participant', self::generateImageName($participantId));
       CRM_CiviMobileAPI_Utils_ParticipantQrCode::setQrCodeToParticipant($participantId, $eventId, $contactId, $hashCode, $fileUrl);
     }
   }
-
 
   /**
    * Generates image name

@@ -6,7 +6,7 @@ class CRM_CiviMobileAPI_Api_CiviMobileSurveyRespondent_GetToReserve extends CRM_
    * Returns results to api
    *
    * @return array
-   * @throws api_Exception
+   * @throws CRM_Core_Exception
    */
   public function getResult() {
     $contactsWhereParams = [];
@@ -15,16 +15,32 @@ class CRM_CiviMobileAPI_Api_CiviMobileSurveyRespondent_GetToReserve extends CRM_
       $contactsWhereParams[] = ['groups', 'IN', $this->validParams['group']];
     }
     if (!empty($this->validParams['display_name'])) {
-      $contactsWhereParams[] = ['display_name', 'LIKE', "%{$this->validParams['display_name']}%"];
+      $contactsWhereParams[] = [
+        'display_name',
+        'LIKE',
+        "%{$this->validParams['display_name']}%",
+      ];
     }
     if (!empty($this->validParams['contact_type'])) {
-      $contactsWhereParams[] = ['contact_type:name', '=', $this->validParams['contact_type']];
+      $contactsWhereParams[] = [
+        'contact_type:name',
+        '=',
+        $this->validParams['contact_type'],
+      ];
     }
     if (!empty($this->validParams['city'])) {
-      $contactsWhereParams[] = ['address_primary.city', 'LIKE', "%{$this->validParams['city']}%"];
+      $contactsWhereParams[] = [
+        'address_primary.city',
+        'LIKE',
+        "%{$this->validParams['city']}%",
+      ];
     }
     if (!empty($this->validParams['street_address'])) {
-      $contactsWhereParams[] = ['address_primary.street_address', 'LIKE', "%{$this->validParams['street_address']}%"];
+      $contactsWhereParams[] = [
+        'address_primary.street_address',
+        'LIKE',
+        "%{$this->validParams['street_address']}%",
+      ];
     }
 
     $surveyActivityTypesIds = CRM_CiviMobileAPI_Utils_Survey::getSurveyActivityTypesIds();
@@ -65,7 +81,7 @@ class CRM_CiviMobileAPI_Api_CiviMobileSurveyRespondent_GetToReserve extends CRM_
         'address_primary.city',
         'address_primary.id',
         'address_primary.country_id:label',
-        'contact_type:name'
+        'contact_type:name',
       ],
       'where' => $contactsWhereParams,
       'orderBy' => [
@@ -101,7 +117,7 @@ class CRM_CiviMobileAPI_Api_CiviMobileSurveyRespondent_GetToReserve extends CRM_
    * @param $params
    *
    * @return array
-   * @throws api_Exception`
+   * @throws CRM_Core_Exception`
    */
   protected function getValidParams($params) {
     return $params;

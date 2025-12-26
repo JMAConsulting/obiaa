@@ -13,7 +13,7 @@ class CRM_CiviMobileAPI_Api_CiviMobileCalendar_Get extends CRM_CiviMobileAPI_Api
       'hidePastEvents' => CRM_CiviMobileAPI_Settings_Calendar::getHidePastEvents(),
       'startDate' => $this->validParams["start"],
       'endDate' => $this->validParams["end"],
-      'type' => $this->validParams['type']
+      'type' => $this->validParams['type'],
     ];
 
     $events = [];
@@ -27,6 +27,7 @@ class CRM_CiviMobileAPI_Api_CiviMobileCalendar_Get extends CRM_CiviMobileAPI_Api
 
   /**
    * Returns validated params
+   *
    * @param $params
    *
    * @return mixed
@@ -39,7 +40,7 @@ class CRM_CiviMobileAPI_Api_CiviMobileCalendar_Get extends CRM_CiviMobileAPI_Api
    * Gets permission if user allowed to receive events
    *
    * @return bool
-   * @throws \CiviCRM_API3_Exception
+   * @throws \CRM_Core_Exception
    */
   private function getPermission() {
     $result = civicrm_api3('CiviMobilePermission', 'get', [

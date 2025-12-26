@@ -34,7 +34,7 @@ function _civicrm_api3_stripe_Retryall_spec(&$spec) {
  * @param array $params
  *
  * @return array
- * @throws \API_Exception
+ * @throws \CRM_Core_Exception
  * @throws \CRM_Core_Exception
  */
 function civicrm_api3_stripe_Retryall($params) {

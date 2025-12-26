@@ -3,7 +3,7 @@
         'name' => 'civicrm/stripe',
         'pretty_version' => 'dev-master',
         'version' => 'dev-master',
-        'reference' => '6ddb7a8c42a25b68ac86933d29569257a14cb709',
+        'reference' => '940561684096a5c8a0cc65a7abe5e65f0c8a6db8',
         'type' => 'civicrm-ext',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -13,7 +13,7 @@
         'civicrm/stripe' => array(
             'pretty_version' => 'dev-master',
             'version' => 'dev-master',
-            'reference' => '6ddb7a8c42a25b68ac86933d29569257a14cb709',
+            'reference' => '940561684096a5c8a0cc65a7abe5e65f0c8a6db8',
             'type' => 'civicrm-ext',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

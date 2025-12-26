@@ -35,16 +35,7 @@ class StripeCharge extends Generic\AbstractEntity {
    */
   public static function getFields($checkPermissions = TRUE) {
     return (new Generic\BasicGetFieldsAction(static::getEntityName(), __FUNCTION__, function() {
-      return [
-        /*[
-          'name' => 'key',
-          'description' => 'Long, unique extension identifier',
-        ],
-        [
-          'name' => 'file',
-          'description' => 'Short, unique extension identifier',
-        ],*/
-      ];
+      return [];
     }))->setCheckPermissions($checkPermissions);
   }
 

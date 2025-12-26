@@ -13,8 +13,7 @@ class CRM_CiviMobileAPI_ApiWrapper_Participant_Create implements API_Wrapper {
    * @param array $apiRequest
    *
    * @return array
-   * @throws API_Exception
-   * @throws CiviCRM_API3_Exception
+   * @throws CRM_Core_Exception
    */
   public function fromApiInput($apiRequest) {
     if (empty($apiRequest['params']['event_id']) || empty($apiRequest['params']['contact_id'])) {
@@ -35,27 +34,30 @@ class CRM_CiviMobileAPI_ApiWrapper_Participant_Create implements API_Wrapper {
     } else {
       $endDate = date('Y-m-d H:i:s', strtotime($startDate . ' + 1 day'));
     }
-    
-    $isDisallowedEventParticipantRegistrationOverlap = Civi::settings()->get('civimobile_is_disallowed_event_participant_registration_overlap');
+
+    $isDisallowedEventParticipantRegistrationOverlap = Civi::settings()
+      ->get('civimobile_is_disallowed_event_participant_registration_overlap');
 
     if (!empty($participantExist) && empty($apiRequest['params']['id'])) {
-      throw new api_Exception(E::ts('This contact has already been assigned to this event.'), 'contact_already_registered');
+      throw new CRM_Core_Exception(E::ts('This contact has already been assigned to this event.'), 'contact_already_registered');
     }
 
     if ($isDisallowedEventParticipantRegistrationOverlap) {
       $isParticipantAlreadyRegistered = CRM_CiviMobileAPI_Utils_Event::isParticipantAlreadyRegistered($apiRequest['params']['contact_id'], $startDate, $endDate);
 
       if ($isParticipantAlreadyRegistered) {
-        throw new api_Exception(E::ts('This contact has already been assigned to event with same date.'), 'possible_event_registration_overlap');
+        throw new CRM_Core_Exception(E::ts('This contact has already been assigned to event with same date.'), 'possible_event_registration_overlap');
       }
     }
 
-
     if (empty($apiRequest['params']['fee_currency'])) {
       try {
-        $feeCurrency = civicrm_api3('Event', 'getvalue', ['return' => "currency", 'id' => $apiRequest['params']['event_id']]);
-      } catch (CiviCRM_API3_Exception $e) {
-        $feeCurrency = false;
+        $feeCurrency = civicrm_api3('Event', 'getvalue', [
+          'return' => "currency",
+          'id' => $apiRequest['params']['event_id'],
+        ]);
+      } catch (CRM_Core_Exception $e) {
+        $feeCurrency = FALSE;
       }
 
       if (!empty($feeCurrency)) {
@@ -63,8 +65,8 @@ class CRM_CiviMobileAPI_ApiWrapper_Participant_Create implements API_Wrapper {
       }
     }
 
-    if (empty($apiRequest['params']['status_id'])) {
-      throw new \API_Exception(E::ts('Empty participant status field(status_id). Please fill it.'));
+    if (empty($apiRequest['params']['id']) && empty($apiRequest['params']['status_id'])) {
+      throw new \CRM_Core_Exception(E::ts('Empty participant status field(status_id). Please fill it.'));
     }
 
     return $apiRequest;

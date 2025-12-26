@@ -8,11 +8,11 @@ use CRM_CiviMobileAPI_ExtensionUtil as E;
  * @param array $params
  *
  * @return array
- * @throws API_Exception
+ * @throws CRM_Core_Exception
  */
 function civicrm_api3_civi_mobile_participant_payment_create($params) {
   if (!CRM_CiviMobileAPI_Utils_Permission::isEnoughPermissionForCreateParticipantWithPayment()) {
-    throw new api_Exception('Permission required.', 'permission_required');
+    throw new CRM_Core_Exception('Permission required.', 'permission_required');
   }
 
   $result = (new CRM_CiviMobileAPI_Api_CiviMobileParticipantPayment_Create($params))->getResult();

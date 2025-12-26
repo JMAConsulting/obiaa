@@ -159,7 +159,7 @@ class Events {
    * @throws \Civi\Payment\Exception\PaymentProcessorException
    * @throws \Stripe\Exception\ApiErrorException
    */
-  private function handleInstallmentsForSubscription(string $subscriptionID = '', int $contributionRecurID = NULL) {
+  private function handleInstallmentsForSubscription(string $subscriptionID = '', ?int $contributionRecurID = NULL) {
     // Check that we have both contributionRecurID and subscriptionID
     if ((empty($contributionRecurID)) || (empty($subscriptionID))) {
       return;
@@ -689,13 +689,16 @@ class Events {
     // Invoice ID is required
     $invoiceID = $this->api->getValueFromStripeObject('invoice_id', 'String', $stripeInvoice);
     if (!$invoiceID) {
-      $return->message = $this->formatResultMessage(__FUNCTION__, 'Missing invoice_id');
+      $return->message = $this->formatResultMessage(__FUNCTION__, 'Missing Stripe invoice_id');
       return $return;
     }
 
     $chargeID = $this->api->getValueFromStripeObject('charge_id', 'String', $stripeInvoice);
     $subscriptionID = $this->api->getValueFromStripeObject('subscription_id', 'String', $stripeInvoice);
-    $stripeSubscription = $this->getPaymentProcessor()->stripeClient->subscriptions->retrieve($subscriptionID);
+    if (empty($subscriptionID)) {
+      $return->message = $this->formatResultMessage(__FUNCTION__, 'Missing Stripe subscription_id');
+      return $return;
+    }
 
     $contributionRecur = $this->getRecurFromSubscriptionID($subscriptionID);
     if (empty($contributionRecur)) {
@@ -795,6 +798,7 @@ class Events {
         }
         // next_sched_contribution_date is calculated automatically by CiviCRM in CRM_Contribute_BAO_ContributionRecur::updateOnNewPayment()
         //   when a new payment is added and time will be set to 00:00. But we can get the actual value directly from Stripe.
+        $stripeSubscription = $this->getPaymentProcessor()->stripeClient->subscriptions->retrieve($subscriptionID);
         $nextSchedContributionDate = \CRM_Stripe_Api::getObjectParam('next_sched_contribution_date', $stripeSubscription);
         if (!empty($nextSchedContributionDate)) {
           $recurValues['next_sched_contribution_date'] = $nextSchedContributionDate;
@@ -1057,8 +1061,8 @@ class Events {
         ->isAmountAndCurrencyEqualTo(Money::of($templateContribution['total_amount'], $templateContribution['currency']))) {
         // Create a new template contribution to update the amount
         ContributionRecur::updateAmountOnRecurMJW(FALSE)
+          ->setAmount($calculatedItem['amount'])
           ->addWhere('id', '=', $contributionRecur['id'])
-          ->addValue('amount', $calculatedItem['amount'])
           ->execute();
         $return->message = $this->formatResultMessage(__FUNCTION__, 'recur: ' . $contributionRecur['id'] . '; new amount: ' . $calculatedItem['amount'] . ' currency: ' . $calculatedItem['currency']);
       }

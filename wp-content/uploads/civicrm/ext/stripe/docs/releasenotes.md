@@ -9,6 +9,30 @@ Releases use the following numbering system:
 
 * **[BC]**: Items marked with [BC] indicate a breaking change that will require updates to your code if you are using that code in your extension.
 
+## Release 6.14.1 (2025-12-05)
+
+* Fix create webhooks form if API version doesn't match.
+* Fix resources now we've removed assetbuilder support from MJWShared.
+
+## Release 6.14.0 (2025-12-04)
+
+**Requires Payment Shared (MJWShared) 1.5.0.**
+
+* Changes for MJWShared 1.5.0.
+* Return error instead of crashing if subscription_id is not available for invoice.paid/payment_succeeded webhook.
+* Change updateAmountOnRecurMJW signature.
+* Add API4 StripeWebhook and update system check to use new API. Now automatically configures webhook secret and updates API version on webhook as required.
+* Update deprecated php type casts.
+* Replace reference to deprecated exception class.
+
+## Release 6.13.0 (2025-10-15)
+
+* Clean up managed paymentprocessor definitions.
+* [!280](https://lab.civicrm.org/extensions/stripe/-/merge_requests/280) Fix deprecation notice - mark $queue as nullable.
+* [!279](https://lab.civicrm.org/extensions/stripe/-/merge_requests/279) Fix for #449: display recaptcha failure messages.
+* [!221](https://lab.civicrm.org/extensions/stripe/-/merge_requests/221) Add warning about 0 amount on 3DS popup.
+* [!269](https://lab.civicrm.org/extensions/stripe/-/merge_requests/269) Fix the API version used in the webhook.
+
 ## Release 6.12.0 (2025-07-07)
 
 TWINT/iDEAL payments are now supported when using Stripe Checkout.

@@ -50,7 +50,7 @@ function _civicrm_api3_stripe_Populatewebhookqueue_spec(&$spec) {
  * @param array $params
  *
  * @return array API result descriptor
- * @throws \API_Exception
+ * @throws \CRM_Core_Exception
  * @throws \CRM_Core_Exception
  */
 function civicrm_api3_stripe_Populatewebhookqueue($params) {
@@ -62,7 +62,7 @@ function civicrm_api3_stripe_Populatewebhookqueue($params) {
       ->addWhere('payment_processor_type_id:name', '=', 'Stripe')
       ->execute();
     if ($paymentProcessors->rowCount !== 1) {
-      throw new API_Exception("Expected one live Stripe payment processor, but found none or more than one. Please specify ppid=.", 2234);
+      throw new CRM_Core_Exception("Expected one live Stripe payment processor, but found none or more than one. Please specify ppid=.", 2234);
     }
     else {
       $params['ppid'] = $paymentProcessors->first()['id'];

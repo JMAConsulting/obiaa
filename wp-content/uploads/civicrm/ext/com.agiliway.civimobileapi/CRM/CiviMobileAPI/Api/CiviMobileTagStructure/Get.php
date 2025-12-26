@@ -40,16 +40,16 @@ class CRM_CiviMobileAPI_Api_CiviMobileTagStructure_Get extends CRM_CiviMobileAPI
    * @param $params
    *
    * @return array
-   * @throws \api_Exception
+   * @throws \CRM_Core_Exception
    */
   public function getValidParams($params) {
     $availableEntities = array_keys($this->tagMap);
     if (!in_array($params['entity'], $availableEntities)) {
-      throw new api_Exception('Invalid entity. Available values: (' . implode(', ', $availableEntities) . ')', 'used_for_invalid_value');
+      throw new CRM_Core_Exception('Invalid entity. Available values: (' . implode(', ', $availableEntities) . ')', 'used_for_invalid_value');
     }
 
     if (empty($params['entity_id'])) {
-      throw new api_Exception('"entity_id" is required field.', 'required_filed');
+      throw new CRM_Core_Exception('"entity_id" is required field.', 'required_filed');
     }
 
     return [

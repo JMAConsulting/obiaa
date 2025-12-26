@@ -137,7 +137,7 @@ function civicrm_api3_stripe_VerifyEventType($eventType) {
  * @param array $params
  *
  * @return array
- * @throws \API_Exception
+ * @throws \CRM_Core_Exception
  */
 function civicrm_api3_stripe_ProcessParams($params) {
   $type = NULL;
@@ -163,7 +163,7 @@ function civicrm_api3_stripe_ProcessParams($params) {
   if (!empty($params['type'])) {
     // Validate - since we will be appending this to an URL.
     if (!civicrm_api3_stripe_VerifyEventType($params['type'])) {
-      throw new API_Exception("Unrecognized Event Type.", 1236);
+      throw new CRM_Core_Exception("Unrecognized Event Type.", 1236);
     }
     else {
       $type = $params['type'];
@@ -174,14 +174,14 @@ function civicrm_api3_stripe_ProcessParams($params) {
   if (array_key_exists('created', $params)) {
     $created = $params['created'];
     if (!is_array($created)) {
-      throw new API_Exception("Created can only be passed in programatically as an array", 1237);
+      throw new CRM_Core_Exception("Created can only be passed in programatically as an array", 1237);
     }
   }
 
   if (array_key_exists('source', $params)) {
     $allowed = [ 'stripe', 'systemlog' ];
     if (!in_array($params['source'], $allowed)) {
-      throw new API_Exception(E::ts('Source can only be set to %1 or %2.', [ 1 => 'stripe', 2 => 'systemlog' ]), 1238);
+      throw new CRM_Core_Exception(E::ts('Source can only be set to %1 or %2.', [ 1 => 'stripe', 2 => 'systemlog' ]), 1238);
     }
     $source = $params['source'];
   }
@@ -189,18 +189,18 @@ function civicrm_api3_stripe_ProcessParams($params) {
   if (array_key_exists('filter_processed', $params)) {
     $allowed = [ 0, 1 ];
     if (!in_array($params['filter_processed'], $allowed)) {
-      throw new API_Exception(E::ts('Filter processed can only be set to 0 or 1.'), 1239);
+      throw new CRM_Core_Exception(E::ts('Filter processed can only be set to 0 or 1.'), 1239);
     }
     $filter_processed = $params['filter_processed'];
   }
 
   if (array_key_exists('subscription', $params)) {
     if (!preg_match('/^sub_/', $params['subscription'])) {
-      throw new API_Exception(E::ts('Subscription should start with sub_.'), 1240);
+      throw new CRM_Core_Exception(E::ts('Subscription should start with sub_.'), 1240);
     }
 
     if (array_key_exists('source', $params)) {
-      throw new API_Exception(E::ts('Subscription and source are incompatible. Please choose one or the other.'), 1241);
+      throw new CRM_Core_Exception(E::ts('Subscription and source are incompatible. Please choose one or the other.'), 1241);
     }
     else {
       $source = NULL;
@@ -225,7 +225,7 @@ function civicrm_api3_stripe_ProcessParams($params) {
  * @param array $params
  *
  * @return array API result descriptor
- * @throws \API_Exception
+ * @throws \CRM_Core_Exception
  * @throws \CRM_Core_Exception
  * @throws \Stripe\Exception\UnknownApiErrorException
  */

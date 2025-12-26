@@ -25,7 +25,7 @@ class CRM_CiviMobileAPI_ApiWrapper_EntityTag_Get implements API_Wrapper {
    * @param $result
    *
    * @return array
-   * @throws API_Exception
+   * @throws CRM_Core_Exception
    */
   public function toApiOutput($apiRequest, $result) {
     if (empty($result['values']) || !is_array($result['values'])) {
@@ -34,15 +34,15 @@ class CRM_CiviMobileAPI_ApiWrapper_EntityTag_Get implements API_Wrapper {
 
     foreach ($result['values'] as &$value) {
       if (empty($value['tag_id'])) {
-       continue;
+        continue;
       }
 
       try {
         $tagInfo = civicrm_api3('Tag', 'getsingle', [
           'id' => $value['tag_id'],
         ]);
-      } catch (CiviCRM_API3_Exception $e) {
-        throw new \API_Exception(E::ts("Something wrong with getting info for tag: " . $e->getMessage()));
+      } catch (CRM_Core_Exception $e) {
+        throw new \CRM_Core_Exception(E::ts("Something wrong with getting info for tag: " . $e->getMessage()));
       }
 
       $value['name'] = !empty($tagInfo['name']) ? $tagInfo['name'] : '';
@@ -57,8 +57,8 @@ class CRM_CiviMobileAPI_ApiWrapper_EntityTag_Get implements API_Wrapper {
             'return' => ["name", "is_tagset"],
             'id' => $tagInfo['parent_id'],
           ]);
-        } catch (CiviCRM_API3_Exception $e) {
-          throw new \API_Exception(E::ts("Something wrong with getting info for parent tag: " . $e->getMessage()));
+        } catch (CRM_Core_Exception $e) {
+          throw new \CRM_Core_Exception(E::ts("Something wrong with getting info for parent tag: " . $e->getMessage()));
         }
 
         if ($parentTagInfo['is_tagset'] == '1') {

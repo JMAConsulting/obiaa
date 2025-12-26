@@ -4,8 +4,9 @@ use CRM_CiviMobileAPI_ExtensionUtil as E;
 
 /**
  * @param $params
+ *
  * @return array
- * @throws api_Exception
+ * @throws CRM_Core_Exception
  */
 function civicrm_api3_civi_mobile_cms_registration_create($params) {
   $result = (new CRM_CiviMobileAPI_Api_CiviMobileCmsRegistration_Create($params))->getResult();
@@ -17,6 +18,7 @@ function civicrm_api3_civi_mobile_cms_registration_create($params) {
  * Adjust Metadata for get action
  *
  * The metadata is used for setting defaults, documentation & validation
+ *
  * @param array $params array or parameters determined by getfields
  */
 function _civicrm_api3_civi_mobile_cms_registration_create_spec(&$params) {

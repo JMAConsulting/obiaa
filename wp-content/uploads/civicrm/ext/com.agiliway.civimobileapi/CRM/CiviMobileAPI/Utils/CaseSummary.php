@@ -10,6 +10,7 @@ class CRM_CiviMobileAPI_Utils_CaseSummary {
    *
    * @param $status
    * @param $params
+   *
    * @return int
    */
   public function getCountOfCases($status, $params) {
@@ -32,7 +33,7 @@ class CRM_CiviMobileAPI_Utils_CaseSummary {
         'end_date' => !empty($params['end_date']) ? $params['end_date'] : NULL,
         'options' => ['limit' => 0],
       ])['values'];
-    } catch (CiviCRM_API3_Exception $e) {
+    } catch (CRM_Core_Exception $e) {
       return 0;
     }
 
@@ -43,6 +44,7 @@ class CRM_CiviMobileAPI_Utils_CaseSummary {
    * Get Contacts Ids by display name
    *
    * @param $displayName
+   *
    * @return array
    */
   public static function getContactsIdByName($displayName) {
@@ -66,6 +68,7 @@ class CRM_CiviMobileAPI_Utils_CaseSummary {
    * Get Case Ids by activities
    *
    * @param int $activityTypeParam
+   *
    * @return array
    */
   public static function getCaseIdByActivities($activityTypeParam) {
@@ -79,7 +82,8 @@ class CRM_CiviMobileAPI_Utils_CaseSummary {
 
     $userID = CRM_Core_Session::getLoggedInContactID();
     $caseActivityQuery = CRM_Case_BAO_Case::getCaseActivityQuery($activityType, $userID, "civicrm_case.is_deleted = 0");
-    $caseActivities = CRM_Core_DAO::executeQuery($caseActivityQuery)->fetchAll();
+    $caseActivities = CRM_Core_DAO::executeQuery($caseActivityQuery)
+      ->fetchAll();
 
     $caseIds = [];
     if (!empty($caseActivities)) {

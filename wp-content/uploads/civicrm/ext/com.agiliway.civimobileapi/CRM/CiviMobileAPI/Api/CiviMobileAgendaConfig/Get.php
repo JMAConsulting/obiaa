@@ -6,7 +6,7 @@ class CRM_CiviMobileAPI_Api_CiviMobileAgendaConfig_Get extends CRM_CiviMobileAPI
    * Returns results to api
    *
    * @return array
-   * @throws api_Exception
+   * @throws CRM_Core_Exception
    */
   public function getResult() {
     $agendaConfig = new CRM_CiviMobileAPI_BAO_AgendaConfig();
@@ -19,8 +19,8 @@ class CRM_CiviMobileAPI_Api_CiviMobileAgendaConfig_Get extends CRM_CiviMobileAPI
       [
         'id' => $agendaConfig->id,
         'is_active' => $agendaConfig->is_active,
-        'event_id' => $agendaConfig->event_id
-      ]
+        'event_id' => $agendaConfig->event_id,
+      ],
     ];
   }
 
@@ -30,11 +30,11 @@ class CRM_CiviMobileAPI_Api_CiviMobileAgendaConfig_Get extends CRM_CiviMobileAPI
    * @param $params
    *
    * @return array
-   * @throws api_Exception
+   * @throws CRM_Core_Exception
    */
   protected function getValidParams($params) {
     if (!CRM_CiviMobileAPI_Utils_Permission::isEnoughPermissionForGetAgendaConfig()) {
-      throw new api_Exception('You don`t have enough permissions.', 'do_not_have_enough_permissions');
+      throw new CRM_Core_Exception('You don`t have enough permissions.', 'do_not_have_enough_permissions');
     }
     return [
       'event_id' => $params['event_id'],

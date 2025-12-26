@@ -4,8 +4,9 @@
  * Returns petitions for user
  *
  * @param $params
+ *
  * @return array
- * @throws api_Exception
+ * @throws CRM_Core_Exception
  */
 function civicrm_api3_civi_mobile_survey_get_contact_surveys($params) {
   $result = (new CRM_CiviMobileAPI_Api_CiviMobileSurvey_GetContactSurveys($params))->getResult();
@@ -58,8 +59,9 @@ function _civicrm_api3_civi_mobile_survey_get_contact_surveys_spec(&$params) {
  * Returns info about fields for petition
  *
  * @param $params
+ *
  * @return array
- * @throws api_Exception
+ * @throws CRM_Core_Exception
  */
 function civicrm_api3_civi_mobile_survey_get_structure($params) {
   $result = (new CRM_CiviMobileAPI_Api_CiviMobileSurvey_GetStructure($params))->getResult();
@@ -82,8 +84,9 @@ function _civicrm_api3_civi_mobile_survey_get_structure_spec(&$params) {
  * Signs petition
  *
  * @param $params
+ *
  * @return array
- * @throws api_Exception
+ * @throws CRM_Core_Exception
  */
 function civicrm_api3_civi_mobile_survey_sign($params) {
   $result = (new CRM_CiviMobileAPI_Api_CiviMobileSurvey_Sign($params))->getResult();
@@ -128,8 +131,9 @@ function _civicrm_api3_civi_mobile_survey_sign_spec(&$params) {
  * Signs petition
  *
  * @param $params
+ *
  * @return array
- * @throws api_Exception
+ * @throws CRM_Core_Exception
  */
 function civicrm_api3_civi_mobile_survey_get_signed_values($params) {
   $result = (new CRM_CiviMobileAPI_Api_CiviMobileSurvey_GetSignedValues($params))->getResult();

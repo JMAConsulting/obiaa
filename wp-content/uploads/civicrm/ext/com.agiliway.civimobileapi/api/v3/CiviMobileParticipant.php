@@ -65,38 +65,38 @@ function _civicrm_api3_civi_mobile_participant_get_spec(&$params) {
  * @param array $params
  *
  * @return array
- * @throws API_Exception
+ * @throws CRM_Core_Exception
  */
 function civicrm_api3_civi_mobile_participant_create($params) {
   if (!CRM_CiviMobileAPI_Utils_Permission::isEnoughPermissionForChangingParticipantStatuses()) {
-    throw new api_Exception('Permission required.', 'permission_required');
+    throw new CRM_Core_Exception('Permission required.', 'permission_required');
   }
   $participantId = (int) $params['participant_id'];
   $participant = new CRM_Event_DAO_Participant();
   $participant->id = $participantId;
 
   if (!$participant->find(TRUE)) {
-    throw new api_Exception('Participant(id = '. $participantId .') doesn\'t exist.' , 'participant_doesnt_exist');
+    throw new CRM_Core_Exception('Participant(id = ' . $participantId . ') doesn\'t exist.', 'participant_doesnt_exist');
   }
 
   $participantEventId = $participant->event_id;
   $qrCodeInfo = CRM_CiviMobileAPI_Utils_ParticipantQrCode::getQrCodeInfo($participantId);
 
   if ($participantEventId != $params['event_id']) {
-    throw new api_Exception('Event id does not exist for this participant id.' , 'uncorrect_event_id');
+    throw new CRM_Core_Exception('Event id does not exist for this participant id.', 'uncorrect_event_id');
   }
 
   $allowStatuses = [1, 2];
   if (!in_array($params['status_id'], $allowStatuses)) {
-    throw new api_Exception('Field "status_id" is not allowed status. Allow statuses: ' . implode(', ', $allowStatuses) . ' (Registered, Attended).', 'not_allowed_status');
+    throw new CRM_Core_Exception('Field "status_id" is not allowed status. Allow statuses: ' . implode(', ', $allowStatuses) . ' (Registered, Attended).', 'not_allowed_status');
   }
 
   if (!in_array($participant->status_id, $allowStatuses)) {
-    throw new api_Exception('Participant does not have status Registered.', 'participant_status_is_not_registered');
+    throw new CRM_Core_Exception('Participant does not have status Registered.', 'participant_status_is_not_registered');
   }
 
   if (!empty($qrCodeInfo['qr_code_hash']) && $qrCodeInfo['qr_code_hash'] != $params['qr_token']) {
-    throw new api_Exception('QR token does not exist for this participant id. Please fill correct token.' , 'uncorrect_token');
+    throw new CRM_Core_Exception('QR token does not exist for this participant id. Please fill correct token.', 'uncorrect_token');
   }
 
   $participantStatusId = (int) $params['status_id'];
@@ -105,7 +105,7 @@ function civicrm_api3_civi_mobile_participant_create($params) {
   $participant->find(TRUE);
 
   if ($participant->status_id == $participantStatusId) {
-    throw new api_Exception('Participant(id = '. $participantId .') already has this status.' , 'error_same_status');
+    throw new CRM_Core_Exception('Participant(id = ' . $participantId . ') already has this status.', 'error_same_status');
   }
 
   $participant = new CRM_Event_DAO_Participant();
@@ -168,6 +168,7 @@ function _civicrm_api3_civi_mobile_participant_getlist_params(&$request) {
  *
  * @param $entity
  * @param $fields
+ *
  * @return array
  * @see _civicrm_api3_generic_getlist_output
  *
@@ -178,7 +179,7 @@ function _civicrm_api3_civi_mobile_participant_getlist_output($result, $request,
     $output[] = [
       'id' => $participant['participant_id'],
       'label' => $participant['display_name'],
-      'description' => []
+      'description' => [],
     ];
   }
 
@@ -189,11 +190,13 @@ function _civicrm_api3_civi_mobile_participant_getlist_output($result, $request,
  * Used to disable checkPermissions on getList action
  *
  * @param $params
+ *
  * @return mixed
  */
 function civicrm_api3_civi_mobile_participant_getList($params) {
-  require_once Civi::paths()->getPath("[civicrm.root]/api/v3/Generic/Getlist.php");
-  $params['check_permissions'] = false;
+  require_once Civi::paths()
+    ->getPath("[civicrm.root]/api/v3/Generic/Getlist.php");
+  $params['check_permissions'] = FALSE;
   $apiRequest = [
     'version' => 3,
     'entity' => 'CiviMobileParticipant',

@@ -8,7 +8,7 @@ use CRM_CiviMobileAPI_ExtensionUtil as E;
  * @param array $params
  *
  * @return array
- * @throws API_Exception
+ * @throws CRM_Core_Exception
  * @throws \Civi\API\Exception\UnauthorizedException
  */
 function civicrm_api3_civi_mobile_custom_fields_get($params) {

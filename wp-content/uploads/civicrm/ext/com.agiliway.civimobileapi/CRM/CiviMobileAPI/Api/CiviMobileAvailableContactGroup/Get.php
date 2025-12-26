@@ -4,6 +4,7 @@
  * Class handles CiviMobileCustomFields api
  */
 class CRM_CiviMobileAPI_Api_CiviMobileAvailableContactGroup_Get extends CRM_CiviMobileAPI_Api_CiviMobileBase {
+
   /**
    * Returns results to api
    *
@@ -17,7 +18,12 @@ class CRM_CiviMobileAPI_Api_CiviMobileAvailableContactGroup_Get extends CRM_Civi
         'title',
       ],
       'join' => [
-        ['GroupContact AS group_contact', 'EXCLUDE', ['group_contact.contact_id', '=', $this->validParams['contact_id']], ['group_contact.group_id', '=', 'id']],
+        [
+          'GroupContact AS group_contact',
+          'EXCLUDE',
+          ['group_contact.contact_id', '=', $this->validParams['contact_id']],
+          ['group_contact.group_id', '=', 'id'],
+        ],
       ],
       'where' => [
         ['is_hidden', '=', $this->validParams['is_hidden']],
@@ -32,7 +38,7 @@ class CRM_CiviMobileAPI_Api_CiviMobileAvailableContactGroup_Get extends CRM_Civi
    * @param $params
    *
    * @return array
-   * @throws \api_Exception
+   * @throws \CRM_Core_Exception
    */
   protected function getValidParams($params) {
     $contact = new CRM_Contact_BAO_Contact();
@@ -40,7 +46,7 @@ class CRM_CiviMobileAPI_Api_CiviMobileAvailableContactGroup_Get extends CRM_Civi
     $contactExistence = $contact->find(TRUE);
 
     if (empty($contactExistence)) {
-      throw new api_Exception('Contact(id=' . $params['contact_id'] . ') does not exist.', 'contact_does_not_exist');
+      throw new CRM_Core_Exception('Contact(id=' . $params['contact_id'] . ') does not exist.', 'contact_does_not_exist');
     }
 
     if (!isset($params['is_hidden'])) {
@@ -49,7 +55,8 @@ class CRM_CiviMobileAPI_Api_CiviMobileAvailableContactGroup_Get extends CRM_Civi
 
     return [
       'contact_id' => $params['contact_id'],
-      'is_hidden' => $params['is_hidden']
+      'is_hidden' => $params['is_hidden'],
     ];
   }
+
 }

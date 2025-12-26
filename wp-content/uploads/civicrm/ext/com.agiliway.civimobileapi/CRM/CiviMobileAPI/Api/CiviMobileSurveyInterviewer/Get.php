@@ -6,7 +6,7 @@ class CRM_CiviMobileAPI_Api_CiviMobileSurveyInterviewer_Get extends CRM_CiviMobi
    * Returns results to api
    *
    * @return array
-   * @throws api_Exception
+   * @throws CRM_Core_Exception
    */
   public function getResult() {
     $survey = civicrm_api4('Survey', 'get', [
@@ -17,7 +17,7 @@ class CRM_CiviMobileAPI_Api_CiviMobileSurveyInterviewer_Get extends CRM_CiviMobi
     ])->first();
 
     if (empty($survey)) {
-      throw new api_Exception('The survey doesn`t exists.', 'survey_does_not_exists');
+      throw new CRM_Core_Exception('The survey doesn`t exists.', 'survey_does_not_exists');
     }
 
     $activities = civicrm_api4('Activity', 'get', [
@@ -26,7 +26,11 @@ class CRM_CiviMobileAPI_Api_CiviMobileSurveyInterviewer_Get extends CRM_CiviMobi
         'contact.id',
       ],
       'join' => [
-        ['Contact AS contact', 'LEFT', ['contact.id', 'IN', 'assignee_contact_id']],
+        [
+          'Contact AS contact',
+          'LEFT',
+          ['contact.id', 'IN', 'assignee_contact_id'],
+        ],
       ],
       'where' => [
         ['is_deleted', '=', FALSE],
@@ -43,10 +47,10 @@ class CRM_CiviMobileAPI_Api_CiviMobileSurveyInterviewer_Get extends CRM_CiviMobi
     $interviewers = [];
 
     foreach ($activities as $activity) {
-        $interviewers[] = [
-          'id' => $activity['contact.id'],
-          'display_name' => $activity['contact.display_name']
-        ];
+      $interviewers[] = [
+        'id' => $activity['contact.id'],
+        'display_name' => $activity['contact.display_name'],
+      ];
     }
 
     return array_values($interviewers);
@@ -58,11 +62,11 @@ class CRM_CiviMobileAPI_Api_CiviMobileSurveyInterviewer_Get extends CRM_CiviMobi
    * @param $params
    *
    * @return array
-   * @throws api_Exception`
+   * @throws CRM_Core_Exception
    */
   protected function getValidParams($params) {
     if (!CRM_CiviMobileAPI_Utils_Permission::isEnoughPermissionToChangeInterviewer()) {
-      throw new API_Exception(ts('Permission is required.'));
+      throw new CRM_Core_Exception(ts('Permission is required.'));
     }
 
     return $params;

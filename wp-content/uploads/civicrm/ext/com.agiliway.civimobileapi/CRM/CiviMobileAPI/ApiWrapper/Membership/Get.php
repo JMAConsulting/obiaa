@@ -30,7 +30,12 @@ class CRM_CiviMobileAPI_ApiWrapper_Membership_Get implements API_Wrapper {
         $apiRequest['params']['contact_id'] = ['IN' => $contactsId];
 
         if (!empty($receiveDate)) {
-          $apiRequest['params']['start_date'] = ['BETWEEN' => [$receiveDate['start_date'], $receiveDate['end_date']]];
+          $apiRequest['params']['start_date'] = [
+            'BETWEEN' => [
+              $receiveDate['start_date'],
+              $receiveDate['end_date'],
+            ],
+          ];
         }
       } else {
         $apiRequest['params']['contact_id'] = ['IS NULL' => 1];
@@ -80,8 +85,7 @@ class CRM_CiviMobileAPI_ApiWrapper_Membership_Get implements API_Wrapper {
       ) {
         $result += $this->getAdditionalInfo($result, $apiRequest);
       }
-    }
-    else {
+    } else {
       if ($apiRequest['action'] == 'get') {
         foreach ($result['values'] as &$membership) {
           $membership += $this->getAdditionalInfo($membership, $apiRequest);
@@ -111,7 +115,7 @@ class CRM_CiviMobileAPI_ApiWrapper_Membership_Get implements API_Wrapper {
       $contactId = $membership['contact_id'];
     }
 
-    $membershipId = (int)$membership['id'];
+    $membershipId = (int) $membership['id'];
     $membershipCardSql = "SELECT cm.contact_id,cm.end_date,cc.organization_name
                       FROM civicrm_membership cm
                       LEFT JOIN civicrm_contact cc ON cm.contact_id = cc.id WHERE cm.id = $membershipId";
@@ -126,15 +130,23 @@ class CRM_CiviMobileAPI_ApiWrapper_Membership_Get implements API_Wrapper {
     if (!empty($contactId)) {
       try {
         $lastPayment = civicrm_api3('MembershipPayment', 'getsingle', [
-          'return' => ["contribution_id.receive_date", "membership_id.contact_id", "contribution_id.payment_instrument_id"],
+          'return' => [
+            "contribution_id.receive_date",
+            "membership_id.contact_id",
+            "contribution_id.payment_instrument_id",
+          ],
           'membership_id' => $membership['id'],
           'membership_id.contact_id' => $apiRequest['params']['membership_contact_id'],
-          'options' => ['sort' => "contribution_id.receive_date desc", 'limit' => 1],
+          'options' => [
+            'sort' => "contribution_id.receive_date desc",
+            'limit' => 1,
+          ],
         ]);
 
         $additionalInfo['payment_instrument'] = CRM_CiviMobileAPI_Utils_Membership::getPaymentInstrumentLabel($lastPayment['contribution_id.payment_instrument_id']);
         $additionalInfo['last_payment_receive_date'] = $lastPayment['contribution_id.receive_date'];
-      } catch (Exception $e) {}
+      } catch (Exception $e) {
+      }
     }
 
     if (empty($apiRequest['params']['return'])
@@ -170,8 +182,7 @@ class CRM_CiviMobileAPI_ApiWrapper_Membership_Get implements API_Wrapper {
 
     if ($apiRequest['action'] == 'getsingle') {
       $result['related_count'] = $this->getRelatedCount($result);
-    }
-    else {
+    } else {
       if ($apiRequest['action'] == 'get') {
         foreach ($result['values'] as &$membership) {
           $membership['related_count'] = $this->getRelatedCount($membership);
@@ -205,7 +216,7 @@ class CRM_CiviMobileAPI_ApiWrapper_Membership_Get implements API_Wrapper {
     ';
 
     $numRelated = CRM_Core_DAO::singleValueQuery($query, [
-      1 => [$membership['id'], 'Integer']
+      1 => [$membership['id'], 'Integer'],
     ]);
 
     return $numRelated;
@@ -224,8 +235,7 @@ class CRM_CiviMobileAPI_ApiWrapper_Membership_Get implements API_Wrapper {
 
     if ($apiRequest['action'] == 'getsingle') {
       $result += $this->getRelatedContact($result);
-    }
-    else {
+    } else {
       if ($apiRequest['action'] == 'get') {
         foreach ($result['values'] as &$membership) {
           $membership += $this->getRelatedContact($membership);
@@ -268,7 +278,7 @@ class CRM_CiviMobileAPI_ApiWrapper_Membership_Get implements API_Wrapper {
         ";
         $relationship = CRM_Core_DAO::executeQuery($sql, [
           1 => [(int) $byRelationshipContactId, 'Integer'],
-          2 => [(int) $contactId, 'Integer']
+          2 => [(int) $contactId, 'Integer'],
         ]);
 
         $label = '';
@@ -294,7 +304,7 @@ class CRM_CiviMobileAPI_ApiWrapper_Membership_Get implements API_Wrapper {
    * Generates QRcode for memebrship card
    * Saves QRcode in Membership's custom fields
    *
-   * @throws \api_Exception
+   * @throws \CRM_Core_Exception
    */
   public function generateQRcode($membershipId) {
     $hashCode = hash('ripemd160', "membershipId" . $membershipId);
@@ -308,13 +318,13 @@ class CRM_CiviMobileAPI_ApiWrapper_Membership_Get implements API_Wrapper {
         'uri' => $path,
         'location' => $path,
         'description' => '',
-        'type' => 'image/png'
+        'type' => 'image/png',
       ],
     ];
 
     \PHPQRCode\QRcode::png("http://civimobile.org/membership?qr=" . $membershipId . '_' . $hashCode, $path, 'L', 9, 3);
     CRM_Core_BAO_File::processAttachment($params, 'civicrm_membership', $membershipId);
-    $fileUrl = CRM_CiviMobileAPI_Utils_File::getFileUrl($membershipId,'civicrm_membership', $this->generateImageName($membershipId));
+    $fileUrl = CRM_CiviMobileAPI_Utils_File::getFileUrl($membershipId, 'civicrm_membership', $this->generateImageName($membershipId));
     return $fileUrl;
   }
 

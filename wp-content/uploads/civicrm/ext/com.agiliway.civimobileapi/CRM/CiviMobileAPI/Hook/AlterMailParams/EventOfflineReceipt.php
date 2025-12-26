@@ -7,13 +7,14 @@ class CRM_CiviMobileAPI_Hook_AlterMailParams_EventOfflineReceipt {
    *
    * @param $params
    * @param $context
+   *
    * @throws CRM_Core_Exception
    */
   public static function run($params, $context) {
     if ($context == 'messageTemplate' && $params['workflow'] == 'event_offline_receipt') {
       $template = CRM_Core_Smarty::singleton();
-      $eventId = (int)$template->getTemplateVars('eventID');
-      $contactId = (int)$template->getTemplateVars('contactID');
+      $eventId = (int) $template->getTemplateVars('eventID');
+      $contactId = (int) $template->getTemplateVars('contactID');
 
       try {
         $participantId = civicrm_api3('Participant', 'getvalue', [
@@ -22,8 +23,8 @@ class CRM_CiviMobileAPI_Hook_AlterMailParams_EventOfflineReceipt {
           'event_id' => $eventId,
           "return" => "id",
         ]);
-      } catch (CiviCRM_API3_Exception $e) {
-        $participantId = false;
+      } catch (CRM_Core_Exception $e) {
+        $participantId = FALSE;
       }
 
       if (!empty($participantId)) {

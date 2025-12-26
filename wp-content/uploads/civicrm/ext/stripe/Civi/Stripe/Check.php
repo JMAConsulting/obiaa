@@ -9,23 +9,27 @@
  +--------------------------------------------------------------------+
  */
 
-use CRM_Stripe_ExtensionUtil as E;
+namespace Civi\Stripe;
 
-/**
- * Class CRM_Stripe_Check
- */
-class CRM_Stripe_Check {
+use Civi\Core\Service\AutoSubscriber;
+use \CRM_Stripe_ExtensionUtil as E;
+
+class Check extends AutoSubscriber {
+
+  /**
+   * @inheritDoc
+   */
+  public static function getSubscribedEvents(): array {
+    return [
+      '&hook_civicrm_check' => 'checkRequirements',
+    ];
+  }
 
   /**
    * @var string
    */
   const API_VERSION = \Stripe\Util\ApiVersion::CURRENT;
-  const API_MIN_VERSION = \Stripe\Util\ApiVersion::CURRENT;
-
-  /**
-   * @var string
-   */
-  const MIN_VERSION_MJWSHARED = '1.4.1';
+  const MIN_VERSION_MJWSHARED = '1.5.0';
   const MIN_VERSION_FIREWALL = '1.5.11';
 
   /**
@@ -34,24 +38,17 @@ class CRM_Stripe_Check {
   private array $messages;
 
   /**
-   * constructor.
+   * Implements hook_civicrm_check().
    *
-   * @param $messages
-   */
-  public function __construct($messages) {
-    $this->messages = $messages;
-  }
-
-  /**
-   * @return array
    * @throws \CRM_Core_Exception
    */
-  public function checkRequirements() {
+  public function checkRequirements(&$messages): void {
+    $this->messages = $messages;
     $this->checkExtensionMjwshared();
     $this->checkExtensionFirewall();
     $this->checkWebhooks();
     $this->checkFailedPaymentIntents();
-    return $this->messages;
+    $messages = $this->messages;
   }
 
   /**
@@ -98,7 +95,7 @@ class CRM_Stripe_Check {
         'fa-exclamation-triangle'
       );
       $message->addAction(
-        E::ts('Upgrade now'),
+        E::ts('Upgrade %1 now', [1 => $extensionName]),
         NULL,
         'href',
         ['path' => 'civicrm/admin/extensions', 'query' => ['action' => 'update', 'id' => $extensionName, 'key' => $extensionName]]
@@ -112,13 +109,16 @@ class CRM_Stripe_Check {
    */
   private function checkExtensionMjwshared() {
     // mjwshared: required. Requires min version
-    $extensionName = 'mjwshared';
-    $extensions = civicrm_api3('Extension', 'get', [
-      'full_name' => $extensionName,
-    ]);
+    $extensionKey = 'mjwshared';
+    $extensionName = 'Payment Shared (MJWshared)';
+    $extension = \Civi\Api4\Extension::get(FALSE)
+      ->addSelect('status', 'version')
+      ->addWhere('key', '=', $extensionKey)
+      ->execute()
+      ->first();
 
-    if (empty($extensions['count']) || ($extensions['values'][$extensions['id']]['status'] !== 'installed')) {
-      $message = new CRM_Utils_Check_Message(
+    if (empty($extension) || ($extension['status'] !== 'installed')) {
+      $message = new \CRM_Utils_Check_Message(
         __FUNCTION__ . E::SHORT_NAME . '_requirements',
         E::ts('The <em>%1</em> extension requires the <em>Payment Shared</em> extension which is not installed. See <a href="%2" target="_blank">details</a> for more information.',
           [
@@ -134,20 +134,20 @@ class CRM_Stripe_Check {
         E::ts('Install now'),
         NULL,
         'href',
-        ['path' => 'civicrm/admin/extensions', 'query' => ['action' => 'update', 'id' => $extensionName, 'key' => $extensionName]]
+        ['path' => 'civicrm/admin/extensions', 'query' => ['action' => 'update', 'id' => $extensionKey, 'key' => $extensionKey]]
       );
       $this->messages[] = $message;
-      return;
     }
-    if (isset($extensions['id']) && $extensions['values'][$extensions['id']]['status'] === 'installed') {
-      $this->requireExtensionMinVersion($extensionName, self::MIN_VERSION_MJWSHARED, $extensions['values'][$extensions['id']]['version']);
+    else {
+      $this->requireExtensionMinVersion($extensionName, self::MIN_VERSION_MJWSHARED, $extension['version']);
     }
   }
 
   /**
+   * @return void
    * @throws \CRM_Core_Exception
    */
-  private function checkExtensionFirewall() {
+  private function checkExtensionFirewall(): void {
     $extensionName = 'firewall';
 
     $extensions = civicrm_api3('Extension', 'get', [
@@ -155,7 +155,7 @@ class CRM_Stripe_Check {
     ]);
 
     if (empty($extensions['count']) || ($extensions['values'][$extensions['id']]['status'] !== 'installed')) {
-      $message = new CRM_Utils_Check_Message(
+      $message = new \CRM_Utils_Check_Message(
         __FUNCTION__ . 'stripe_recommended',
         E::ts('If you are using Stripe to accept payments on public forms (eg. contribution/event registration forms) it is required that you install the <strong><a href="https://lab.civicrm.org/extensions/firewall">firewall</a></strong> extension.
         Some sites have become targets for spammers who use the payment endpoint to try and test credit cards by submitting invalid payments to your Stripe account.'),
@@ -172,24 +172,32 @@ class CRM_Stripe_Check {
       $this->messages[] = $message;
     }
     if (isset($extensions['id']) && $extensions['values'][$extensions['id']]['status'] === 'installed') {
-      $this->requireExtensionMinVersion($extensionName, CRM_Stripe_Check::MIN_VERSION_FIREWALL, $extensions['values'][$extensions['id']]['version']);
+      $this->requireExtensionMinVersion($extensionName, self::MIN_VERSION_FIREWALL, $extensions['values'][$extensions['id']]['version']);
     }
   }
 
-  private function checkWebhooks() {
+  /**
+   * @return void
+   * @throws \CRM_Core_Exception
+   * @throws \Civi\API\Exception\UnauthorizedException
+   */
+  private function checkWebhooks(): void {
     // If we didn't install mjwshared yet check requirements but don't crash when checking webhooks
-    if (trait_exists('CRM_Mjwshared_WebhookTrait')) {
-      $webhooks = new CRM_Stripe_Webhook();
+    if (method_exists('CRM_Mjwshared_Webhook', 'getWebhookPath')) {
+      $webhooks = new \CRM_Stripe_Webhook();
       $webhooks->check($this->messages);
     }
   }
 
   /**
    * Try to detect if a client is being spammed / credit card fraud.
+   *
+   * @return void
+   * @throws \CRM_Core_Exception
    */
-  private function checkFailedPaymentIntents() {
+  private function checkFailedPaymentIntents(): void {
     // Check for a high volume of failed/pending contributions
-    $count = CRM_Core_DAO::singleValueQuery('SELECT count(*)
+    $count = \CRM_Core_DAO::singleValueQuery('SELECT count(*)
       FROM civicrm_stripe_paymentintent
       WHERE status = "failed"
         AND TIMESTAMPDIFF(minute, created_date, NOW()) < 60
@@ -197,7 +205,7 @@ class CRM_Stripe_Check {
       LIMIT 1000');
 
     if ($count > 20) {
-      $message = new CRM_Utils_Check_Message(
+      $message = new \CRM_Utils_Check_Message(
         'stripe_paymentintentspam',
         E::ts('%1 failed Stripe Payment Intents in the past hour. Please check the logs. They are problably hitting the CiviCRM REST API.', [1 => $count]),
         E::ts('Stripe - High rate of failed contributions'),
@@ -207,7 +215,7 @@ class CRM_Stripe_Check {
       $this->messages[] = $message;
     }
     else {
-      $message = new CRM_Utils_Check_Message(
+      $message = new \CRM_Utils_Check_Message(
         'stripe_paymentintentspam',
         E::ts('%1 failed Stripe Payment Intents in the past hour.', [1 => $count]) . ' ' . E::ts('We monitor this in case someone malicious is testing stolen credit cards on public contribution forms.'),
         E::ts('Stripe - Failed Stripe Payment Intents'),

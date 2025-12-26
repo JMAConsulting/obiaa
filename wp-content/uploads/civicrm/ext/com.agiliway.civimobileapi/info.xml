@@ -3,8 +3,8 @@
   <file>civimobileapi</file>
   <name>CiviMobileAPI</name>
   <description>The CiviMobileAPI extension is an CiviCRM component which allows to use a mobile application
-        CiviMobile.
-    </description>
+    CiviMobile.
+  </description>
   <license>AGPL-3.0</license>
   <maintainer>
     <author>CIVIMOBILE SOLUTIONS, LLC</author>
@@ -16,13 +16,13 @@
     <url desc="Support">https://civimobile.org</url>
     <url desc="Licensing">http://www.gnu.org/licenses/agpl-3.0.html</url>
   </urls>
-  <releaseDate>2025-07-21</releaseDate>
-  <version>6.8.0</version>
+  <releaseDate>2025-10-27</releaseDate>
+  <version>6.9.1</version>
   <compatibility>
     <ver>5.69</ver>
   </compatibility>
   <comments>The CiviMobileAPI extension is an CiviCRM component which allows to use a mobile application CiviMobile.
-    </comments>
+  </comments>
   <civix>
     <namespace>CRM/CiviMobileAPI</namespace>
     <format>23.02.1</format>

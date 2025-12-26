@@ -64,7 +64,7 @@ abstract class CRM_CiviMobileAPI_Page_PublicApi_ApiBase extends CRM_Core_Page {
       $result = civicrm_api3($this->requestEntity, $this->requestAction,
         array_merge($this->requestJsonData, ["sequential" => 1])
       );
-    } catch (CiviCRM_API3_Exception $e) {
+    } catch (CRM_Core_Exception $e) {
       JsonResponse::sendErrorResponse(E::ts('Api error.') . ' Error message: ' . $e->getMessage(), 'entityData', $e->getErrorCode());
     }
 
@@ -89,7 +89,7 @@ abstract class CRM_CiviMobileAPI_Page_PublicApi_ApiBase extends CRM_Core_Page {
       JsonResponse::sendErrorResponse(E::ts("The 'entityName' field is required field."), 'entityName');
     }
 
-    return (string)$_POST['entityName'];
+    return (string) $_POST['entityName'];
   }
 
   /**
@@ -102,7 +102,7 @@ abstract class CRM_CiviMobileAPI_Page_PublicApi_ApiBase extends CRM_Core_Page {
       JsonResponse::sendErrorResponse(E::ts("The 'entityData' field is required field."), 'entityData');
     }
 
-    $jsonData = json_decode($_POST['entityData'], true);
+    $jsonData = json_decode($_POST['entityData'], TRUE);
     if (json_last_error() != JSON_ERROR_NONE) {
       JsonResponse::sendErrorResponse(E::ts("The 'entityData' has not valid json."), 'entityData');
     }
@@ -120,7 +120,7 @@ abstract class CRM_CiviMobileAPI_Page_PublicApi_ApiBase extends CRM_Core_Page {
       JsonResponse::sendErrorResponse(E::ts("The 'actionName' field is required field."), 'actionName');
     }
 
-    return (string)$_POST['actionName'];
+    return (string) $_POST['actionName'];
   }
 
   /**
@@ -231,6 +231,7 @@ abstract class CRM_CiviMobileAPI_Page_PublicApi_ApiBase extends CRM_Core_Page {
    *
    * @param $item
    * @param $actionSettings
+   *
    * @return array
    */
   private function cleanResponse($item, $actionSettings) {
@@ -254,6 +255,7 @@ abstract class CRM_CiviMobileAPI_Page_PublicApi_ApiBase extends CRM_Core_Page {
    *
    * @param $apiResult
    * @param $actionSettings
+   *
    * @return mixed
    */
   private function runTransforms($apiResult, $actionSettings) {

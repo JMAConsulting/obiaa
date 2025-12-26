@@ -17,7 +17,7 @@ class CasePushNotification extends BasePushNotification {
     $this->actionText = [
       'create' => '%display_name ' . E::ts('has created case.'),
       'edit' => '%display_name ' . E::ts('has edited case.'),
-      'delete' => '%display_name' . E::ts('has deleted case.')
+      'delete' => '%display_name ' . E::ts('has deleted case.')
     ];
   }
   
@@ -35,7 +35,7 @@ class CasePushNotification extends BasePushNotification {
       'id' => strval($this->id),
       'body' => $message
     ];
-  
+
     $isContactExist = isset($contacts) && !empty($contacts) && !empty($title);
     
     if (!$isContactExist) {
@@ -68,7 +68,7 @@ class CasePushNotification extends BasePushNotification {
     
     $data = [
       'entity' => $this->entity,
-      'id' => $this->id,
+      'id' => strval($this->id),
       'body' => $message
     ];
     
@@ -82,6 +82,7 @@ class CasePushNotification extends BasePushNotification {
      * Delete action
      */
     if ($this->action == 'delete') {
+      $data['entity'] .= 'Delete';
       PushNotificationSender::send($title, $message, $contacts, $data);
     }
   }

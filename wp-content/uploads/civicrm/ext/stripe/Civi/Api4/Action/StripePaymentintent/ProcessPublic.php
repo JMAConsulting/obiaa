@@ -103,7 +103,16 @@ class ProcessPublic extends \Civi\Api4\Generic\AbstractAction {
     $authorizeEvent = new \Civi\Stripe\Event\AuthorizeEvent($this->getEntityName(), $this->getActionName(), $this->getParams());
     $event = \Civi::dispatcher()->dispatch('civi.stripe.authorize', $authorizeEvent);
     if ($event->isAuthorized() === FALSE) {
-      throw new \CRM_Core_Exception('Bad Request');
+      // We have an authorization problem.
+      if ($recaptchaError = ($event->getReasonDescriptions()['Civi\FormProtection\Listener\StripeAuthorizeRecaptcha'] ?? FALSE)) {
+        // If the problem is from FormProtection's Stripe Recaptcha listener,
+        // make sure the user can see the message.
+        throw new \CRM_Core_Exception($recaptchaError, 0, ['show_detailed_error' => TRUE]);
+      }
+      else {
+        // Otherwise, just report a vague error.
+        throw new \CRM_Core_Exception('Bad Request');
+      }
     }
 
     if (empty($this->amount) && !$this->setup) {

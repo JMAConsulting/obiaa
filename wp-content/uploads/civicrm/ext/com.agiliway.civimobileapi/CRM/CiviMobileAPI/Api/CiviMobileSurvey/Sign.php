@@ -6,7 +6,7 @@ class CRM_CiviMobileAPI_Api_CiviMobileSurvey_Sign extends CRM_CiviMobileAPI_Api_
    * Returns results to api
    *
    * @return array
-   * @throws api_Exception
+   * @throws CRM_Core_Exception
    */
   public function getResult() {
     $transaction = new CRM_Core_Transaction();
@@ -17,7 +17,7 @@ class CRM_CiviMobileAPI_Api_CiviMobileSurvey_Sign extends CRM_CiviMobileAPI_Api_
     ) {
       $contacts = civicrm_api3('Contact', 'get', [
         'sequential' => 1,
-        'email' => $this->validParams['values']['contact_profile']['email-Primary']
+        'email' => $this->validParams['values']['contact_profile']['email-Primary'],
       ]);
 
       if (!empty($contacts['values'])) {
@@ -31,7 +31,7 @@ class CRM_CiviMobileAPI_Api_CiviMobileSurvey_Sign extends CRM_CiviMobileAPI_Api_
     ])['values'][0];
     if ($userSurvey['is_signed']) {
       $transaction->rollback();
-      throw new api_Exception('Survey already signed.', 'survey_already_signed');
+      throw new CRM_Core_Exception('Survey already signed.', 'survey_already_signed');
     }
 
     if (!$this->validParams['survey_structure']['is_petition']) {
@@ -42,15 +42,15 @@ class CRM_CiviMobileAPI_Api_CiviMobileSurvey_Sign extends CRM_CiviMobileAPI_Api_
           'source_record_id' => $this->validParams['survey_id'],
           'target_contact_id' => $this->validParams['contact_id'],
           'is_deleted' => 0,
-          'return' => ["assignee_contact_id", "id"]
+          'return' => ["assignee_contact_id", "id"],
         ]);
       } catch (Exception $e) {
         $transaction->rollback();
-        throw new api_Exception('The respondent is not reserved.', 'unknown_exception');
+        throw new CRM_Core_Exception('The respondent is not reserved.', 'unknown_exception');
       }
 
       if (!in_array(CRM_Core_Session::getLoggedInContactID(), $activity['assignee_contact_id']) && !CRM_CiviMobileAPI_Utils_Permission::isEnoughPermissionToChangeInterviewer()) {
-        throw new API_Exception(ts('Permission is required.'));
+        throw new CRM_Core_Exception(ts('Permission is required.'));
       }
 
       $params = [
@@ -60,13 +60,13 @@ class CRM_CiviMobileAPI_Api_CiviMobileSurvey_Sign extends CRM_CiviMobileAPI_Api_
           'surveyTitle' => $this->validParams['survey_structure']['title'],
           'activity_type_id' => $this->validParams['survey_structure']['activity_type_id'],
           'details' => $this->validParams['note'],
-          'result' => $this->validParams['result']
+          'result' => $this->validParams['result'],
         ] + $this->validParams['values']['contact_profile'] + $this->validParams['values']['activity_profile'];
 
       CRM_Campaign_Form_Task_Interview::registerInterview($params);
     } else {
       $contactParams = [
-          'contactId' => $this->validParams['contact_id']
+          'contactId' => $this->validParams['contact_id'],
         ] + $this->validParams['values']['contact_profile'];
 
       $contactId = CRM_Contact_BAO_Contact::createProfileContact($contactParams, $this->validParams['survey_structure']['profiles']['contact_profile']['fields'],
@@ -75,7 +75,7 @@ class CRM_CiviMobileAPI_Api_CiviMobileSurvey_Sign extends CRM_CiviMobileAPI_Api_
       $activityParams = [
           'contactId' => $contactId,
           'sid' => $this->validParams['survey_id'],
-          'status_id' => "Completed"
+          'status_id' => "Completed",
         ] + $this->validParams['values']['activity_profile'];
 
       $activityParams['custom'] = CRM_Core_BAO_CustomField::postProcess($activityParams, NULL, 'Activity', FALSE, FALSE);
@@ -95,13 +95,13 @@ class CRM_CiviMobileAPI_Api_CiviMobileSurvey_Sign extends CRM_CiviMobileAPI_Api_
    * @param $params
    *
    * @return array
-   * @throws api_Exception`
+   * @throws CRM_Core_Exception`
    */
   protected function getValidParams($params) {
     $loggedInContactId = CRM_Core_Session::getLoggedInContactID();
     $validatedParams = [];
     if (!is_array($params['values'])) {
-      throw new api_Exception('Values must be object.', 'values_must_be_object');
+      throw new CRM_Core_Exception('Values must be object.', 'values_must_be_object');
     }
 
     $surveyStructure = civicrm_api3('CiviMobileSurvey', 'get_structure', [
@@ -110,20 +110,20 @@ class CRM_CiviMobileAPI_Api_CiviMobileSurvey_Sign extends CRM_CiviMobileAPI_Api_
 
     if ($surveyStructure['is_petition']) {
       if (!CRM_CiviMobileAPI_Utils_Permission::isEnoughPermissionToSignPetition()) {
-        throw new API_Exception(ts('Permission is required.'));
+        throw new CRM_Core_Exception(ts('Permission is required.'));
       }
       if ($loggedInContactId) {
         $params['contact_id'] = $loggedInContactId;
       }
     } else {
       if (!$loggedInContactId) {
-        throw new API_Exception(ts('Not authorized.'));
+        throw new CRM_Core_Exception(ts('Not authorized.'));
       }
       if (empty($params['contact_id'])) {
-        throw new API_Exception(ts('contact_id is required.'));
+        throw new CRM_Core_Exception(ts('contact_id is required.'));
       }
       if (!CRM_Core_Permission::check('interview campaign contacts')) {
-        throw new API_Exception(ts('Permission is required.'));
+        throw new CRM_Core_Exception(ts('Permission is required.'));
       }
     }
 
@@ -144,7 +144,7 @@ class CRM_CiviMobileAPI_Api_CiviMobileSurvey_Sign extends CRM_CiviMobileAPI_Api_
       }
 
       if (empty($resultOptionLabel)) {
-        throw new api_Exception("Result option doesn`t exist.", 'no_result_option');
+        throw new CRM_Core_Exception("Result option doesn`t exist.", 'no_result_option');
       }
 
       $validatedParams['result'] = $resultOptionLabel;
@@ -154,13 +154,13 @@ class CRM_CiviMobileAPI_Api_CiviMobileSurvey_Sign extends CRM_CiviMobileAPI_Api_
 
     $validatedParams['values'] = [
       'activity_profile' => [],
-      'contact_profile' => []
+      'contact_profile' => [],
     ];
 
     foreach ($surveyStructure['profiles'] as $key => $profile) {
       foreach ($profile['fields'] as $field) {
         if ((!isset($params['values'][$field['name']]) || (isset($params['values'][$field['name']]) && $params['values'][$field['name']] == "")) && $field['is_required']) {
-          throw new api_Exception("'{$field['name']}' is required.", 'required_value');
+          throw new CRM_Core_Exception("'{$field['name']}' is required.", 'required_value');
         }
         if ($field['html_type'] == 'CheckBox' && is_array($params['values'][$field['name']])) {
           $options = [];
@@ -170,10 +170,9 @@ class CRM_CiviMobileAPI_Api_CiviMobileSurvey_Sign extends CRM_CiviMobileAPI_Api_
           }
 
           $validatedParams['values'][$key][$field['name']] = $options;
-        } elseif(isset($params['values'][$field['name']])) {
+        } elseif (isset($params['values'][$field['name']])) {
           $validatedParams['values'][$key][$field['name']] = $params['values'][$field['name']];
         }
-
       }
 
       $validatedParams[$key . "_id"] = $profile['id'];

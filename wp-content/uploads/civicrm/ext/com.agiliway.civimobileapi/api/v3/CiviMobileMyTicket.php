@@ -11,21 +11,21 @@ use CRM_CiviMobileAPI_ExtensionUtil as E;
  */
 function civicrm_api3_civi_mobile_my_ticket_get($params) {
   if (!CRM_CiviMobileAPI_Utils_Permission::isEnoughPermissionForViewMyTickets()) {
-    throw new \API_Exception(E::ts('Permission is required.'));
+    throw new \CRM_Core_Exception(E::ts('Permission is required.'));
   }
 
   $event = new CRM_Event_BAO_Event();
   $event->id = $params['event_id'];
   $eventExistence = $event->find(TRUE);
   if (empty($eventExistence)) {
-    throw new api_Exception('Event(id=' . $params['event_id'] . ') does not exist.', 'event_does_not_exist');
+    throw new CRM_Core_Exception('Event(id=' . $params['event_id'] . ') does not exist.', 'event_does_not_exist');
   }
 
   $contact = new CRM_Contact_BAO_Contact();
   $contact->id = $params['contact_id'];
   $contactExistence = $contact->find(TRUE);
   if (empty($contactExistence)) {
-    throw new api_Exception('Contact(id=' . $params['contact_id'] . ') does not exist.', 'contact_does_not_exist');
+    throw new CRM_Core_Exception('Contact(id=' . $params['contact_id'] . ') does not exist.', 'contact_does_not_exist');
   }
 
   $myTickets = CRM_CiviMobileAPI_Utils_EventTicket::getAll($params['event_id'], $params['contact_id']);

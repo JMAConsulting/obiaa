@@ -385,7 +385,7 @@ class CRM_Core_Payment_StripeIPN {
    * @param array $webhookEvent
    *
    * @return bool TRUE on success.
-   * @throws \API_Exception
+   * @throws \CRM_Core_Exception
    * @throws \Civi\API\Exception\UnauthorizedException
    */
   public function processQueuedWebhookEvent(array $webhookEvent) :bool {
@@ -413,7 +413,7 @@ class CRM_Core_Payment_StripeIPN {
    * Process the given webhook
    *
    * @return stdClass
-   * @throws \API_Exception
+   * @throws \CRM_Core_Exception
    * @throws \Civi\API\Exception\UnauthorizedException
    */
   public function processWebhookEvent() :stdClass {

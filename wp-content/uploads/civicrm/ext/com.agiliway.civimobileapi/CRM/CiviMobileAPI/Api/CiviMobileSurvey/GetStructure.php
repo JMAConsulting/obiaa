@@ -6,7 +6,7 @@ class CRM_CiviMobileAPI_Api_CiviMobileSurvey_GetStructure extends CRM_CiviMobile
    * Returns results to api
    *
    * @return array
-   * @throws api_Exception
+   * @throws CRM_Core_Exception
    */
   public function getResult() {
     try {
@@ -14,10 +14,10 @@ class CRM_CiviMobileAPI_Api_CiviMobileSurvey_GetStructure extends CRM_CiviMobile
         'id' => $this->validParams['id'],
       ]);
     } catch (Exception $e) {
-      throw new api_Exception('Survey does not exists','survey_does_not_exists');
+      throw new CRM_Core_Exception('Survey does not exists', 'survey_does_not_exists');
     }
 
-    $isPetition = true;
+    $isPetition = TRUE;
 
     try {
       $petitionOptionValue = civicrm_api3('OptionValue', 'getsingle', [
@@ -28,22 +28,22 @@ class CRM_CiviMobileAPI_Api_CiviMobileSurvey_GetStructure extends CRM_CiviMobile
       ]);
 
       if ($surveyInfo['activity_type_id'] != $petitionOptionValue['value']) {
-        $isPetition = false;
+        $isPetition = FALSE;
       }
     } catch (Exception $e) {
-      $isPetition = false;
+      $isPetition = FALSE;
     }
 
     if ($isPetition) {
       if (!CRM_CiviMobileAPI_Utils_Permission::isEnoughPermissionToViewPetition()) {
-        throw new API_Exception(ts('Permission is required.'));
+        throw new CRM_Core_Exception(ts('Permission is required.'));
       }
     } else {
       if (!CRM_Core_Session::getLoggedInContactID()) {
-        throw new API_Exception(ts('Not authorized.'));
+        throw new CRM_Core_Exception(ts('Not authorized.'));
       }
       if (!CRM_CiviMobileAPI_Utils_Permission::isEnoughPermissionToGetSurveysList()) {
-        throw new API_Exception(ts('Permission is required.'));
+        throw new CRM_Core_Exception(ts('Permission is required.'));
       }
     }
 
@@ -56,7 +56,7 @@ class CRM_CiviMobileAPI_Api_CiviMobileSurvey_GetStructure extends CRM_CiviMobile
       'instructions' => $surveyInfo['instructions'],
       'default_number_of_contacts' => $surveyInfo['default_number_of_contacts'],
       'max_number_of_contacts' => $surveyInfo['max_number_of_contacts'],
-      'short_instructions' => $surveyInfo['instructions'] ? html_entity_decode(mb_substr(strip_tags(preg_replace('/\s\s+/', ' ', $surveyInfo['instructions'])), 0, 200), ENT_QUOTES | ENT_HTML401) : ''
+      'short_instructions' => $surveyInfo['instructions'] ? html_entity_decode(mb_substr(strip_tags(preg_replace('/\s\s+/', ' ', $surveyInfo['instructions'])), 0, 200), ENT_QUOTES | ENT_HTML401) : '',
     ];
 
     if (!empty($surveyInfo['result_id'])) {
@@ -106,7 +106,7 @@ class CRM_CiviMobileAPI_Api_CiviMobileSurvey_GetStructure extends CRM_CiviMobile
 
       $survey['profiles'][$profile_name] = [
         'id' => $profile['uf_group_id'],
-        'fields' => $fields
+        'fields' => $fields,
       ];
     }
 
@@ -119,12 +119,13 @@ class CRM_CiviMobileAPI_Api_CiviMobileSurvey_GetStructure extends CRM_CiviMobile
    * @param $params
    *
    * @return array
-   * @throws api_Exception
+   * @throws CRM_Core_Exception
    */
   protected function getValidParams($params) {
     return [
       'id' => $params['id'],
-      'activity_type_id' => $params['activity_type_id']
+      'activity_type_id' => $params['activity_type_id'],
     ];
   }
+
 }

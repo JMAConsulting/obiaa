@@ -6,7 +6,7 @@ class CRM_CiviMobileAPI_Api_CiviMobileSurveyRespondent_Release extends CRM_CiviM
    * Returns results to api
    *
    * @return array
-   * @throws api_Exception
+   * @throws CRM_Core_Exception
    */
   public function getResult() {
     $survey = civicrm_api4('Survey', 'get', [
@@ -17,7 +17,7 @@ class CRM_CiviMobileAPI_Api_CiviMobileSurveyRespondent_Release extends CRM_CiviM
     ])->first();
 
     if (empty($survey)) {
-      throw new api_Exception('The survey doesn`t exists.', 'survey_does_not_exists');
+      throw new CRM_Core_Exception('The survey doesn`t exists.', 'survey_does_not_exists');
     }
 
     $surveyActivityTypesIds = CRM_CiviMobileAPI_Utils_Survey::getSurveyActivityTypesIds();
@@ -39,7 +39,7 @@ class CRM_CiviMobileAPI_Api_CiviMobileSurveyRespondent_Release extends CRM_CiviM
     ])->getArrayCopy();
 
     if (count($activities) != count($this->validParams['contact_ids'])) {
-      throw new api_Exception('Some contacts aren`t reserved respondents.', 'some_contacts_are_not_reserved_respondents');
+      throw new CRM_Core_Exception('Some contacts aren`t reserved respondents.', 'some_contacts_are_not_reserved_respondents');
     }
 
     foreach ($activities as $activity) { // maybe replace with save
@@ -63,11 +63,11 @@ class CRM_CiviMobileAPI_Api_CiviMobileSurveyRespondent_Release extends CRM_CiviM
    * @param $params
    *
    * @return array
-   * @throws api_Exception`
+   * @throws CRM_Core_Exception`
    */
   protected function getValidParams($params) {
     if (!CRM_CiviMobileAPI_Utils_Permission::isEnoughPermissionToReleaseRespondents()) {
-      throw new API_Exception(ts('Permission is required.'));
+      throw new CRM_Core_Exception(ts('Permission is required.'));
     }
 
     $loggedInContactId = CRM_Core_Session::getLoggedInContactID();
@@ -76,7 +76,7 @@ class CRM_CiviMobileAPI_Api_CiviMobileSurveyRespondent_Release extends CRM_CiviM
       $this->validParams['interviewer_id'] != $loggedInContactId &&
       !CRM_CiviMobileAPI_Utils_Permission::isEnoughPermissionToChangeInterviewer()
     ) {
-      throw new API_Exception(ts('Permission is required.'));
+      throw new CRM_Core_Exception(ts('Permission is required.'));
     }
 
     $params['interviewer_id'] = !empty($params['interviewer_id']) ? $params['interviewer_id'] : $loggedInContactId;

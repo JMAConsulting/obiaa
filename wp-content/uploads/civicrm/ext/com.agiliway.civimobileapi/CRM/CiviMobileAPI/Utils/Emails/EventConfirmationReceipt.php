@@ -20,12 +20,12 @@ class CRM_CiviMobileAPI_Utils_Emails_EventConfirmationReceipt {
     $participant->id = $participantId;
     $participantExist = $participant->find(TRUE);
     if (empty($participantExist)) {
-      throw new api_Exception('Participant does not exist.', 'participant_does_not_exist');
+      throw new CRM_Core_Exception('Participant does not exist.', 'participant_does_not_exist');
     }
 
     $contactId = $participant->contact_id;
     $eventId = $participant->event_id;
-    $qrCodeInfo  = CRM_CiviMobileAPI_Utils_ParticipantQrCode::getQrCodeInfo($participantId);
+    $qrCodeInfo = CRM_CiviMobileAPI_Utils_ParticipantQrCode::getQrCodeInfo($participantId);
     $details = CRM_Contact_BAO_Contact_Location::getEmailDetails($contactId);
     $userDisplayName = $details[0];
     $userEmail = $details[1];
@@ -34,21 +34,24 @@ class CRM_CiviMobileAPI_Utils_Emails_EventConfirmationReceipt {
     $senderEmailAddress = $senderEmail[1];
     $event = self::prepareEvent($eventId, $participant->role_id);
     $prepareLineItems = self::prepareLineItems($participantId);
-    $isShowLocation = (!empty($event['is_show_location']) && $event['is_show_location'] == 1) ? 1 : false;
-    $location = CRM_Core_BAO_Location::getValues(['entity_id' => $eventId, 'entity_table' => 'civicrm_event'], TRUE);
-    $registerDate = (!empty($participant->register_date)) ? $participant->register_date : false;
+    $isShowLocation = (!empty($event['is_show_location']) && $event['is_show_location'] == 1) ? 1 : FALSE;
+    $location = CRM_Core_BAO_Location::getValues([
+      'entity_id' => $eventId,
+      'entity_table' => 'civicrm_event',
+    ], TRUE);
+    $registerDate = (!empty($participant->register_date)) ? $participant->register_date : FALSE;
     $contribution = CRM_CiviMobileAPI_Utils_Participant::getParticipantContribution($participantId);
-    $totalAmount = (!empty($contribution->total_amount)) ? $contribution->total_amount : false;
-    $currency = (!empty($contribution->currency)) ? $contribution->currency : false;
-    $checkNumber = (!empty($contribution->checkNumber)) ? $contribution->checkNumber : false;
-    $trxnId = (!empty($contribution->trxn_id)) ? $contribution->trxn_id : false;
-    $isPayLater = (!empty($event['is_pay_later'])) ? $event['is_pay_later'] : false;
-    $isOnWaitlist = false;
-    $payLaterReceipt = (!empty($event['pay_later_receipt'])) ? $event['pay_later_receipt'] : false;
-    $isPrimary = (!empty($event['is_monetary']) && $event['is_monetary'] == 1) ? 1 : false;
+    $totalAmount = (!empty($contribution->total_amount)) ? $contribution->total_amount : FALSE;
+    $currency = (!empty($contribution->currency)) ? $contribution->currency : FALSE;
+    $checkNumber = (!empty($contribution->checkNumber)) ? $contribution->checkNumber : FALSE;
+    $trxnId = (!empty($contribution->trxn_id)) ? $contribution->trxn_id : FALSE;
+    $isPayLater = (!empty($event['is_pay_later'])) ? $event['is_pay_later'] : FALSE;
+    $isOnWaitlist = FALSE;
+    $payLaterReceipt = (!empty($event['pay_later_receipt'])) ? $event['pay_later_receipt'] : FALSE;
+    $isPrimary = (!empty($event['is_monetary']) && $event['is_monetary'] == 1) ? 1 : FALSE;
     $isAmountZero = ($totalAmount <= 0) ? TRUE : FALSE;
-    $defaultRole = (!empty($event['default_role_id'])) ? $event['default_role_id'] : false;
-    $participantStatus = false;
+    $defaultRole = (!empty($event['default_role_id'])) ? $event['default_role_id'] : FALSE;
+    $participantStatus = FALSE;
     if (!empty($participant->status_id)) {
       $participantStatus = civicrm_api4('ParticipantStatusType', 'get', [
         'select' => [
@@ -70,13 +73,13 @@ class CRM_CiviMobileAPI_Utils_Emails_EventConfirmationReceipt {
     if (!empty($contribution->financial_type_id)) {
       $financialTypeName = CRM_Core_DAO::getFieldValue('CRM_Financial_DAO_FinancialType', $contribution->financial_type_id, 'name');
     } else {
-      $financialTypeName = false;
+      $financialTypeName = FALSE;
     }
 
     if (!empty($contribution->payment_instrument_id)) {
       $paidBy = CRM_CiviMobileAPI_Utils_Membership::getPaymentInstrumentLabel($contribution->payment_instrument_id);
     } else {
-      $paidBy = false;
+      $paidBy = FALSE;
     }
 
     $params = [
@@ -86,7 +89,7 @@ class CRM_CiviMobileAPI_Utils_Emails_EventConfirmationReceipt {
       'from' => $senderEmailName . " <" . $senderEmailAddress . ">",
       'toName' => $userDisplayName,
       'toEmail' => $userEmail,
-      'isTest' => false,
+      'isTest' => FALSE,
       'tplParams' => [
         'file_name' => $qrCodeInfo['qr_code_image'],
         'event' => $event,
@@ -110,8 +113,8 @@ class CRM_CiviMobileAPI_Utils_Emails_EventConfirmationReceipt {
         'isAmountzero' => $isAmountZero,
         'isOnWaitlist' => $isOnWaitlist,
         'participant_status' => $participantStatus,
-        'currency' => $currency
-      ]
+        'currency' => $currency,
+      ],
     ];
 
     if ($messageTemplateValueName == 'event_online_receipt') {
@@ -123,7 +126,7 @@ class CRM_CiviMobileAPI_Utils_Emails_EventConfirmationReceipt {
         'entity_id' => $eventId,
       ];
 
-      $profilesInfo= CRM_Core_BAO_UFJoin::getUFGroupIds($ufJoinParams);
+      $profilesInfo = CRM_Core_BAO_UFJoin::getUFGroupIds($ufJoinParams);
       $customPreProfileId = $profilesInfo[0];
       $customPostProfileId = $profilesInfo[1];
 
@@ -181,7 +184,7 @@ class CRM_CiviMobileAPI_Utils_Emails_EventConfirmationReceipt {
       }
       $event['participant_role'] = implode(', ', $rolesNames);
     } else {
-      $event['participant_role'] = false;
+      $event['participant_role'] = FALSE;
     }
 
     return $event;
@@ -197,12 +200,12 @@ class CRM_CiviMobileAPI_Utils_Emails_EventConfirmationReceipt {
   private static function prepareLineItems($participantId) {
     $updatedLineItem = CRM_Price_BAO_LineItem::getLineItems($participantId, 'participant', FALSE, FALSE);
 
-    $lineItem = array();
+    $lineItem = [];
     if ($updatedLineItem) {
       $lineItem[] = $updatedLineItem;
     }
 
-    return  empty($lineItem) ? FALSE : $lineItem;
+    return empty($lineItem) ? FALSE : $lineItem;
   }
 
 }

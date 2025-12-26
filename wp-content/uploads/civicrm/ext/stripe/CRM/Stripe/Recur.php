@@ -120,14 +120,7 @@ class CRM_Stripe_Recur {
           'template' => 'CRM/Core/Payment/Stripe/BillingBlockRecurringExtra.tpl',
         ]);
         CRM_Core_Region::instance('billing-block')->add([
-          'scriptUrl' => \Civi::service('asset_builder')->getUrl(
-            'recurStart.js',
-            [
-              'path' => \Civi::resources()
-                ->getPath(E::LONG_NAME, 'js/recur_start.js'),
-              'mimetype' => 'application/javascript',
-            ]
-          ),
+          'scriptUrl' => \Civi::resources()->getUrl(E::LONG_NAME, 'js/recur_start.js'),
           // Load after civicrm_stripe.js (weight 100)
           'weight' => 120,
         ]);

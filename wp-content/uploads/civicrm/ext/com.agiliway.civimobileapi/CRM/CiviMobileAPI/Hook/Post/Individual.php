@@ -7,9 +7,10 @@ class CRM_CiviMobileAPI_Hook_Post_Individual {
       try {
         $contact = CRM_Contact_BAO_Contact::findById($objectId);
         $apiKey = $contact->api_key;
-      } catch (\CiviCRM_API3_Exception $e) {
+      } catch (\CRM_Core_Exception $e) {
         $apiKey = NULL;
       }
     }
   }
+
 }
