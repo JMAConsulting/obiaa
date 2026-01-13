@@ -326,8 +326,15 @@ class CRM_Biaproperty_Form_Unit extends CRM_Core_Form {
           }
           if (!empty($values['street_unit'])) {
             $addressValues['street_unit'] = $values['street_unit'];
-          }
-          $address = Address::create(FALSE)->setValues($addressValues)->execute();
+	  }
+	  $address = Address::create(FALSE)->setValues($addressValues)->execute();
+	  if (!empty($values['street_unit'])) {
+            Address::update(FALSE)
+              ->addWhere('id', '=', $address[0]['id'])
+              ->addValue('street_unit', $addressValues['street_unit'])
+              ->addValue('fixAddress', FALSE)
+              ->execute();
+	  }
           $values['address_id'] = $address[0]['id'];
         }
         else {
