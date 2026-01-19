@@ -4,6 +4,12 @@ use CRM_CiviMobileAPI_ExtensionUtil as E;
 
 class CRM_CiviMobileAPI_Form_Settings extends CRM_Core_Form {
 
+  const DEFAULT_REMINDER_DAYS = 1;
+
+  const DEFAULT_REMINDER_HOURS = 0;
+
+  const DEFAULT_REMINDER_MINUTES = 0;
+
   public function preProcess() {
     parent::preProcess();
 
@@ -67,7 +73,8 @@ class CRM_CiviMobileAPI_Form_Settings extends CRM_Core_Form {
     $this->assign('defaultRssFeedUrl', CRM_CiviMobileAPI_Utils_Cms::getCmsRssUrl());
     $this->assign('possibleItemsToDisplayInPublicArea', implode(', ', $possibleItemsToDisplayInPublicArea));
 
-    CRM_Core_Resources::singleton()->addStyleFile('com.agiliway.civimobileapi', 'css/civimobileapiSettings.css', 200, 'html-header');
+    CRM_Core_Resources::singleton()
+      ->addStyleFile('com.agiliway.civimobileapi', 'css/civimobileapiSettings.css', 200, 'html-header');
   }
 
   /**
@@ -77,11 +84,27 @@ class CRM_CiviMobileAPI_Form_Settings extends CRM_Core_Form {
     $params = $this->exportValues();
 
     if (!empty($params['_qf_Settings_submit'])) {
-      $this->addFormRule([CRM_CiviMobileAPI_Form_Settings::class, 'validateToken']);
+      $this->addFormRule([
+        CRM_CiviMobileAPI_Form_Settings::class,
+        'validateToken',
+      ]);
     } elseif (!empty($params['_qf_Settings_upload'])) {
-      $this->addFormRule([CRM_CiviMobileAPI_Form_Settings::class, 'validateNewsSettings']);
-      $this->addFormRule([CRM_CiviMobileAPI_Form_Settings::class, 'validatePushNotificationSettings']);
-      $this->addFormRule([CRM_CiviMobileAPI_Form_Settings::class, 'validateEventButtonColor']);
+      $this->addFormRule([
+        CRM_CiviMobileAPI_Form_Settings::class,
+        'validateNewsSettings',
+      ]);
+      $this->addFormRule([
+        CRM_CiviMobileAPI_Form_Settings::class,
+        'validatePushNotificationSettings',
+      ]);
+      $this->addFormRule([
+        CRM_CiviMobileAPI_Form_Settings::class,
+        'validateEventButtonColor',
+      ]);
+      $this->addFormRule([
+        CRM_CiviMobileAPI_Form_Settings::class,
+        'validateReminderBeforeTaskDue',
+      ]);
     }
   }
 
@@ -90,6 +113,7 @@ class CRM_CiviMobileAPI_Form_Settings extends CRM_Core_Form {
    * Uses on form validation
    *
    * @param $values
+   *
    * @return array|bool
    */
   public static function validateNewsSettings($values) {
@@ -105,6 +129,7 @@ class CRM_CiviMobileAPI_Form_Settings extends CRM_Core_Form {
   }
 
   public static function validatePushNotificationSettings($values) {
+    $errors = [];
     if (!is_numeric($values["civimobile_push_notification_lifetime"])) {
       $errors["civimobile_push_notification_lifetime"] = E::ts('Value must be integer!');
     }
@@ -116,11 +141,35 @@ class CRM_CiviMobileAPI_Form_Settings extends CRM_Core_Form {
     }
     return empty($errors) ? TRUE : $errors;
   }
-  
+
   public static function validateEventButtonColor($values) {
+    $errors = [];
     if (!CRM_Utils_Rule::color($values["civimobile_event_registration_button_color"])) {
       $errors["civimobile_event_registration_button_color"] = E::ts('Please enter a valid 6-digit hex color code (e.g., #RRGGBB).');
     }
+    return empty($errors) ? TRUE : $errors;
+  }
+
+  public static function validateReminderBeforeTaskDue($values) {
+    $errors = [];
+    $days = $values['civimobile_push_notification_reminder_before_task_due']['days'] ?? '';
+    $hours = $values['civimobile_push_notification_reminder_before_task_due']['hours'] ?? '';
+    $minutes = $values['civimobile_push_notification_reminder_before_task_due']['minutes'] ?? '';
+
+    if (!is_numeric($days) || $days < 0) {
+      $errors['civimobile_push_notification_reminder_before_task_due[days]'] = E::ts('Days must be a non-negative integer!');
+    }
+    if (!is_numeric($hours) || $hours < 0 || $hours > 23) {
+      $errors['civimobile_push_notification_reminder_before_task_due[hours]'] = E::ts('Hours must be between 0 and 23!');
+    }
+    if (!is_numeric($minutes) || $minutes < 0 || $minutes > 59) {
+      $errors['civimobile_push_notification_reminder_before_task_due[minutes]'] = E::ts('Minutes must be between 0 and 59!');
+    }
+
+    if ($days == 0 && $hours == 0 && $minutes == 0) {
+      $errors['civimobile_push_notification_reminder_before_task_due[minutes]'] = E::ts('Reminder time must be greater than 0!');
+    }
+
     return empty($errors) ? TRUE : $errors;
   }
 
@@ -144,7 +193,7 @@ class CRM_CiviMobileAPI_Form_Settings extends CRM_Core_Form {
 
     try {
       $result = civicrm_api3('CiviMobileConfirmToken', 'run', ['civicrm_server_token' => $token]);
-    } catch (CiviCRM_API3_Exception $e) {
+    } catch (CRM_Core_Exception $e) {
       $errors[$tokenFieldName] = E::ts('Error. Something went wrong. Please contact us.');
     }
 
@@ -180,11 +229,37 @@ class CRM_CiviMobileAPI_Form_Settings extends CRM_Core_Form {
     $this->addElement('checkbox', 'civimobile_is_allow_reset_password', E::ts('Show Reset password'));
     $this->addElement('checkbox', 'civimobile_is_showed_news', E::ts('Show News'));
     $this->addElement('text', 'civimobile_news_rss_feed_url', E::ts('News RSS feed URL'));
-    $this->add('textarea', 'civimobile_firebase_key', E::ts('Firebase key'), ['cols' => 100, 'rows' => 10]);
+    $this->add('textarea', 'civimobile_firebase_key', E::ts('Firebase key'), [
+      'cols' => 100,
+      'rows' => 10,
+    ]);
     $this->addElement('checkbox', 'civimobile_is_custom_app', E::ts('Do you have custom application?'));
     $this->addElement('checkbox', 'civimobile_is_disallowed_event_participant_registration_overlap', E::ts('Do you want disallow registration on events at same date?'));
     $this->addElement('text', 'civimobile_push_notification_lifetime', E::ts('Life time for push notification messages'));
     $this->addElement('text', 'civimobile_event_registration_button_color', E::ts('Set the button color for event registration'));
+
+    if (CRM_CiviMobileAPI_Utils_Extension::isTimeTrackerExtensionEnabled()) {
+      $this->addGroup([
+        $this->add('number', 'days', NULL, [
+          'size' => 5,
+          'min' => 0,
+          'max' => 14,
+          'placeholder' => '0',
+        ]),
+        $this->add('number', 'hours', NULL, [
+          'size' => 5,
+          'min' => 0,
+          'max' => 23,
+          'placeholder' => '0',
+        ]),
+        $this->add('number', 'minutes', NULL, [
+          'size' => 5,
+          'min' => 0,
+          'max' => 59,
+          'placeholder' => '0',
+        ]),
+      ], 'civimobile_push_notification_reminder_before_task_due', E::ts('Reminder about task due (day:hour:minute)'));
+    }
 
     if (CRM_Core_Config::singleton()->userSystem->isUserRegistrationPermitted()) {
       $this->addElement('checkbox', 'civimobile_is_allow_registration', E::ts('Allow registration'));
@@ -203,7 +278,7 @@ class CRM_CiviMobileAPI_Form_Settings extends CRM_Core_Form {
       [
         'type' => 'cancel',
         'name' => E::ts('Cancel'),
-      ]
+      ],
     ];
 
     $this->addButtons($buttons);
@@ -214,10 +289,12 @@ class CRM_CiviMobileAPI_Form_Settings extends CRM_Core_Form {
 
     if (!empty($params['_qf_Settings_submit'])) {
       if (empty($params['_qf_Settings_next'])) {
-        Civi::settings()->set('civimobile_server_key', $params['civimobile_server_key']);
-        CRM_Core_Session::singleton()->setStatus(E::ts('Server key updated'), E::ts('CiviMobile Settings'), 'success');
+        Civi::settings()
+          ->set('civimobile_server_key', $params['civimobile_server_key']);
+        CRM_Core_Session::singleton()
+          ->setStatus(E::ts('Server key updated'), E::ts('CiviMobile Settings'), 'success');
       }
-    }  elseif (!empty($params['_qf_Settings_upload'])) {
+    } elseif (!empty($params['_qf_Settings_upload'])) {
       $this->controller->setDestination(CRM_Utils_System::url('civicrm/civimobile/settings', http_build_query([])));
       if (!isset($params['civimobile_is_allow_public_website_url_qrcode'])) {
         $params['civimobile_is_allow_public_website_url_qrcode'] = 0;
@@ -250,21 +327,42 @@ class CRM_CiviMobileAPI_Form_Settings extends CRM_Core_Form {
         $params['civimobile_event_registration_button_color'] = "#5589B7";
       }
 
-      Civi::settings()->set('civimobile_is_custom_app', $params['civimobile_is_custom_app']);
-      Civi::settings()->set('civimobile_is_disallowed_event_participant_registration_overlap', $params['civimobile_is_disallowed_event_participant_registration_overlap']);
-      Civi::settings()->set('civimobile_firebase_key', $params['civimobile_firebase_key']);
-      Civi::settings()->set('civimobile_is_allow_public_website_url_qrcode', $params['civimobile_is_allow_public_website_url_qrcode']);
-      Civi::settings()->set('civimobile_site_name_to_use', $params['civimobile_site_name_to_use']);
-      Civi::settings()->set('civimobile_custom_site_name', $params['civimobile_custom_site_name']);
-      Civi::settings()->set('civimobile_is_allow_public_info_api', $params['civimobile_is_allow_public_info_api']);
-      Civi::settings()->set('civimobile_is_allow_reset_password', $params['civimobile_is_allow_reset_password']);
-      Civi::settings()->set('civimobile_is_showed_news', $params['civimobile_is_showed_news']);
-      Civi::settings()->set('civimobile_news_rss_feed_url', $params['civimobile_news_rss_feed_url']);
-      Civi::settings()->set("civimobile_push_notification_lifetime", $params['civimobile_push_notification_lifetime']);
-      Civi::settings()->set("civimobile_is_allow_registration", $params['civimobile_is_allow_registration']);
-      Civi::settings()->set("civimobile_event_registration_button_color", $params['civimobile_event_registration_button_color']);
+      $days = (int) ($params['civimobile_push_notification_reminder_before_task_due']['days'] ?? self::DEFAULT_REMINDER_DAYS);
+      $hours = (int) ($params['civimobile_push_notification_reminder_before_task_due']['hours'] ?? self::DEFAULT_REMINDER_HOURS);
+      $minutes = (int) ($params['civimobile_push_notification_reminder_before_task_due']['minutes'] ?? self::DEFAULT_REMINDER_MINUTES);
+      $totalMinutes = ($days * 24 * 60) + ($hours * 60) + $minutes;
 
-      CRM_Core_Session::singleton()->setStatus(E::ts('CiviMobile settings updated'), E::ts('CiviMobile Settings'), 'success');
+      Civi::settings()
+        ->set('civimobile_is_custom_app', $params['civimobile_is_custom_app']);
+      Civi::settings()
+        ->set('civimobile_is_disallowed_event_participant_registration_overlap', $params['civimobile_is_disallowed_event_participant_registration_overlap']);
+      Civi::settings()
+        ->set('civimobile_firebase_key', $params['civimobile_firebase_key']);
+      Civi::settings()
+        ->set('civimobile_is_allow_public_website_url_qrcode', $params['civimobile_is_allow_public_website_url_qrcode']);
+      Civi::settings()
+        ->set('civimobile_site_name_to_use', $params['civimobile_site_name_to_use']);
+      Civi::settings()
+        ->set('civimobile_custom_site_name', $params['civimobile_custom_site_name']);
+      Civi::settings()
+        ->set('civimobile_is_allow_public_info_api', $params['civimobile_is_allow_public_info_api']);
+      Civi::settings()
+        ->set('civimobile_is_allow_reset_password', $params['civimobile_is_allow_reset_password']);
+      Civi::settings()
+        ->set('civimobile_is_showed_news', $params['civimobile_is_showed_news']);
+      Civi::settings()
+        ->set('civimobile_news_rss_feed_url', $params['civimobile_news_rss_feed_url']);
+      Civi::settings()
+        ->set("civimobile_push_notification_lifetime", $params['civimobile_push_notification_lifetime']);
+      Civi::settings()
+        ->set("civimobile_is_allow_registration", $params['civimobile_is_allow_registration']);
+      Civi::settings()
+        ->set("civimobile_event_registration_button_color", $params['civimobile_event_registration_button_color']);
+      Civi::settings()
+        ->set("civimobile_push_notification_reminder_before_task_due", $totalMinutes);
+
+      CRM_Core_Session::singleton()
+        ->setStatus(E::ts('CiviMobile settings updated'), E::ts('CiviMobile Settings'), 'success');
     }
   }
 
@@ -273,23 +371,47 @@ class CRM_CiviMobileAPI_Form_Settings extends CRM_Core_Form {
    */
   public function setDefaultValues() {
     $defaults = [];
-    $pushNotificationLifetime = Civi::settings()->get('civimobile_push_notification_lifetime');
-    
-    $defaults['civimobile_server_key'] = Civi::settings()->get('civimobile_server_key');
+    $pushNotificationLifetime = Civi::settings()
+      ->get('civimobile_push_notification_lifetime');
+    $reminderMinutes = Civi::settings()
+      ->get('civimobile_push_notification_reminder_before_task_due');
+
+    $defaults['civimobile_server_key'] = Civi::settings()
+      ->get('civimobile_server_key');
     $defaults['civimobile_is_allow_public_website_url_qrcode'] = CRM_CiviMobileAPI_Utils_Extension::isAllowPublicWebisteURLQRCode();
-    $defaults['civimobile_site_name_to_use'] = (!empty(Civi::settings()->get('civimobile_site_name_to_use'))) ? Civi::settings()->get('civimobile_site_name_to_use') : 'cms_site_name';
-    $defaults['civimobile_custom_site_name'] = Civi::settings()->get('civimobile_custom_site_name');
-    $defaults['civimobile_is_allow_public_info_api'] = Civi::settings()->get('civimobile_is_allow_public_info_api');
-    $defaults['civimobile_is_allow_reset_password'] = Civi::settings()->get('civimobile_is_allow_reset_password');
-    $defaults['civimobile_is_showed_news'] = Civi::settings()->get('civimobile_is_showed_news');
+    $defaults['civimobile_site_name_to_use'] = (!empty(Civi::settings()
+      ->get('civimobile_site_name_to_use'))) ? Civi::settings()
+      ->get('civimobile_site_name_to_use') : 'cms_site_name';
+    $defaults['civimobile_custom_site_name'] = Civi::settings()
+      ->get('civimobile_custom_site_name');
+    $defaults['civimobile_is_allow_public_info_api'] = Civi::settings()
+      ->get('civimobile_is_allow_public_info_api');
+    $defaults['civimobile_is_allow_reset_password'] = Civi::settings()
+      ->get('civimobile_is_allow_reset_password');
+    $defaults['civimobile_is_showed_news'] = Civi::settings()
+      ->get('civimobile_is_showed_news');
     $defaults['civimobile_news_rss_feed_url'] = CRM_CiviMobileAPI_Utils_Extension::newsRssFeedUrl();
-    $defaults['civimobile_firebase_key'] = Civi::settings()->get('civimobile_firebase_key');
-    $defaults['civimobile_is_disallowed_event_participant_registration_overlap'] = Civi::settings()->get('civimobile_is_disallowed_event_participant_registration_overlap');
+    $defaults['civimobile_firebase_key'] = Civi::settings()
+      ->get('civimobile_firebase_key');
+    $defaults['civimobile_is_disallowed_event_participant_registration_overlap'] = Civi::settings()
+      ->get('civimobile_is_disallowed_event_participant_registration_overlap');
     $defaults['civimobile_is_custom_app'] = CRM_CiviMobileAPI_Utils_Extension::isCustomApp();
     $defaults['civimobile_push_notification_lifetime'] = isset($pushNotificationLifetime)
-      ? (int)$pushNotificationLifetime : CRM_CiviMobileAPI_BAO_PushNotificationMessages::LIFE_TIME_IN_DAYS;
-    $defaults['civimobile_is_allow_registration'] = Civi::settings()->get('civimobile_is_allow_registration');
-    $defaults['civimobile_event_registration_button_color'] = (!empty(Civi::settings()->get('civimobile_event_registration_button_color'))) ? Civi::settings()->get('civimobile_event_registration_button_color') : "#5589B7";
+      ? (int) $pushNotificationLifetime : CRM_CiviMobileAPI_BAO_PushNotificationMessages::LIFE_TIME_IN_DAYS;
+    $defaults['civimobile_is_allow_registration'] = Civi::settings()
+      ->get('civimobile_is_allow_registration');
+    $defaults['civimobile_event_registration_button_color'] = (!empty(Civi::settings()
+      ->get('civimobile_event_registration_button_color'))) ? Civi::settings()
+      ->get('civimobile_event_registration_button_color') : "#5589B7";
+
+    $totalMinutes = !empty($reminderMinutes) ? (int) $reminderMinutes : (self::DEFAULT_REMINDER_DAYS * 24 * 60 + self::DEFAULT_REMINDER_HOURS * 60 + self::DEFAULT_REMINDER_MINUTES);
+    $days = floor($totalMinutes / (24 * 60));
+    $hours = floor(($totalMinutes % (24 * 60)) / 60);
+    $minutes = $totalMinutes % 60;
+
+    $defaults['civimobile_push_notification_reminder_before_task_due']['days'] = (int) $days;
+    $defaults['civimobile_push_notification_reminder_before_task_due']['hours'] = (int) $hours;
+    $defaults['civimobile_push_notification_reminder_before_task_due']['minutes'] = (int) $minutes;
 
     return $defaults;
   }

@@ -9,6 +9,7 @@ class CRM_CiviMobileAPI_Utils_PriceSet {
    * Gets price set fields by price set id
    *
    * @param $priceSetId
+   *
    * @return array|bool
    */
   public static function getFields($priceSetId) {
@@ -19,8 +20,8 @@ class CRM_CiviMobileAPI_Utils_PriceSet {
         ],
         'checkPermissions' => FALSE,
       ])->getArrayCopy();
-    } catch (CiviCRM_API3_Exception $e) {
-      return false;
+    } catch (CRM_Core_Exception $e) {
+      return FALSE;
     }
 
     return $priceSetFields;

@@ -698,7 +698,7 @@ class PropertySpy implements ArrayAccess, Iterator, Countable, JsonSerializable 
 
   protected $iteratorIdx=0;
   // Iterator
-  public function current() {
+  public function current(): mixed {
     // $this->warning("Iterating " . array_keys($this->_props)[$this->key()]);
     return current($this->_props);
   }
@@ -706,23 +706,23 @@ class PropertySpy implements ArrayAccess, Iterator, Countable, JsonSerializable 
   /**
    * Implemetns Countable
    */
-  public function count() {
+  public function count(): int {
     return \count($this->_props);
   }
 
-  public function key() {
+  public function key(): mixed {
     return key($this->_props);
   }
 
-  public function next() {
-    return next($this->_props);
+  public function next(): void {
+    next($this->_props);
   }
 
-  public function rewind() {
-    return reset($this->_props);
+  public function rewind(): void {
+    reset($this->_props);
   }
 
-  public function valid() {
+  public function valid(): bool {
     return array_key_exists(key($this->_props), $this->_props);
   }
 
@@ -785,7 +785,7 @@ class PropertySpy implements ArrayAccess, Iterator, Countable, JsonSerializable 
     }
   }
 
-  protected function warning($msg) {
+  protected function warning($msg): void {
     if (static::$buffer === 'none') {
       // Immediate output
       if (static::$outputMode === 'print') {
@@ -824,14 +824,15 @@ class PropertySpy implements ArrayAccess, Iterator, Countable, JsonSerializable 
     $this->_props[$prop] = $value;
   }
 
-  public function offsetGet($prop) {
+  public function offsetGet($prop): mixed {
     if (array_key_exists($prop, $this->_props)) {
       return $this->_props[$prop];
     }
     $this->warning("['$prop'] requested but not defined");
+    return NULL;
   }
 
-  public function offsetExists($prop) {
+  public function offsetExists($prop): bool {
     if (!array_key_exists($prop, $this->_props)) {
       $this->warning("['$prop'] offsetExists requested but not defined");
       return FALSE;
@@ -846,12 +847,12 @@ class PropertySpy implements ArrayAccess, Iterator, Countable, JsonSerializable 
     return isset($this->_props[$prop]);
   }
 
-  public function offsetSet($prop, $value) {
+  public function offsetSet($prop, $value): void {
     $this->warning("['$prop'] offsetSet");
     $this->_props[$prop] = $value;
   }
 
-  public function offsetUnset($prop) {
+  public function offsetUnset($prop): void {
     $this->warning("['$prop'] offsetUnset");
     unset($this->_props[$prop]);
   }
@@ -859,7 +860,7 @@ class PropertySpy implements ArrayAccess, Iterator, Countable, JsonSerializable 
   /**
    * Implement JsonSerializable
    */
-  public function jsonSerialize() {
+  public function jsonSerialize(): mixed {
     return $this->_props;
   }
 

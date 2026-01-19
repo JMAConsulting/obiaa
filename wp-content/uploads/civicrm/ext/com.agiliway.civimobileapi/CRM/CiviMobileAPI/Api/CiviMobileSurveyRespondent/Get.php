@@ -6,7 +6,7 @@ class CRM_CiviMobileAPI_Api_CiviMobileSurveyRespondent_Get extends CRM_CiviMobil
    * Returns results to api
    *
    * @return array
-   * @throws api_Exception
+   * @throws CRM_Core_Exception
    */
   public function getResult() {
     $surveyActivityTypesIds = CRM_CiviMobileAPI_Utils_Survey::getSurveyActivityTypesIds();
@@ -24,12 +24,16 @@ class CRM_CiviMobileAPI_Api_CiviMobileSurveyRespondent_Get extends CRM_CiviMobil
     ];
 
     if (!empty($this->validParams['interviewer_id'])) {
-      $activitiesWhereParams[] = ['assignee_contact_id', '=', $this->validParams['interviewer_id']];
+      $activitiesWhereParams[] = [
+        'assignee_contact_id',
+        '=',
+        $this->validParams['interviewer_id'],
+      ];
     }
 
     $filterStatuses = [];
-    $filterGOTV = false;
-    $filterInterviewed = false;
+    $filterGOTV = FALSE;
+    $filterInterviewed = FALSE;
 
     if (!empty($this->validParams['survey_status'])) {
       if (in_array('Reserved', $this->validParams['survey_status'])) {
@@ -37,11 +41,11 @@ class CRM_CiviMobileAPI_Api_CiviMobileSurveyRespondent_Get extends CRM_CiviMobil
       }
       if (in_array('Interviewed', $this->validParams['survey_status'])) {
         $filterStatuses[] = "Completed";
-        $filterInterviewed = true;
+        $filterInterviewed = TRUE;
       }
       if (in_array('GOTV', $this->validParams['survey_status'])) {
         $filterStatuses[] = "Completed";
-        $filterGOTV = true;
+        $filterGOTV = TRUE;
       }
 
       if (!empty($filterStatuses)) {
@@ -79,16 +83,32 @@ class CRM_CiviMobileAPI_Api_CiviMobileSurveyRespondent_Get extends CRM_CiviMobil
       $contactsWhereParams[] = ['groups', 'IN', $this->validParams['group']];
     }
     if (!empty($this->validParams['display_name'])) {
-      $contactsWhereParams[] = ['display_name', 'LIKE', '%' . $this->validParams['display_name'] . '%'];
+      $contactsWhereParams[] = [
+        'display_name',
+        'LIKE',
+        '%' . $this->validParams['display_name'] . '%',
+      ];
     }
     if (!empty($this->validParams['contact_type'])) {
-      $contactsWhereParams[] = ['contact_type:name', '=', $this->validParams['contact_type']];
+      $contactsWhereParams[] = [
+        'contact_type:name',
+        '=',
+        $this->validParams['contact_type'],
+      ];
     }
     if (!empty($this->validParams['city'])) {
-      $contactsWhereParams[] = ['address_primary.city', 'LIKE', '%' . $this->validParams['city'] . '%'];
+      $contactsWhereParams[] = [
+        'address_primary.city',
+        'LIKE',
+        '%' . $this->validParams['city'] . '%',
+      ];
     }
     if (!empty($this->validParams['street_address'])) {
-      $contactsWhereParams[] = ['address_primary.street_address', 'LIKE', '%' . $this->validParams['street_address'] . '%'];
+      $contactsWhereParams[] = [
+        'address_primary.street_address',
+        'LIKE',
+        '%' . $this->validParams['street_address'] . '%',
+      ];
     }
 
     $contacts = civicrm_api4('Contact', 'get', [
@@ -130,8 +150,9 @@ class CRM_CiviMobileAPI_Api_CiviMobileSurveyRespondent_Get extends CRM_CiviMobil
           break;
       }
 
-      if (empty($status))
+      if (empty($status)) {
         continue;
+      }
 
       $preparedContact = [
         'contact_id' => $contact['id'],
@@ -141,7 +162,7 @@ class CRM_CiviMobileAPI_Api_CiviMobileSurveyRespondent_Get extends CRM_CiviMobil
         'survey_status' => $status,
         'result' => !empty($activity['result']) ? $activity['result'] : '',
         'street_address' => $contact['address_primary.street_address'] ?? '',
-        'city' => $contact['address_primary.city'] ?? ''
+        'city' => $contact['address_primary.city'] ?? '',
       ];
 
       $preparedContacts[] = $preparedContact;
@@ -160,11 +181,11 @@ class CRM_CiviMobileAPI_Api_CiviMobileSurveyRespondent_Get extends CRM_CiviMobil
    * @param $params
    *
    * @return array
-   * @throws api_Exception`
+   * @throws CRM_Core_Exception`
    */
   protected function getValidParams($params) {
     if (!CRM_CiviMobileAPI_Utils_Permission::isEnoughPermissionToGetRespondents()) {
-      throw new API_Exception(ts('Permission is required.'));
+      throw new CRM_Core_Exception(ts('Permission is required.'));
     }
 
     $loggedInContactId = CRM_Core_Session::getLoggedInContactID();
@@ -173,7 +194,7 @@ class CRM_CiviMobileAPI_Api_CiviMobileSurveyRespondent_Get extends CRM_CiviMobil
       if (empty($loggedInContactId)) {
         $params['interviewer_id'] = $loggedInContactId;
       } else {
-        throw new API_Exception(ts('Permission is required.'));
+        throw new CRM_Core_Exception(ts('Permission is required.'));
       }
     }
 

@@ -37,18 +37,18 @@ class CRM_CiviMobileAPI_Api_CiviMobileCustomFields_Get extends CRM_CiviMobileAPI
    * @param $params
    *
    * @return array
-   * @throws \api_Exception
+   * @throws \CRM_Core_Exception
    */
   protected function getValidParams($params) {
     if (!in_array($params['entity'], self::getAvailableEntities())) {
-      throw new api_Exception('Invalid entity. Available values: (' . implode(', ', self::getAvailableEntities()) . ')', 'used_for_invalid_value');
+      throw new CRM_Core_Exception('Invalid entity. Available values: (' . implode(', ', self::getAvailableEntities()) . ')', 'used_for_invalid_value');
     }
 
     return [
       'find_for' => self::$entityMap[$params['entity']]['find_for'],
       'entity_id' => $params['entity_id'],
       'is_searchable' => $params['is_searchable'],
-      'extends_entity_column_value' => !empty($params['extends_entity_column_value']) ? $params['extends_entity_column_value'] : NULL
+      'extends_entity_column_value' => !empty($params['extends_entity_column_value']) ? $params['extends_entity_column_value'] : NULL,
     ];
   }
 
@@ -65,8 +65,12 @@ class CRM_CiviMobileAPI_Api_CiviMobileCustomFields_Get extends CRM_CiviMobileAPI
       ['is_active', '=', TRUE],
     ];
 
-    if($this->validParams['find_for'][0] != "Activities" && $this->validParams['find_for'][0] != "Events" && !empty($this->validParams['extends_entity_column_value'])) {
-      $customGroupsWhereParams[] = ['extends_entity_column_value', '=', $this->validParams['extends_entity_column_value']];
+    if ($this->validParams['find_for'][0] != "Activities" && $this->validParams['find_for'][0] != "Events" && !empty($this->validParams['extends_entity_column_value'])) {
+      $customGroupsWhereParams[] = [
+        'extends_entity_column_value',
+        '=',
+        $this->validParams['extends_entity_column_value'],
+      ];
     }
 
     $customGroups = civicrm_api4('CustomGroup', 'get', [
@@ -108,19 +112,27 @@ class CRM_CiviMobileAPI_Api_CiviMobileCustomFields_Get extends CRM_CiviMobileAPI
       'name' => $customGroup['name'],
       'title' => $customGroup['title'],
       'style' => $customGroup['style'],
-      'weight' => (int)$customGroup['weight'],
+      'weight' => (int) $customGroup['weight'],
       'is_multiple' => $customGroup['is_multiple'] ? '1' : '0',
-      'custom_fields' => []
+      'custom_fields' => [],
     ];
 
     $customFieldsWhereParams = [
-      ['name', '!=', CRM_CiviMobileAPI_Install_Entity_CustomField::SURVEY_GOTV_STATUS],
+      [
+        'name',
+        '!=',
+        CRM_CiviMobileAPI_Install_Entity_CustomField::SURVEY_GOTV_STATUS,
+      ],
       ['custom_group_id', '=', $customGroup['id']],
       ['is_active', '=', TRUE],
     ];
 
     if (!empty($this->validParams['is_searchable'])) {
-      $customFieldsWhereParams[] = ['is_searchable', '=', $this->validParams['is_searchable']];
+      $customFieldsWhereParams[] = [
+        'is_searchable',
+        '=',
+        $this->validParams['is_searchable'],
+      ];
     }
 
     $customFields = civicrm_api4('CustomField', 'get', [
@@ -154,7 +166,7 @@ class CRM_CiviMobileAPI_Api_CiviMobileCustomFields_Get extends CRM_CiviMobileAPI
     }
 
     foreach ($availableValues as $key => $value) {
-      $availableValues[$key]['weight'] = (int)$availableValues[$key]['weight'];
+      $availableValues[$key]['weight'] = (int) $availableValues[$key]['weight'];
     }
 
     if ($customField['html_type'] == 'Radio' && $customField['data_type'] == "Boolean") {
@@ -165,17 +177,17 @@ class CRM_CiviMobileAPI_Api_CiviMobileCustomFields_Get extends CRM_CiviMobileAPI
       "id" => $customField['id'],
       "name" => $customField['name'],
       "default_value" => $customField['default_value'],
-      "text_length" => (!empty($customField['text_length'])) ? (int)$customField['text_length'] : "NULL",
+      "text_length" => (!empty($customField['text_length'])) ? (int) $customField['text_length'] : "NULL",
       "is_view" => $customField['is_view'] ? '1' : '0',
       "label" => $customField['label'],
-      "weight" => (int)$customField['weight'],
+      "weight" => (int) $customField['weight'],
       "data_type" => $customField['data_type'],
       "html_type" => $customField['html_type'],
       "is_required" => $customField['is_required'] ? '1' : '0',
       "is_searchable" => $customField['is_searchable'],
-      "current_value" => (!empty($this->validParams['entity_id'])) ? $this->getCurrentValue($customField['id']) : Null,
-      "note_columns" => (!empty($customField['note_columns'])) ? (int)$customField['note_columns'] : "",
-      "note_rows" => (!empty($customField['note_rows'])) ? (int)$customField['note_rows'] : "",
+      "current_value" => (!empty($this->validParams['entity_id'])) ? $this->getCurrentValue($customField['id']) : NULL,
+      "note_columns" => (!empty($customField['note_columns'])) ? (int) $customField['note_columns'] : "",
+      "note_rows" => (!empty($customField['note_rows'])) ? (int) $customField['note_rows'] : "",
       "date_format" => (!empty($customField['date_format'])) ? $customField['date_format'] : "",
       "time_format" => (!empty($customField['time_format'])) ? $customField['time_format'] : "",
       "start_date_years" => (!empty($customField['start_date_years'])) ? $customField['start_date_years'] : "",

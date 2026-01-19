@@ -8,11 +8,11 @@ class CRM_CiviMobileAPI_Api_CiviMobileGetPriceSetByEvent_Get extends CRM_CiviMob
    * @param $params
    *
    * @return array
-   * @throws \api_Exception
+   * @throws \CRM_Core_Exception
    */
   protected function getValidParams($params) {
     return [
-      'event_id' => $params['event_id']
+      'event_id' => $params['event_id'],
     ];
   }
 
@@ -36,9 +36,9 @@ class CRM_CiviMobileAPI_Api_CiviMobileGetPriceSetByEvent_Get extends CRM_CiviMob
     ])->first();
 
     $result = [];
-    $isMonetary = false;
+    $isMonetary = FALSE;
     if (!empty($eventInfo)) {
-      $isMonetary = !empty($eventInfo['is_monetary']) ? $eventInfo['is_monetary'] : false;
+      $isMonetary = !empty($eventInfo['is_monetary']) ? $eventInfo['is_monetary'] : FALSE;
       $currencyName = $eventInfo['currency'];
     }
 

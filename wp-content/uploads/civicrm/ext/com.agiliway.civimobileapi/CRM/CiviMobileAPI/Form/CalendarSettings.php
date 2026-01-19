@@ -38,7 +38,9 @@ class CRM_CiviMobileAPI_Form_CalendarSettings extends CRM_Core_Form {
 
   private function addSettingsElements($settings) {
     foreach ($settings as $name => $setting) {
-      if (!isset($setting['html_type'])) continue;
+      if (!isset($setting['html_type'])) {
+        continue;
+      }
 
       switch ($setting['html_type']) {
         case 'Text':
@@ -59,12 +61,18 @@ class CRM_CiviMobileAPI_Form_CalendarSettings extends CRM_Core_Form {
   }
 
   private function getSelectOptions($name, $setting) {
-    if (isset($setting['option_values'])) return $setting['option_values'];
+    if (isset($setting['option_values'])) {
+      return $setting['option_values'];
+    }
     if (isset($setting['pseudoconstant'])) {
       $options = civicrm_api4('Setting', 'getFields', [
         'loadOptions' => TRUE,
         'where' => [
-          ['name', '=', CRM_CiviMobileAPI_Settings_Calendar_CiviMobile::getPrefix() . $name],
+          [
+            'name',
+            '=',
+            CRM_CiviMobileAPI_Settings_Calendar_CiviMobile::getPrefix() . $name,
+          ],
         ],
         'checkPermissions' => FALSE,
       ])->first();
@@ -75,7 +83,7 @@ class CRM_CiviMobileAPI_Form_CalendarSettings extends CRM_Core_Form {
   }
 
   /**
-   * @throws \CiviCRM_API3_Exception
+   * @throws \CRM_Core_Exception
    */
   public function postProcess() {
     parent::postProcess();
@@ -88,7 +96,8 @@ class CRM_CiviMobileAPI_Form_CalendarSettings extends CRM_Core_Form {
 
     $settingsToSave = array_merge($settings, array_intersect_key($params, $settings));
     $this->saveSetting($settingsToSave);
-    CRM_Core_Session::singleton()->setStatus(E::ts('Configuration Updated'), E::ts('CiviMobile Calendar Settings'), 'success');
+    CRM_Core_Session::singleton()
+      ->setStatus(E::ts('Configuration Updated'), E::ts('CiviMobile Calendar Settings'), 'success');
     CRM_Utils_System::redirect(CRM_Utils_System::url('civicrm/civimobile/calendar/settings'));
   }
 
@@ -117,7 +126,7 @@ class CRM_CiviMobileAPI_Form_CalendarSettings extends CRM_Core_Form {
    * @param bool $metadata
    *
    * @return array
-   * @throws \CiviCRM_API3_Exception
+   * @throws \CRM_Core_Exception
    */
   function getFormSettings($metadata = TRUE) {
     $settings = civicrm_api3('setting', 'getfields', ['filters' => CRM_CiviMobileAPI_Settings_Calendar_CiviMobile::getFilter()]);
@@ -128,14 +137,14 @@ class CRM_CiviMobileAPI_Form_CalendarSettings extends CRM_Core_Form {
       foreach ($settings['values'] as $name => $values) {
         if ($metadata) {
           $nonPrefixedSettings[CRM_CiviMobileAPI_Settings_Calendar_CiviMobile::getName($name, FALSE)] = $values;
-        }
-        else {
+        } else {
           $nonPrefixedSettings[CRM_CiviMobileAPI_Settings_Calendar_CiviMobile::getName($name, FALSE)] = NULL;
         }
       }
     }
-    if (!CRM_CiviMobileAPI_Utils_Calendar::isCiviCalendarInstalled() || !CRM_CiviMobileAPI_Utils_Calendar::isCiviCalendarCompatible())
+    if (!CRM_CiviMobileAPI_Utils_Calendar::isCiviCalendarInstalled() || !CRM_CiviMobileAPI_Utils_Calendar::isCiviCalendarCompatible()) {
       unset($nonPrefixedSettings['synchronize_with_civicalendar']);
+    }
 
     $components = civicrm_api3('Setting', 'getvalue', ['name' => "enable_components"]);
 
@@ -158,7 +167,7 @@ class CRM_CiviMobileAPI_Form_CalendarSettings extends CRM_Core_Form {
    *
    * @param $settings
    *
-   * @throws \CiviCRM_API3_Exception
+   * @throws \CRM_Core_Exception
    */
   private function saveSetting($settings) {
     $prefixedSettings = [];

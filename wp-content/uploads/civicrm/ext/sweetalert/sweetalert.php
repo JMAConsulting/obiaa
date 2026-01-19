@@ -35,8 +35,71 @@ function sweetalert_civicrm_enable() {
  */
 function sweetalert_civicrm_coreResourceList(&$items, $region) {
   if ($region === 'html-header') {
-    Civi::resources()
+    $resources = \Civi::resources();
+
+    $resources
       ->addStyleFile(E::SHORT_NAME, 'css/sweetalert2.min.css', 0, $region)
-      ->addScriptFile(E::SHORT_NAME, 'js/sweetalert2.min.js', 0, $region);
+      ->addScriptFile(E::SHORT_NAME, 'js/sweetalert2.min.js', 0, $region)
+      ->addVars('sweetalert', ['darkMode' => _sweetalert_get_dark_mode()]);
+
+    switch (\Civi::settings()->get('sweetalert_override_mode')) {
+      case 'nowhere':
+        break;
+
+      case 'everywhere':
+        $resources->addScriptFile(E::SHORT_NAME, 'js/crm-alert-everywhere.js', -10, $region);
+        break;
+
+      default:
+        $resources->addScriptFile(E::SHORT_NAME, 'js/crm-alert-frontend.js', -10, $region);
+        break;
+    }
   }
+}
+
+/**
+ * This uses the riverlea dark mode setting and maps it to sweetalert:
+ * light=>light, dark=>dark, inherit=>auto
+ *
+ * @return string
+ */
+function _sweetalert_get_dark_mode() {
+  if (CRM_Utils_System::isFrontendPage()) {
+    $darkMode = \Civi::settings()->get('riverlea_dark_mode_frontend');
+  }
+  else {
+    $darkMode = \Civi::settings()->get('riverlea_dark_mode_backend');
+  }
+  switch ($darkMode) {
+    case 'dark':
+    case 'light':
+      return $darkMode;
+
+    case 'inherit':
+    default:
+      return 'auto';
+  }
+}
+
+/**
+ * Implements hook_civicrm_buildForm()
+ */
+function sweetalert_civicrm_buildForm($formName, &$form) {
+  // Check for messages
+  $messages = CRM_Sweetalert_Utils::getStatus();
+  if (empty($messages)) {
+    return;
+  }
+  Civi::resources()->addVars('sweetalert', [
+    'messages' => $messages,
+  ]);
+  Civi::resources()->addScript("
+    CRM.vars.sweetalert.messages.forEach((element) => {
+      swal.fire({
+        title: element.title,
+        text: element.text,
+        icon: element.type
+      });
+    });
+  ");
 }

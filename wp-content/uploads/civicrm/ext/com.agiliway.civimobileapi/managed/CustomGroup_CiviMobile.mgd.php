@@ -250,7 +250,6 @@ return [
         'weight' => 6,
         'is_reserved' => TRUE,
         'is_public' => FALSE,
-        'is_active' => TRUE,
       ],
       'match' => [
         'name',
@@ -272,7 +271,6 @@ return [
         'html_type' => 'Radio',
         'default_value' => '0',
         'is_view' => TRUE,
-        'is_active' => TRUE,
       ],
       'match' => [
         'name',

@@ -18,7 +18,7 @@ class CRM_CiviMobileAPI_Api_CiviMobileSpeaker_Get extends CRM_CiviMobileAPI_Api_
         'select' => [
           '*',
           'custom.*',
-          'contact_id.display_name'
+          'contact_id.display_name',
         ],
         'where' => [
           ['event_id', '=', $this->validParams['event_id']],
@@ -39,7 +39,7 @@ class CRM_CiviMobileAPI_Api_CiviMobileSpeaker_Get extends CRM_CiviMobileAPI_Api_
         'current_employer' => !empty($speaker['organization_name']) ? $speaker['organization_name'] : '',
         'current_employer_id' => !empty($speaker['employer_id']) ? $speaker['employer_id'] : '',
         'first_name' => !empty($speaker['first_name']) ? $speaker['first_name'] : '',
-        'last_name' => !empty($speaker['last_name']) ? $speaker['last_name'] : ''
+        'last_name' => !empty($speaker['last_name']) ? $speaker['last_name'] : '',
       ];
     }
 
@@ -50,12 +50,13 @@ class CRM_CiviMobileAPI_Api_CiviMobileSpeaker_Get extends CRM_CiviMobileAPI_Api_
    * Returns validated params
    *
    * @param $params
+   *
    * @return array
-   * @throws api_Exception
+   * @throws CRM_Core_Exception
    */
   protected function getValidParams($params) {
     if (!CRM_CiviMobileAPI_Utils_Permission::isEnoughPermissionForGetSpeaker()) {
-      throw new api_Exception('You don`t have enough permissions.', 'do_not_have_enough_permissions');
+      throw new CRM_Core_Exception('You don`t have enough permissions.', 'do_not_have_enough_permissions');
     }
 
     return $params;

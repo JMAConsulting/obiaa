@@ -44,6 +44,8 @@ function civicrm_api3_civi_mobile_permission_get() {
     $viewAgenda = CRM_Core_Permission::check('view Agenda');
     $makeOnlineContributions = CRM_Core_Permission::check('make online contributions');
     $civimobileSeeGroups = CRM_Core_Permission::check('see groups');
+    $civimobileEditGroups = CRM_Core_Permission::check('edit groups');
+    $civimobileReservedGroups = CRM_Core_Permission::check('administer reserved groups');
     $civimobileSeeTags = CRM_Core_Permission::check('see tags');
     $administerCiviCrm = CRM_Core_Permission::check('administer CiviCRM');
     $administerTimeTracker = CRM_Core_Permission::check('administer TimeTracker');
@@ -250,25 +252,16 @@ function civicrm_api3_civi_mobile_permission_get() {
 
     $permissions['group'] = [
       'view' => [
-        'all' => $accessToCiviCrm && $viewMyContact && ($viewAllContacts || $editAllContacts) && $civimobileSeeGroups ? 1 : 0,
+        'all' => $accessToCiviCrm && $viewMyContact && $viewAllContacts && $civimobileSeeGroups ? 1 : 0,
         'my' => $accessToCiviCrm && $viewMyContact && $civimobileSeeGroups ? 1 : 0,
       ],
-      'remove' => [
-        'all' => $accessToCiviCrm && $viewMyContact && $editAllContacts ? 1 : 0,
-        'my' => $accessToCiviCrm && $viewMyContact && $editAllContacts ? 1 : 0,
-      ],
-      'rejoin' => [
-        'all' => $accessToCiviCrm && $viewMyContact && $editAllContacts ? 1 : 0,
-        'my' => $accessToCiviCrm && $viewMyContact && $editAllContacts ? 1 : 0,
-      ],
+      'remove' => $accessToCiviCrm && $viewMyContact && $editAllContacts ? 1 : 0,
       'add_to_group' => [
         'all' => $accessToCiviCrm && $viewMyContact && $editAllContacts ? 1 : 0,
         'my' => $accessToCiviCrm && $viewMyContact && ($editMyContact || $editAllContacts) ? 1 : 0,
       ],
-      'delete' => [
-        'all' => $accessToCiviCrm && $viewMyContact && $editAllContacts ? 1 : 0,
-        'my' => $accessToCiviCrm && $viewMyContact && $editAllContacts ? 1 : 0,
-      ],
+      'create' => $accessToCiviCrm && $civimobileEditGroups ? 1 : 0,
+      'reserved' => $accessToCiviCrm && $civimobileEditGroups && $civimobileReservedGroups ? 1 : 0,
     ];
 
     $permissions['tags'] = [
@@ -287,7 +280,7 @@ function civicrm_api3_civi_mobile_permission_get() {
     ];
 
     $permissions['agenda'] = [
-      'view' => $viewAgenda ? 1 : 0
+      'view' => $viewAgenda ? 1 : 0,
     ];
 
     $permissions['surveys'] = [
@@ -326,7 +319,8 @@ function civicrm_api3_civi_mobile_permission_get() {
       'version' => 3,
       'values' => [$permissions],
     ];
-  } catch (Exception $e) {
+  }
+  catch (Exception $e) {
     $result = [
       'is_error' => 1,
       'version' => 3,
@@ -335,5 +329,4 @@ function civicrm_api3_civi_mobile_permission_get() {
   }
 
   return $result;
-
 }

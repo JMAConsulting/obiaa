@@ -9,14 +9,14 @@
  +--------------------------------------------------------------------+
  */
 
+use Civi\Api4\PaymentProcessor;
+use Civi\Api4\StripeWebhook;
 use CRM_Stripe_ExtensionUtil as E;
 
 /**
  * Class CRM_Stripe_Webhook
  */
 class CRM_Stripe_Webhook {
-
-  use CRM_Mjwshared_WebhookTrait;
 
   /**
    * Checks whether the payment processors have a correctly configured webhook
@@ -29,12 +29,12 @@ class CRM_Stripe_Webhook {
    * @throws \CRM_Core_Exception
    * @throws \Civi\API\Exception\UnauthorizedException
    */
-  public function check(array &$messages, bool $attemptFix = FALSE) {
+  public function check(array &$messages, bool $attemptFix = FALSE): void {
     $env = \Civi::settings()->get('environment');
     if ($env && $env !== 'Production') {
-    //  return;
+      return;
     }
-    $paymentProcessors = \Civi\Api4\PaymentProcessor::get(FALSE)
+    $paymentProcessors = PaymentProcessor::get(FALSE)
       ->addWhere('class_name', 'LIKE', 'Payment_Stripe%')
       ->addWhere('is_active', '=', TRUE)
       ->addWhere('domain_id', '=', 'current_domain')
@@ -42,17 +42,13 @@ class CRM_Stripe_Webhook {
       ->execute();
 
     foreach ($paymentProcessors as $paymentProcessor) {
-      $webhook_path = self::getWebhookPath($paymentProcessor['id']);
-      $processor = \Civi\Payment\System::singleton()->getById($paymentProcessor['id']);
-      if ($processor->stripeClient === NULL) {
-        // This means we only configured live OR test and not both.
-        continue;
-      }
+      $webhook_path = CRM_Mjwshared_Webhook::getWebhookPath($paymentProcessor['id']);
 
       try {
-        $webhooks = $processor->stripeClient->webhookEndpoints->all(["limit" => 100]);
-      }
-      catch (Exception $e) {
+        $webhooks = StripeWebhook::getFromStripe(FALSE)
+          ->setPaymentProcessorID($paymentProcessor['id'])
+          ->execute();
+      } catch (Throwable $e) {
         $error = $e->getMessage();
         $messages[] = new CRM_Utils_Check_Message(
           __FUNCTION__ . $paymentProcessor['id'] . 'stripe_webhook',
@@ -61,19 +57,21 @@ class CRM_Stripe_Webhook {
           \Psr\Log\LogLevel::ERROR,
           'fa-money'
         );
-
         continue;
       }
 
       $found_wh = FALSE;
-      foreach ($webhooks->data as $wh) {
-        if ($wh->url == $webhook_path) {
+      foreach ($webhooks as $wh) {
+        if ($wh->status === 'disabled') {
+          continue;
+        }
+        if ($wh->url === $webhook_path) {
           $found_wh = TRUE;
           // Check and update webhook
           try {
-            $updates = $this->checkWebhookEvents($wh);
+            $enabledEvents = self::checkEnabledWebhookEvents($wh);
 
-            if (!empty($wh->api_version) && (strtotime($wh->api_version) < strtotime(CRM_Stripe_Check::API_MIN_VERSION))) {
+            if ($wh->api_version !== \Civi\Stripe\Check::API_VERSION) {
               // Add message about API version.
               $messages[] = new CRM_Utils_Check_Message(
                 __FUNCTION__ . $paymentProcessor['id'] . 'stripe_webhook',
@@ -81,7 +79,7 @@ class CRM_Stripe_Webhook {
                   [
                     1 => urldecode($webhook_path),
                     2 => $wh->api_version,
-                    3 => CRM_Stripe_Check::API_VERSION,
+                    3 => \Civi\Stripe\Check::API_VERSION,
                   ]
                 ),
                 $this->getTitle($paymentProcessor),
@@ -90,11 +88,13 @@ class CRM_Stripe_Webhook {
               );
             }
 
-            if ($updates && $wh->status != 'disabled') {
+            if (!empty($enabledEvents) || ($wh->api_version !== \Civi\Stripe\Check::API_VERSION)) {
               if ($attemptFix) {
                 try {
                   // We should try to update the webhook.
-                  $processor->stripeClient->webhookEndpoints->update($wh->id, $updates);
+                  StripeWebhook::update(FALSE)
+                    ->setPaymentProcessorID($paymentProcessor['id'])
+                    ->execute();
                 }
                 catch (Exception $e) {
                   $messages[] = new CRM_Utils_Check_Message(
@@ -150,7 +150,9 @@ class CRM_Stripe_Webhook {
         if ($attemptFix) {
           try {
             // Try to create one.
-            $this->createWebhook($paymentProcessor['id']);
+            StripeWebhook::create(FALSE)
+              ->setPaymentProcessorID($paymentProcessor['id'])
+              ->execute();
           }
           catch (Exception $e) {
             $messages[] = new CRM_Utils_Check_Message(
@@ -204,37 +206,18 @@ class CRM_Stripe_Webhook {
   }
 
   /**
-   * Create a new webhook for payment processor
-   *
-   * @param int $paymentProcessorId
-   */
-  public function createWebhook(int $paymentProcessorId) {
-    $processor = \Civi\Payment\System::singleton()->getById($paymentProcessorId);
-
-    $params = [
-      'enabled_events' => self::getDefaultEnabledEvents(),
-      'url' => self::getWebhookPath($paymentProcessorId),
-      'connect' => FALSE,
-    ];
-    $processor->stripeClient->webhookEndpoints->create($params);
-  }
-
-
-  /**
-   * Check and update existing webhook
+   * Check existing webhook to see if it has the right set of enabled events
    *
    * @param \Stripe\WebhookEndpoint $webhook
    *
-   * @return array of correction params. Empty array if it's OK.
+   * @return array of enabled events if different from current webhook. Empty array if it's OK.
    */
-  private function checkWebhookEvents(\Stripe\WebhookEndpoint $webhook): array {
-    $params = [];
-
+  public static function checkEnabledWebhookEvents(\Stripe\WebhookEndpoint $webhook): array {
     if (array_diff(self::getDefaultEnabledEvents(), $webhook->enabled_events)) {
-      $params['enabled_events'] = self::getDefaultEnabledEvents();
+      $enabledEvents = self::getDefaultEnabledEvents();
     }
 
-    return $params;
+    return $enabledEvents ?? [];
   }
 
   /**

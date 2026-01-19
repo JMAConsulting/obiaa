@@ -25,17 +25,17 @@ class CRM_CiviMobileAPI_ApiWrapper_Participant_Get implements API_Wrapper {
    * @param $result
    *
    * @return array
-   * @throws API_Exception
+   * @throws CRM_Core_Exception
    */
   public function toApiOutput($apiRequest, $result) {
     if (empty($result['values'])) {
       return $result;
     }
 
-    $activeParam = !empty($apiRequest['params']['status_active']) ? $apiRequest['params']['status_active'] : null;
+    $activeParam = !empty($apiRequest['params']['status_active']) ? $apiRequest['params']['status_active'] : NULL;
     $customQrCode = "custom_" . CRM_CiviMobileAPI_Utils_CustomField::getId(
-      CRM_CiviMobileAPI_Install_Entity_CustomGroup::QR_CODES,
-      CRM_CiviMobileAPI_Install_Entity_CustomField::QR_CODE);
+        CRM_CiviMobileAPI_Install_Entity_CustomGroup::QR_CODES,
+        CRM_CiviMobileAPI_Install_Entity_CustomField::QR_CODE);
 
     $contactIds = [];
     $participantStatusTypesIds = [];

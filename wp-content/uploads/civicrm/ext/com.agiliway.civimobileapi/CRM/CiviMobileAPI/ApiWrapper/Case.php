@@ -54,7 +54,7 @@ class CRM_CiviMobileAPI_ApiWrapper_Case implements API_Wrapper {
     if (CRM_CiviMobileAPI_Hook_Utils::is_mobile_request()) {
       if (!empty($result['values'])) {
         $contactIds = $this->getCaseContactsId($result['values']);
-        if ($apiRequest['contacts_is_not_found'] ?? null) {
+        if ($apiRequest['contacts_is_not_found'] ?? NULL) {
           return [
             'count' => 0,
             'values' => [],
@@ -69,7 +69,7 @@ class CRM_CiviMobileAPI_ApiWrapper_Case implements API_Wrapper {
             'id' => ["IN" => $contactIds],
             'options' => ['limit' => 0],
           ])['values'];
-        } catch (CiviCRM_API3_Exception $e) {
+        } catch (CRM_Core_Exception $e) {
           $contacts = [];
         }
 
@@ -113,7 +113,8 @@ class CRM_CiviMobileAPI_ApiWrapper_Case implements API_Wrapper {
             $result['contacts'][$key]['image_URL'] = $imageUrl;
           }
 
-          if ($contact['contact_id'] == CRM_Core_Session::singleton()->get('userID')) {
+          if ($contact['contact_id'] == CRM_Core_Session::singleton()
+              ->get('userID')) {
             $result['your_roles'][] = $contact['role'];
           }
         }
@@ -131,6 +132,7 @@ class CRM_CiviMobileAPI_ApiWrapper_Case implements API_Wrapper {
    * Get case contact's Id
    *
    * @param $contributions
+   *
    * @return array
    */
   private function getCaseContactsId($cases) {

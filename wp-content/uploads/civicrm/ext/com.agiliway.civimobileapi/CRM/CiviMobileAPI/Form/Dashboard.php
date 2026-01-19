@@ -13,13 +13,15 @@ class CRM_CiviMobileAPI_Form_Dashboard extends CRM_Core_Form {
 
     $cid = CRM_Utils_Request::retrieve('cid', 'Integer');
 
-    if (!($cid == CRM_Core_Session::singleton()->getLoggedInContactID() || CRM_Core_Permission::check('administer CiviCRM'))) {
+    if (!($cid == CRM_Core_Session::singleton()
+        ->getLoggedInContactID() || CRM_Core_Permission::check('administer CiviCRM'))) {
       throw new Exception('Permission denied');
     }
 
     $this->add('hidden', 'cid', $cid);
 
-    $this->assign('isLoggedInContactForm', CRM_Core_Session::singleton()->getLoggedInContactID() == $cid);
+    $this->assign('isLoggedInContactForm', CRM_Core_Session::singleton()
+        ->getLoggedInContactID() == $cid);
   }
 
   /**
@@ -41,15 +43,15 @@ class CRM_CiviMobileAPI_Form_Dashboard extends CRM_Core_Form {
         'type' => 'submit',
         'name' => E::ts('Logout from mobile'),
         'isDefault' => TRUE,
-        'js' => $logoutBtnAttrs
-      ]
+        'js' => $logoutBtnAttrs,
+      ],
     ]);
 
     $this->addElement('checkbox', 'civimobile_show_qr_popup', E::ts('Show a Website URL QR-code for me'));
   }
 
   /**
-   * @throws \CiviCRM_API3_Exception
+   * @throws \CRM_Core_Exception
    */
   public function postProcess() {
     $params = $this->exportValues();

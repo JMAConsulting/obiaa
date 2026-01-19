@@ -44,12 +44,18 @@ To accept payments the user must have the following permissions as a minimum:
 This applies to both unauthenticated (anonymous) and authenticated users.
 
 ### How to update Stripe API version
-More info on how to change: [Stripe: Upgrading your API version](https://stripe.com/docs/upgrades#how-can-i-upgrade-my-api).
 
-Go to **Stripe Dashboard > Developers** to view and upgrade your API version:
+!!! tip "You don't need to do this"
+    The CiviCRM extension always uses a specific version of the API as defined by the Stripe-PHP library
+    that is shipped with the extension.
+
+See [Webhooks](webhook.md)
+
+Go to **Stripe Dashboard > Developers** to view your API version:
 ![Stripe Dashboard API Version](images/stripedashboard_apiversion.png)
 
-The Webhook API versions will be configured / updated automatically by this Stripe extension but if you didn't create them using the automated method you may need to delete them and allow the extension to re-create them.
+The Webhook API versions will be configured / updated automatically by this Stripe extension.
+If there is a mismatch in the configuration the CiviCRM System Checks will prompt you to update the webhooks.
 
 ### Stripe API Key restrictions
 If you prefer, you can restrict the permissions available to the API key you create.  The below is an example that may have more permissions than is needed, but works with one-time payments, recurring payments, and the webhook check built into this extension.  If a permission isn't listed below, leave it as *None*.

@@ -6,14 +6,14 @@ class CRM_CiviMobileAPI_Api_CiviMobileSurvey_GetContactSurveys extends CRM_CiviM
    * Returns results to api
    *
    * @return array
-   * @throws api_Exception
+   * @throws CRM_Core_Exception
    */
   public function getResult() {
     $preparedSurveys = [];
     $paramsToApi = [
       'options' => ['limit' => 0],
       'activity_type_id' => $this->validParams['activity_type_id'],
-      'is_active' => $this->validParams['is_active']
+      'is_active' => $this->validParams['is_active'],
     ];
 
     if (!empty($this->validParams['survey_id'])) {
@@ -24,15 +24,15 @@ class CRM_CiviMobileAPI_Api_CiviMobileSurvey_GetContactSurveys extends CRM_CiviM
 
     foreach ($surveys as $key => &$surveyInfo) {
       if (!empty($this->validParams['title']['LIKE'])
-        && stripos($surveyInfo['title'], $this->validParams['title']['LIKE']) === false) {
-          continue;
+        && stripos($surveyInfo['title'], $this->validParams['title']['LIKE']) === FALSE) {
+        continue;
       }
 
       $survey = [
         'id' => $surveyInfo['id'],
         'title' => $surveyInfo['title'],
         'is_active' => $surveyInfo['is_active'],
-        'activity_type_id' => $surveyInfo['activity_type_id']
+        'activity_type_id' => $surveyInfo['activity_type_id'],
       ];
 
       if (!empty($this->validParams['contact_id'])) {
@@ -44,7 +44,7 @@ class CRM_CiviMobileAPI_Api_CiviMobileSurvey_GetContactSurveys extends CRM_CiviM
           'is_deleted' => 0,
         ]);
 
-        $survey['is_signed'] = (int)(boolean)$activities['count'];
+        $survey['is_signed'] = (int) (boolean) $activities['count'];
 
         if (!is_null($this->validParams['is_signed'])
           && ((!$survey['is_signed'] && $this->validParams['is_signed']) || ($survey['is_signed'] && !$this->validParams['is_signed']))
@@ -65,13 +65,13 @@ class CRM_CiviMobileAPI_Api_CiviMobileSurvey_GetContactSurveys extends CRM_CiviM
    * @param $params
    *
    * @return array
-   * @throws api_Exception
+   * @throws CRM_Core_Exception
    */
   protected function getValidParams($params) {
     if (CRM_Core_Session::getLoggedInContactID()) {
       if (empty($params['activity_type_id'])) {
         $params['activity_type_id'] = [
-          'IN' => []
+          'IN' => [],
         ];
 
         $activityTypes = civicrm_api3('OptionValue', 'get', [

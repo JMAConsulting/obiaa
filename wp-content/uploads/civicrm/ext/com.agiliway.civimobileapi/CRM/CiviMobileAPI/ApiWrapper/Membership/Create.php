@@ -12,7 +12,7 @@ class CRM_CiviMobileAPI_ApiWrapper_Membership_Create implements API_Wrapper {
    *
    * @return array
    *
-   * @throws \CiviCRM_API3_Exception
+   * @throws \CRM_Core_Exception
    */
   public function fromApiInput($apiRequest) {
     if (!empty($apiRequest['params']['id']) && !empty($apiRequest['params']['renewal'])) {

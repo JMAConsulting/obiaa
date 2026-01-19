@@ -110,10 +110,11 @@ class CRM_CiviMobileAPI_Utils_CmsUser {
   }
 
   public function validateStandaloneUser($username, $password) {
+    $paramName = version_compare(CRM_Utils_System::version(), '6.5.0', '>=') ? 'identifier' : 'username';
+
     $user = civicrm_api4('User', 'login', [
-        'username' => $username,
-        'password' => $password,
-        'checkPermissions' => FALSE,
+      'password' => $password,
+      $paramName => $username,
     ])->getArrayCopy();
 
     return isset($user['url']);

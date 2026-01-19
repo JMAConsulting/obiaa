@@ -3,6 +3,7 @@
 namespace Civi\CiviMobileAPI\PushNotification\Utils;
 
 use Civi;
+use Civi\CiviMobileAPI\PushNotification\Entity\TimeTrackerPushNotification;
 use CRM_CiviMobileAPI_BAO_PushNotification;
 use CRM_Contact_BAO_Contact;
 use CRM_Core_Config;
@@ -224,10 +225,8 @@ class PushNotificationSender {
     return $tokens;
   }
 
-  public static function compileMessage($message, $contactId = null) {
-    if (empty($contactId)) {
-      $contactId = CRM_Core_Session::singleton()->getLoggedInContactID();
-    }
+  public static function compileMessage($message) {
+    $contactId = CRM_Core_Session::singleton()->getLoggedInContactID();
 
     $params = ['id' => $contactId];
     $default = [];

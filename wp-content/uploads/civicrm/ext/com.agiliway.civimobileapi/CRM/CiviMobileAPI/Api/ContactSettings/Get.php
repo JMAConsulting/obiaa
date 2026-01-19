@@ -36,7 +36,7 @@ class CRM_CiviMobileAPI_Api_ContactSettings_Get extends CRM_CiviMobileAPI_Api_Ci
       }
       $result[] = $outValues;
     }
-    
+
     return $result;
   }
 
@@ -44,7 +44,7 @@ class CRM_CiviMobileAPI_Api_ContactSettings_Get extends CRM_CiviMobileAPI_Api_Ci
    * Get custom fields names and IDs
    *
    * @return array
-   * @throws \CiviCRM_API3_Exception
+   * @throws \CRM_Core_Exception
    */
   private function getCustomFieldsID() {
     $out = [];
@@ -72,7 +72,7 @@ class CRM_CiviMobileAPI_Api_ContactSettings_Get extends CRM_CiviMobileAPI_Api_Ci
 
     return $out;
   }
-  
+
   /**
    * Returns validated params
    *

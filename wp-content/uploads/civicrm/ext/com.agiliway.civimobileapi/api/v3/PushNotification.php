@@ -18,7 +18,7 @@ function civicrm_api3_push_notification_create($params) {
     'token' => $params['token'],
     'platform' => $params['platform'],
     'modified_date' => gmdate("Y-m-d H:i:s", time()),
-    'is_active' => $params['is_active']
+    'is_active' => $params['is_active'],
   ];
 
   if (empty($isContactCreated)) {
@@ -35,6 +35,7 @@ function civicrm_api3_push_notification_create($params) {
  * Adjust Metadata for get action
  *
  * The metadata is used for setting defaults, documentation & validation
+ *
  * @param array $params array or parameters determined by getfields
  */
 function _civicrm_api3_push_notification_create_spec(&$params) {
@@ -42,25 +43,25 @@ function _civicrm_api3_push_notification_create_spec(&$params) {
     'title' => 'Contact ID',
     'description' => E::ts('Contact ID'),
     'api.required' => 1,
-    'type' => CRM_Utils_Type::T_INT
+    'type' => CRM_Utils_Type::T_INT,
   ];
   $params['token'] = [
     'title' => 'Token',
     'description' => E::ts('Token'),
     'api.required' => 1,
-    'type' => CRM_Utils_Type::T_STRING
+    'type' => CRM_Utils_Type::T_STRING,
   ];
   $params['platform'] = [
     'title' => 'Platform',
     'description' => E::ts('Platform'),
     'api.required' => 1,
     'type' => CRM_Utils_Type::T_STRING,
-    'options' => ['Android' => 'Android', 'IOS' => 'IOS']
+    'options' => ['Android' => 'Android', 'IOS' => 'IOS'],
   ];
   $params['is_active'] = [
     'title' => 'Is active',
     'description' => 'Is active',
-    'type' => CRM_Utils_Type::T_BOOLEAN
+    'type' => CRM_Utils_Type::T_BOOLEAN,
   ];
 }
 
@@ -73,7 +74,7 @@ function _civicrm_api3_push_notification_create_spec(&$params) {
  */
 function civicrm_api3_push_notification_get_by_user($params) {
   if (!CRM_Core_Permission::check('administer CiviCRM')) {
-    throw new api_Exception('Permission required.', 'permission_required');
+    throw new CRM_Core_Exception('Permission required.', 'permission_required');
   }
 
   $pushNotifications = CRM_CiviMobileAPI_BAO_PushNotification::getAll(['contact_id' => $params['contact_id']]);
@@ -85,6 +86,7 @@ function civicrm_api3_push_notification_get_by_user($params) {
  * Adjust Metadata for get action
  *
  * The metadata is used for setting defaults, documentation & validation
+ *
  * @param array $params array or parameters determined by getfields
  */
 function _civicrm_api3_push_notification_get_by_user_spec(&$params) {
@@ -92,7 +94,7 @@ function _civicrm_api3_push_notification_get_by_user_spec(&$params) {
     'title' => 'Contact ID',
     'description' => E::ts('Contact ID'),
     'api.required' => 1,
-    'type' => CRM_Utils_Type::T_INT
+    'type' => CRM_Utils_Type::T_INT,
   ];
 }
 
@@ -105,14 +107,14 @@ function _civicrm_api3_push_notification_get_by_user_spec(&$params) {
  */
 function civicrm_api3_push_notification_delete_by_user($params) {
   if (!CRM_Core_Permission::check('administer CiviCRM')) {
-    throw new api_Exception('Permission required.', 'permission_required');
+    throw new CRM_Core_Exception('Permission required.', 'permission_required');
   }
 
   $contact = new CRM_Contact_BAO_Contact();
   $contact->id = $params['contact_id'];
   $contactExistence = $contact->find(TRUE);
   if (empty($contactExistence)) {
-    throw new api_Exception('Contact(id=' . $params['contact_id'] . ') does not exist.', 'contact_does_not_exist');
+    throw new CRM_Core_Exception('Contact(id=' . $params['contact_id'] . ') does not exist.', 'contact_does_not_exist');
   }
 
   $pushNotifications = CRM_CiviMobileAPI_BAO_PushNotification::getAll(['contact_id' => $params['contact_id']]);
@@ -127,6 +129,7 @@ function civicrm_api3_push_notification_delete_by_user($params) {
  * Adjust Metadata for get action
  *
  * The metadata is used for setting defaults, documentation & validation
+ *
  * @param array $params array or parameters determined by getfields
  */
 function _civicrm_api3_push_notification_delete_by_user_spec(&$params) {
@@ -134,6 +137,6 @@ function _civicrm_api3_push_notification_delete_by_user_spec(&$params) {
     'title' => 'Contact ID',
     'description' => E::ts('Contact ID'),
     'api.required' => 1,
-    'type' => CRM_Utils_Type::T_INT
+    'type' => CRM_Utils_Type::T_INT,
   ];
 }
