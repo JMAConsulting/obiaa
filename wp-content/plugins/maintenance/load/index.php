@@ -78,10 +78,9 @@ $bunny_fonts = mtnc_add_bunny_fonts();
     
     // we don't want to load wp_head(), just the stuff we need
 	echo '<!--[if IE]><script type="text/javascript" src="' . esc_url( MTNC_URI . "load/js/jquery.backstretch.min.js" ) . '"></script><![endif]-->'; //phpcs:ignore
-    
-	if ( ! empty( $bunny_fonts[1] ) ) {
+    if ( ! empty( $bunny_fonts[1] ) ) {
 		echo '<link rel="stylesheet" href="' . esc_url( 'https://fonts.bunny.net/css?family=' . esc_attr( $bunny_fonts[1] ) . '|' . esc_attr( $bunny_fonts[0] ) ) . '">'; //phpcs:ignore
-	} elseif ( ! empty( $bunny_fonts[0] ) ) {
+	} elseif ( ! empty( $bunny_fonts[0] ) && strpos($bunny_fonts[0], ':') !== 0 ) {
 		echo '<link rel="stylesheet" href="' . esc_url( 'https://fonts.bunny.net/css?family=' . esc_attr( $bunny_fonts[0] ) ) . '">'; //phpcs:ignore
   }
 	?>
