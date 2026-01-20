@@ -3,13 +3,22 @@
         'name' => 'updraftplus/stops-core-theme-and-plugin-updates',
         'pretty_version' => 'dev-master',
         'version' => 'dev-master',
-        'reference' => 'e35d5b77b9ad2764c10cd782867fa9a6b800a355',
+        'reference' => 'f29aa5298f5401b5aea9b10e11fc3f0e749444ed',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
         'dev' => false,
     ),
     'versions' => array(
+        'brumann/polyfill-unserialize' => array(
+            'pretty_version' => 'v2.0.0',
+            'version' => '2.0.0.0',
+            'reference' => '46e5c18ee87d8a9b5765ef95468c1ac27bd107bf',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../brumann/polyfill-unserialize',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
         'team-updraft/common-libs' => array(
             'pretty_version' => '3.0.3',
             'version' => '3.0.3.0',
@@ -22,7 +31,7 @@
         'updraftplus/stops-core-theme-and-plugin-updates' => array(
             'pretty_version' => 'dev-master',
             'version' => 'dev-master',
-            'reference' => 'e35d5b77b9ad2764c10cd782867fa9a6b800a355',
+            'reference' => 'f29aa5298f5401b5aea9b10e11fc3f0e749444ed',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

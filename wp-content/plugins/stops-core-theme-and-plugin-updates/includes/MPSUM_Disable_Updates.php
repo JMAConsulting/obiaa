@@ -356,9 +356,11 @@ class MPSUM_Disable_Updates {
 						}
 					}
 				} else {
-					error_log("EUM: http_request_args_remove_plugins_themes(): the 'plugins' parameter was non-empty, but not an array; please report this in a support channel: ".serialize($r_plugins['active']));
+					if (defined('WP_DEBUG') && WP_DEBUG) {
+						error_log("EUM: http_request_args_remove_plugins_themes(): the 'plugins' parameter was non-empty, but not an array; please report this in a support channel: ".serialize($r_plugins['active'])); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Logging allowed only in debug mode.
+					}
 				}
-				$r['body']['plugins'] = json_encode($r_plugins);
+				$r['body']['plugins'] = wp_json_encode($r_plugins);
 			}
 		}
 		if (isset($r['body']['themes'])) {
@@ -367,7 +369,7 @@ class MPSUM_Disable_Updates {
 			foreach ($theme_options as $theme) {
 				unset($r_themes[$theme]);
 			}
-			$r['body']['themes'] = json_encode($r_themes);
+			$r['body']['themes'] = wp_json_encode($r_themes);
 		}
 		return $r;
 	}

@@ -5,7 +5,7 @@ Plugin Name: Easy Updates Manager
 Plugin URI: https://easyupdatesmanager.com
 Description: Manage and disable WordPress updates, including core, plugin, theme, and automatic updates - Works with Multisite and has built-in logging features.
 Author: Easy Updates Manager Team
-Version: 9.0.19
+Version: 9.0.20
 Update URI: https://wordpress.org/plugins/stops-core-theme-and-plugin-updates/
 Author URI: https://easyupdatesmanager.com
 Contributors: kidsguide, ronalfy
@@ -18,7 +18,7 @@ Network: true
 
 if (!defined('ABSPATH')) die('No direct access allowed');
 
-if (!defined('EASY_UPDATES_MANAGER_VERSION')) define('EASY_UPDATES_MANAGER_VERSION', '9.0.19');
+if (!defined('EASY_UPDATES_MANAGER_VERSION')) define('EASY_UPDATES_MANAGER_VERSION', '9.0.20');
 
 if (!defined('EASY_UPDATES_MANAGER_MAIN_PATH')) define('EASY_UPDATES_MANAGER_MAIN_PATH', plugin_dir_path(__FILE__));
 if (!defined('EASY_UPDATES_MANAGER_URL')) define('EASY_UPDATES_MANAGER_URL', plugin_dir_url(__FILE__));
@@ -224,10 +224,29 @@ if (!class_exists('MPSUM_Updates_Manager')) {
 		 * @return mixed Unserialized data can be any of types (integer, float, boolean, string, array or object)
 		 */
 		public static function unserialize($serialized_data, $allowed_classes = false, $max_depth = 0) {
-			if (version_compare(PHP_VERSION, '7.0', '<')) {
-				$result = unserialize($serialized_data);
+			static $polyfill_unserialize_loaded = false;
+			if (version_compare(PHP_VERSION, '5.2', '<=')) {
+				$result = unserialize($serialized_data); // For PHP 5.2 users, the search-replace feature has been removed, meaning that any input provided in this context will not undergo search-replace processing.
 			} else {
-				$result = unserialize($serialized_data, array('allowed_classes' => $allowed_classes, 'max_depth' => $max_depth)); //phpcs:ignore PHPCompatibility.FunctionUse.NewFunctionParameters.unserialize_optionsFound
+				if (!$polyfill_unserialize_loaded) {
+					if (!class_exists('Brumann\Polyfill\DisallowedClassesSubstitutor')) {
+						include_once(EASY_UPDATES_MANAGER_MAIN_PATH.'vendor/brumann/polyfill-unserialize/src/DisallowedClassesSubstitutor.php');
+					}
+					
+					if (!class_exists('Brumann\Polyfill\Unserialize')) {
+						include_once(EASY_UPDATES_MANAGER_MAIN_PATH.'vendor/brumann/polyfill-unserialize/src/Unserialize.php');
+						$polyfill_unserialize_loaded = true;
+					}
+				}
+
+				$result = call_user_func(
+					array('Brumann\Polyfill\Unserialize', 'unserialize'),
+					$serialized_data,
+					array(
+						'allowed_classes' => $allowed_classes,
+						'max_depth'       => $max_depth,
+					)
+				);
 			}
 			return $result;
 		}
@@ -266,7 +285,7 @@ if (!class_exists('MPSUM_Updates_Manager')) {
 			// Try to get cached options
 			$options = self::$options;
 			if (false === $options || true === $force_reload) {
-				$options = get_site_option('MPSUM', false, false);
+				$options = get_site_option('MPSUM', false);
 			}
 
 			if (false === $options) {
@@ -574,7 +593,8 @@ if (!class_exists('MPSUM_Updates_Manager')) {
 		 * This is a notice to show users that premium is installed
 		 */
 		public function show_admin_notice_premium() {
-			echo '<div id="eum-premium-installed-warning" class="error"><p>'.__('Easy Updates Manager (Free) has been de-activated, because Easy Updates Manager Premium is active.', 'stops-core-theme-and-plugin-updates').'</p></div>';
+			echo '<div id="eum-premium-installed-warning" class="error"><p>'.esc_html__('Easy Updates Manager (Free) has been de-activated, because Easy Updates Manager Premium is active.', 'stops-core-theme-and-plugin-updates').'</p></div>';
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Nonce verification not required as we are only unsetting a query parameter.
 			if (isset($_GET['activate'])) unset($_GET['activate']);
 		}
 
@@ -728,7 +748,7 @@ if (!class_exists('MPSUM_Updates_Manager')) {
 			if ('index.php' != $pagenow) return;
 			if (current_user_can('update_plugins') || (defined('EASY_UPDATES_MANAGER_FORCE_DASHNOTICE') && EASY_UPDATES_MANAGER_FORCE_DASHNOTICE)) {
 				$dismissed_until = get_site_option('easy_updates_manager_dismiss_dash_notice_until', 0);
-				if (isset($_GET['page']) && 'mpsum-update-options' == $_GET['page']) {
+				if (isset($_GET['page']) && 'mpsum-update-options' == $_GET['page']) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Nonce verification is not required as we are only retrieving the admin page slug.
 					$dismissed_until = get_site_option('easy_updates_manager_dismiss_eum_notice_until', 0);
 				}
 				$installed = $installed_for = true;
@@ -737,7 +757,7 @@ if (!class_exists('MPSUM_Updates_Manager')) {
 					$installed_for = (time() - $installed);
 				}
 				$is_eum_admin = false;
-				if (isset($_GET['page']) && 'mpsum-update-options' === $_GET['page']) {
+				if (isset($_GET['page']) && 'mpsum-update-options' === $_GET['page']) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Nonce verification is not required as we are only retrieving the admin page slug.
 					$is_eum_admin = true;
 				}
 				if (!$is_eum_admin) {
@@ -810,6 +830,7 @@ if (!class_exists('MPSUM_Updates_Manager')) {
 			$eum_white_label = apply_filters('eum_whitelabel_name', __('Easy Updates Manager', 'stops-core-theme-and-plugin-updates'));
 
 			if (!isset($core_options['plugin_updates']) || !isset($core_options['theme_updates'])) {
+				/* translators: %s: Label Name */
 				$html = '<a href="'.$url.'">'.sprintf(__('Managed by %s.', 'stops-core-theme-and-plugin-updates'), $eum_white_label).'</a>';
 				return $html;
 			}
@@ -817,29 +838,36 @@ if (!class_exists('MPSUM_Updates_Manager')) {
 			$updates = 'plugin' == $entity ? $core_options['plugin_updates'] : $core_options['theme_updates'];
 
 			if ('automatic' == $updates) {
+				/* translators: %s: Label Name */
 				$html = '<a href="'.$url.'">'.sprintf(__('Managed by %s.', 'stops-core-theme-and-plugin-updates'), $eum_white_label).'</a>';
 				if ($template) return $html;
 			} elseif ('on' == $updates) {
-				$html = '<a href="'.$url.'">'.sprintf(__('Managed by %s (%s).', 'stops-core-theme-and-plugin-updates'), $eum_white_label, __('on', 'stops-core-theme-and-plugin-updates')).'</a>';
+				/* Translators: 1: Label Name, 2: on */
+				$html = '<a href="'.$url.'">'.sprintf(__('Managed by %1$s (%2$s).', 'stops-core-theme-and-plugin-updates'), $eum_white_label, __('on', 'stops-core-theme-and-plugin-updates')).'</a>';
 				if ($template) return $html;
 			} elseif ('off' == $updates) {
+				/* translators: %s: Label Name */
 				$html = '<a href="'.$url.'">'.sprintf(__('Disabled in %s.', 'stops-core-theme-and-plugin-updates'), $eum_white_label).'</a>';
 				if ($template) return $html;
 			} elseif ('automatic_off' == $updates) {
+				/* translators: %s: Label Name */
 				$html = '<a href="'.$url.'">'.sprintf(__('Disabled in %s.', 'stops-core-theme-and-plugin-updates'), $eum_white_label).'</a>';
 				if ($template) return $html;
 			} elseif ('individual' == $updates && !$template) {
 				
+				/* translators: %s: Label Name */
 				$html = '<a href="'.$url.'">'.sprintf(__('Managed by %s.', 'stops-core-theme-and-plugin-updates'), $eum_white_label).'</a>';
 
 				if (!empty($entity_options)) {
 					foreach ($entity_options as $ent) {
+						/* translators: %s: Label Name */
 						if ($ent == $entity_file) $html = '<a href="'.$url.'">'.sprintf(__('Disabled in %s.', 'stops-core-theme-and-plugin-updates'), $eum_white_label).'</a>';
 					}
 				}
 
 				if (!empty($entity_automatic_options)) {
 					foreach ($entity_automatic_options as $ent) {
+						/* translators: %s: Label Name */
 						if ($ent == $entity_file) $html = '<a href="'.$url.'">'.sprintf(__('Managed by %s.', 'stops-core-theme-and-plugin-updates'), $eum_white_label).'</a>';
 					}
 				}
@@ -856,6 +884,7 @@ if (!class_exists('MPSUM_Updates_Manager')) {
 						$entity_options_string .= "'".$ent."'";
 						if ($last != $key) $entity_options_string .= ',';
 					}
+					/* translators: %s: Label Name */
 					$entity_options_html = '<a href="'.$url.'">'.sprintf(__('Disabled in %s.', 'stops-core-theme-and-plugin-updates'), $eum_white_label).'</a>';
 				}
 
@@ -865,6 +894,7 @@ if (!class_exists('MPSUM_Updates_Manager')) {
 						$entity_automatic_options_string .= "'".$theme."'";
 						if ($last != $key) $entity_automatic_options_string .= ',';
 					}
+					/* translators: %s: Label Name */
 					$entity_automatic_options_html = '<a href="'.$url.'">'.sprintf(__('Managed by %s.', 'stops-core-theme-and-plugin-updates'), $eum_white_label).'</a>';
 				}
 
@@ -930,11 +960,11 @@ if (!class_exists('MPSUM_Updates_Manager')) {
 		 * @return void
 		 */
 		public function easy_updates_manager_ajax_handler() {
-			$nonce = empty($_POST['nonce']) ? '' : $_POST['nonce'];
+			$nonce = empty($_POST['nonce']) ? '' : sanitize_text_field(wp_unslash($_POST['nonce']));
 
 			if (!wp_verify_nonce($nonce, 'easy-updates-manager-ajax-nonce') || empty($_POST['subaction'])) die('Security check');
 
-			$subaction = $_POST['subaction'];
+			$subaction = sanitize_text_field(wp_unslash($_POST['subaction']));
 
 			if (!current_user_can($this->capability_required())) die('Security check');
 
@@ -1004,8 +1034,10 @@ if (!class_exists('MPSUM_Updates_Manager')) {
 			do_action('easy_updates_manager_before_template', $path, $template_file, $return_instead_of_echo, $extract_these);
 
 			if (!file_exists($template_file)) {
-				error_log("Easy Updates Manager: template not found: ".$template_file);
-				echo __('Error:', 'stops-core-theme-and-plugin-updates').' '.__('template not found', 'stops-core-theme-and-plugin-updates')." (".$path.")";
+				if (defined('WP_DEBUG') && WP_DEBUG) {
+					error_log("Easy Updates Manager: template not found: ".$template_file); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Logging allowed only in debug mode.
+				}
+				echo esc_html__('Error:', 'stops-core-theme-and-plugin-updates').' '.esc_html__('template not found', 'stops-core-theme-and-plugin-updates')." (".esc_html($path).")";
 			} else {
 				extract($extract_these);
 				$easy_updates_manager = $this; // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable -- This is used in the template file
@@ -1067,10 +1099,10 @@ if (!class_exists('MPSUM_Updates_Manager')) {
 			if ('' != $html) {
 				$result = '<a '.$class.' href="'.esc_attr($url).'">'.$html.'</a>';
 			} else {
-				$result = '<a '.$class.' href="'.esc_attr($url).'">'.htmlspecialchars($text).'</a>';
+				$result = '<a '.$class.' href="'.esc_attr($url).'">'.esc_html($text).'</a>';
 			}
 			if ($return_instead_of_echo) return $result;
-			echo $result;
+			echo wp_kses_post($result);
 		}
 
 		/**
@@ -1079,7 +1111,8 @@ if (!class_exists('MPSUM_Updates_Manager')) {
 		public function admin_notice_insufficient_php() {
 			$this->show_admin_warning(
 				__('Higher PHP version required', 'stops-core-theme-and-plugin-updates'),
-				sprintf(__('The %s plugin requires %s version %s or higher - your current version is only %s.', 'stops-core-theme-and-plugin-updates'), 'Easy Updates Manager', 'PHP', self::PHP_REQUIRED, PHP_VERSION),
+				/* translators: 1: Easy Updates Manager, 2: PHP, 3: Require PHP version, 4: Current PHP version. */
+				sprintf(__('The %1$s plugin requires %2$s version %3$s or higher - your current version is only %4$s.', 'stops-core-theme-and-plugin-updates'), 'Easy Updates Manager', 'PHP', self::PHP_REQUIRED, PHP_VERSION),
 				'notice-error'
 			);
 		}
@@ -1091,7 +1124,8 @@ if (!class_exists('MPSUM_Updates_Manager')) {
 			include ABSPATH.WPINC.'/version.php';
 			$this->show_admin_warning(
 				__('Higher WordPress version required', 'stops-core-theme-and-plugin-updates'),
-				sprintf(__('The %s plugin requires %s version %s or higher - your current version is only %s.', 'stops-core-theme-and-plugin-updates'), 'Easy Updates Manager', 'WordPress', self::WP_REQUIRED, $wp_version), // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UndefinedVariable
+				/* translators: 1: Easy Updates Manager, 2: WordPress, 3: Require WordPress version, 4: Current WordPress version. */
+				sprintf(__('The %1$s plugin requires %2$s version %3$s or higher - your current version is only %4$s.', 'stops-core-theme-and-plugin-updates'), 'Easy Updates Manager', 'WordPress', self::WP_REQUIRED, $wp_version), // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UndefinedVariable
 				'notice-error'
 			);
 		}
@@ -1105,15 +1139,15 @@ if (!class_exists('MPSUM_Updates_Manager')) {
 		 */
 		private function show_admin_warning($title, $message, $class = 'notice-error') {
 			?>
-			<div class="notice is-dismissible <?php echo $class; ?>">
+			<div class="notice is-dismissible <?php echo esc_attr($class); ?>">
 				<p>
 					<?php if (!empty($title)) :?>
 						<strong>
-							<?php echo $title; ?>
+							<?php echo esc_html($title); ?>
 						</strong>
 					<?php endif;?>
 					<span>
-						<?php echo $message; ?>
+						<?php echo esc_html($message); ?>
 					</span>
 				</p>
 			</div>

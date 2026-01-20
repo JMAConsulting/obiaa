@@ -90,7 +90,8 @@ class MPSUM_Disable_VCS {
 		?>
 		<div class="notice notice-warning">
 			<?php
-			echo '<p>' . sprintf(esc_html__('The following plugins are under version control and will not be updated: %s', 'stops-core-theme-and-plugin-updates'), $plugin_list) . '</p>';
+			// Translators: %s is a list of plugin that are under version control and will not be updated.
+			echo '<p>' . sprintf(esc_html__('The following plugins are under version control and will not be updated: %s', 'stops-core-theme-and-plugin-updates'), wp_kses($plugin_list, array('strong' => array()))) . '</p>';
 			?>
 		</div>
 		<?php
@@ -110,7 +111,8 @@ class MPSUM_Disable_VCS {
 		?>
 		<div class="notice notice-warning">
 			<?php
-			echo '<p>' . sprintf(esc_html__('The following themes are under version control and will not be updated: %s', 'stops-core-theme-and-plugin-updates'), $theme_list) . '</p>';
+			// Translators: %s is a list of theme that are under version control and will not be updated.
+			echo '<p>' . sprintf(esc_html__('The following themes are under version control and will not be updated: %s', 'stops-core-theme-and-plugin-updates'), wp_kses($theme_list, array('strong' => array()))) . '</p>';
 			?>
 		</div>
 		<?php
@@ -177,12 +179,14 @@ class MPSUM_Disable_VCS {
 			<div class="notice notice-warning">
 				<?php
 				if (!empty($plugin_list)) {
-					echo '<p>' . sprintf(esc_html__('The following plugins are under version control and will not be updated: %s', 'stops-core-theme-and-plugin-updates'), $plugin_list) . '</p>';
+					// Translators: %s is a list of plugin that are under version control and will not be updated.
+					echo '<p>' . sprintf(esc_html__('The following plugins are under version control and will not be updated: %s', 'stops-core-theme-and-plugin-updates'), wp_kses($plugin_list, array('strong' => array()))) . '</p>';
 				}
 				?>
 				<?php
 				if (!empty($theme_list)) {
-					echo '<p>' . sprintf(esc_html__('The following themes are under version control and will not be updated: %s', 'stops-core-theme-and-plugin-updates'), $theme_list) . '</p>';
+					// Translators: %s is a list of theme that are under version control and will not be updated.
+					echo '<p>' . sprintf(esc_html__('The following themes are under version control and will not be updated: %s', 'stops-core-theme-and-plugin-updates'), wp_kses($theme_list, array('strong' => array()))) . '</p>';
 				}
 				?>
 			</div>

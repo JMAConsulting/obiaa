@@ -42,7 +42,7 @@ class Easy_Updates_Manager_Notices extends Updraft_Notices_1_2 {
 				'title' => __('Always run the UpdraftPlus backup plugin before you update', 'stops-core-theme-and-plugin-updates'),
 				'text' => __("UpdraftPlus is the world’s highest ranking and most popular backup plugin.", 'stops-core-theme-and-plugin-updates'),
 				'image' => 'notices/updraft_logo.png',
-				'button_link' => 'https://updraftplus.com/',
+				'button_link' => 'https://wordpress.org/plugins/updraftplus/',
 				'button_meta' => 'updraftplus',
 				'dismiss_time' => 'dismiss_page_notice_until',
 				'supported_positions' => $this->anywhere,
@@ -50,55 +50,36 @@ class Easy_Updates_Manager_Notices extends Updraft_Notices_1_2 {
 			),
 			'updraftcentral' => array(
 				'prefix' => '',
-				'title' => __('Save time and money.', 'stops-core-theme-and-plugin-updates').' '.__('Manage multiple WordPress sites from one location.', 'stops-core-theme-and-plugin-updates'),
-				'text' => __('UpdraftCentral is a highly efficient way to take backups, update and manage multiple WP sites from one location.', 'stops-core-theme-and-plugin-updates'),
-				'image' => 'notices/updraft_logo.png',
-				'button_link' => 'https://updraftcentral.com/',
+				'title' => __('Save time and money.', 'stops-core-theme-and-plugin-updates').' '.__('Manage multiple sites from one location.', 'stops-core-theme-and-plugin-updates'),
+				'text' => __('Back up, update and manage multiple WordPress websites centrally.', 'stops-core-theme-and-plugin-updates'),
+				'image' => 'notices/updraftcentral_logo.png',
+				'button_link' => 'https://teamupdraft.com/updraftcentral/?utm_source=eum-plugin&utm_medium=referral&utm_campaign=paac&utm_content=updraftcentral&utm_creative_format=advert',
 				'button_meta' => 'updraftcentral',
 				'dismiss_time' => 'dismiss_page_notice_until',
 				'supported_positions' => $this->anywhere,
 				'validity_function' => 'is_updraftcentral_installed',
 			),
-			'subscriben' => array(
+			'aios' => array(
 				'prefix' => '',
-				'title' => 'Subscriben ' .__('by', 'stops-core-theme-and-plugin-updates'). ' UpdraftPlus',
-				'text' => __("The WordPress subscription extension for WooCommerce store owners.", "stops-core-theme-and-plugin-updates"),
-				'image' => 'notices/subscriben.png',
-				'button_link' => 'https://subscribenplugin.com',
-				'button_meta' => 'read_more',
+				'title' => __('Secure your site', 'stops-core-theme-and-plugin-updates'),
+				'text' => __("The ‘All-In-One’ Security plugin from TeamUpdraft.", "stops-core-theme-and-plugin-updates"),
+				'image' => 'notices/aios_logo.png',
+				'button_link' => 'https://teamupdraft.com/all-in-one-security/?utm_source=eum-plugin&utm_medium=referral&utm_campaign=paac&utm_content=aios&utm_creative_format=advert',
+				'button_meta' => 'aios',
 				'dismiss_time' => 'dismiss_page_notice_until',
 				'supported_positions' => $this->anywhere,
+				'validity_function' => 'is_aios_installed',
 			),
 			'wp-optimize' => array(
 				'prefix' => '',
-				'title' => 'WP-Optimize',
-				'text' => __("Make your site fast and efficient with our cutting-edge speed plugin.", 'stops-core-theme-and-plugin-updates'),
+				'title' => 'Speed up your site',
+				'text' => __("Make your site fast and efficient with our cutting-edge speed optimization plugin.", 'stops-core-theme-and-plugin-updates'),
 				'image' => 'notices/wp_optimize_logo.png',
-				'button_link' => 'https://getwpo.com',
+				'button_link' => 'https://wordpress.org/plugins/wp-optimize/',
 				'button_meta' => 'wp-optimize',
 				'dismiss_time' => 'dismiss_page_notice_until',
 				'supported_positions' => $this->anywhere,
 				'validity_function' => 'is_wpo_installed',
-			),
-			'survey' => array(
-				'prefix' => '',
-				'title' => __('Help us improve Easy Updates Manager', 'stops-core-theme-and-plugin-updates'),
-				'text' => __('Answer 3 simple questions to help us prioritize the new features you need.', 'stops-core-theme-and-plugin-updates'),
-				'image' => 'notices/eum_logo.png',
-				'button_link' => 'https://easyupdatesmanager.com/survey/?utm_source=eum-plugin-page&utm_medium=banner',
-				'button_meta' => 'eum_survey',
-				'dismiss_time' => 'dismiss_survey_notice_until',
-				'supported_positions' => $this->anywhere,
-			),
-			'rate' => array(
-				'prefix' => '',
-				'title' => __('Rate Easy Updates Manager', 'stops-core-theme-and-plugin-updates'),
-				'text' => __('We hope you like this plugin! If you do, please rate it: positive ratings attract more users, which enables us to keep improving it.', 'stops-core-theme-and-plugin-updates'),
-				'image' => 'notices/eum_logo.png',
-				'button_link' => 'https://wordpress.org/support/plugin/stops-core-theme-and-plugin-updates/reviews/#new-post',
-				'button_meta' => 'eum_rate',
-				'dismiss_time' => 'dismiss_survey_notice_until',
-				'supported_positions' => $this->anywhere,
 			),
 
 			// The sale adverts content starts here
@@ -115,62 +96,6 @@ class Easy_Updates_Manager_Notices extends Updraft_Notices_1_2 {
 				'valid_to' => '2022-11-30 23:59:59',
 				'supported_positions' => $this->dashboard_top_or_report,
 				'validity_function' => 'is_premium_installed',
-			),
-			'newyear' => array(
-				'prefix' => '',
-				'title' => __('Happy New Year - 20% off Easy Updates Manager Premium until January 14th', 'stops-core-theme-and-plugin-updates'),
-				'text' => __('To benefit, use this discount code:', 'stops-core-theme-and-plugin-updates') . ' ',
-				'image' => 'notices/new_year.png',
-				'button_link' => 'https://easyupdatesmanager.com/',
-				'button_meta' => 'eum_premium',
-				'dismiss_time' => 'dismiss_season_notice_until',
-				'discount_code' => 'newyearsale2023',
-				'valid_from' => '2022-12-26 00:00:00',
-				'valid_to' => '2023-01-14 23:59:59',
-				'supported_positions' => $this->dashboard_top_or_report,
-				'validity_function' => 'is_premium_installed',
-			),
-			'spring' => array(
-				'prefix' => '',
-				'title' => __('Spring sale - 20% off Easy Updates Manager Premium until May 31st', 'stops-core-theme-and-plugin-updates'),
-				'text' => __('To benefit, use this discount code:', 'stops-core-theme-and-plugin-updates') . ' ',
-				'image' => 'notices/spring.png',
-				'button_link' => 'https://easyupdatesmanager.com/',
-				'button_meta' => 'eum_premium',
-				'dismiss_time' => 'dismiss_season_notice_until',
-				'discount_code' => 'springsale2022',
-				'valid_from' => '2022-05-01 00:00:00',
-				'valid_to' => '2022-05-31 23:59:59',
-				'supported_positions' => $this->dashboard_top_or_report,
-				'validity_function' => 'is_premium_installed',
-			),
-			'summer' => array(
-				'prefix' => '',
-				'title' => __('Summer sale - 20% off Easy Updates Manager Premium until July 31st', 'stops-core-theme-and-plugin-updates'),
-				'text' => __('To benefit, use this discount code:', 'stops-core-theme-and-plugin-updates') . ' ',
-				'image' => 'notices/summer.png',
-				'button_link' => 'https://easyupdatesmanager.com/',
-				'button_meta' => 'eum_premium',
-				'dismiss_time' => 'dismiss_season_notice_until',
-				'discount_code' => 'summersale2022',
-				'valid_from' => '2022-07-01 00:00:00',
-				'valid_to' => '2022-07-31 23:59:59',
-				'supported_positions' => $this->dashboard_top_or_report,
-				'validity_function' => 'is_premium_installed',
-			),
-			'collection' => array(
-				'prefix' => '',
-				'title' => __('The Updraft plugin collection sale', 'stops-core-theme-and-plugin-updates'),
-				'text' => __('Get 20% off any of our plugins.', 'stops-core-theme-and-plugin-updates').' '.__('But hurry - offer ends 30th September, use this discount code:', 'stops-core-theme-and-plugin-updates').' ',
-				'image' => 'notices/eum_logo.png',
-				'button_link' => 'https://teamupdraft.com',
-				'campaign' => 'collection',
-				'button_meta' => 'collection',
-				'dismiss_time' => 'dismiss_season',
-				'discount_code' => 'EUM2022',
-				'valid_from' => '2022-09-01 00:00:00',
-				'valid_to' => '2022-09-30 23:59:59',
-				'supported_positions' => $this->dashboard_top_or_report,
 			)
 		);
 
@@ -219,6 +144,17 @@ class Easy_Updates_Manager_Notices extends Updraft_Notices_1_2 {
 	 * @return boolean a bool to indicate if we should display the notice or not
 	 */
 	protected function is_wpo_installed($product = 'wp-optimize', $also_require_active = false) {
+		return parent::is_plugin_installed($product, $also_require_active);
+	}
+
+	/**
+	 * Check whether the AIOS plugin is installed or not
+	 *
+	 * @param  string  $product             the plugin slug
+	 * @param  boolean $also_require_active a bool to indicate if the plugin should also be active
+	 * @return boolean a bool to indicate if we should display the notice or not
+	 */
+	protected function is_aios_installed($product = 'all-in-one-wp-security-and-firewall', $also_require_active = false) {
 		return parent::is_plugin_installed($product, $also_require_active);
 	}
 
