@@ -23,6 +23,8 @@ if ( !defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+// phpcs:disable PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+
 /**
  * Plugin controller
  */
@@ -34,6 +36,15 @@ class Groups_Controller {
 	 * @var string
 	 */
 	const GROUPS_200 = '2.0.0';
+
+	/**
+	 * Holds mofile when determined.
+	 *
+	 * @since 3.10.0
+	 *
+	 * @var string
+	 */
+	private static $mofile = null;
 
 	/**
 	 * Cache-safe switching in case any multi-site hiccups might occur.
@@ -83,7 +94,8 @@ class Groups_Controller {
 		register_activation_hook( GROUPS_FILE, array( __CLASS__, 'activate' ) );
 		register_deactivation_hook( GROUPS_FILE, array( __CLASS__, 'deactivate' ) );
 		add_action( 'init', array( __CLASS__, 'init' ) );
-		add_filter( 'load_textdomain_mofile', array( __CLASS__, 'load_textdomain_mofile' ), 10, 2 );
+		add_filter( 'load_textdomain_mofile', array( __CLASS__, 'load_textdomain_mofile' ), 10, 2 ); // as of 3.10.0 this filter is removed within its function while processing, any changes made here should be reflected there, too
+		add_filter( 'load_script_translation_file', array( __CLASS__, 'load_script_translation_file' ), 10, 3 ); // @since 3.10.0
 		// priority 9 because it needs to be called before Groups_Registered's
 		// wpmu_new_blog kicks in
 		add_action( 'wpmu_new_blog', array( __CLASS__, 'wpmu_new_blog' ), 9, 2 );
@@ -178,11 +190,17 @@ class Groups_Controller {
 	 * @return string mofile
 	 */
 	private static function get_mofile() {
+
+		// @since 3.10.0 determine the file only once and avoid redundant work
+		if ( self::$mofile !== null ) {
+			return self::$mofile;
+		}
+
 		$locale = get_locale();
 		if ( function_exists( 'get_user_locale' ) ) {
 			$locale = get_user_locale();
 		}
-		$locale = apply_filters( 'plugin_locale', $locale, 'groups' );
+		$locale = apply_filters( 'plugin_locale', $locale, 'groups' ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
 		$mofile = GROUPS_CORE_DIR . '/languages/groups-' . $locale . '.mo';
 		// @since 3.3.0 load language-generic translation if available
 		if ( !file_exists( $mofile ) ) {
@@ -219,6 +237,9 @@ class Groups_Controller {
 				$mofile = $the_mofile;
 			}
 		}
+
+		self::$mofile = $mofile;
+
 		return $mofile;
 	}
 
@@ -231,8 +252,10 @@ class Groups_Controller {
 	 * @return string mofile
 	 */
 	public static function load_textdomain_mofile( $mofile, $domain ) {
-		$own_mofile = self::get_mofile();
-		if ( $domain == 'groups' ) {
+		if ( $domain === 'groups' ) {
+			// @since 3.10.0 remove the filter while processing and avoid potential infinite recursion during processing
+			remove_filter( 'load_textdomain_mofile', array( __CLASS__, 'load_textdomain_mofile' ), 10 );
+			$own_mofile = self::get_mofile();
 			if ( $own_mofile != $mofile ) {
 				if ( !is_textdomain_loaded( $domain ) ) {
 					if ( is_readable( $own_mofile ) ) {
@@ -240,8 +263,34 @@ class Groups_Controller {
 					}
 				}
 			}
+			add_filter( 'load_textdomain_mofile', array( __CLASS__, 'load_textdomain_mofile' ), 10, 2 ); // see self::boot() where this filter is originally added
 		}
 		return $mofile;
+	}
+
+	/**
+	 * Load our script translations.
+	 *
+	 * @since 3.10.0
+	 *
+	 * @param string $file
+	 * @param string $handle
+	 * @param string $domain
+	 *
+	 * @return string
+	 */
+	public static function load_script_translation_file( $file, $handle, $domain ) {
+		if ( $domain === 'groups' ) {
+			$mofile = self::get_mofile();
+			if ( $mofile !== null ) {
+				$base = basename( $mofile, '.mo' );
+				$path = GROUPS_CORE_DIR . '/languages/js/' . $base . '.json';
+				if ( file_exists( $path ) ) {
+					$file = $path;
+				}
+			}
+		}
+		return $file;
 	}
 
 	/**
@@ -356,7 +405,7 @@ class Groups_Controller {
 			// (a regex results in "IF" used as array index holding only last query to create table).
 			//require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 			//dbDelta( $queries );
-			foreach( $queries as $query ) {
+			foreach ( $queries as $query ) {
 				$wpdb->query( $query ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 			}
 		}
@@ -543,29 +592,24 @@ class Groups_Controller {
 	private static function is_single_activate() {
 		$is = false;
 		$groups_basename = plugin_basename( GROUPS_FILE );
-		if ( isset( $_REQUEST['action'] ) ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-			switch ( $_REQUEST['action'] ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		$action = groups_sanitize_request( 'action' );
+		if ( is_string( $action ) ) {
+			switch ( $action ) {
 				case 'activate':
 					// Single plugin activation of Groups:
-					if ( !empty( $_REQUEST['plugin'] ) ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-						$slug = wp_unslash( $_REQUEST['plugin'] ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-						if ( $slug === $groups_basename ) {
-							$is = true;
-						}
+					$slug = groups_sanitize_request( 'plugin' );
+					if ( $slug === $groups_basename ) {
+						$is = true;
 					}
 					break;
 				case 'activate-selected':
 					// Bulk plugin activation of Groups but it is the only plugin being activated:
-					if ( !empty( $_REQUEST['checked'] ) ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-						if ( is_array( $_REQUEST['checked'] ) ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-							if ( count( $_REQUEST['checked'] ) === 1 ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-								$slugs = wp_unslash( $_REQUEST['checked'] ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-								$slug = array_pop( $slugs );
-								if ( $slug === $groups_basename ) {
-									$is = true;
-									break;
-								}
-							}
+					$slugs = groups_sanitize_request( 'checked' );
+					if ( is_array( $slugs ) && count( $slugs ) === 1 ) {
+						$slug = array_pop( $slugs );
+						if ( $slug === $groups_basename ) {
+							$is = true;
+							break;
 						}
 					}
 					break;
@@ -617,7 +661,7 @@ class Groups_Controller {
 		global $wp_roles;
 		$complies = false;
 		$roles = $wp_roles->role_objects;
-		foreach( $roles as $role ) {
+		foreach ( $roles as $role ) {
 			if ( $role->has_cap( GROUPS_ACCESS_GROUPS ) && ( $role->has_cap( GROUPS_ADMINISTER_OPTIONS ) ) ) {
 				$complies = true;
 				break;
