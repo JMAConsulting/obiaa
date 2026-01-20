@@ -6,33 +6,33 @@
 jQuery( document ).ready(
 	function ( $ ) {
 		// trigger the passwordStrengthValidator
-		$( 'body' ).on(
-			'input change',
-			'input[name=loginpress-reg-pass], input[name=loginpress-reg-pass-2]',
-			function ( event ) {
-				passwordStrengthValidator(
-					$( 'input[name=loginpress-reg-pass]' ),
-					$( 'input[name=loginpress-reg-pass-2]' ),
-					$( '#pass-strength-result' ),
-					$( 'input[type=submit]' ),
-					['admin', 'happy', 'hello', '1234']
-				);
-			}
-		);
+	$( 'body' ).on(
+		'input change',
+		'input[name=loginpress-reg-pass], input[name=loginpress-reg-pass-2]',
+		function () {
+			passwordStrengthValidator(
+				$( 'input[name=loginpress-reg-pass]' ),
+				$( 'input[name=loginpress-reg-pass-2]' ),
+				$( '#pass-strength-result' ),
+				$( 'input[type=submit]' ),
+				['admin', 'happy', 'hello', '1234']
+			);
+		}
+	);
 
-		$( 'body' ).on(
-			'input change',
-			'input[name=user_pass], input[name=user_confirm_pass]',
-			function ( event ) {
-				passwordStrengthValidator(
-					$( this ).closest( 'form' ).find( 'input[name=user_pass]' ),
-					$( this ).closest( 'form' ).find( 'input[name=user_confirm_pass]' ),
-					$( this ).closest( 'form' ).find( '#pass-strength-result' ),
-					$( this ).closest( 'form' ).find( 'input[type=submit]' ),
-					['admin', 'happy', 'hello', '1234']
-				);
-			}
-		);
+	$( 'body' ).on(
+		'input change',
+		'input[name=user_pass], input[name=user_confirm_pass]',
+		function () {
+			passwordStrengthValidator(
+				$( this ).closest( 'form' ).find( 'input[name=user_pass]' ),
+				$( this ).closest( 'form' ).find( 'input[name=user_confirm_pass]' ),
+				$( this ).closest( 'form' ).find( '#pass-strength-result' ),
+				$( this ).closest( 'form' ).find( 'input[type=submit]' ),
+				['admin', 'happy', 'hello', '1234']
+			);
+		}
+	);
 
 		/**
 		 * Checks the strength of a password and updates the UI accordingly.

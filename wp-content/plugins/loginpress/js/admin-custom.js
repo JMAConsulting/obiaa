@@ -1,6 +1,15 @@
 (function ($) {
 	'use strict';
-
+$(window).on('load resize', function() {
+		$('.toplevel_page_loginpress-settings #wpcontent').css('--container-offset', 0+'px');
+		$('.toplevel_page_loginpress-settings #wpcontent').css('--container-height', 0+'px');
+		setTimeout(function() {
+			if($('.toplevel_page_loginpress-settings #wpcontent .loginpress-main-wrapper').length > 0 && $('.toplevel_page_loginpress-settings #wpcontent').length > 0) {
+				$('.toplevel_page_loginpress-settings #wpcontent').css('--container-offset', $('.toplevel_page_loginpress-settings #wpcontent .loginpress-main-wrapper').offset().top+'px');
+			}
+			$('.toplevel_page_loginpress-settings #wpcontent').css('--container-height', $('.toplevel_page_loginpress-settings #wpcontent').height()+'px');
+		}, 50);
+	});
 	$(
 		function () {
 
@@ -36,11 +45,11 @@
 							beforeSend: function () {
 								addonWrapper.find( '.loginpress-addon-enable' ).show();
 							},
-							success: function (res) {
-								activateAddon( pluginSlug, nonce, addonWrapper, addonBtn );
-							},
-							error  : function (res) {
-								// console.log(res);
+						success: function () {
+							activateAddon( pluginSlug, nonce, addonWrapper, addonBtn );
+						},
+						error  : function () {
+							// console.log(res);
 								addonWrapper.find( '.loginpress-uninstalling' ).hide();
 								addonWrapper.find( '.loginpress-uninstall' ).hide();
 								addonWrapper.find( '.loginpress-addon-enable' ).hide();
@@ -100,9 +109,9 @@
 									},
 									3000
 								);
-							},
-							error: function (res) {
-								// console.log(res);
+						},
+						error: function () {
+							// console.log(res);
 								addonWrapper.find( '.loginpress-uninstalling' ).hide();
 								addonWrapper.find( '.loginpress-uninstall' ).hide();
 								addonWrapper.find( '.loginpress-wrong' ).show();
@@ -178,9 +187,9 @@
 								},
 								3000
 							);
-						},
-						error  : function ( xhr, textStatus, errorThrown ) {
-							// console.log('Ajax Not Working');
+					},
+					error  : function () {
+						// console.log('Ajax Not Working');
 							addonWrapper.find( '.loginpress-uninstalling' ).hide();
 							addonWrapper.find( '.loginpress-uninstall' ).hide();
 							addonWrapper.find( '.loginpress-wrong' ).show();
@@ -205,13 +214,13 @@
 					$( '#' + target ).fadeIn();
 				}
 			);
-			$( '.wpbrigade-close-popup' ).on(
-				'click',
-				function (e) {
-					$( this ).parent().parent().fadeOut();
-					$( '.wpbrigade-video-wrapper iframe' ).attr( 'src', 'https://www.youtube.com/embed/GMAwsHomJlE' );
-				}
-			);
+		$( '.wpbrigade-close-popup' ).on(
+			'click',
+			function () {
+				$( this ).parent().parent().fadeOut();
+				$( '.wpbrigade-video-wrapper iframe' ).attr( 'src', 'https://www.youtube.com/embed/GMAwsHomJlE' );
+			}
+		);
 
 			// Code for Video Popup
 			var videoBtn = document.querySelectorAll( '.video a' );
@@ -234,13 +243,13 @@
 			if (document.querySelector( '.loginpress-cross' )) {
 				document.querySelector( '.loginpress-cross' ).addEventListener(
 					'click',
-					function (e) {
+					function () {
 						closePop();
 					}
 				);
 				document.querySelector( '.loginpress-video-overlay' ).addEventListener(
 					'click',
-					function (e) {
+					function () {
 						closePop();
 					}
 				);
@@ -315,47 +324,53 @@
 				}
 			);
 
-			/**
-			 * This function is used to show/hide the password strength settings section and
-			 * all of its sub fields based on the enable registration password field setting.
-			 *
-			 * @since 4.0.0
-			 */
-			function LoginpressEnablePasswordStregth() {
-
-				if ( $( '#wpb-loginpress_setting\\[enable_reg_pass_field\\]' ).is( ":checked" ) ) {
-					$( 'tr.enable_pass_strength' ).show();
-
-					function LoginpressPasswordStrengthSettings() {
-						if ( $( '#wpb-loginpress_setting\\[enable_pass_strength\\]' ).is( ":checked" ) ) {
-							$( 'tr.minimum_pass_char' ).show();
-							$( 'tr.pass_strength' ).show();
-							$( 'tr.password_strength_meter' ).show();
-							$( 'tr.enable_pass_strength_forms' ).show();
-						} else {
-							$( 'tr.minimum_pass_char' ).hide();
-							$( 'tr.pass_strength' ).hide();
-							$( 'tr.password_strength_meter' ).hide();
-							$( 'tr.enable_pass_strength_forms' ).hide();
-						}
-					}
-					$( "#wpb-loginpress_setting\\[enable_pass_strength\\]" ).on(
-						'click',
-						function () {
-							LoginpressPasswordStrengthSettings();
-						}
-					);
-					LoginpressPasswordStrengthSettings();
-
-				} else {
-					$( 'tr.enable_pass_strength' ).hide();
-					$( 'tr.minimum_pass_char' ).hide();
-					$( 'tr.pass_strength' ).hide();
-					$( 'tr.password_strength_meter' ).hide();
-					$( 'tr.enable_pass_strength_forms' ).hide();
-				}
-
+		/**
+		 * Show and hide password strength sub-fields.
+		 *
+		 * @since 4.0.0
+		 */
+		function LoginpressPasswordStrengthSettings() {
+			if ( $( '#wpb-loginpress_setting\\[enable_pass_strength\\]' ).is( ":checked" ) ) {
+				$( 'tr.minimum_pass_char' ).show();
+				$( 'tr.pass_strength' ).show();
+				$( 'tr.password_strength_meter' ).show();
+				$( 'tr.enable_pass_strength_forms' ).show();
+			} else {
+				$( 'tr.minimum_pass_char' ).hide();
+				$( 'tr.pass_strength' ).hide();
+				$( 'tr.password_strength_meter' ).hide();
+				$( 'tr.enable_pass_strength_forms' ).hide();
 			}
+		}
+
+		/**
+		 * This function is used to show/hide the password strength settings section and
+		 * all of its sub fields based on the enable registration password field setting.
+		 *
+		 * @since 4.0.0
+		 */
+		function LoginpressEnablePasswordStregth() {
+
+			if ( $( '#wpb-loginpress_setting\\[enable_reg_pass_field\\]' ).is( ":checked" ) ) {
+				$( 'tr.enable_pass_strength' ).show();
+
+				$( "#wpb-loginpress_setting\\[enable_pass_strength\\]" ).on(
+					'click',
+					function () {
+						LoginpressPasswordStrengthSettings();
+					}
+				);
+				LoginpressPasswordStrengthSettings();
+
+			} else {
+				$( 'tr.enable_pass_strength' ).hide();
+				$( 'tr.minimum_pass_char' ).hide();
+				$( 'tr.pass_strength' ).hide();
+				$( 'tr.password_strength_meter' ).hide();
+				$( 'tr.enable_pass_strength_forms' ).hide();
+			}
+
+		}
 			$( "#wpb-loginpress_setting\\[enable_reg_pass_field\\]" ).on(
 				'click',
 				function () {
@@ -410,11 +425,22 @@
 								$( ".log-file-sniper" ).hide();
 								$( ".log-file-text" ).show();
 
+								// Generate timestamp for filename
+								var now = new Date();
+								var year = now.getFullYear();
+								var month = String(now.getMonth() + 1).padStart(2, '0');
+								var day = String(now.getDate()).padStart(2, '0');
+								var hours = String(now.getHours()).padStart(2, '0');
+								var minutes = String(now.getMinutes()).padStart(2, '0');
+								var seconds = String(now.getSeconds()).padStart(2, '0');
+								var timestamp = year + '-' + month + '-' + day + '_' + hours + '-' + minutes + '-' + seconds;
+								var filename = 'loginpress-log-' + timestamp + '.txt';
+
 								if ( ! window.navigator.msSaveOrOpenBlob) { // If msSaveOrOpenBlob() is supported, then so is msSaveBlob().
 									$(
 										"<a />",
 										{
-											"download": "loginpress-log.txt",
+											"download": filename,
 											"href": "data:text/plain;charset=utf-8," +
 											encodeURIComponent( response ),
 										}
@@ -428,7 +454,7 @@
 									var blobObject = new Blob( [response] );
 									window.navigator.msSaveBlob(
 										blobObject,
-										'loginpress-log.txt'
+										filename
 									);
 								}
 								setTimeout(
@@ -575,6 +601,7 @@
 	);
 	$( document ).ready(
 		function () {
+			
 			// run the select code for all selects
 			if ($( '[name="loginpress_captcha_settings[captchas_type]"]' ).length > 0) {
 					const urlParams   = new URLSearchParams( window.location.search );
