@@ -111,7 +111,8 @@ class MPSUM_Admin_Core {
 
 
 		// Save options
-		$options = $_POST['options'];
+		$options = wp_unslash($_POST['options']); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- This is sanitized further down in the function.
+		
 		if (isset($_POST['reset'])) {
 			$options = self::get_defaults();
 		}
@@ -167,13 +168,13 @@ class MPSUM_Admin_Core {
 		$options = MPSUM_Updates_Manager::get_options('core');
 		$options = wp_parse_args($options, self::get_defaults());
 
-		if (isset($_GET['updated'])) {
+		if (isset($_GET['updated'])) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Not part of a form
 			$message = __('Options saved.', 'stops-core-theme-and-plugin-updates');
 			?>
 			<br />
 			<div class="updated"><p><strong><?php echo esc_html($message); ?></strong></p></div>
 			<?php
-			if (isset($_GET['bad_email'])) {
+			if (isset($_GET['bad_email'])) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Not part of a form
 				?>
 				<div class="error"><p><strong><?php echo esc_html__('The e-mail address is not valid', 'stops-core-theme-and-plugin-updates'); ?></strong></p></div>
 				<?php

@@ -6,12 +6,13 @@ $updraftplus_url = 'https://updraftplus.com/?utm=eum-premium-tab';
 $easy_updates_manager_downloads = '200,000';
 ?>
 <div class="advanced-premium">
-	<h3><?php _e('Get Easy Updates Manager Premium', 'stops-core-theme-and-plugin-updates'); ?></h3>
+	<h3><?php esc_html_e('Get Easy Updates Manager Premium', 'stops-core-theme-and-plugin-updates'); ?></h3>
 	<p class="mpsum-medium"><?php
 	
-		_e('Get many more features with Easy Updates Manager Premium.', 'stops-core-theme-and-plugin-updates');
+		esc_html_e('Get many more features with Easy Updates Manager Premium.', 'stops-core-theme-and-plugin-updates');
 		
-		printf(' '.__('Check out the video and %s below, or %s', 'stops-core-theme-and-plugin-updates'), '<a href="#mpsum-advanced-premium-features">'.__('feature list', 'stops-core-theme-and-plugin-updates').'</a>', '<a href="' . $easy_updates_manager_url . '">'.__('go to our store.', 'stops-core-theme-and-plugin-updates').'</a>');
+		/* translators: 1: Link to the feature list, 2: Link to the store. */
+		printf(' '.esc_html__('Check out the video and %1$s below, or %2$s', 'stops-core-theme-and-plugin-updates'), '<a href="#mpsum-advanced-premium-features">'.esc_html__('feature list', 'stops-core-theme-and-plugin-updates').'</a>', '<a href="' . esc_url($easy_updates_manager_url) . '">'.esc_html__('go to our store.', 'stops-core-theme-and-plugin-updates').'</a>');
 		
 	?></p>
 	<?php

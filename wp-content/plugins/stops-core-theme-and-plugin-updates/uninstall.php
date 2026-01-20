@@ -71,6 +71,7 @@ if (($isPremium && !$freeActive) || ($isFree && !$premiumActive)) {
 	delete_option('eum_readable_email_logging_messages.lock');
 	if (is_multisite()) restore_current_blog();
 
+	// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Queries are safe as it does not include user input and is intended for direct execution.
 	// For logs removal
 	global $wpdb;
 	$tablename = $wpdb->base_prefix . 'eum_logs';
@@ -105,6 +106,7 @@ if (($isPremium && !$freeActive) || ($isFree && !$premiumActive)) {
 		$unmaintained_plugin_sql = "delete from {$wpdb->options} where option_name like '%eum_plugin_unmaintained_%'";
 		$wpdb->query($unmaintained_plugin_sql);
 	}
+	// phpcs:enable WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 
 	// Remove transients when someone disables plugin, theme, or core updates
 	delete_site_transient('eum_core_checked');

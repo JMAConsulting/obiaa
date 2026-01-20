@@ -156,8 +156,8 @@ class MPSUM_List_Table {
 
 		if (empty($this->modes)) {
 			$this->modes = array(
-				'list'    => __('List View'),
-				'excerpt' => __('Excerpt View')
+				'list'    => esc_html__('List View'), // phpcs:ignore WordPress.WP.I18n.MissingArgDomain -- WordPress core handles the translation.
+				'excerpt' => esc_html__('Excerpt View', 'stops-core-theme-and-plugin-updates')
 			);
 		}
 	}
@@ -325,7 +325,7 @@ class MPSUM_List_Table {
 	 * @access public
 	 */
 	public function no_items() {
-		_e('No items found.');
+		esc_html_e('No items found.'); // phpcs:ignore WordPress.WP.I18n.MissingArgDomain -- WordPress core handles the translation.
 	}
 
 	/**
@@ -338,23 +338,26 @@ class MPSUM_List_Table {
 	 * @param string $input_id The search input id
 	 */
 	public function search_box($text, $input_id) {
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- Verified in our AJAX handler.
 		if (empty($_REQUEST['s']) && !$this->has_items())
 			return;
 
 		$input_id = $input_id . '-search-input';
 
 		if (! empty($_REQUEST['orderby']))
-			echo '<input type="hidden" name="orderby" value="' . esc_attr($_REQUEST['orderby']) . '" />';
+			echo '<input type="hidden" name="orderby" value="' . esc_attr(sanitize_text_field(wp_unslash($_REQUEST['orderby']))) . '" />';
 		if (! empty($_REQUEST['order']))
-			echo '<input type="hidden" name="order" value="' . esc_attr($_REQUEST['order']) . '" />';
+			echo '<input type="hidden" name="order" value="' . esc_attr(sanitize_text_field(wp_unslash($_REQUEST['order']))) . '" />';
 		if (! empty($_REQUEST['post_mime_type']))
-			echo '<input type="hidden" name="post_mime_type" value="' . esc_attr($_REQUEST['post_mime_type']) . '" />';
+			echo '<input type="hidden" name="post_mime_type" value="' . esc_attr(sanitize_text_field(wp_unslash($_REQUEST['post_mime_type']))) . '" />';
 		if (! empty($_REQUEST['detached']))
-			echo '<input type="hidden" name="detached" value="' . esc_attr($_REQUEST['detached']) . '" />';
+			echo '<input type="hidden" name="detached" value="' . esc_attr(sanitize_text_field(wp_unslash($_REQUEST['detached']))) . '" />';
+	
+		// phpcs:enable WordPress.Security.NonceVerification.Recommended
 ?>
 <p class="search-box">
-	<label class="screen-reader-text" for="<?php echo $input_id; ?>"><?php echo $text; ?>:</label>
-	<input type="search" id="<?php echo $input_id; ?>" name="s" value="<?php _admin_search_query(); ?>" />
+	<label class="screen-reader-text" for="<?php echo esc_attr($input_id); ?>"><?php echo esc_html($text); ?>:</label>
+	<input type="search" id="<?php echo esc_attr($input_id); ?>" name="s" value="<?php _admin_search_query(); ?>" />
 	<?php submit_button($text, 'button', '', false, array('id' => 'search-submit')); ?>
 </p>
 <?php
@@ -400,7 +403,7 @@ class MPSUM_List_Table {
 		foreach ($views as $class => $view) {
 			$views[$class] = "\t<li class='$class'>$view";
 		}
-		echo implode(" |</li>\n", $views) . "</li>\n";
+		echo wp_kses_post(implode(" |</li>\n", $views)) . "</li>\n";
 		echo "</ul>";
 	}
 
@@ -451,19 +454,19 @@ class MPSUM_List_Table {
 		if (empty($this->_actions))
 			return;
 
-		echo "<label for='bulk-action-selector-" . esc_attr($which) . "' class='screen-reader-text'>" . __('Select bulk action') . "</label>";
-		echo "<select name='action$two' id='bulk-action-selector-" . esc_attr($which) . "'>\n";
-		echo "<option value='-1' selected='selected'>" . __('Bulk Actions') . "</option>\n";
+		echo "<label for='bulk-action-selector-" . esc_attr($which) . "' class='screen-reader-text'>" . esc_html__('Select bulk action') . "</label>"; // phpcs:ignore WordPress.WP.I18n.MissingArgDomain -- WordPress core handles the translation.
+		echo "<select name='action" . esc_attr($two) . "' id='bulk-action-selector-" . esc_attr($which) . "'>\n";
+		echo "<option value='-1' selected='selected'>" . esc_html__('Bulk Actions') . "</option>\n"; // phpcs:ignore WordPress.WP.I18n.MissingArgDomain -- WordPress core handles the translation.
 
 		foreach ($this->_actions as $name => $title) {
 			$class = 'edit' == $name ? ' class="hide-if-no-js"' : '';
 
-			echo "\t<option value='$name'$class>$title</option>\n";
+			echo "\t<option value='".esc_attr($name).esc_html($class).">".esc_html($title)."</option>\n";
 		}
 
 		echo "</select>\n";
 
-		submit_button(__('Apply'), 'action', '', false, array('id' => "doaction$two"));
+		submit_button(esc_html__('Apply'), 'action', '', false, array('id' => "doaction$two")); // phpcs:ignore WordPress.WP.I18n.MissingArgDomain -- WordPress core handles the translation.
 		echo "\n";
 	}
 
@@ -476,14 +479,17 @@ class MPSUM_List_Table {
 	 * @return string|false The action name or False if no action was selected
 	 */
 	public function current_action() {
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- Verified in our AJAX handler.
 		if (isset($_REQUEST['filter_action']) && ! empty($_REQUEST['filter_action']))
 			return false;
 
 		if (isset($_REQUEST['action']) && -1 != $_REQUEST['action'])
-			return $_REQUEST['action'];
+			return sanitize_text_field(wp_unslash($_REQUEST['action']));
 
 		if (isset($_REQUEST['action2']) && -1 != $_REQUEST['action2'])
-			return $_REQUEST['action2'];
+			return sanitize_text_field(wp_unslash($_REQUEST['action2']));
+
+		// phpcs:enable WordPress.Security.NonceVerification.Recommended
 
 		return false;
 	}
@@ -513,7 +519,7 @@ class MPSUM_List_Table {
 		}
 		$out .= '</div>';
 
-		$out .= '<button type="button" class="toggle-row"><span class="screen-reader-text">' . __('Show more details') . '</span></button>';
+		$out .= '<button type="button" class="toggle-row"><span class="screen-reader-text">' . esc_html__('Show more details') . '</span></button>'; // phpcs:ignore WordPress.WP.I18n.MissingArgDomain -- WordPress core handles the translation.
 
 		return $out;
 	}
@@ -542,6 +548,7 @@ class MPSUM_List_Table {
 			return;
 		}
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct database query is required to fetch distinct years and months for posts without relying on caching.
 		$months = $wpdb->get_results($wpdb->prepare("
 			SELECT DISTINCT YEAR( post_date ) AS year, MONTH( post_date ) AS month
 			FROM $wpdb->posts
@@ -563,11 +570,11 @@ class MPSUM_List_Table {
 		if (!$month_count || ( 1 == $month_count && 0 == $months[0]->month ))
 			return;
 
-		$m = isset($_GET['m']) ? (int) $_GET['m'] : 0;
+		$m = isset($_GET['m']) ? (int) $_GET['m'] : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Verified in our AJAX handler.
 ?>
-		<label for="filter-by-date" class="screen-reader-text"><?php _e('Filter by date'); ?></label>
+		<label for="filter-by-date" class="screen-reader-text"><?php esc_html_e('Filter by date', 'stops-core-theme-and-plugin-updates'); ?></label>
 		<select name="m" id="filter-by-date">
-			<option<?php selected($m, 0); ?> value="0"><?php _e('All dates'); ?></option>
+			<option<?php selected($m, 0); ?> value="0"><?php esc_html_e('All dates', 'stops-core-theme-and-plugin-updates'); ?></option>
 <?php
 		foreach ($months as $arc_row) {
 			if (0 == $arc_row->year)
@@ -580,7 +587,7 @@ class MPSUM_List_Table {
 				selected($m, $year . $month, false),
 				esc_attr($arc_row->year . $month),
 				/* translators: 1: month name, 2: 4-digit year */
-				sprintf(__('%1$s %2$d'), $wp_locale->get_month($month), $year)
+				sprintf(esc_html__('%1$s %2$d', 'stops-core-theme-and-plugin-updates'), esc_html($wp_locale->get_month($month)), esc_html($year))
 			);
 		}
 ?>
@@ -605,10 +612,10 @@ class MPSUM_List_Table {
 				if ($current_mode == $mode)
 				$classes[] = 'current';
 				printf(
-					"<a href='%s' class='%s' id='view-switch-$mode'><span class='screen-reader-text'>%s</span></a>\n",
+					"<a href='%s' class='%s' id='view-switch-".esc_attr($mode)."'><span class='screen-reader-text'>%s</span></a>\n",
 					esc_url(add_query_arg('mode', $mode)),
-					implode(' ', $classes),
-					$title
+					esc_html(implode(' ', $classes)),
+					esc_html($title)
 				);
 			}
 		?>
@@ -631,34 +638,37 @@ class MPSUM_List_Table {
 		$approved_comments_number = number_format_i18n($approved_comments);
 		$pending_comments_number = number_format_i18n($pending_comments);
 
-		$approved_only_phrase = sprintf(_n('%s comment', '%s comments', $approved_comments), $approved_comments_number);
-		$approved_phrase = sprintf(_n('%s approved comment', '%s approved comments', $approved_comments), $approved_comments_number);
-		$pending_phrase = sprintf(_n('%s pending comment', '%s pending comments', $pending_comments), $pending_comments_number);
+		/* Translators: %s is the number of approved comments. */
+		$approved_only_phrase = sprintf(_n('%s comment', '%s comments', $approved_comments, 'stops-core-theme-and-plugin-updates'), $approved_comments_number);
+		/* Translators: %s is the number of approved comments. */
+		$approved_phrase = sprintf(_n('%s approved comment', '%s approved comments', $approved_comments, 'stops-core-theme-and-plugin-updates'), $approved_comments_number);
+		/* Translators: %s is the number of pending comments. */
+		$pending_phrase = sprintf(_n('%s pending comment', '%s pending comments', $pending_comments, 'stops-core-theme-and-plugin-updates'), $pending_comments_number);
 
 		// No comments at all.
 		if (! $approved_comments && ! $pending_comments) {
 			printf( '<span aria-hidden="true">—</span><span class="screen-reader-text">%s</span>',
-				__('No comments')
+				esc_html__('No comments') // phpcs:ignore WordPress.WP.I18n.MissingArgDomain -- WordPress core handles the translation.
 			);
 		// Approved comments have different display depending on some conditions.
 		} elseif ($approved_comments) {
 			printf( '<a href="%s" class="post-com-count post-com-count-approved"><span class="comment-count-approved" aria-hidden="true">%s</span><span class="screen-reader-text">%s</span></a>',
 				esc_url(add_query_arg(array('p' => $post_id, 'comment_status' => 'approved'), admin_url('edit-comments.php'))),
-				$approved_comments_number,
-				$pending_comments ? $approved_phrase : $approved_only_phrase
+				esc_html($approved_comments_number),
+				$pending_comments ? esc_html($approved_phrase) : esc_html($approved_only_phrase)
 			);
 		} else {
 			printf( '<span class="post-com-count post-com-count-no-comments"><span class="comment-count comment-count-no-comments" aria-hidden="true">%s</span><span class="screen-reader-text">%s</span></span>',
-				$approved_comments_number,
-				$pending_comments ? __('No approved comments') : __('No comments')
+				esc_html($approved_comments_number),
+				$pending_comments ? esc_html__('No approved comments') : esc_html__('No comments') // phpcs:ignore WordPress.WP.I18n.MissingArgDomain -- WordPress core handles the translation.
 			);
 		}
 
 		if ($pending_comments) {
 			printf( '<a href="%s" class="post-com-count post-com-count-pending"><span class="comment-count-pending" aria-hidden="true">%s</span><span class="screen-reader-text">%s</span></a>',
 				esc_url(add_query_arg(array('p' => $post_id, 'comment_status' => 'moderated'), admin_url('edit-comments.php'))),
-				$pending_comments_number,
-				$pending_phrase
+				esc_html($pending_comments_number),
+				esc_html($pending_phrase)
 			);
 		}
 	}
@@ -672,7 +682,7 @@ class MPSUM_List_Table {
 	 * @return int
 	 */
 	public function get_pagenum() {
-		$pagenum = isset($_REQUEST['paged']) ? absint($_REQUEST['paged']) : 0;
+		$pagenum = isset($_REQUEST['paged']) ? absint($_REQUEST['paged']) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Verified in our AJAX handler.
 
 		if (isset($this->_pagination_args['total_pages']) && $pagenum > $this->_pagination_args['total_pages'])
 			$pagenum = $this->_pagination_args['total_pages'];
@@ -734,9 +744,10 @@ class MPSUM_List_Table {
 			$infinite_scroll = $this->_pagination_args['infinite_scroll'];
 		}
 
-		$output = '<span class="displaying-num">' . sprintf(_n('%s item', '%s items', $total_items), number_format_i18n($total_items)) . '</span>';
+		/* Translators: %s is the number of total items. */
+		$output = '<span class="displaying-num">' . sprintf(_n('%s item', '%s items', $total_items), number_format_i18n($total_items)) . '</span>'; // phpcs:ignore WordPress.WP.I18n.MissingArgDomain -- WordPress core handles the translation.
 
-		$current_url = set_url_scheme('http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']);
+		$current_url = set_url_scheme('http://' . sanitize_text_field(wp_unslash((isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : '') . (isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : ''))));
 
 		$current_url = remove_query_arg(array('hotkeys_highlight_last', 'hotkeys_highlight_first'), $current_url);
 
@@ -767,7 +778,7 @@ class MPSUM_List_Table {
 		} else {
 			$page_links[] = sprintf( "<a class='first-page' href='%s'><span class='screen-reader-text'>%s</span><span aria-hidden='true'>%s</span></a>",
 				esc_url(add_query_arg(array('tab' => $tab, 'view' => $view, 'paged' => 1), $current_url)),
-				__('First page'),
+				esc_html__('First page'), // phpcs:ignore WordPress.WP.I18n.MissingArgDomain -- WordPress core handles the translation.
 				'&laquo;'
 			);
 		}
@@ -777,17 +788,17 @@ class MPSUM_List_Table {
 		} else {
 			$page_links[] = sprintf( "<a class='prev-page' href='%s'><span class='screen-reader-text'>%s</span><span aria-hidden='true'>%s</span></a>",
 				esc_url(add_query_arg(array('paged' => max(1, $current-1), 'tab' => $tab, 'view' => $view), $current_url)),
-				__('Previous page'),
+				esc_html__('Previous page'), // phpcs:ignore WordPress.WP.I18n.MissingArgDomain -- WordPress core handles the translation.
 				'&lsaquo;'
 			);
 		}
 
 		if ('bottom' == $which) {
 			$html_current_page  = $current;
-			$total_pages_before = '<span class="screen-reader-text">' . __('Current Page') . '</span><span id="table-paging" class="paging-input">';
+			$total_pages_before = '<span class="screen-reader-text">' . esc_html__('Current Page') . '</span><span id="table-paging" class="paging-input">'; // phpcs:ignore WordPress.WP.I18n.MissingArgDomain -- WordPress core handles the translation.
 		} else {
 			$html_current_page = sprintf("%s<input class='current-page' id='current-page-selector' type='text' name='paged' value='%s' size='%d' aria-describedby='table-paging' data-tab='%s' data-view='%s' />",
-				'<label for="current-page-selector" class="screen-reader-text">' . __('Current Page') . '</label>',
+				'<label for="current-page-selector" class="screen-reader-text">' . esc_html__('Current Page') . '</label>', // phpcs:ignore WordPress.WP.I18n.MissingArgDomain -- WordPress core handles the translation.
 				$current,
 				strlen($total_pages),
 				$tab,
@@ -799,14 +810,15 @@ class MPSUM_List_Table {
 			$html_current_page = 0;
 			$html_total_pages = 0;
 		}
-		$page_links[] = $total_pages_before . sprintf(_x('%1$s of %2$s', 'paging'), $html_current_page, $html_total_pages) . $total_pages_after;
+		/* Translators: 1: Current page number, 2: Total number of pages. */
+		$page_links[] = $total_pages_before . sprintf(_x('%1$s of %2$s', 'paging'), $html_current_page, $html_total_pages) . $total_pages_after; // phpcs:ignore WordPress.WP.I18n.MissingArgDomain -- WordPress core handles the translation.
 
 		if ($disable_next) {
 			$page_links[] = '<span class="tablenav-pages-navspan" aria-hidden="true">&rsaquo;</span>';
 		} else {
 			$page_links[] = sprintf( "<a class='next-page' href='%s'><span class='screen-reader-text'>%s</span><span aria-hidden='true'>%s</span></a>",
 				esc_url(add_query_arg(array('paged' => min($total_pages, $current+1), 'tab' => $tab, 'view' => $view), $current_url)),
-				__('Next page'),
+				esc_html__('Next page'), // phpcs:ignore WordPress.WP.I18n.MissingArgDomain -- WordPress core handles the translation.
 				'&rsaquo;'
 			);
 		}
@@ -816,7 +828,7 @@ class MPSUM_List_Table {
 		} else {
 			$page_links[] = sprintf( "<a class='last-page' href='%s'><span class='screen-reader-text'>%s</span><span aria-hidden='true'>%s</span></a>",
 				esc_url(add_query_arg(array('paged' => $total_pages, 'tab' => $tab, 'view' => $view), $current_url)),
-				__('Last page'),
+				esc_html__('Last page'), // phpcs:ignore WordPress.WP.I18n.MissingArgDomain -- WordPress core handles the translation.
 				'&raquo;'
 			);
 		}
@@ -834,7 +846,7 @@ class MPSUM_List_Table {
 		}
 		$this->_pagination = "<div class='tablenav-pages{$page_class}'>$output</div>";
 
-		echo $this->_pagination;
+		echo $this->_pagination;// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- needs to be presented in html
 	}
 
 	/**
@@ -1015,20 +1027,23 @@ class MPSUM_List_Table {
 	public function print_column_headers($with_id = true) {
 		list( $columns, $hidden, $sortable, $primary ) = $this->get_column_info();
 
-		$current_url = set_url_scheme('http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']);
+		$current_url = set_url_scheme('http://' . sanitize_text_field(wp_unslash((isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : '') . (isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : ''))));
 		$current_url = remove_query_arg('paged', $current_url);
 
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- Verified in our AJAX handler.
 		if (isset($_GET['orderby']))
-			$current_orderby = $_GET['orderby'];
+			$current_orderby = sanitize_text_field(wp_unslash($_GET['orderby']));
 		else $current_orderby = '';
 
 		if (isset($_GET['order']) && 'desc' == $_GET['order'])
 			$current_order = 'desc';
 		else $current_order = 'asc';
+		// phpcs:enable WordPress.Security.NonceVerification.Recommended
 
 		if (! empty($columns['cb'])) {
 			static $cb_counter = 1;
-			$columns['cb'] = '<label class="screen-reader-text" for="cb-select-all-' . $cb_counter . '">' . __('Select All') . '</label>'
+			// phpcs:ignore WordPress.WP.I18n.MissingArgDomain -- WordPress core handles the translation.
+			$columns['cb'] = '<label class="screen-reader-text" for="cb-select-all-' . $cb_counter . '">' . esc_html__('Select All') . '</label>'
 				. '<input id="cb-select-all-' . $cb_counter . '" type="checkbox" />';
 			$cb_counter++;
 		}
@@ -1072,7 +1087,7 @@ class MPSUM_List_Table {
 			if (!empty($class))
 				$class = "class='" . join(' ', $class) . "'";
 
-			echo "<$tag $scope $id $class>$column_display_name</$tag>";
+			echo "<$tag $scope $id $class>$column_display_name</$tag>";// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- needs to be presented in html
 		}
 	}
 
@@ -1087,7 +1102,7 @@ class MPSUM_List_Table {
 
 		$this->display_tablenav('top');
 ?>
-<table class="wp-list-table <?php echo implode(' ', $this->get_table_classes()); ?>">
+<table class="wp-list-table <?php echo esc_attr(implode(' ', $this->get_table_classes())); ?>">
 	<thead>
 	<tr>
 		<?php $this->print_column_headers(); ?>
@@ -1096,7 +1111,7 @@ class MPSUM_List_Table {
 
 	<tbody id="the-list"<?php
 		if ($singular) {
-		echo " data-wp-lists='list:$singular'";
+		echo " data-wp-lists='list:".esc_attr($singular)."'";
 		}
 		?>>
 		<?php $this->display_rows_or_placeholder(); ?>
@@ -1160,7 +1175,7 @@ class MPSUM_List_Table {
 		if ($this->has_items()) {
 			$this->display_rows();
 		} else {
-			echo '<tr class="no-items"><td class="colspanchange" colspan="' . $this->get_column_count() . '">';
+			echo '<tr class="no-items"><td class="colspanchange" colspan="' . esc_html($this->get_column_count()) . '">';
 			$this->no_items();
 			echo '</td></tr>';
 		}
@@ -1200,7 +1215,7 @@ class MPSUM_List_Table {
 	 * @param object $item The current item
 	 */
 	protected function single_row_columns($item) {
-		list($columns, $hidden, $sortable, $primary) = $this->get_column_info();// phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable  -- THis can be ignored as it is a list and are used below
+		list($columns, $hidden, $sortable, $primary) = $this->get_column_info();// phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable  -- This can be ignored as it is a list and are used below
 
 		foreach ($columns as $column_name => $column_display_name) {
 			$classes = "$column_name column-$column_name";
@@ -1217,7 +1232,8 @@ class MPSUM_List_Table {
 			$data = 'data-colname="' . wp_strip_all_tags($column_display_name) . '"';
 
 			$attributes = "class='$classes' $data";
-
+			
+			// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped
 			if ('cb' == $column_name) {
 				echo '<th scope="row" class="check-column">';
 				echo '</th>';
@@ -1239,6 +1255,7 @@ class MPSUM_List_Table {
 				echo $this->handle_row_actions($item, $column_name, $primary);
 				echo "</td>";
 			}
+			// phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
 		}
 	}
 
@@ -1267,7 +1284,7 @@ class MPSUM_List_Table {
 		$this->prepare_items();
 
 		ob_start();
-		if (! empty($_REQUEST['no_placeholder'])) {
+		if (! empty($_REQUEST['no_placeholder'])) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Verified in our AJAX handler.
 			$this->display_rows();
 		} else {
 			$this->display_rows_or_placeholder();
@@ -1279,7 +1296,8 @@ class MPSUM_List_Table {
 
 		if (isset($this->_pagination_args['total_items'])) {
 			$response['total_items_i18n'] = sprintf(
-				_n('%s item', '%s items', $this->_pagination_args['total_items']),
+				/* Translators: %s is the number of total items. */
+				_n('%s item', '%s items', $this->_pagination_args['total_items']), // phpcs:ignore WordPress.WP.I18n.MissingArgDomain -- WordPress core handles the translation.
 				number_format_i18n($this->_pagination_args['total_items'])
 			);
 		}

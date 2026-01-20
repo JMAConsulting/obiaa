@@ -98,7 +98,7 @@ class MPSUM_Admin_Advanced_Preview {
 	 */
 	public function headings() {
 		foreach ($this->get_items() as $key => $item) {
-			printf('<div class="premium-only" data-menu_name="advanced-premium-preview_'.$key.'">%s <span class="eum-advanced-menu-text">%s</span><span class="eum-advanced-menu-premium-only">%s</span></div>', '<i class="material-icons">'.$item['icon'].'</i>', $item['label'], __('Premium', 'stops-core-theme-and-plugin-updates'));
+			printf('<div class="premium-only" data-menu_name="advanced-premium-preview_'.esc_attr($key).'">%s <span class="eum-advanced-menu-text">%s</span><span class="eum-advanced-menu-premium-only">%s</span></div>', '<i class="material-icons">'.esc_html($item['icon']).'</i>', esc_html($item['label']), esc_html__('Premium', 'stops-core-theme-and-plugin-updates'));
 		}
 	}
 

@@ -4,8 +4,8 @@ Tags: updates manager, easy updates manager, disable updates manager, disable up
 Requires at least: 5.1
 Requires PHP: 5.6
 Donate link: https://easyupdatesmanager.com
-Tested up to: 6.7
-Stable tag: 9.0.19
+Tested up to: 6.9
+Stable tag: 9.0.20
 License: GPLv2 or later
 
 Manage all your WordPress updates, including individual updates, automatic updates, logs, and loads more. This also works very well with WordPress Multisite.
@@ -125,6 +125,15 @@ Since third-party providers use custom update mechanisms, we cannot always guara
 For additional information and FAQs for Easy Updates Manager <a href="https://easyupdatesmanager.com">check out our website</a>.
 
 == Changelog ==
+
+= 9.0.20 - 2025-12-08 =
+
+* REFACTOR: Safeguard the calls to PHP's unserialize() function by specifying the "allow_classes" parameter to false to prevent code from being loaded and executed due to object instantiation and autoloading
+* TWEAK: Early processing of external update logs is necessary to resolve the issue of the shutdown function being left out when a severe error happens during an auto/manual update through WP-CLI
+* TWEAK: Enhance the notifications to signify the introduction of other plugins that belong to the same plugin family and to align with the new branding/links
+* TWEAK: Ensure all translation functions are called during the WordPress "init" action or later. Invoking translation functions before the "init" action would have led to no translations being loaded, resulting in the original text being returned.
+* TWEAK: Sanitize the list of days setting that is used for scheduling auto-update cron event
+* TWEAK: Remove seasonal (new year, summer, spring and plugin collection) sale notices
 
 = 9.0.19 - 2024-11-12 =
 
@@ -435,4 +444,4 @@ For past changelogs, <a href="https://easyupdatesmanager.com/blog/">please visit
 
 == Upgrade Notice ==
 
-* 9.0.19: Various tweaks and fixes. Improvement of update statuses in the update notification emails and updates-check anonymisation and randomisation. See changelog for full details. A recommended update for all.
+* 9.0.20: Various tweaks and fixes. Safe calls to serialization and unserialization functions; timely invocation of translation functions. See changelog for full details. A recommended update for all.

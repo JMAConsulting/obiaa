@@ -42,12 +42,13 @@ class MPSUM_Themes_List_Table extends MPSUM_List_Table {
 
 		$this->allowed_statuses = apply_filters('eum_themes_list_table_allowed_statuses', array('all', 'update_disabled', 'update_enabled', 'automatic'));
 
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- Verified in our AJAX handler
 		if (isset($_REQUEST['action']) && 'eum_ajax' === $_REQUEST['action']) {
-			$this->status = isset($_REQUEST['view']) ? $_REQUEST['view'] : 'all';
+			$this->status = isset($_REQUEST['view']) ? sanitize_text_field(wp_unslash($_REQUEST['view'])) : 'all';
 			if (!in_array($this->status, $this->allowed_statuses))
 				$this->status = 'all';
 
-			$this->page = isset($_REQUEST['paged']) ? $_REQUEST['paged'] : '1';
+			$this->page = isset($_REQUEST['paged']) ? sanitize_text_field(wp_unslash($_REQUEST['paged'])) : '1';
 		} else {
 			$this->status = isset($args['view']) ? $args['view'] : 'all';
 			if (!in_array($this->status, $this->allowed_statuses))
@@ -60,6 +61,8 @@ class MPSUM_Themes_List_Table extends MPSUM_List_Table {
 
 		if ($this->is_site_themes)
 			$this->site_id = isset($_REQUEST['id']) ? intval($_REQUEST['id']) : 0;
+
+		// phpcs:enable WordPress.Security.NonceVerification.Recommended
 	}
 
 	/**
@@ -191,7 +194,7 @@ class MPSUM_Themes_List_Table extends MPSUM_List_Table {
 	public function _search_callback($theme) {
 		static $term;
 		if (is_null($term))
-			$term = wp_unslash($_REQUEST['s']);
+			$term = isset($_REQUEST['s']) ? sanitize_text_field(wp_unslash($_REQUEST['s'])) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Verified in our AJAX handler
 
 		foreach (array('Name', 'Description', 'Author', 'Author', 'AuthorURI') as $field) {
 			// Don't mark up; Do translate.
@@ -241,9 +244,9 @@ class MPSUM_Themes_List_Table extends MPSUM_List_Table {
 	 */
 	public function no_items() {
 		if (! $this->has_items) {
-			_e('No themes found.', 'stops-core-theme-and-plugin-updates');
+			esc_html_e('No themes found.', 'stops-core-theme-and-plugin-updates');
 		} else {
-			_e('You do not appear to have any themes available at this time.', 'stops-core-theme-and-plugin-updates');
+			esc_html_e('You do not appear to have any themes available at this time.', 'stops-core-theme-and-plugin-updates');
 		}
 	}
 
@@ -284,15 +287,19 @@ class MPSUM_Themes_List_Table extends MPSUM_List_Table {
 
 			switch ($type) {
 				case 'all':
-					$text = _nx('All <span class="count">(%s)</span>', 'All <span class="count">(%s)</span>', $count, 'stops-core-theme-and-plugin-updates');
+					/* Translators: %s: Total number of theme. */
+					$text = _nx('All <span class="count">(%s)</span>', 'All <span class="count">(%s)</span>', $count, 'themes', 'stops-core-theme-and-plugin-updates');
 					break;
 				case 'update_disabled':
+					/* Translators: %s: Total number of updates disabled theme. */
 					$text = _n('Updates disabled <span class="count">(%s)</span>', 'Updates Disabled <span class="count">(%s)</span>', $count, 'stops-core-theme-and-plugin-updates');
 					break;
 				case 'update_enabled':
+					/* Translators: %s: Total number of updates enabled theme. */
 					$text = _n('Updates enabled <span class="count">(%s)</span>', 'Updates enabled <span class="count">(%s)</span>', $count, 'stops-core-theme-and-plugin-updates');
 					break;
 				case 'automatic':
+					/* Translators: %s: Total number of automatic updates enabled theme. */
 					$text = _n('Automatic updates <span class="count">(%s)</span>', 'Automatic updates <span class="count">(%s)</span>', $count, 'stops-core-theme-and-plugin-updates');
 					break;
 				default:
@@ -376,24 +383,23 @@ class MPSUM_Themes_List_Table extends MPSUM_List_Table {
 		if (false !== $key = array_search($stylesheet, $theme_options)) {
 			$class = 'inactive';
 		}
-		echo "<tr id='$id' class='$class'>";
+		echo "<tr id='".esc_attr($id)."' class='".esc_attr($class)."'>";
 
 		list($columns, $hidden) = $this->get_column_info();
 
 		foreach ($columns as $column_name => $column_display_name) {
-			$style = '';
-			if (in_array($column_name, $hidden))
-				$style = ' style="display:none;"';
+			
+			$is_hidden = in_array($column_name, $hidden);
 
 			switch ($column_name) {
 				case 'cb':
-					echo "<th scope='row' class='check-column'>$checkbox</th>";
+					echo "<th scope='row' class='check-column'>$checkbox</th>";// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- needs to be presented in html
 					break;
 				case 'name':
-					echo "<td class='theme-title'$style>";
+					echo "<td class='theme-title'" . ($is_hidden ? ' style = "display: none;"' : '') . ">";
 					echo "<img src='" . esc_url($theme->get_screenshot()) . "' width='85' height='64' class='updates-table-screenshot' alt='' />";
 					echo '<div class="eum-themes-name-actions">';
-					echo "<h3 class='eum-themes-name'>" . $theme->display('Name') . "</h3>";
+					echo "<h3 class='eum-themes-name'>" . esc_html($theme->display('Name')) . "</h3>";
 					echo '<div class="eum-themes-wrapper">';
 					printf('<h4>%s</h4>', esc_html__('Theme updates', 'stops-core-theme-and-plugin-updates'));
 
@@ -410,21 +416,21 @@ class MPSUM_Themes_List_Table extends MPSUM_List_Table {
 					}
 
 					printf('<input type="hidden" name="themes[%s]" value="%s">',
-						$stylesheet,
-						$checked
+						esc_attr($stylesheet),
+						esc_attr($checked)
 					);
 
 					printf('<button aria-label="%s" class="eum-toggle-button eum-enabled %s" data-checked="%s">%s</button>',
 						esc_attr__('Allow updates', 'stops-core-theme-and-plugin-updates'),
 						esc_attr($enable_class),
-						$stylesheet,
+						esc_attr($stylesheet),
 						esc_html__('Allowed', 'stops-core-theme-and-plugin-updates')
 					);
 
 					printf('<button aria-label="%s" class="eum-toggle-button eum-disabled %s" data-checked="%s">%s</button>',
 						esc_attr__('Disallow updates', 'stops-core-theme-and-plugin-updates'),
 						esc_attr($disable_class),
-						$stylesheet,
+						esc_attr($stylesheet),
 						esc_html__('Blocked', 'stops-core-theme-and-plugin-updates')
 					);
 
@@ -447,21 +453,21 @@ class MPSUM_Themes_List_Table extends MPSUM_List_Table {
 						}
 
 						printf('<input type="hidden" name="themes_automatic[%s]" value="%s">',
-							$stylesheet,
-							$checked
+							esc_attr($stylesheet),
+							esc_attr($checked)
 						);
 
 						printf('<button aria-label="%s" class="eum-toggle-button eum-enabled %s" data-checked="%s">%s</button>',
 							esc_html__('Enable automatic updates', 'stops-core-theme-and-plugin-updates'),
 							esc_attr($enable_class),
-							$stylesheet,
+							esc_attr($stylesheet),
 							esc_html__('On', 'stops-core-theme-and-plugin-updates')
 						);
 
 						printf('<button aria-label="%s" class="eum-toggle-button eum-disabled %s" data-checked="%s">%s</button>',
 							esc_attr__('Enable automatic updates', 'stops-core-theme-and-plugin-updates'),
 							esc_attr($disable_class),
-							$stylesheet,
+							esc_attr($stylesheet),
 							esc_html__('Off', 'stops-core-theme-and-plugin-updates')
 						);
 
@@ -472,19 +478,22 @@ class MPSUM_Themes_List_Table extends MPSUM_List_Table {
 					echo "</td>";
 					break;
 				case 'description':
-					echo "<td class='column-description desc'$style>";
+					echo "<td class='column-description desc'" . ($is_hidden ? ' style = "display: none;"' : '') . ">";
 					if ($theme->errors()) {
 						$pre = 'broken' == $this->status ? __('Broken theme:', 'stops-core-theme-and-plugin-updates') . ' ' : '';
-						echo '<p><strong class="attention">' . $pre . $theme->errors()->get_error_message() . '</strong></p>';
+						echo '<p><strong class="attention">' . esc_html($pre . $theme->errors()->get_error_message()) . '</strong></p>';
 					}
-					echo "<div class='theme-description'><p>" . $theme->display('Description') . "</p></div>
+					echo "<div class='theme-description'><p>" . esc_html($theme->display('Description')) . "</p></div>
 						<div class='second theme-version-author-uri'>";
 
 					$theme_meta = array();
 
-					if ($theme->get('Version'))
+					if ($theme->get('Version')) {
+						/* translators: %s: Theme version. */
 						$theme_meta[] = sprintf(__('Version %s', 'stops-core-theme-and-plugin-updates'), $theme->display('Version'));
+					}
 
+					/* translators: %s: Theme author. */
 					$theme_meta[] = sprintf(__('By %s', 'stops-core-theme-and-plugin-updates'), $theme->display('Author'));
 
 					if ($theme->get('ThemeURI'))
@@ -504,7 +513,7 @@ class MPSUM_Themes_List_Table extends MPSUM_List_Table {
 					 * @param string   $this->status     Status of the theme.
 					 */
 					$theme_meta = apply_filters('theme_row_meta', $theme_meta, $stylesheet, $theme, $this->status);
-					echo implode(' | ', $theme_meta);
+					echo implode(' | ', $theme_meta);// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- needs to be presented in html
 
 					// Show active status for blogs
 					if (is_multisite()) {
@@ -538,7 +547,7 @@ class MPSUM_Themes_List_Table extends MPSUM_List_Table {
 					break;
 
 				default:
-					echo "<td class='$column_name column-$column_name'$style>";
+					echo "<td class='" . esc_attr($column_name) . " column-" . esc_attr($column_name) . "'" . ($is_hidden ? ' style = "display: none;"' : '') . ">";
 
 					/**
 					 * Fires inside each custom column of the Multisite themes list table.
@@ -598,7 +607,7 @@ class MPSUM_Themes_List_Table extends MPSUM_List_Table {
 		$views = ob_get_clean();
 
 		ob_start();
-		if (!empty($_REQUEST['no_placeholder'])) {
+		if (!empty($_REQUEST['no_placeholder'])) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Verified in our AJAX handler
 			$this->display_rows();
 		} else {
 			$this->display_rows_or_placeholder();
@@ -626,7 +635,8 @@ class MPSUM_Themes_List_Table extends MPSUM_List_Table {
 		// phpcs:disable VariableAnalysis.CodeAnalysis.VariableAnalysis.UndefinedVariable -- $total_items and $total_pages are being exc tracted on line 585
 
 		if (isset($total_items)) {
-			$response['total_items_i18n'] = sprintf(_n('1 plugin', '%s plugins', $total_items), number_format_i18n($total_items));
+			/* Translators: %s: Total number of themes. */
+			$response['total_items_i18n'] = sprintf(_n('%s theme', '%s themes', $total_items, 'stops-core-theme-and-plugin-updates'), number_format_i18n($total_items));
 		}
 
 		if (isset($total_pages)) {

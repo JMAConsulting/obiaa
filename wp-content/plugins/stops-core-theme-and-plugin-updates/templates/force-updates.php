@@ -12,12 +12,12 @@ if (isset($options['all_updates']) && 'off' == $options['all_updates']) {
 
 // Show a notice if automatic updates are off
 if (!MPSUM_Utils::get_instance()->is_automatic_updates_enabled()) {
-	printf('<div class="mpsum-error mpsum-bold">%s</div>', esc_html__('Automatic updates are off, so Force updates will not work.'));
+	printf('<div class="mpsum-error mpsum-bold">%s</div>', esc_html__('Automatic updates are off, so Force updates will not work.', 'stops-core-theme-and-plugin-updates'));
 }
 
 // Show a warning if delay updates is above zero
 if (isset($options['delay_updates']) && $options['delay_updates'] > 0) {
-	printf('<div class="mpsum-notice mpsum-bold">%s</div>', esc_html__('Delayed updates are on, so some assets may not be updated automatically.'));
+	printf('<div class="mpsum-notice mpsum-bold">%s</div>', esc_html__('Delayed updates are on, so some assets may not be updated automatically.', 'stops-core-theme-and-plugin-updates'));
 }
 
 // Begin output
@@ -38,14 +38,15 @@ if (!$updates) {
 		$delimiter = ',';
 		if ($allowed_entities && count($updates)-1 == $i+1) $delimiter = ' '.__('and', 'stops-core-theme-and-plugin-updates');
 	}
-	if (count($updates) < 4) printf('<div class="mpsum-error mpsum-regular">%s</div>', sprintf(esc_html__("You can only force %s automatic updates due to insufficient user capabilities you have for the website.", 'stops-core-theme-and-plugin-updates'), '<strong>'.$allowed_entities.'</strong>'));
+	/* Translators: %s: Allowed update types. */
+	if (count($updates) < 4) printf('<div class="mpsum-error mpsum-regular">%s</div>', sprintf(esc_html__("You can only force %s automatic updates due to insufficient user capabilities you have for the website.", 'stops-core-theme-and-plugin-updates'), '<strong>'.esc_html($allowed_entities).'</strong>'));
 }
 $utils = MPSUM_Utils::get_instance();
 $updraftplus = $utils->is_installed('updraftplus');
 if (true === $updraftplus['installed'] && true === $updraftplus['active']) {
 	global $updraftplus_admin;
 	if (is_a($updraftplus_admin, 'UpdraftPlus_Admin') && is_callable(array($updraftplus_admin, 'add_backup_scaffolding'))) {
-		printf('<label><input type="checkbox" name="backup_force_updates" id="backup_force_updates" value="1" />%s</label>', __('Take a backup first (with UpdraftPlus)', 'stops-core-theme-and-plugin-updates'));
+		printf('<label><input type="checkbox" name="backup_force_updates" id="backup_force_updates" value="1" />%s</label>', esc_html__('Take a backup first (with UpdraftPlus)', 'stops-core-theme-and-plugin-updates'));
 		$updraftplus_admin->add_backup_scaffolding(__('Take a backup before update', 'stops-core-theme-and-plugin-updates'), array($updraftplus_admin, 'backupnow_modal_contents'));
 	}
 } else {
@@ -61,7 +62,7 @@ if (true === $updraftplus['installed'] && true === $updraftplus['active']) {
 			$anchor = "<a href=\"{$url}\">{$url_text}</a>";
 		}
 		$required_plugin = __('Take a backup with UpdraftPlus before updating.', 'stops-core-theme-and-plugin-updates');
-		printf('<p id="eum-auto-backup-description">%s %s</p>', $required_plugin, $anchor);
+		printf('<p id="eum-auto-backup-description">%s %s</p>', esc_html($required_plugin), wp_kses($anchor, array('a' => array('href' => array()))));
 	} else {
 		if (current_user_can('install_plugins')) {
 			$url = esc_url(wp_nonce_url(
@@ -71,7 +72,7 @@ if (true === $updraftplus['installed'] && true === $updraftplus['active']) {
 			$url_text = __('Follow this link to install it.', 'stops-core-theme-and-plugin-updates');
 			$anchor = "<a href=\"{$url}\">{$url_text}</a>";
 			$required_plugin = __('You can take backups using UpdraftPlus before updating.', 'stops-core-theme-and-plugin-updates');
-			printf('<p id="eum-auto-backup-description">%s %s</p>', $required_plugin, $anchor);
+			printf('<p id="eum-auto-backup-description">%s %s</p>', esc_html($required_plugin), wp_kses($anchor, array('a' => array('href' => array()))));
 		}
 	}
 }
