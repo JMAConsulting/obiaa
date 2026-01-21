@@ -266,7 +266,6 @@ class CRM_Core_Payment_StripeIPN {
    *
    * @return bool
    * @throws \CRM_Core_Exception
-   * @throws \CiviCRM_API3_Exception
    * @throws \Stripe\Exception\UnknownApiErrorException
    */
   public function onReceiveWebhook($processWebhook = TRUE): bool {
@@ -394,13 +393,9 @@ class CRM_Core_Payment_StripeIPN {
     if (!$this->setEventType($webhookEvent['trigger'])) {
       // We don't handle this event
       return FALSE;
-    };
-    // @todo consider storing webhook data when received.
-    $this->setVerifyData(TRUE);
-    $this->setExceptionMode(FALSE);
-    if (isset($emailReceipt)) {
-      $this->setSendEmailReceipt($emailReceipt);
     }
+
+    $this->setExceptionMode(FALSE);
 
     $processingResult = $this->processWebhookEvent();
     // Update the stored webhook event.
@@ -496,7 +491,7 @@ class CRM_Core_Payment_StripeIPN {
           $return->message = $e->getMessage() . "\n" . $e->getTraceAsString();
         }
         $return->exception = $e;
-        \Civi::log()->error("StripeIPN: processWebhookEvent failed. EventID: {$this->eventID} : " . $return->message);
+        \Civi::log('stripe')->error("StripeIPN: processWebhookEvent failed. EventID: {$this->eventID} : " . $return->message);
       }
     }
 

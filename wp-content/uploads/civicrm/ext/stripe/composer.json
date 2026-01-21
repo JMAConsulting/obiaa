@@ -3,5 +3,6 @@
     "description": "Stripe Payment Processor",
     "require": {
         "stripe/stripe-php": "^12"
-    }
+    },
+    "type": "civicrm-ext"
 }

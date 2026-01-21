@@ -6,6 +6,7 @@ namespace Civi\Api4;
  *
  * Provided by the Stripe Payment Processor extension.
  *
+ * @searchable secondary
  * @package Civi\Api4
  */
 class StripeCustomer extends Generic\DAOEntity {

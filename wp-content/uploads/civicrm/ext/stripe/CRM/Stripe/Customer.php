@@ -86,7 +86,7 @@ class CRM_Stripe_Customer {
    * @param \CRM_Core_Payment_Stripe $stripe
    *
    * @return \Stripe\Customer|\PropertySpy
-   * @throws \CiviCRM_API3_Exception
+   * @throws \CRM_Core_Exception
    * @throws \Civi\Payment\Exception\PaymentProcessorException
    */
   public static function create(array $params, \CRM_Core_Payment_Stripe $stripe) {

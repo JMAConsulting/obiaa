@@ -17,7 +17,7 @@ use CRM_Stripe_ExtensionUtil as E;
  *
  * @param array $params
  * @return array API result descriptor
- * @throws API_Exception
+ * @throws CRM_Core_Exception
  */
 function civicrm_api3_stripe_paymentintent_create($params) {
   return _civicrm_api3_basic_create('CRM_Stripe_BAO_StripePaymentintent', $params, 'StripePaymentintent');
@@ -38,8 +38,8 @@ function _civicrm_api3_stripe_paymentintent_delete_spec(&$spec) {
  * @param array $params
  *
  * @return array API result descriptor
- * @throws \API_Exception
- * @throws \CiviCRM_API3_Exception
+ * @throws \CRM_Core_Exception
+ * @throws \CRM_Core_Exception
  * @throws \Civi\API\Exception\UnauthorizedException
  */
 function civicrm_api3_stripe_paymentintent_delete($params) {

@@ -6,6 +6,7 @@ namespace Civi\Api4;
  *
  * Provided by the Stripe extension
  *
+ * @searchable secondary
  * @package Civi\Api4
  */
 class StripePaymentintent extends Generic\DAOEntity {
