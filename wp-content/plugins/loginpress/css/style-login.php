@@ -432,6 +432,11 @@ input[type=checkbox]:checked::before{
 	display:inline-block;
 	margin: 0;
 }
+<?php if ( 'default1' !== $loginpress_theme_tem ) : ?>
+.loginpress-seprator{
+	display: none;
+}
+<?php endif; ?>
 #login::after{
 	<?php $loginpress_background_img = apply_filters( 'loginpress_login_after_background_image', $loginpress_background_img ); ?>
 	<?php if ( ( 'default6' === $loginpress_theme_tem || 'default10' === $loginpress_theme_tem ) && ! empty( $loginpress_background_img ) && $loginpress_display_bg ) : ?>
@@ -490,7 +495,8 @@ input[type=checkbox]:checked::before{
 		<?php endif; ?>
 	<?php endif; ?>
 }
-#loginform, html body.login .wishlistmember-loginform div#login form#loginform{
+<?php if ( 'minimalist' !== $loginpress_theme_tem ) : ?>
+#login{
 
 	<?php if ( ! empty( $loginpress_login_form_shadow ) && ! empty( $loginpress_login_form_opacity ) ) : ?>
 	box-shadow: <?php echo esc_attr( loginpress_box_shadow( $loginpress_login_form_shadow, $loginpress_login_form_opacity ) ); ?><?php echo esc_attr( loginpress_important() ); ?>;
@@ -499,6 +505,7 @@ input[type=checkbox]:checked::before{
 			-webkit-box-shadow: 0 <?php echo esc_attr( loginpress_important() ); ?>;
 	<?php endif; ?>
 }
+<?php endif; ?>
 <?php if ( 'minimalist' === $loginpress_theme_tem ) : ?>
 	#loginform, html body.login .wishlistmember-loginform div#login form#loginform{
 		
@@ -510,6 +517,12 @@ input[type=checkbox]:checked::before{
 		<?php endif; ?>
 		<?php if ( ! empty( $loginpress_login_form_radius ) ) : ?>
 		border-radius: <?php echo esc_attr( $loginpress_login_form_radius ) . 'px'; ?>;
+		<?php endif; ?>
+		<?php if ( ! empty( $loginpress_login_form_shadow ) && ! empty( $loginpress_login_form_opacity ) ) : ?>
+		box-shadow: <?php echo esc_attr( loginpress_box_shadow( $loginpress_login_form_shadow, $loginpress_login_form_opacity ) ); ?><?php echo esc_attr( loginpress_important() ); ?>;
+		<?php elseif ( 0 === $loginpress_login_form_shadow || 0 === $loginpress_login_form_opacity ) : ?>
+			box-shadow: none;
+			-webkit-box-shadow: 0 <?php echo esc_attr( loginpress_important() ); ?>;
 		<?php endif; ?>
 	}
 <?php endif; ?>
@@ -1640,11 +1653,6 @@ body.login #loginpress_video-background-wrapper{
 		left: 0 !important;
 	<?php endif; ?>
 }
-}
-@media screen and (max-height: 700px) {
-	.loginpress-show-love{
-		display: none !important;
-	}
 }
 /* The only rule that matters */
 #loginpress_video-background {

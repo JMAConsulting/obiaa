@@ -5,7 +5,7 @@ Contributors: WPBrigade, hiddenpearls, AbdulWahab610
 Donate link: https://loginpress.pro/pricing/?utm_source=loginpress-lite
 Author URI: https://wpbrigade.com/?utm_source=loginpress-lite&utm_medium=author-url-link
 Tags: wp-login, login, login customizer, custom login, wordpress login,
-Stable tag: 6.1.1
+Stable tag: 6.1.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -234,6 +234,9 @@ Please visit <a target="_blank" rel="friend" href="https://loginpress.pro/pricin
 == Changelog ==
 
 
+= 6.1.2 – 2026-01-26 =
+* Bugfix: Fixed box shadow customization issues.
+
 = 6.1.1 – 2026-01-09 =
 * Enhancement: Improved compatibility between LoginPress Custom Password Strength and the WordPress core password strength feature.
 * Bugfix: Fixed a JavaScript issue that could trigger an “Invalid or unexpected token” error during optout.
@@ -420,5 +423,5 @@ For more detail on changelog visit [LoginPress.Pro](https://loginpress.pro/chang
 
 == Upgrade Notice ==
 
-= 6.1.1 =
+= 6.1.2 =
 * Upgrade Carefully, LoginPress 6.1 is packed with major enhancements and performance improvements.
