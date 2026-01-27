@@ -1,13 +1,17 @@
 <?php
 /**
+ * LoginPress Customizer Strings.
+ *
  * Customizer strings for the logo control.
  *
+ * @package LoginPress
  * @since 1.1.3
  * @version 1.4.3
  */
+
 $logo_range_control = array( 'customize_logo_width', 'customize_logo_height', 'customize_logo_padding' );
 $logo_range_default = array( '84', '84', '0' );
-$logo_range_label   = array( __( 'Logo Width:', 'loginpress' ), __( 'Logo Height:', 'loginpress' ), __( 'Space Bottom:', 'loginpress' ) );
+$logo_range_label   = array( esc_html__( 'Logo Width:', 'loginpress' ), esc_html__( 'Logo Height:', 'loginpress' ), esc_html__( 'Space Bottom:', 'loginpress' ) );
 $logo_range_attrs   = array(
 	array(
 		'min'    => 0,
@@ -92,67 +96,67 @@ $form_range_attrs   = array(
 		'max'    => 800,
 		'step'   => 1,
 		'suffix' => 'px',
-	), // form width
+	), // form width.
 	array(
 		'min'    => 0,
 		'max'    => 500,
 		'step'   => 1,
 		'suffix' => 'px',
-	), // form height
+	), // form height.
 	array(
 		'min'    => 0,
 		'max'    => 100,
 		'step'   => 1,
 		'suffix' => 'px',
-	), // form radius
+	), // form radius.
 	array(
 		'min'    => 0,
 		'max'    => 30,
 		'step'   => 1,
 		'suffix' => 'px',
-	), // form shadow
+	), // form shadow.
 	array(
 		'min'    => 0,
 		'max'    => 100,
 		'step'   => 1,
 		'suffix' => '%',
-	), // form Opacity
+	), // form Opacity.
 	array(
 		'min'    => 0,
 		'max'    => 100,
 		'step'   => 1,
 		'suffix' => '%',
-	), // textfield width
+	), // textfield width.
 	array(
 		'min'    => 0,
 		'max'    => 30,
 		'step'   => 1,
 		'suffix' => 'px',
-	), // textfield radius
+	), // textfield radius.
 	array(
 		'min'    => 0,
 		'max'    => 30,
 		'step'   => 1,
 		'suffix' => 'px',
-	), // textfield shadow
+	), // textfield shadow.
 	array(
 		'min'    => 0,
 		'max'    => 100,
 		'step'   => 1,
 		'suffix' => '%',
-	), // textfield Opacity
+	), // textfield Opacity.
 	array(
 		'min'    => 9,
 		'max'    => 30,
 		'step'   => 1,
 		'suffix' => 'px',
-	), // textfield label
+	), // textfield label.
 	array(
 		'min'    => 9,
 		'max'    => 30,
 		'step'   => 1,
 		'suffix' => 'px',
-	), // readme label
+	), // readme label.
 );
 $form_range_unit    = array( 'px', 'px', 'px', 'px', '%', '%', 'px', 'px', '%', 'px', 'px' );
 // --------------------
