@@ -140,6 +140,13 @@ class CiviCRM_Admin_Utilities_Multisite {
 		// Register hooks.
 		$this->register_hooks();
 
+		/**
+		 * Fires when this class is loaded.
+		 *
+		 * @since 1.0.9
+		 */
+		do_action( 'cau/network/loaded' );
+
 	}
 
 	/**
@@ -374,6 +381,15 @@ class CiviCRM_Admin_Utilities_Multisite {
 
 		}
 
+		/**
+		 * Fires just before the upgraded settings are saved.
+		 *
+		 * @since 1.0.9
+		 *
+		 * @param bool $save True if settings should be saved, false otherwise.
+		 */
+		$save = apply_filters( 'cau/network/settings/upgrade', $save );
+
 		// Save settings if need be.
 		if ( true === $save ) {
 			$this->settings_save();
@@ -389,7 +405,7 @@ class CiviCRM_Admin_Utilities_Multisite {
 	public function register_hooks() {
 
 		// If CiviCRM is network activated.
-		if ( $this->plugin->is_civicrm_network_activated() ) {
+		if ( $this->plugin->civicrm->is_network_activated() ) {
 
 			// Hook in after the CiviCRM menu hook has been registered.
 			add_action( 'init', [ $this, 'civicrm_on_main_site_only' ], 20 );
@@ -732,7 +748,7 @@ class CiviCRM_Admin_Utilities_Multisite {
 		$civicrm_restricted = '';
 
 		// If CiviCRM is network activated.
-		if ( $this->plugin->is_civicrm_network_activated() ) {
+		if ( $this->plugin->civicrm->is_network_activated() ) {
 
 			// Init main site only checkbox.
 			$main_site_only = 0;
@@ -803,6 +819,16 @@ class CiviCRM_Admin_Utilities_Multisite {
 		if ( ! current_user_can( 'manage_network_plugins' ) ) {
 			return;
 		}
+
+		/**
+		 * Filters the array of data to be shared with all metaboxes.
+		 *
+		 * @since 1.0.9
+		 *
+		 * @param array $data The empty default array of metabox data.
+		 * @param string $screen_id The Screen indentifier.
+		 */
+		$data = apply_filters( 'cau/network/settings/page/meta_boxes_data', [], $screen_id );
 
 		// Create Submit metabox.
 		add_meta_box(
@@ -883,6 +909,16 @@ class CiviCRM_Admin_Utilities_Multisite {
 			'normal', // Column: options are 'normal' and 'side'.
 			'core' // Vertical placement: options are 'core', 'high', 'low'.
 		);
+
+		/**
+		 * Broadcast that the metaboxes have been added.
+		 *
+		 * @since 1.0.9
+		 *
+		 * @param string $screen_id The Screen indentifier.
+		 * @param array $data The array of metabox data.
+		 */
+		do_action( 'cau/network/settings/page/meta_boxes_added', $screen_id, $data );
 
 	}
 
