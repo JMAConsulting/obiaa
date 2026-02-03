@@ -4,7 +4,7 @@ Donate link: https://www.paypal.me/interactivist
 Tags: civicrm, admin, utility, styling, menu
 Requires at least: 4.9
 Tested up to: 6.8
-Stable tag: 1.0.8
+Stable tag: 1.0.9
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 
@@ -70,6 +70,11 @@ Network Administrators can now set site defaults for any further activations of 
 
 
 == Changelog ==
+
+= 1.0.9 =
+
+* Improved support for CiviCRM Multisite/Multidomain setups
+* Misc style fixes for recent versions of CiviCRM
 
 = 1.0.8 =
 
