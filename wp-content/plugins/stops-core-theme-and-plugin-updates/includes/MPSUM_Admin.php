@@ -230,7 +230,7 @@ class MPSUM_Admin {
 		// or inactive installs. It also shows when a plugin is available to update.
 		// This will inject styles into the modal hiding the information bar to prevent
 		// any kind of confusion.
-		if (isset($_GET['eum_action']) && 'EUM_modal' === $_GET['eum_action']) {
+		if (isset($_GET['eum_action']) && 'EUM_modal' === $_GET['eum_action'] && isset($_GET['_wpnonce']) && wp_verify_nonce(sanitize_text_field(wp_unslash($_GET['_wpnonce'])), 'eum-modal')) {
 			echo '<style>#plugin-information-footer{display:none;}</style>';
 		}
 	}
@@ -243,8 +243,10 @@ class MPSUM_Admin {
 	public function enqueue_scripts() {
 
 		// Get active page and active tab fore enqueuing
-		$pagenow = isset($_GET['page']) ? $_GET['page'] : false;
-		$is_active_tab = isset($_GET['tab']) ? $_GET['tab'] : false;
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- It gets the page and checks for the active tab.
+		$pagenow = isset($_GET['page']) ? sanitize_text_field(wp_unslash($_GET['page'])) : false;
+		$is_active_tab = isset($_GET['tab']) ? sanitize_text_field(wp_unslash($_GET['tab'])) : false;
+		// phpcs:enable WordPress.Security.NonceVerification.Recommended
 
 		// Check to make sure we're on the mpsum admin page
 		if ('mpsum-update-options' != $pagenow) {
@@ -660,7 +662,8 @@ class MPSUM_Admin {
 			$tabs_count = count($tabs);
 			if ($tabs && !empty($tabs)) {
 				$tab_html = '<h2 class="nav-tab-wrapper">';
-				$active_tab = isset($_GET['tab']) ? sanitize_text_field($_GET['tab']) : 'general';
+				// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- It gets active tab.
+				$active_tab = isset($_GET['tab']) ? sanitize_text_field(wp_unslash($_GET['tab'])) : 'general';
 				$is_tab_match = false;
 				if ('general' == $active_tab) {
 					$active_tab = 'general';
@@ -691,7 +694,7 @@ class MPSUM_Admin {
 				}
 				$tab_html .= '</h2>';
 				if ($tabs_count > 1) {
-					echo $tab_html;
+					echo wp_kses_post($tab_html);
 				}
 				if ($do_action) {
 

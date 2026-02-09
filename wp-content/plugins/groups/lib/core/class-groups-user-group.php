@@ -23,6 +23,8 @@ if ( !defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+// phpcs:disable PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+
 /**
  * User Group OPM.
  */
@@ -94,7 +96,7 @@ class Groups_User_Group {
 	public function __get( $name ) {
 		$result = null;
 		if ( $this->user_group !== null ) {
-			switch( $name ) {
+			switch ( $name ) {
 				case 'user_id' :
 				case 'group_id' :
 					$result = $this->user_group->$name;
@@ -256,7 +258,7 @@ class Groups_User_Group {
 			Groups_Utility::id( $user_id )
 		) );
 		if ( $rows ) {
-			foreach( $rows as $row ) {
+			foreach ( $rows as $row ) {
 				// don't optimize that in preference of a standard deletion
 				// process (trigger actions ...)
 				self::delete( $row->user_id, $row->group_id );
@@ -295,7 +297,7 @@ class Groups_User_Group {
 				Groups_Utility::id( $user_id )
 			) );
 			if ( $rows ) {
-				foreach( $rows as $row ) {
+				foreach ( $rows as $row ) {
 					// don't optimize that, favour standard deletion
 					self::delete( $row->user_id, $row->group_id );
 				}

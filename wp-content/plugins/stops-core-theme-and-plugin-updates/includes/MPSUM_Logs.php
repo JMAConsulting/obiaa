@@ -95,12 +95,19 @@ class MPSUM_Logs {
 	} //end constructor
 
 	/**
-	 * Make sure PHP fatal errors are caught during an update and/or write remaining update information in the $log_messages variable into the database (if any)
+	 * Make sure PHP fatal errors are caught during an manual/automatic update and try to log anything that gets updated
 	 */
 	public function perform_shutdown_task() {
+		self::maybe_log_updates();
+	}
+
+	/**
+	 * Write remaining update information in the $log_messages variable into the database (if any)
+	 */
+	private function maybe_log_updates() {
 		if (!is_array($this->log_messages) || empty($this->log_messages)) return;
 		try {
-			$stacktrace = maybe_serialize(apply_filters('eum_normalized_call_stack_args', $this->normalise_call_stack_args(debug_backtrace(false)))); // phpcs:ignore PHPCompatibility.FunctionUse.ArgumentFunctionsReportCurrentValue.NeedsInspection
+			$stacktrace = maybe_serialize(apply_filters('eum_normalized_call_stack_args', $this->normalise_call_stack_args(debug_backtrace(false)))); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_debug_backtrace, PHPCompatibility.FunctionUse.ArgumentFunctionsReportCurrentValue.NeedsInspection -- Using debug_backtrace() to normalize call stack for logging purposes.
 		} catch (Exception $e) {
 			$stacktrace = serialize(array()); // if an exception still happens even after the call stack is already normalised then we won't provide stacktrace for a log entry
 		// @codingStandardsIgnoreLine
@@ -113,6 +120,7 @@ class MPSUM_Logs {
 				$this->insert_log($data['name'], $type, $data['from'], $data['to'], $this->auto_update ? 'automatic' : 'manual', doing_action('upgrader_process_complete') || doing_action('automatic_updates_complete') ? 1 : 0, get_current_user_id(), '', $stacktrace);
 			}
 		}
+		$this->log_messages = array();
 	}
 
 	/**
@@ -261,7 +269,7 @@ class MPSUM_Logs {
 	public function log_updates($wp_upgrader, $hook_extra) {
 		if (isset($hook_extra['action']) && 'update' !== $hook_extra['action']) return;
 		try {
-			$stacktrace = maybe_serialize(apply_filters('eum_normalized_call_stack_args', $this->normalise_call_stack_args(debug_backtrace(false)))); // phpcs:ignore PHPCompatibility.FunctionUse.ArgumentFunctionsReportCurrentValue.NeedsInspection
+			$stacktrace = maybe_serialize(apply_filters('eum_normalized_call_stack_args', $this->normalise_call_stack_args(debug_backtrace(false)))); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_debug_backtrace, PHPCompatibility.FunctionUse.ArgumentFunctionsReportCurrentValue.NeedsInspection -- Using debug_backtrace() to normalize call stack for logging purposes.
 		} catch (Exception $e) {
 			$stacktrace = serialize(array()); // if an exception still happens even after the call stack is already normalised then we won't provide stacktrace for a log entry
 		// @codingStandardsIgnoreLine
@@ -311,6 +319,7 @@ class MPSUM_Logs {
 				if (empty($this->log_messages['theme'])) unset($this->log_messages['theme']);
 				break;
 		}
+		self::maybe_log_updates();
 	}
 
 	/**
@@ -377,7 +386,7 @@ class MPSUM_Logs {
 	public function log_automatic_updates($update_results) {
 		if (empty($update_results)) return;
 		try {
-			$stacktrace = maybe_serialize(apply_filters('eum_normalized_call_stack_args', $this->normalise_call_stack_args(debug_backtrace(false)))); // phpcs:ignore PHPCompatibility.FunctionUse.ArgumentFunctionsReportCurrentValue.NeedsInspection
+			$stacktrace = maybe_serialize(apply_filters('eum_normalized_call_stack_args', $this->normalise_call_stack_args(debug_backtrace(false)))); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_debug_backtrace, PHPCompatibility.FunctionUse.ArgumentFunctionsReportCurrentValue.NeedsInspection -- Using debug_backtrace() to normalize call stack for logging purposes.
 		} catch (Exception $e) {
 			$stacktrace = serialize(array()); // if an exception still happens even after the call stack is already normalised then we won't provide stacktrace for a log entry
 		// @codingStandardsIgnoreLine
@@ -411,6 +420,7 @@ class MPSUM_Logs {
 				}
 			}
 		}
+		self::maybe_log_updates();
 	}
 
 	/**
@@ -507,7 +517,7 @@ class MPSUM_Logs {
 		// Strip URLs from notes
 		$notes = preg_replace('/\?.*/', '', $notes);
 
-		$wpdb->insert(
+		$wpdb->insert( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Direct database query is required for inserting log data.
 			$table_name,
 			array(
 				'user_id'      => $user_id,
@@ -616,7 +626,7 @@ class MPSUM_Logs {
 		}
 		global $wpdb;
 		$table_name = $wpdb->prefix.'eum_logs';
-		self::$log_table_exists = (bool) $wpdb->get_var("SHOW TABLES LIKE '$table_name'");
+		self::$log_table_exists = (bool) $wpdb->get_var("SHOW TABLES LIKE '$table_name'"); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Query is safe as it does not involve user input and is used for checking table existence.
 		return self::$log_table_exists;
 	}
 
@@ -632,7 +642,7 @@ class MPSUM_Logs {
 		global $wpdb;
 		$tablename = $wpdb->base_prefix . 'eum_logs';
 		$sql = "delete from $tablename";
-		$wpdb->query($sql);
+		$wpdb->query($sql); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Query is safe as it does not include user input and is intended for direct execution.
 	}
 
 	/**
@@ -647,7 +657,7 @@ class MPSUM_Logs {
 		global $wpdb;
 		$tablename = $wpdb->base_prefix . 'eum_logs';
 		$sql = "drop table if exists $tablename";
-		$wpdb->query($sql);
+		$wpdb->query($sql); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Query is safe as it does not involve user input and is intended for direct execution.
 		delete_site_option('mpsum_log_table_version');
 	}
 

@@ -34,7 +34,7 @@ class MPSUM_Utils {
 	 * @return true if WP API, false if not
 	 */
 	public static function is_wp_api($url) {
-		$parsed_url = parse_url($url);
+		$parsed_url = wp_parse_url($url);
 		if (isset($parsed_url['host']) && 'api.wordpress.org' === strtolower($parsed_url['host'])) return true;
 		return false;
 	}

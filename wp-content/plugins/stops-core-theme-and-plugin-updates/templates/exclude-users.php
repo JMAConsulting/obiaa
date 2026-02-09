@@ -12,7 +12,7 @@ $users = array();
 if (is_multisite()) {
 	global $wpdb;
 	$logins = implode("', '", array_map('esc_sql', get_super_admins()));
-	$users = $wpdb->get_col("SELECT ID FROM $wpdb->users WHERE user_login IN ('$logins') GROUP BY user_login");
+	$users = $wpdb->get_col("SELECT ID FROM $wpdb->users WHERE user_login IN ('$logins') GROUP BY user_login"); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct query required to fetch super admin IDs without caching.
 } else {
 	/**
 	 * Determine which role gets queried for admin users.
@@ -32,8 +32,7 @@ if (is_array($users) && !empty($users)) {
 	$excluded_users = isset($options['excluded_users']) ? $options['excluded_users'] : array();
 	foreach ($users as $index => $user_id) {
 		$user = get_userdata($user_id);
-		$disabled = get_current_user_id() === absint($user_id) ? 'disabled="true"' : '';
-		printf('<input type="checkbox" name="mpsum_excluded_users[]" id="mpsum_user_%1$d" value="%1$d" %3$s %4$s />&nbsp;<label for="mpsum_user_%1$d">%2$s</label><br />', esc_attr($user_id), esc_html($user->display_name), checked(true, in_array($user_id, $excluded_users), false), $disabled);
+		printf('<input type="checkbox" name="mpsum_excluded_users[]" id="mpsum_user_%1$d" value="%1$d" %3$s %4$s />&nbsp;<label for="mpsum_user_%1$d">%2$s</label><br />', esc_attr($user_id), esc_html($user->display_name), checked(true, in_array($user_id, $excluded_users), false), disabled(get_current_user_id(), absint($user_id), false));
 	}
 }
 printf('<p class="submit"><input type="submit" name="submit" id="save-excluded-users" class="button button-primary" value="%s"></p>', esc_attr__('Save users', 'stops-core-theme-and-plugin-updates'));

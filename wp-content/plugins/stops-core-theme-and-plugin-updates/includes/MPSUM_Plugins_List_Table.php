@@ -42,16 +42,17 @@ class MPSUM_Plugins_List_Table extends MPSUM_List_Table {
 
 		$this->allowed_statuses = apply_filters('eum_plugins_list_table_allowed_statuses', array('all', 'update_disabled', 'update_enabled', 'automatic'));
 
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- Verified in our AJAX handler
 		if (isset($_REQUEST['action']) && 'eum_ajax' === $_REQUEST['action']) {
 			$this->status = 'all';
 			if (isset($_REQUEST['view']) && in_array($_REQUEST['view'], array_values(array_diff($this->allowed_statuses, array($this->status))))) {
-				$this->status = $_REQUEST['view'];
+				$this->status = sanitize_text_field(wp_unslash($_REQUEST['view']));
 			}
 
 			if (isset($_REQUEST['s']))
-				$_SERVER['REQUEST_URI'] = add_query_arg('s', wp_unslash($_REQUEST['s']));
+				$_SERVER['REQUEST_URI'] = add_query_arg('s', sanitize_text_field(wp_unslash($_REQUEST['s'])));
 
-			$this->page = isset($_REQUEST['paged']) ? $_REQUEST['paged'] : '1';
+			$this->page = isset($_REQUEST['paged']) ? sanitize_text_field(wp_unslash($_REQUEST['paged'])) : '1';
 		} else {
 			$this->status = 'all';
 			if (isset($args['view']) && in_array($args['view'], array_values(array_diff($this->allowed_statuses, array($this->status))))) {
@@ -60,6 +61,7 @@ class MPSUM_Plugins_List_Table extends MPSUM_List_Table {
 
 			$this->page = isset($args['paged']) ? $args['paged'] : '1';
 		}
+		// phpcs:enable WordPress.Security.NonceVerification.Recommended
 	}
 
 	/**
@@ -196,7 +198,7 @@ class MPSUM_Plugins_List_Table extends MPSUM_List_Table {
 		$views = ob_get_clean();
 
 		ob_start();
-		if (!empty($_REQUEST['no_placeholder'])) {
+		if (!empty($_REQUEST['no_placeholder'])) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Verified in our AJAX handler
 			$this->display_rows();
 		} else {
 			$this->display_rows_or_placeholder();
@@ -225,7 +227,8 @@ class MPSUM_Plugins_List_Table extends MPSUM_List_Table {
 		// phpcs:disable VariableAnalysis.CodeAnalysis.VariableAnalysis.UndefinedVariable -- Both $total_items and $total_pages can be ignored as they are extracted as part of $this->_pagination_args on line 186
 
 		if (isset($total_items)) {
-			$response['total_items_i18n'] = sprintf(_n('1 plugin', '%s plugins', $total_items), number_format_i18n($total_items));
+			/* Translators: %s is the number of plugins. */
+			$response['total_items_i18n'] = sprintf(_n('%s plugin', '%s plugins', $total_items), number_format_i18n($total_items)); // phpcs:ignore WordPress.WP.I18n.MissingArgDomain -- WordPress core handles the translation.
 		}
 
 		if (isset($total_pages)) {
@@ -248,10 +251,10 @@ class MPSUM_Plugins_List_Table extends MPSUM_List_Table {
 	public function _search_callback($plugin) {
 		static $term;
 		if (is_null($term))
-			$term = wp_unslash($_REQUEST['s']);
+			$term = isset($_REQUEST['s']) ? sanitize_text_field(wp_unslash($_REQUEST['s'])) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Verified in our AJAX handler
 
 		foreach ($plugin as $value) {
-			if (false !== stripos(strip_tags($value), $term)) {
+			if (false !== stripos(wp_strip_all_tags($value), $term)) {
 				return true;
 			}
 		}
@@ -293,9 +296,9 @@ class MPSUM_Plugins_List_Table extends MPSUM_List_Table {
 		global $plugins;
 
 		if (!empty($plugins['all'])) {
-			_e('No plugins found.', 'stops-core-theme-and-plugin-updates');
+			esc_html_e('No plugins found.', 'stops-core-theme-and-plugin-updates');
 		} else {
-			_e('You do not appear to have any plugins available at this time.', 'stops-core-theme-and-plugin-updates');
+			esc_html_e('You do not appear to have any plugins available at this time.', 'stops-core-theme-and-plugin-updates');
 		}
 	}
 
@@ -307,8 +310,8 @@ class MPSUM_Plugins_List_Table extends MPSUM_List_Table {
 	public function get_columns() {
 		return array(
 			'cb'          => !in_array($this->status, array('mustuse', 'dropins')) ? '<input type="checkbox" />' : '',
-			'name'        => __('Plugin', 'stops-core-theme-and-plugin-updates'),
-			'description' => __('Description', 'stops-core-theme-and-plugin-updates'),
+			'name'        => esc_html__('Plugin', 'stops-core-theme-and-plugin-updates'),
+			'description' => esc_html__('Description', 'stops-core-theme-and-plugin-updates'),
 		);
 	}
 
@@ -336,15 +339,19 @@ class MPSUM_Plugins_List_Table extends MPSUM_List_Table {
 
 			switch ($type) {
 				case 'all':
-					$text = _nx('All <span class="count">(%s)</span>', 'All <span class="count">(%s)</span>', $count, 'plugins');
+					/* Translators: %s is the number of total plugins. */
+					$text = _nx('All <span class="count">(%s)</span>', 'All <span class="count">(%s)</span>', $count, 'plugins', 'stops-core-theme-and-plugin-updates');
 					break;
 				case 'update_enabled':
+					/* Translators: %s is the number of total updates enabled plugins. */
 					$text = _n('Updates enabled <span class="count">(%s)</span>', 'Updates enabled <span class="count">(%s)</span>', $count, 'stops-core-theme-and-plugin-updates');
 					break;
 				case 'update_disabled':
+					/* Translators: %s is the number of total updates disabled plugins. */
 					$text = _n('Updates disabled <span class="count">(%s)</span>', 'Updates disabled <span class="count">(%s)</span>', $count, 'stops-core-theme-and-plugin-updates');
 					break;
 				case 'automatic':
+					/* Translators: %s is the number of total automatic updates plugins. */
 					$text = _n('Automatic updates <span class="count">(%s)</span>', 'Automatic updates <span class="count">(%s)</span>', $count, 'stops-core-theme-and-plugin-updates');
 					break;
 				default:
@@ -417,19 +424,21 @@ class MPSUM_Plugins_List_Table extends MPSUM_List_Table {
 		echo '<div class="alignleft actions">';
 
 		if (! $this->screen->in_admin('network') && 'recently_activated' == $this->status) {
-			submit_button(__('Clear list', 'stops-core-theme-and-plugin-updates'), 'button', 'clear-recent-list', false);
+			submit_button(esc_html__('Clear list', 'stops-core-theme-and-plugin-updates'), 'button', 'clear-recent-list', false);
 		} elseif ('top' == $which && 'mustuse' == $this->status) {
 			echo '<p>' .
 				sprintf(
-					__('Files in the %s directory are executed automatically.', 'stops-core-theme-and-plugin-updates'),
-					'<code>' . str_replace(ABSPATH, '/', WPMU_PLUGIN_DIR) . '</code>'
+					/* translators: %s is the MU plugin directory path. */
+					esc_html__('Files in the %s directory are executed automatically.', 'stops-core-theme-and-plugin-updates'),
+					'<code>' . esc_html(str_replace(ABSPATH, '/', WPMU_PLUGIN_DIR)) . '</code>'
 				) .
 				'</p>';
 		} elseif ('top' == $which && 'dropins' == $this->status) {
 			echo '<p>' .
 				sprintf(
-					__('Drop-ins are advanced plugins in the %s directory that replace WordPress functionality when present.', 'stops-core-theme-and-plugin-updates'),
-					'<code>' . str_replace(ABSPATH, '', WP_CONTENT_DIR) . '</code>'
+					/* translators: %s is the wp-content directory path. */
+					esc_html__('Drop-ins are advanced plugins in the %s directory that replace WordPress functionality when present.', 'stops-core-theme-and-plugin-updates'),
+					'<code>' . esc_html(str_replace(ABSPATH, '', WP_CONTENT_DIR)) . '</code>'
 				) .
 				'</p>';
 		}
@@ -443,7 +452,7 @@ class MPSUM_Plugins_List_Table extends MPSUM_List_Table {
 	 * @return string
 	 */
 	public function current_action() {
-		if (isset($_POST['clear-recent-list']))
+		if (isset($_POST['clear-recent-list'])) // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Verified in our AJAX handler
 			return 'clear-recent-list';
 
 		return parent::current_action();
@@ -489,29 +498,29 @@ class MPSUM_Plugins_List_Table extends MPSUM_List_Table {
 			$class = 'inactive';
 		}
 		$checkbox_id = "checkbox_" . md5($plugin_data['Name']);
-		$checkbox = "<label class='screen-reader-text' for='" . $checkbox_id . "' >" . sprintf(__('Select %s', 'stops-core-theme-and-plugin-updates'), $plugin_data['Name']) . "</label>"
+		/* translators: %s is the plugin name. */
+		$checkbox = "<label class='screen-reader-text' for='" . $checkbox_id . "' >" . sprintf(esc_html__('Select %s', 'stops-core-theme-and-plugin-updates'), $plugin_data['Name']) . "</label>"
 				. "<input type='checkbox' name='checked[]' value='" . esc_attr($plugin_file) . "' id='" . $checkbox_id . "' />";
-		$description = '<p>' . ($plugin_data['Description'] ? $plugin_data['Description'] : '&nbsp;') . '</p>';
+		$description = $plugin_data['Description'] ? $plugin_data['Description'] : '';
 		$plugin_name = $plugin_data['Name'];
 		$plugin_slug = $item[0];
 
 		$id = sanitize_title($plugin_name);
 
-		echo "<tr id='$id' class='$class'>";
+		echo "<tr id='" . esc_attr($id) . "' class='" . esc_attr($class) . "'>";
 
 		list($columns, $hidden, $sortable, $primary) = $this->get_column_info();// phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable -- THis can be ignored as it is a list and are used below
 
 		foreach ($columns as $column_name => $column_display_name) {
-			$style = '';
-			if (in_array($column_name, $hidden))
-				$style = ' style="display:none;"';
+
+			$is_style_display_none = in_array($column_name, $hidden);
 
 			switch ($column_name) {
 				case 'cb':
-					echo "<th scope='row' class='check-column'>$checkbox</th>";
+					echo "<th scope='row' class='check-column'>$checkbox</th>";// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- needs to be presented in html
 					break;
 				case 'name':
-					echo "<td class='plugin-title'$style>";
+					echo "<td class='plugin-title'" . ($is_style_display_none ? ' style="display:none;"' : '') . "'>";
 					$icon = '<span class="dashicons dashicons-admin-plugins"></span>';
 					$preferred_icons = array('svg', '1x', '2x', 'default');
 					foreach ($preferred_icons as $preferred_icon) {
@@ -520,9 +529,10 @@ class MPSUM_Plugins_List_Table extends MPSUM_List_Table {
 							break;
 						}
 					}
-					echo $icon;
+
+					echo wp_kses($icon, array('span' => array('class' => true), 'img' => array('src' => true, 'alt' => true)));
 					echo '<div class="eum-plugins-name-actions">';
-					echo "<h3 class='eum-plugins-name'>$plugin_name</h3>";
+					echo "<h3 class='eum-plugins-name'>".esc_html($plugin_name)."</h3>";
 					echo '<div class="eum-plugins-wrapper">';
 					printf('<h4>%s</h4>', esc_html__('Plugin updates', 'stops-core-theme-and-plugin-updates'));
 
@@ -539,21 +549,21 @@ class MPSUM_Plugins_List_Table extends MPSUM_List_Table {
 					}
 
 					printf('<input type="hidden" name="plugins[%s]" value="%s">',
-						$plugin_slug,
-						$checked
+						esc_attr($plugin_slug),
+						esc_attr($checked)
 					);
 
 					printf('<button aria-label="%s" class="eum-toggle-button eum-enabled %s" data-checked="%s" value="on">%s</button>',
 						esc_attr__('Allow updates', 'stops-core-theme-and-plugin-updates'),
 						esc_attr($enable_class),
-						$plugin_slug,
+						esc_attr($plugin_slug),
 						esc_html__('Allowed', 'stops-core-theme-and-plugin-updates')
 					);
 
 					printf('<button aria-label="%s" class="eum-toggle-button eum-disabled %s" data-checked="%s value="off">%s</button>',
 						esc_attr__('Disallow updates', 'stops-core-theme-and-plugin-updates'),
 						esc_attr($disable_class),
-						$plugin_slug,
+						esc_attr($plugin_slug),
 						esc_html__('Blocked', 'stops-core-theme-and-plugin-updates')
 					);
 
@@ -576,21 +586,21 @@ class MPSUM_Plugins_List_Table extends MPSUM_List_Table {
 						}
 
 						printf('<input type="hidden" name="plugins_automatic[%s]" value="%s">',
-							$plugin_slug,
-							$checked
+							esc_attr($plugin_slug),
+							esc_attr($checked)
 						);
 
 						printf('<button aria-label="%s" class="eum-toggle-button eum-enabled %s" data-checked="%s" value="on">%s</button>',
 							esc_html__('Enable automatic updates', 'stops-core-theme-and-plugin-updates'),
 							esc_attr($enable_class),
-							$plugin_slug,
+							esc_attr($plugin_slug),
 							esc_html__('On', 'stops-core-theme-and-plugin-updates')
 						);
 
 						printf('<button aria-label="%s" class="eum-toggle-button eum-disabled %s" data-checked="%s" value="off">%s</button>',
 							esc_attr__('Enable automatic updates', 'stops-core-theme-and-plugin-updates'),
 							esc_attr($disable_class),
-							$plugin_slug,
+							esc_attr($plugin_slug),
 							esc_html__('Off', 'stops-core-theme-and-plugin-updates')
 						);
 
@@ -601,33 +611,37 @@ class MPSUM_Plugins_List_Table extends MPSUM_List_Table {
 					echo "</td>";
 					break;
 				case 'description':
-					echo "<td class='column-description desc'$style>
-						<div class='plugin-description'>$description</div>
-						<div class='$class second plugin-version-author-uri'>";
+					echo "<td class='column-description desc'" . ($is_style_display_none ? ' style="display:none;"' : '') . ">
+						<div class='plugin-description'><p>".($description ? esc_html($description) : '&nbsp;')."</p></div>
+						<div class='".esc_attr($class)." second plugin-version-author-uri'>";
 
 					$plugin_meta = array();
-					if (!empty($plugin_data['Version']))
-						$plugin_meta[] = sprintf(__('Version %s', 'stops-core-theme-and-plugin-updates'), $plugin_data['Version']);
+					if (!empty($plugin_data['Version'])) {
+						/* translators: %s is the plugin version. */
+						$plugin_meta[] = sprintf(esc_html__('Version %s', 'stops-core-theme-and-plugin-updates'), $plugin_data['Version']);
+					}
 					if (!empty($plugin_data['Author'])) {
 						$author = $plugin_data['Author'];
 						if (!empty($plugin_data['AuthorURI']))
 							$author = '<a href="' . $plugin_data['AuthorURI'] . '">' . $plugin_data['Author'] . '</a>';
-						$plugin_meta[] = sprintf(__('By %s', 'stops-core-theme-and-plugin-updates'), $author);
+						/* translators: %s is the plugin author. */
+						$plugin_meta[] = sprintf(esc_html__('By %s', 'stops-core-theme-and-plugin-updates'), $author);
 					}
 
 					// Details link using API info, if available
 					if (isset($plugin_data['slug']) && current_user_can('install_plugins')) {
 						$plugin_meta[] = sprintf('<a href="%s" class="thickbox open-plugin-details-modal" aria-label="%s" data-title="%s">%s</a>',
-							esc_url(network_admin_url('plugin-install.php?tab=plugin-information&plugin=' . $plugin_data['slug'] .
-								'&eum_action=EUM_modal&TB_iframe=true&width=600&height=550')),
-							esc_attr(sprintf(__('More information about %s', 'stops-core-theme-and-plugin-updates'), $plugin_name)),
+							esc_url(wp_nonce_url(network_admin_url('plugin-install.php?tab=plugin-information&plugin=' . $plugin_data['slug'] .
+								'&eum_action=EUM_modal&TB_iframe=true&width=600&height=550'), 'eum-modal')),
+							/* translators: %s is the plugin name. */
+							esc_attr(sprintf(esc_html__('More information about %s', 'stops-core-theme-and-plugin-updates'), $plugin_name)),
 							esc_attr($plugin_name),
-							__('View details', 'stops-core-theme-and-plugin-updates')
+							esc_html__('View details', 'stops-core-theme-and-plugin-updates')
 						);
 					} elseif (! empty($plugin_data['PluginURI'])) {
 						$plugin_meta[] = sprintf('<a href="%s">%s</a>',
 							esc_url($plugin_data['PluginURI']),
-							__('Visit plugin site', 'stops-core-theme-and-plugin-updates')
+							esc_html__('Visit plugin site', 'stops-core-theme-and-plugin-updates')
 						);
 					}
 
@@ -647,7 +661,7 @@ class MPSUM_Plugins_List_Table extends MPSUM_List_Table {
 					 *                            'Drop-ins', 'Search'.
 					 */
 					$plugin_meta = apply_filters('plugin_row_meta', $plugin_meta, $plugin_file, $plugin_data, $this->status);
-					echo implode(' | ', $plugin_meta);
+					echo implode(' | ', $plugin_meta);// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- needs to be presented in html
 
 					// Premium only - Check if plugin has been removed from the repo
 					if (MPSUM_Updates_Manager::get_instance()->is_premium()) {
@@ -681,7 +695,7 @@ class MPSUM_Plugins_List_Table extends MPSUM_List_Table {
 					echo "</div></td>";
 					break;
 				default:
-					echo "<td class='$column_name column-$column_name'$style>";
+					echo "<td class='" . esc_attr($column_name)." column-" . esc_attr($column_name) . "'" . ($is_style_display_none ? ' style="display:none;"' : '') . ">";
 
 					/**
 					 * Fires inside each custom column of the Plugins list table.

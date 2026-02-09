@@ -129,8 +129,8 @@ class MPSUM_Admin_Ajax {
 
 		if (empty($_REQUEST) || empty($_REQUEST['subaction']) || empty($_REQUEST['nonce'])) return;
 
-		$subaction = $_REQUEST['subaction'];
-		$nonce = $_REQUEST['nonce'];
+		$subaction = sanitize_text_field(wp_unslash($_REQUEST['subaction']));
+		$nonce = sanitize_text_field(wp_unslash($_REQUEST['nonce']));
 		$data = empty($_REQUEST['data']) ? array() : $_REQUEST['data'];
 
 		if (!wp_verify_nonce($nonce, 'eum_nonce') || !current_user_can(MPSUM_Updates_Manager::get_instance()->capability_required()) || empty($subaction) || 'axios_ajax_handler' == $subaction) die('Security check');
@@ -138,7 +138,9 @@ class MPSUM_Admin_Ajax {
 		$results = array();
 		if (!method_exists($this, $subaction)) {
 			do_action('eum_premium_ajax_handler', $subaction, $data);
-			error_log("EUM: ajax_handler: no such command (".$subaction.")");
+			if (defined('WP_DEBUG') && WP_DEBUG) {
+				error_log("EUM: ajax_handler: no such command (".$subaction.")"); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Logging for debugging purposes when WP_DEBUG is enabled.
+			}
 			die('No such command');
 		} else {
 			$results = call_user_func(array($this, $subaction), $data);
@@ -177,7 +179,7 @@ class MPSUM_Admin_Ajax {
 			$result = json_encode($result);
 		}
 
-		echo $result;
+		echo $result; //phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- This ought be escaped in the method that receives the result.
 
 		die;
 
@@ -939,6 +941,8 @@ class MPSUM_Admin_Ajax {
 
 		// Remove Plugin Check Options and Transients
 		delete_site_transient('eum_plugins_removed_from_directory');
+
+		// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct query is necessary for wildcard deletion.
 		if (is_multisite()) {
 			$options_sql = "delete from {$wpdb->sitemeta} where meta_key like 'eum_plugin_removed_%'";
 			$wpdb->query($options_sql);
@@ -955,6 +959,7 @@ class MPSUM_Admin_Ajax {
 			$safe_mode_sql = "delete from {$wpdb->options} where option_name like '%eum_plugin_safe_mode_%'";
 			$wpdb->query($safe_mode_sql);
 		}
+		// phpcs:enable WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 
 		// Remove transients when someone disables plugin, theme, or core updates
 		delete_site_transient('eum_core_checked');
@@ -1016,8 +1021,8 @@ class MPSUM_Admin_Ajax {
 		if (defined('WP_AUTO_UPDATE_CORE') && false === WP_AUTO_UPDATE_CORE) {
 			$constants[] = 'WP_AUTO_UPDATE_CORE';
 		}
-		if (!empty($constants)) {
-			error_log(sprintf("The constant(s) %s is/are currently active, but Easy Updates Manager has overridden it/them so that it/they won't take any effect during forced updates. It is recommended to unset them to remove ambiguity.", implode(', ', $constants)));
+		if (!empty($constants) && defined('WP_DEBUG') && WP_DEBUG) {
+			error_log(sprintf("The constant(s) %s is/are currently active, but Easy Updates Manager has overridden it/them so that it/they won't take any effect during forced updates. It is recommended to unset them to remove ambiguity.", implode(', ', $constants))); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Logging for debugging purposes when WP_DEBUG is enabled.
 		}
 		if (function_exists('wp_maybe_auto_update')) {
 			// Constant to show that a Force Update is in effect. Since 9.0.1.
@@ -1110,12 +1115,15 @@ class MPSUM_Admin_Ajax {
 	private function get_admin_bar_title($update_data) {
 		$title = array();
 		if ($update_data['counts']['wordpress'] > 0) {
+			// Translators: %s is the number of WordPress updates available.
 			$title[] = sprintf(_n('%s WordPress update', '%s WordPress updates', $update_data['counts']['wordpress'], 'stops-core-theme-and-plugin-updates'), number_format_i18n($update_data['counts']['wordpress']));
 		}
 		if ($update_data['counts']['plugins'] > 0) {
+			// Translators: %s is the number of plugin updates available.
 			$title[] = sprintf(_n('%s plugin update', '%s plugin updates', $update_data['counts']['plugins'], 'stops-core-theme-and-plugin-updates'), number_format_i18n($update_data['counts']['plugins']));
 		}
 		if ($update_data['counts']['themes'] > 0) {
+			// Translators: %s is the number of theme updates available.
 			$title[] = sprintf(_n('%s theme update', '%s theme updates', $update_data['counts']['themes'], 'stops-core-theme-and-plugin-updates'), number_format_i18n($update_data['counts']['themes']));
 		}
 		if ($update_data['counts']['translations'] > 0) {
@@ -1171,6 +1179,7 @@ class MPSUM_Admin_Ajax {
 		$message = __('Logs have been emptied', 'stops-core-theme-and-plugin-updates');
 		return $message;
 	}
+
 
 	/**
 	 * Decides whether current user can update core, plugin and themes

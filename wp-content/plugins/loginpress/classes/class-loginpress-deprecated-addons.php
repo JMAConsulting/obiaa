@@ -503,7 +503,7 @@ if ( ! class_exists( 'LoginPress_Addons' ) ) :
 					<?php
 					foreach ( $addons_list as $key => $addon ) {
 						if ( 'error_message' === $key ) {
-							include_once LOGINPRESS_DIR_PATH . 'include/loginpress-static-addons.php';
+							include_once LOGINPRESS_DIR_PATH . 'include/class-loginpress-static-addons.php';
 							if ( class_exists( 'LoginPress_Pro' ) && LoginPress_Pro::is_activated() && LoginPress_Pro::get_license_type() ) {
 								LoginPress_Static_Addons::pro_static_addon_cards();
 							} else {
@@ -527,7 +527,7 @@ if ( ! class_exists( 'LoginPress_Addons' ) ) :
 					<?php
 					foreach ( $addons_list as $key => $addon ) {
 						if ( 'error_message' === $key ) {
-							include_once LOGINPRESS_DIR_PATH . 'include/loginpress-static-addons.php';
+							include_once LOGINPRESS_DIR_PATH . 'include/class-loginpress-static-addons.php';
 							if ( class_exists( 'LoginPress_Pro' ) && LoginPress_Pro::is_activated() && LoginPress_Pro::get_license_type() ) {
 								LoginPress_Static_Addons::pro_static_addon_cards();
 							} else {
@@ -549,7 +549,7 @@ if ( ! class_exists( 'LoginPress_Addons' ) ) :
 				echo '<div class="addon_cards_wraper">';
 				foreach ( $addons_list as $key => $addon ) {
 					if ( 'error_message' === $key ) {
-						include_once LOGINPRESS_DIR_PATH . 'include/loginpress-static-addons.php';
+						include_once LOGINPRESS_DIR_PATH . 'include/class-loginpress-static-addons.php';
 						if ( class_exists( 'LoginPress_Pro' ) && LoginPress_Pro::is_activated() && LoginPress_Pro::get_license_type() ) {
 							LoginPress_Static_Addons::pro_static_addon_cards();
 						} else {

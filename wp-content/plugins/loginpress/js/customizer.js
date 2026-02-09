@@ -13,7 +13,7 @@
 	api.myCustomizerPreviewer = {
 		// Init
 		init: function () {
-			var self = this; // Store a reference to "this" in case callback functions need to reference it
+			// Store a reference to "this" in case callback functions need to reference it
 
 			// Listen to the "customize-section-back" event for removing 'active' class from customize-partial-edit-shortcut.
 			$( document ).on(
@@ -102,7 +102,7 @@
 			}
 			images = images.split( ',' );
 		} catch (error) {
-			console.error( 'Error getting images: ', error );
+			// Error getting images - silently fail
 			return;
 		}
 
@@ -123,12 +123,12 @@
 					imagesPreloaded.push( image.src );
 					imagesLoaded++;
 					preloadImages();
-				};
-				image.onerror = function () {
-					console.log( 'Error loading image: ', image.src );
-					imagesLoaded++;
-					preloadImages();
-				};
+			};
+			image.onerror = function () {
+				// Error loading image - continue with next
+				imagesLoaded++;
+				preloadImages();
+			};
 			}
 		}
 

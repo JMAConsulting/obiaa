@@ -87,16 +87,18 @@ class MPSUM_Admin_Screen_Options {
 	 * @access static
 	 */
 	public static function maybe_save_dashboard_screen_option() {
-		if (isset($_REQUEST['mpsum_dashboard']) && isset($_REQUEST['screenoptionnonce'])) {
-			if (! wp_verify_nonce($_REQUEST['screenoptionnonce'], 'screen-options-nonce')) {
-				return;
-			}
-			$user_id = get_current_user_id();
-			$dashboard = sanitize_text_field($_REQUEST['mpsum_dashboard']);
-			if ('on' !== $dashboard) {
-				$dashboard = 'off';
-			}
-			update_user_meta($user_id, 'mpsum_dashboard', $dashboard);
+		if (!isset($_REQUEST['mpsum_dashboard'])) return;
+
+		if (!isset($_REQUEST['screenoptionnonce']) || !wp_verify_nonce($_REQUEST['screenoptionnonce'], 'screen-options-nonce')) { //phpcs:ignore WordPress.Security.ValidatedSanitizedInput -- No need to sanitize nonces
+			return;
 		}
+		
+		$user_id = get_current_user_id();
+		$dashboard = sanitize_text_field(wp_unslash($_REQUEST['mpsum_dashboard']));
+		if ('on' !== $dashboard) {
+			$dashboard = 'off';
+		}
+		update_user_meta($user_id, 'mpsum_dashboard', $dashboard);
+		
 	}
 }

@@ -65,9 +65,11 @@ class MPSUM_Send_Email_Notifications {
 		if ((!isset($core_options['notification_core_update_emails']) || 'on' === $core_options['notification_core_update_emails']) && isset($update_results['core'])) {
 			$result = $update_results['core'][0];
 			if ($result->result && ! is_wp_error($result->result)) {
-				$body[] = sprintf(__('SUCCESS: WordPress was successfully updated to %s'), $result->name);
+				/* translators: %s: WordPress version. */
+				$body[] = sprintf(__('SUCCESS: WordPress was successfully updated to %s'), $result->name); // phpcs:ignore WordPress.WP.I18n.MissingArgDomain -- WordPress core handles the translation.
 			} else {
-				$body[] = sprintf(__('FAILED: WordPress failed to update to %s'), $result->name);
+				/* translators: %s: WordPress version. */
+				$body[] = sprintf(__('FAILED: WordPress failed to update to %s'), $result->name); // phpcs:ignore WordPress.WP.I18n.MissingArgDomain -- WordPress core handles the translation.
 				$failures++;
 			}
 			$body[] = '';
@@ -98,20 +100,22 @@ class MPSUM_Send_Email_Notifications {
 
 			if ($success_items) {
 				$messages = array(
-					'plugin'      => __('The following plugins were successfully updated:'),
-					'theme'       => __('The following themes were successfully updated:'),
-					'translation' => __('The following translations were successfully updated:'),
+					'plugin'      => __('The following plugins were successfully updated:'), // phpcs:ignore WordPress.WP.I18n.MissingArgDomain -- WordPress core handles the translation.
+					'theme'       => __('The following themes were successfully updated:'), // phpcs:ignore WordPress.WP.I18n.MissingArgDomain -- WordPress core handles the translation.
+					'translation' => __('The following translations were successfully updated:'), // phpcs:ignore WordPress.WP.I18n.MissingArgDomain -- WordPress core handles the translation.
 				);
 
 				$body[] = $messages[$type];
 				if (in_array($type, array('plugin', 'theme'))) {
 					foreach ($success_items as $entity) {
 						$url = isset($entity->item->url) && '' !== $entity->item->url ? ' - '.$entity->item->url : '';
-						$body[] = ' * ' . sprintf(__('SUCCESS: %s (from version %s to %s)%s'), $entity->name, $entity->item->current_version, $entity->item->new_version, $url);
+						/* Translators: 1: Name of item, 2: Current version, 3: New version, 4: Item URL. */
+						$body[] = ' * ' . sprintf(__('SUCCESS: %1$s (from version %2$s to %3$s)%4$s'), $entity->name, $entity->item->current_version, $entity->item->new_version, $url); // phpcs:ignore WordPress.WP.I18n.MissingArgDomain -- WordPress core handles the translation.
 					}
 				} else {
 					foreach (wp_list_pluck($success_items, 'name') as $name) {
-						$body[] = ' * ' . sprintf(__('SUCCESS: %s'), $name);
+						/* translators: %s is Name of item. */
+						$body[] = ' * ' . sprintf(__('SUCCESS: %s'), $name); // phpcs:ignore WordPress.WP.I18n.MissingArgDomain -- WordPress core handles the translation.
 					}
 				}
 				$body[] = '';
@@ -120,16 +124,17 @@ class MPSUM_Send_Email_Notifications {
 			if ($success_items !== $update_results[$type]) {
 				// Failed updates.
 				$messages = array(
-					'plugin'      => __('The following plugins failed to update:'),
-					'theme'       => __('The following themes failed to update:'),
-					'translation' => __('The following translations failed to update:'),
+					'plugin'      => __('The following plugins failed to update:'), // phpcs:ignore WordPress.WP.I18n.MissingArgDomain -- WordPress core handles the translation.
+					'theme'       => __('The following themes failed to update:'), // phpcs:ignore WordPress.WP.I18n.MissingArgDomain -- WordPress core handles the translation.
+					'translation' => __('The following translations failed to update:'), // phpcs:ignore WordPress.WP.I18n.MissingArgDomain -- WordPress core handles the translation.
 				);
 
 				$body[] = $messages[$type];
 
 				foreach ($update_results[$type] as $item) {
 					if (!$item->result || is_wp_error($item->result)) {
-						$body[] = ' * ' . sprintf(__('FAILED: %s'), $item->name);
+						/* translators: %s is Name of item. */
+						$body[] = ' * ' . sprintf(__('FAILED: %s'), $item->name); // phpcs:ignore WordPress.WP.I18n.MissingArgDomain -- WordPress core handles the translation.
 						$failures++;
 					}
 				}
@@ -140,17 +145,21 @@ class MPSUM_Send_Email_Notifications {
 		$site_title = wp_specialchars_decode(get_bloginfo('name'), ENT_QUOTES);
 
 		if ($failures) {
-			$subject = sprintf(__('[%s] Background Update Failed'), $site_title);
+			/* translators: %s is Site title. */
+			$subject = sprintf(__('[%s] Background Update Failed'), $site_title); // phpcs:ignore WordPress.WP.I18n.MissingArgDomain -- WordPress core handles the translation.
 		} else {
-			$subject = sprintf(__('[%s] Background Update Finished'), $site_title);
+			/* translators: %s is Site title. */
+			$subject = sprintf(__('[%s] Background Update Finished'), $site_title); // phpcs:ignore WordPress.WP.I18n.MissingArgDomain -- WordPress core handles the translation.
 		}
 
 		if (!empty($body)) {
-			array_unshift($body, sprintf(__('WordPress site: %s'), network_home_url('/')));
-			$body[] = trim(sprintf(__("Thanks! -- The %s team"), apply_filters('eum_whitelabel_name', __('Easy Updates Manager', 'stops-core-theme-and-plugin-updates'))));
+			/* translators: %s: Network home URL. */
+			array_unshift($body, sprintf(__('WordPress site: %s'), network_home_url('/'))); // phpcs:ignore WordPress.WP.I18n.MissingArgDomain -- WordPress core handles the translation.
+			/* Translators: %s is the label name. */
+			$body[] = trim(sprintf(__("Thanks! -- The %s team", 'stops-core-theme-and-plugin-updates'), apply_filters('eum_whitelabel_name', __('Easy Updates Manager', 'stops-core-theme-and-plugin-updates'))));
 			$body[] = '';
 	
-			$body[] = trim(__('UPDATE LOG =========='));
+			$body[] = trim(__('UPDATE LOG ==========')); // phpcs:ignore WordPress.WP.I18n.MissingArgDomain -- WordPress core handles the translation.
 			$body[] = '';
 		}
 
@@ -185,9 +194,11 @@ class MPSUM_Send_Email_Notifications {
 						}
 
 						if ('rollback' === $result_type) {
-							$body[] = '  ' . sprintf(__('Rollback Error: [%1$s] %2$s'), $result->get_error_code(), $result->get_error_message());
+							/* translators: 1: Error code, 2: Error message. */
+							$body[] = '  ' . sprintf(__('Rollback Error: [%1$s] %2$s'), $result->get_error_code(), $result->get_error_message()); // phpcs:ignore WordPress.WP.I18n.MissingArgDomain -- WordPress core handles the translation.
 						} else {
-							$body[] = '  ' . sprintf(__('Error: [%1$s] %2$s'), $result->get_error_code(), $result->get_error_message());
+							/* translators: 1: Error code, 2: Error message. */
+							$body[] = '  ' . sprintf(__('Error: [%1$s] %2$s'), $result->get_error_code(), $result->get_error_message()); // phpcs:ignore WordPress.WP.I18n.MissingArgDomain -- WordPress core handles the translation.
 						}
 						if ($result->get_error_data()) {
 							$body[] = '         ' . implode(', ', (array) $result->get_error_data());
