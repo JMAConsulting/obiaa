@@ -56,6 +56,26 @@ acfe_register_form(array(
             'action' => 'custom',
             'name' => 'update-contact-detail',
         ),
+        array(
+            'action' => 'email',
+            'name' => 'send-bia-email',
+            'email' => array(
+                'from' => '',
+                'to' => '',
+                'reply_to' => '',
+                'cc' => '',
+                'bcc' => '',
+                'subject' => 'Updated Business Details',
+                'content' => '{field:first_name} {field:last_name} has updated details for {field:organization_name}
+
+Summary:
+
+{fields}',
+                'html' => false,
+                'shortcode' => false,
+            ),
+            'attachments' => array(),
+        ),
     ),
     'render' => '',
 ));

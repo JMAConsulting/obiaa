@@ -365,7 +365,7 @@ function obiaacustomizations_civicrm_custom( $op, $groupID, $entityID, &$params 
   ->addWhere('name', '=', 'Opt_in_to_receive_communication_')
   ->addWhere('custom_group_id:name', '=', 'Business_Category')
   ->execute()->first()['id'];
-  if ($param['custom_field_id'] == $cfID) {
+  if ($params['custom_field_id'] == $cfID) {
     $groupID = \Civi\Api4\Group::get(FALSE)->addSelect('id')->addWhere('name', '=', 'Group_Business_Newsletter')->execute()->first()['id'];
     \Civi\Api4\GroupContact::save(FALSE)->addRecord(['group_id' => $groupID, 'contact_id' => $entityID, 'status' => (empty($params['value']) ? 'Removed' : 'Added')]);
   }

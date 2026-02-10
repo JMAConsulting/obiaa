@@ -384,6 +384,38 @@
                         "custom_choice_button_text": "Add new choice"
                     },
                     {
+                        "key": "field_698aac6fbc546",
+                        "label": "",
+                        "name": "opt_in_to_receive_communication",
+                        "aria-label": "",
+                        "type": "checkbox",
+                        "instructions": "",
+                        "required": 0,
+                        "conditional_logic": 0,
+                        "wrapper": {
+                            "width": "",
+                            "class": "",
+                            "id": ""
+                        },
+                        "field_cacf_civicrm_custom_field": "",
+                        "choices": {
+                            "1": "Opt in to receive communication?"
+                        },
+                        "default_value": [
+                            1
+                        ],
+                        "return_format": "value",
+                        "acfe_settings": "",
+                        "acfe_validate": "",
+                        "allow_custom": 0,
+                        "acfe_permissions": "",
+                        "allow_in_bindings": 0,
+                        "layout": "vertical",
+                        "toggle": 0,
+                        "save_custom": 0,
+                        "custom_choice_button_text": "Add new choice"
+                    },
+                    {
                         "key": "field_6893840fbfc52",
                         "label": "Ownership Demographics",
                         "name": "",
@@ -1142,6 +1174,30 @@
                                 "parent_repeater": "field_6893861e9d5b8"
                             }
                         ]
+                    },
+                    {
+                        "key": "field_698aac86bc547",
+                        "label": "",
+                        "name": "",
+                        "aria-label": "",
+                        "type": "text",
+                        "instructions": "",
+                        "required": 0,
+                        "conditional_logic": 0,
+                        "wrapper": {
+                            "width": "",
+                            "class": "",
+                            "id": ""
+                        },
+                        "default_value": "",
+                        "acfe_settings": "",
+                        "acfe_validate": "",
+                        "maxlength": "",
+                        "acfe_permissions": "",
+                        "allow_in_bindings": 0,
+                        "placeholder": "",
+                        "prepend": "",
+                        "append": ""
                     }
                 ]
             },
@@ -1309,8 +1365,10 @@
         "description": "",
         "show_in_rest": 0,
         "display_title": "",
-        "acfe_display_title": "",
-        "acfe_autosync": "",
+        "acfe_autosync": [
+            "php",
+            "json"
+        ],
         "acfe_permissions": [
             "administrator",
             "editor",
