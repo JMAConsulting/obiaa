@@ -454,6 +454,7 @@ function add_business_form_handler_save_post($form, $action) {
       'local_bia',
       'date_of_opening',
       'opt_out_of_public_listings',
+      'opt_in_to_receive_communication',
       'number_of_employees',
       'linkedin_url',
       'google_maps_link',
@@ -483,7 +484,7 @@ function add_business_form_handler_save_post($form, $action) {
     if (empty($params['opt_out_of_public_listings'])) {
       $params['opt_out_of_public_listings'] = 'No';
     }
-
+    $params['opt_in_to_receive_communication'] = (bool) $params['opt_in_to_receive_communication'];
     if ($_POST['_acf_post_id'] == 443) { // Only applicable for Add business form
       $allPropertyAndUnitDetails = array_find_key_recursive($form_data, get_acf_key('property_&_unit_details'));
     }
@@ -842,6 +843,7 @@ function add_business_form_handler_save_post($form, $action) {
       ->addValue('Business_Details.Open_Date', formatDateString($params['date_of_opening']))
       ->addValue('Business_Category.Opt_out_of_Public_Listing_:label', $params['opt_out_of_public_listings'])
       ->addValue('Business_Details.Full_Time_Employees_at_this_location', $params['number_of_employees'])
+      ->addValue('Business_Category.Opt_in_to_receive_communication_', $params['opt_in_to_receive_communication'])
       ->addWhere('id', '=', $contact['id'])
       ->execute();
 }
