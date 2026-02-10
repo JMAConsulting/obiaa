@@ -1,0 +1,1385 @@
+[
+    {
+        "key": "group_689381532632e",
+        "title": "Update Business details",
+        "fields": [
+            {
+                "key": "field_6893815329b16",
+                "label": "Business Details",
+                "name": "business_details",
+                "aria-label": "",
+                "type": "group",
+                "instructions": "",
+                "required": 0,
+                "conditional_logic": 0,
+                "wrapper": {
+                    "width": "",
+                    "class": "",
+                    "id": ""
+                },
+                "layout": "block",
+                "acfe_seamless_style": 0,
+                "acfe_group_modal": 0,
+                "acfe_settings": "",
+                "acfe_permissions": "",
+                "acfe_group_modal_close": 0,
+                "acfe_group_modal_button": "",
+                "acfe_group_modal_size": "large",
+                "sub_fields": [
+                    {
+                        "key": "field_689381532afcf",
+                        "label": "Name",
+                        "name": "organization_name",
+                        "aria-label": "",
+                        "type": "text",
+                        "instructions": "",
+                        "required": 1,
+                        "conditional_logic": 0,
+                        "wrapper": {
+                            "width": "",
+                            "class": "",
+                            "id": ""
+                        },
+                        "field_cacf_civicrm_custom_field": "",
+                        "default_value": "",
+                        "acfe_settings": "",
+                        "acfe_validate": "",
+                        "maxlength": "",
+                        "acfe_permissions": "",
+                        "placeholder": "",
+                        "prepend": "",
+                        "append": ""
+                    },
+                    {
+                        "key": "field_689381532afdf",
+                        "label": "Email",
+                        "name": "email",
+                        "aria-label": "",
+                        "type": "email",
+                        "instructions": "",
+                        "required": 1,
+                        "conditional_logic": 0,
+                        "wrapper": {
+                            "width": "",
+                            "class": "",
+                            "id": ""
+                        },
+                        "field_cacf_civicrm_custom_field": "",
+                        "default_value": "",
+                        "acfe_settings": "",
+                        "acfe_validate": "",
+                        "acfe_permissions": "",
+                        "placeholder": "",
+                        "prepend": "",
+                        "append": ""
+                    },
+                    {
+                        "key": "field_689381532afe7",
+                        "label": "Phone Number",
+                        "name": "phone",
+                        "aria-label": "",
+                        "type": "text",
+                        "instructions": "",
+                        "required": 0,
+                        "conditional_logic": 0,
+                        "wrapper": {
+                            "width": "",
+                            "class": "civicrm_phone",
+                            "id": ""
+                        },
+                        "field_cacf_civicrm_custom_field": "",
+                        "default_value": "",
+                        "acfe_settings": "",
+                        "acfe_validate": "",
+                        "maxlength": "",
+                        "acfe_permissions": "",
+                        "placeholder": "",
+                        "prepend": "",
+                        "append": ""
+                    },
+                    {
+                        "key": "field_689381532afee",
+                        "label": "Website",
+                        "name": "website",
+                        "aria-label": "",
+                        "type": "url",
+                        "instructions": "",
+                        "required": 0,
+                        "conditional_logic": 0,
+                        "wrapper": {
+                            "width": "",
+                            "class": "",
+                            "id": ""
+                        },
+                        "field_cacf_civicrm_custom_field": "",
+                        "default_value": "",
+                        "acfe_settings": "",
+                        "acfe_validate": {
+                            "6862badca14a8": {
+                                "acfe_validate_location": "",
+                                "acfe_validate_rules_and": {
+                                    "6862bae5a14a9": {
+                                        "acfe_validate_function": "value",
+                                        "acfe_validate_operator": "regex",
+                                        "acfe_validate_match": "[(http(s)?):\/\/(www.)?a-zA-Z0-9@:%._+~#=]{2,256}.[a-z]{2,6}b([-a-zA-Z0-9@:%_+.~#?&\/\/=]*)"
+                                    }
+                                },
+                                "acfe_validate_error": "Enter a valid URL"
+                            }
+                        },
+                        "acfe_permissions": "",
+                        "allow_in_bindings": 1,
+                        "placeholder": "https:\/\/www.your-business.com"
+                    },
+                    {
+                        "key": "field_689381532aff4",
+                        "label": "Category",
+                        "name": "category",
+                        "aria-label": "",
+                        "type": "select",
+                        "instructions": "Please select one or more categories to show a list of available sub categories in the field below.",
+                        "required": 1,
+                        "conditional_logic": 0,
+                        "wrapper": {
+                            "width": "",
+                            "class": "",
+                            "id": ""
+                        },
+                        "field_cacf_civicrm_custom_field": "caicustom_7",
+                        "choices": {
+                            "5": "Arts, Entertainment and Recreation",
+                            "6": "Cultural Industry",
+                            "7": "Finance and Insurance",
+                            "8": "Hospitality",
+                            "9": "Industry and Manufacturing",
+                            "10": "Other Services",
+                            "11": "Professional Services",
+                            "12": "Real Estate",
+                            "1": "Retail"
+                        },
+                        "default_value": [],
+                        "return_format": "value",
+                        "multiple": 1,
+                        "allow_custom": 0,
+                        "placeholder": "",
+                        "acfe_settings": "",
+                        "acfe_validate": "",
+                        "allow_null": 0,
+                        "acfe_permissions": "",
+                        "ui": 1,
+                        "ajax": 0,
+                        "search_placeholder": "",
+                        "create_options": 0,
+                        "save_options": 0
+                    },
+                    {
+                        "key": "field_689381532b000",
+                        "label": "Sub Category",
+                        "name": "sub_category",
+                        "aria-label": "",
+                        "type": "select",
+                        "instructions": "Please select one or more sub-categories from the list below. To select multiple items, hold down the <b>Ctrl<\/b> key (on Windows) or the <b>Command<\/b> key (on Mac) while clicking on the desired sub-categories. You can scroll through the list to find all available options.",
+                        "required": 1,
+                        "conditional_logic": 0,
+                        "wrapper": {
+                            "width": "",
+                            "class": "",
+                            "id": ""
+                        },
+                        "field_cacf_civicrm_custom_field": "caicustom_8",
+                        "choices": {
+                            "18": "Administrative and Support, Waste Management and Remediation Services",
+                            "19": "Agriculture, Forestry, Fishing and Hunting",
+                            "11": "Bank",
+                            "20": "Construction",
+                            "12": "Credit Relief",
+                            "6": "Data Center",
+                            "3": "Event Centre",
+                            "13": "Financial Advisor",
+                            "16": "Food Services and Drinking Place",
+                            "4": "Gambling and Amusement",
+                            "17": "Hotels",
+                            "14": "Insurance Broker",
+                            "21": "Management of Companies and Enterprises",
+                            "22": "Manufacturing",
+                            "23": "Mining, Quarrying, and Oil and Gas Extraction",
+                            "7": "Movie and Film and Recording Studio",
+                            "5": "Museums and Art Gallery",
+                            "8": "Publisher",
+                            "9": "Radio and TV",
+                            "15": "Stock Broker",
+                            "10": "Telecommunications",
+                            "24": "Transportation and Warehousing",
+                            "25": "Utilities",
+                            "26": "Wholesale Trade",
+                            "27": "Accounting and Bookkeeping",
+                            "28": "Advertising and PR Agencies",
+                            "29": "Architectural and Engineering",
+                            "30": "Consulting Services",
+                            "31": "Graphic Designers",
+                            "32": "Legal Services",
+                            "33": "Other Professional, Scientific and Technical Services",
+                            "34": "Research and Development",
+                            "35": "Software Development",
+                            "36": "Real Estate",
+                            "37": "Clothing and Accesories",
+                            "38": "Electronics and Appliances",
+                            "39": "Gas Station",
+                            "40": "General Merchandise Store",
+                            "41": "Groceries and Specialty",
+                            "42": "Health and Beauty",
+                            "43": "Home Furnishings",
+                            "44": "Homebuilding Materials and Gardening",
+                            "45": "Miscellaneous",
+                            "46": "Motor Vehicle and Parts",
+                            "47": "Sporting Goods, Hobby and Musical Instruments",
+                            "48": "Educational Services",
+                            "50": "Health Care and Social Assistance",
+                            "51": "Other Services (Except Public Administration)",
+                            "52": "Public Administration"
+                        },
+                        "default_value": [],
+                        "return_format": "value",
+                        "multiple": 1,
+                        "acfe_settings": "",
+                        "acfe_validate": "",
+                        "allow_null": 0,
+                        "acfe_permissions": "",
+                        "ui": 0,
+                        "ajax": 0,
+                        "placeholder": "",
+                        "allow_custom": 0,
+                        "search_placeholder": "",
+                        "create_options": 0,
+                        "save_options": 0
+                    },
+                    {
+                        "key": "field_689381532b00f",
+                        "label": "Local BIA Heading",
+                        "name": "local_bia",
+                        "aria-label": "",
+                        "type": "select",
+                        "instructions": "Please select one or more items below. These are internal headings that can be used to classify your business further, and will be available in the business directory.",
+                        "required": 0,
+                        "conditional_logic": 0,
+                        "wrapper": {
+                            "width": "",
+                            "class": "",
+                            "id": ""
+                        },
+                        "field_cacf_civicrm_custom_field": "caicustom_9",
+                        "choices": {
+                            "Dine": "Dine",
+                            "Miscellaneous": "Miscellaneous",
+                            "1": "sports",
+                            "New category": "New Category"
+                        },
+                        "default_value": [],
+                        "return_format": "value",
+                        "multiple": 1,
+                        "allow_custom": 0,
+                        "placeholder": "",
+                        "acfe_settings": "",
+                        "acfe_validate": "",
+                        "allow_null": 0,
+                        "acfe_permissions": "",
+                        "allow_in_bindings": 1,
+                        "ui": 1,
+                        "ajax": 0,
+                        "create_options": 0,
+                        "save_options": 0,
+                        "search_placeholder": ""
+                    },
+                    {
+                        "key": "field_689381532b016",
+                        "label": "Date of Opening",
+                        "name": "date_of_opening",
+                        "aria-label": "",
+                        "type": "date_picker",
+                        "instructions": "",
+                        "required": 0,
+                        "conditional_logic": 0,
+                        "wrapper": {
+                            "width": "",
+                            "class": "",
+                            "id": ""
+                        },
+                        "field_cacf_civicrm_custom_field": "caicustom_14",
+                        "display_format": "d\/m\/Y",
+                        "return_format": "d\/m\/Y",
+                        "first_day": 1,
+                        "acfe_settings": "",
+                        "acfe_validate": "",
+                        "acfe_permissions": "",
+                        "default_value": null,
+                        "default_to_current_date": 0
+                    },
+                    {
+                        "key": "field_689381532b01d",
+                        "label": "Number of Employees",
+                        "name": "number_of_employees",
+                        "aria-label": "",
+                        "type": "select",
+                        "instructions": "",
+                        "required": 0,
+                        "conditional_logic": 0,
+                        "wrapper": {
+                            "width": "",
+                            "class": "",
+                            "id": ""
+                        },
+                        "field_cacf_civicrm_custom_field": "caicustom_113",
+                        "choices": {
+                            "0": "0",
+                            "3": "1-5",
+                            "15.5": "6-25",
+                            "43": "26-50",
+                            "75": "51-99",
+                            "175": "100-250",
+                            "625": "251-999",
+                            "1000": "1000+"
+                        },
+                        "default_value": false,
+                        "return_format": "value",
+                        "multiple": 0,
+                        "allow_custom": 0,
+                        "search_placeholder": "",
+                        "acfe_settings": "",
+                        "acfe_validate": "",
+                        "allow_null": 0,
+                        "acfe_permissions": "",
+                        "ui": 0,
+                        "ajax": 0,
+                        "placeholder": "",
+                        "create_options": 0,
+                        "save_options": 0
+                    },
+                    {
+                        "key": "field_689381532b03e",
+                        "label": "",
+                        "name": "opt_out_of_public_listings",
+                        "aria-label": "",
+                        "type": "checkbox",
+                        "instructions": "",
+                        "required": 0,
+                        "conditional_logic": 0,
+                        "wrapper": {
+                            "width": "",
+                            "class": "",
+                            "id": ""
+                        },
+                        "field_cacf_civicrm_custom_field": "",
+                        "choices": {
+                            "Yes": "Opt out of public listings?"
+                        },
+                        "default_value": [],
+                        "return_format": "value",
+                        "acfe_settings": "",
+                        "acfe_validate": "",
+                        "allow_custom": 0,
+                        "acfe_permissions": "",
+                        "layout": "vertical",
+                        "toggle": 0,
+                        "save_custom": 0,
+                        "custom_choice_button_text": "Add new choice"
+                    },
+                    {
+                        "key": "field_698aac6fbc546",
+                        "label": "",
+                        "name": "opt_in_to_receive_communication",
+                        "aria-label": "",
+                        "type": "checkbox",
+                        "instructions": "",
+                        "required": 0,
+                        "conditional_logic": 0,
+                        "wrapper": {
+                            "width": "",
+                            "class": "",
+                            "id": ""
+                        },
+                        "field_cacf_civicrm_custom_field": "",
+                        "choices": {
+                            "1": "Opt in to receive communication?"
+                        },
+                        "default_value": [
+                            1
+                        ],
+                        "return_format": "value",
+                        "acfe_settings": "",
+                        "acfe_validate": "",
+                        "allow_custom": 0,
+                        "acfe_permissions": "",
+                        "allow_in_bindings": 0,
+                        "layout": "vertical",
+                        "toggle": 0,
+                        "save_custom": 0,
+                        "custom_choice_button_text": "Add new choice"
+                    },
+                    {
+                        "key": "field_6893840fbfc52",
+                        "label": "Ownership Demographics",
+                        "name": "",
+                        "aria-label": "",
+                        "type": "accordion",
+                        "instructions": "",
+                        "required": 0,
+                        "conditional_logic": 0,
+                        "wrapper": {
+                            "width": "",
+                            "class": "",
+                            "id": ""
+                        },
+                        "open": 0,
+                        "multi_expand": 1,
+                        "endpoint": 0,
+                        "acfe_permissions": ""
+                    },
+                    {
+                        "key": "field_689381532b050",
+                        "label": "",
+                        "name": "ownership_demographics",
+                        "aria-label": "",
+                        "type": "group",
+                        "instructions": "",
+                        "required": 0,
+                        "conditional_logic": 0,
+                        "wrapper": {
+                            "width": "",
+                            "class": "",
+                            "id": ""
+                        },
+                        "layout": "row",
+                        "acfe_seamless_style": 0,
+                        "acfe_group_modal": 0,
+                        "acfe_settings": "",
+                        "acfe_permissions": "",
+                        "acfe_group_modal_close": 0,
+                        "acfe_group_modal_button": "",
+                        "acfe_group_modal_size": "large",
+                        "sub_fields": [
+                            {
+                                "key": "field_689381533b95e",
+                                "label": "",
+                                "name": "",
+                                "aria-label": "",
+                                "type": "accordion",
+                                "instructions": "",
+                                "required": 0,
+                                "conditional_logic": 0,
+                                "wrapper": {
+                                    "width": "",
+                                    "class": "",
+                                    "id": ""
+                                },
+                                "open": 1,
+                                "multi_expand": 1,
+                                "endpoint": 0,
+                                "acfe_permissions": ""
+                            },
+                            {
+                                "key": "field_689381533b990",
+                                "label": "Francophone",
+                                "name": "francophone",
+                                "aria-label": "",
+                                "type": "civicrm_yes_no",
+                                "instructions": "",
+                                "required": 0,
+                                "conditional_logic": 0,
+                                "wrapper": {
+                                    "width": "",
+                                    "class": "",
+                                    "id": ""
+                                },
+                                "acfe_permissions": "",
+                                "field_cacf_civicrm_custom_field": "",
+                                "acfe_settings": "",
+                                "acfe_validate": "",
+                                "choices": {
+                                    "1": "Yes",
+                                    "0": "No",
+                                    "2": "Unknown"
+                                },
+                                "default_value": 2,
+                                "allow_null": 0,
+                                "return_format": "value"
+                            },
+                            {
+                                "key": "field_689381533b998",
+                                "label": "Women",
+                                "name": "women",
+                                "aria-label": "",
+                                "type": "civicrm_yes_no",
+                                "instructions": "",
+                                "required": 0,
+                                "conditional_logic": 0,
+                                "wrapper": {
+                                    "width": "",
+                                    "class": "",
+                                    "id": ""
+                                },
+                                "acfe_permissions": "",
+                                "field_cacf_civicrm_custom_field": "",
+                                "acfe_settings": "",
+                                "acfe_validate": "",
+                                "choices": {
+                                    "1": "Yes",
+                                    "0": "No",
+                                    "2": "Unknown"
+                                },
+                                "default_value": 2,
+                                "allow_null": 0,
+                                "return_format": "value"
+                            },
+                            {
+                                "key": "field_689381533b99e",
+                                "label": "Youth (39 and under)",
+                                "name": "youth",
+                                "aria-label": "",
+                                "type": "civicrm_yes_no",
+                                "instructions": "",
+                                "required": 0,
+                                "conditional_logic": 0,
+                                "wrapper": {
+                                    "width": "",
+                                    "class": "",
+                                    "id": ""
+                                },
+                                "acfe_permissions": "",
+                                "field_cacf_civicrm_custom_field": "",
+                                "acfe_settings": "",
+                                "acfe_validate": "",
+                                "choices": {
+                                    "1": "Yes",
+                                    "0": "No",
+                                    "2": "Unknown"
+                                },
+                                "default_value": 2,
+                                "allow_null": 0,
+                                "return_format": "value"
+                            },
+                            {
+                                "key": "field_689381533b9a5",
+                                "label": "Lesbian, gay, bisexual, transexual, queer (LGBTQ+)",
+                                "name": "lgbtiq",
+                                "aria-label": "",
+                                "type": "civicrm_yes_no",
+                                "instructions": "",
+                                "required": 0,
+                                "conditional_logic": 0,
+                                "wrapper": {
+                                    "width": "",
+                                    "class": "",
+                                    "id": ""
+                                },
+                                "acfe_permissions": "",
+                                "field_cacf_civicrm_custom_field": "",
+                                "acfe_settings": "",
+                                "acfe_validate": "",
+                                "choices": {
+                                    "1": "Yes",
+                                    "0": "No",
+                                    "2": "Unknown"
+                                },
+                                "default_value": 2,
+                                "allow_null": 0,
+                                "return_format": "value"
+                            },
+                            {
+                                "key": "field_689381533b9ad",
+                                "label": "Indigenous (First Nations, Inuit, or Metis)",
+                                "name": "indigenous",
+                                "aria-label": "",
+                                "type": "civicrm_yes_no",
+                                "instructions": "",
+                                "required": 0,
+                                "conditional_logic": 0,
+                                "wrapper": {
+                                    "width": "",
+                                    "class": "",
+                                    "id": ""
+                                },
+                                "acfe_permissions": "",
+                                "field_cacf_civicrm_custom_field": "",
+                                "acfe_settings": "",
+                                "acfe_validate": "",
+                                "choices": {
+                                    "1": "Yes",
+                                    "0": "No",
+                                    "2": "Unknown"
+                                },
+                                "default_value": 2,
+                                "allow_null": 0,
+                                "return_format": "value"
+                            },
+                            {
+                                "key": "field_689381533b9c4",
+                                "label": "Racialized group member",
+                                "name": "racialized",
+                                "aria-label": "",
+                                "type": "civicrm_yes_no",
+                                "instructions": "",
+                                "required": 0,
+                                "conditional_logic": 0,
+                                "wrapper": {
+                                    "width": "",
+                                    "class": "",
+                                    "id": ""
+                                },
+                                "acfe_permissions": "",
+                                "field_cacf_civicrm_custom_field": "",
+                                "acfe_settings": "",
+                                "acfe_validate": "",
+                                "choices": {
+                                    "1": "Yes",
+                                    "0": "No",
+                                    "2": "Unknown"
+                                },
+                                "default_value": 2,
+                                "allow_null": 0,
+                                "return_format": "value"
+                            },
+                            {
+                                "key": "field_689381533b9dc",
+                                "label": "Newcomers, immigrants, and refugees",
+                                "name": "newcomers",
+                                "aria-label": "",
+                                "type": "civicrm_yes_no",
+                                "instructions": "",
+                                "required": 0,
+                                "conditional_logic": 0,
+                                "wrapper": {
+                                    "width": "",
+                                    "class": "",
+                                    "id": ""
+                                },
+                                "acfe_permissions": "",
+                                "field_cacf_civicrm_custom_field": "",
+                                "acfe_settings": "",
+                                "acfe_validate": "",
+                                "choices": {
+                                    "1": "Yes",
+                                    "0": "No",
+                                    "2": "Unknown"
+                                },
+                                "default_value": 2,
+                                "allow_null": 0,
+                                "return_format": "value"
+                            },
+                            {
+                                "key": "field_689381533b9e3",
+                                "label": "Black community member",
+                                "name": "black",
+                                "aria-label": "",
+                                "type": "civicrm_yes_no",
+                                "instructions": "",
+                                "required": 0,
+                                "conditional_logic": 0,
+                                "wrapper": {
+                                    "width": "",
+                                    "class": "",
+                                    "id": ""
+                                },
+                                "acfe_permissions": "",
+                                "field_cacf_civicrm_custom_field": "",
+                                "acfe_settings": "",
+                                "acfe_validate": "",
+                                "choices": {
+                                    "1": "Yes",
+                                    "0": "No",
+                                    "2": "Unknown"
+                                },
+                                "default_value": 2,
+                                "allow_null": 0,
+                                "return_format": "value"
+                            },
+                            {
+                                "key": "field_689381533b9ea",
+                                "label": "People with disabilities",
+                                "name": "disabilities",
+                                "aria-label": "",
+                                "type": "civicrm_yes_no",
+                                "instructions": "",
+                                "required": 0,
+                                "conditional_logic": 0,
+                                "wrapper": {
+                                    "width": "",
+                                    "class": "",
+                                    "id": ""
+                                },
+                                "acfe_permissions": "",
+                                "field_cacf_civicrm_custom_field": "",
+                                "acfe_settings": "",
+                                "acfe_validate": "",
+                                "choices": {
+                                    "1": "Yes",
+                                    "0": "No",
+                                    "2": "Unknown"
+                                },
+                                "default_value": 2,
+                                "allow_null": 0,
+                                "return_format": "value"
+                            },
+                            {
+                                "key": "field_689381533b9f6",
+                                "label": "",
+                                "name": "",
+                                "aria-label": "",
+                                "type": "accordion",
+                                "instructions": "",
+                                "required": 0,
+                                "conditional_logic": 0,
+                                "wrapper": {
+                                    "width": "",
+                                    "class": "",
+                                    "id": ""
+                                },
+                                "acfe_permissions": "",
+                                "open": 1,
+                                "multi_expand": 1,
+                                "endpoint": 1
+                            }
+                        ]
+                    },
+                    {
+                        "key": "field_6893844ebfc53",
+                        "label": "Social Media",
+                        "name": "",
+                        "aria-label": "",
+                        "type": "accordion",
+                        "instructions": "",
+                        "required": 0,
+                        "conditional_logic": 0,
+                        "wrapper": {
+                            "width": "",
+                            "class": "",
+                            "id": ""
+                        },
+                        "open": 0,
+                        "multi_expand": 1,
+                        "endpoint": 0,
+                        "acfe_permissions": ""
+                    },
+                    {
+                        "key": "field_689381532b074",
+                        "label": "",
+                        "name": "social_media",
+                        "aria-label": "",
+                        "type": "group",
+                        "instructions": "",
+                        "required": 0,
+                        "conditional_logic": 0,
+                        "wrapper": {
+                            "width": "",
+                            "class": "",
+                            "id": ""
+                        },
+                        "layout": "row",
+                        "acfe_seamless_style": 0,
+                        "acfe_group_modal": 0,
+                        "acfe_settings": "",
+                        "acfe_permissions": "",
+                        "acfe_group_modal_close": 0,
+                        "acfe_group_modal_button": "",
+                        "acfe_group_modal_size": "large",
+                        "sub_fields": [
+                            {
+                                "key": "field_689381534bd3a",
+                                "label": "",
+                                "name": "",
+                                "aria-label": "",
+                                "type": "accordion",
+                                "instructions": "",
+                                "required": 0,
+                                "conditional_logic": 0,
+                                "wrapper": {
+                                    "width": "",
+                                    "class": "",
+                                    "id": ""
+                                },
+                                "acfe_permissions": "",
+                                "open": 1,
+                                "multi_expand": 1,
+                                "endpoint": 0
+                            },
+                            {
+                                "key": "field_689381534bd57",
+                                "label": "LinkedIn",
+                                "name": "linkedin_url",
+                                "aria-label": "",
+                                "type": "url",
+                                "instructions": "",
+                                "required": 0,
+                                "conditional_logic": 0,
+                                "wrapper": {
+                                    "width": "",
+                                    "class": "",
+                                    "id": ""
+                                },
+                                "acfe_permissions": "",
+                                "field_cacf_civicrm_custom_field": "",
+                                "default_value": "",
+                                "acfe_settings": "",
+                                "acfe_validate": "",
+                                "placeholder": "https:\/\/www.linkedin.com"
+                            },
+                            {
+                                "key": "field_689381534bd62",
+                                "label": "Twitter",
+                                "name": "twitter_url",
+                                "aria-label": "",
+                                "type": "url",
+                                "instructions": "",
+                                "required": 0,
+                                "conditional_logic": 0,
+                                "wrapper": {
+                                    "width": "",
+                                    "class": "",
+                                    "id": ""
+                                },
+                                "acfe_permissions": "",
+                                "field_cacf_civicrm_custom_field": "",
+                                "default_value": "",
+                                "acfe_settings": "",
+                                "acfe_validate": "",
+                                "placeholder": "https:\/\/x.com"
+                            },
+                            {
+                                "key": "field_689381534bd6d",
+                                "label": "Facebook",
+                                "name": "facebook_url",
+                                "aria-label": "",
+                                "type": "url",
+                                "instructions": "",
+                                "required": 0,
+                                "conditional_logic": 0,
+                                "wrapper": {
+                                    "width": "",
+                                    "class": "",
+                                    "id": ""
+                                },
+                                "acfe_permissions": "",
+                                "field_cacf_civicrm_custom_field": "",
+                                "default_value": "",
+                                "acfe_settings": "",
+                                "acfe_validate": "",
+                                "placeholder": "https:\/\/facebook.com"
+                            },
+                            {
+                                "key": "field_689381534bd88",
+                                "label": "Instagram",
+                                "name": "instagram_url",
+                                "aria-label": "",
+                                "type": "url",
+                                "instructions": "",
+                                "required": 0,
+                                "conditional_logic": 0,
+                                "wrapper": {
+                                    "width": "",
+                                    "class": "",
+                                    "id": ""
+                                },
+                                "acfe_permissions": "",
+                                "field_cacf_civicrm_custom_field": "",
+                                "default_value": "",
+                                "acfe_settings": "",
+                                "acfe_validate": "",
+                                "placeholder": "https:\/\/instagram.com"
+                            },
+                            {
+                                "key": "field_689381534bd8f",
+                                "label": "Google Maps Link",
+                                "name": "google_maps_link",
+                                "aria-label": "",
+                                "type": "url",
+                                "instructions": "",
+                                "required": 0,
+                                "conditional_logic": 0,
+                                "wrapper": {
+                                    "width": "",
+                                    "class": "",
+                                    "id": ""
+                                },
+                                "acfe_permissions": "",
+                                "field_cacf_civicrm_custom_field": "",
+                                "default_value": "",
+                                "acfe_settings": "",
+                                "acfe_validate": "",
+                                "placeholder": "https:\/\/maps.google.ca"
+                            },
+                            {
+                                "key": "field_689381534bd97",
+                                "label": "TikTok",
+                                "name": "ticktok_url",
+                                "aria-label": "",
+                                "type": "url",
+                                "instructions": "",
+                                "required": 0,
+                                "conditional_logic": 0,
+                                "wrapper": {
+                                    "width": "",
+                                    "class": "",
+                                    "id": ""
+                                },
+                                "acfe_permissions": "",
+                                "field_cacf_civicrm_custom_field": "",
+                                "default_value": "",
+                                "acfe_settings": "",
+                                "acfe_validate": "",
+                                "placeholder": "https:\/\/tiktok.com"
+                            },
+                            {
+                                "key": "field_689381534bdb0",
+                                "label": "",
+                                "name": "",
+                                "aria-label": "",
+                                "type": "accordion",
+                                "instructions": "",
+                                "required": 0,
+                                "conditional_logic": 0,
+                                "wrapper": {
+                                    "width": "",
+                                    "class": "",
+                                    "id": ""
+                                },
+                                "acfe_permissions": "",
+                                "open": 1,
+                                "multi_expand": 1,
+                                "endpoint": 1
+                            }
+                        ]
+                    },
+                    {
+                        "key": "field_68938a8fd8670",
+                        "label": "",
+                        "name": "",
+                        "aria-label": "",
+                        "type": "accordion",
+                        "instructions": "",
+                        "required": 0,
+                        "conditional_logic": 0,
+                        "wrapper": {
+                            "width": "",
+                            "class": "",
+                            "id": ""
+                        },
+                        "open": 0,
+                        "multi_expand": 0,
+                        "endpoint": 1,
+                        "acfe_permissions": ""
+                    },
+                    {
+                        "key": "field_6893861e9d5b8",
+                        "label": "Business Address",
+                        "name": "business_address",
+                        "aria-label": "",
+                        "type": "repeater",
+                        "instructions": "You can enter an address for your business below. Please click on \"Add Row\" to add a new business address. If you wish to delete an address, please click on the \"minus\" sign at the end of the address row.",
+                        "required": 0,
+                        "conditional_logic": 0,
+                        "wrapper": {
+                            "width": "",
+                            "class": "",
+                            "id": ""
+                        },
+                        "acfe_repeater_stylised_button": 0,
+                        "layout": "table",
+                        "pagination": 0,
+                        "acfe_settings": "",
+                        "min": 1,
+                        "max": 0,
+                        "acfe_permissions": "",
+                        "collapsed": "",
+                        "button_label": "Add Row",
+                        "rows_per_page": 20,
+                        "sub_fields": [
+                            {
+                                "key": "field_68938884fcbe6",
+                                "label": "Enter Address Details below",
+                                "name": "business_address_group",
+                                "aria-label": "",
+                                "type": "group",
+                                "instructions": "",
+                                "required": 0,
+                                "conditional_logic": 0,
+                                "wrapper": {
+                                    "width": "",
+                                    "class": "",
+                                    "id": ""
+                                },
+                                "acfe_permissions": "",
+                                "layout": "block",
+                                "acfe_seamless_style": 0,
+                                "acfe_group_modal": 0,
+                                "acfe_settings": "",
+                                "sub_fields": [
+                                    {
+                                        "key": "field_6893c61d824cd",
+                                        "label": "Expand to enter Business Address",
+                                        "name": "",
+                                        "aria-label": "",
+                                        "type": "accordion",
+                                        "instructions": "",
+                                        "required": 0,
+                                        "conditional_logic": 0,
+                                        "wrapper": {
+                                            "width": "",
+                                            "class": "",
+                                            "id": ""
+                                        },
+                                        "acfe_permissions": "",
+                                        "open": 0,
+                                        "multi_expand": 0,
+                                        "endpoint": 0
+                                    },
+                                    {
+                                        "key": "field_68938947045f4",
+                                        "label": "Unit\/Suite Number",
+                                        "name": "unitsuite",
+                                        "aria-label": "",
+                                        "type": "text",
+                                        "instructions": "",
+                                        "required": 0,
+                                        "conditional_logic": 0,
+                                        "wrapper": {
+                                            "width": "",
+                                            "class": "",
+                                            "id": ""
+                                        },
+                                        "acfe_permissions": "",
+                                        "default_value": "",
+                                        "acfe_settings": "",
+                                        "acfe_validate": "",
+                                        "maxlength": "",
+                                        "placeholder": "",
+                                        "prepend": "",
+                                        "append": ""
+                                    },
+                                    {
+                                        "key": "field_6893892e045f3",
+                                        "label": "Street Address",
+                                        "name": "street_address",
+                                        "aria-label": "",
+                                        "type": "text",
+                                        "instructions": "",
+                                        "required": 0,
+                                        "conditional_logic": 0,
+                                        "wrapper": {
+                                            "width": "",
+                                            "class": "",
+                                            "id": ""
+                                        },
+                                        "acfe_permissions": "",
+                                        "default_value": "",
+                                        "acfe_settings": "",
+                                        "acfe_validate": "",
+                                        "maxlength": "",
+                                        "placeholder": "",
+                                        "prepend": "",
+                                        "append": ""
+                                    },
+                                    {
+                                        "key": "field_689388f7fcbe9",
+                                        "label": "City",
+                                        "name": "city",
+                                        "aria-label": "",
+                                        "type": "text",
+                                        "instructions": "",
+                                        "required": 0,
+                                        "conditional_logic": 0,
+                                        "wrapper": {
+                                            "width": "",
+                                            "class": "",
+                                            "id": ""
+                                        },
+                                        "acfe_permissions": "",
+                                        "field_cacf_civicrm_custom_field": "",
+                                        "default_value": "",
+                                        "acfe_settings": "",
+                                        "acfe_validate": "",
+                                        "maxlength": "",
+                                        "placeholder": "",
+                                        "prepend": "",
+                                        "append": ""
+                                    },
+                                    {
+                                        "key": "field_689388e7fcbe8",
+                                        "label": "Postal Code",
+                                        "name": "postal_code",
+                                        "aria-label": "",
+                                        "type": "text",
+                                        "instructions": "",
+                                        "required": 0,
+                                        "conditional_logic": 0,
+                                        "wrapper": {
+                                            "width": "",
+                                            "class": "",
+                                            "id": ""
+                                        },
+                                        "default_value": "",
+                                        "acfe_settings": "",
+                                        "acfe_validate": "",
+                                        "maxlength": "",
+                                        "placeholder": "",
+                                        "prepend": "",
+                                        "append": ""
+                                    },
+                                    {
+                                        "key": "field_689388c0fcbe7",
+                                        "label": "Location (Floor Number)",
+                                        "name": "unit_location",
+                                        "aria-label": "",
+                                        "type": "text",
+                                        "instructions": "",
+                                        "required": 0,
+                                        "conditional_logic": 0,
+                                        "wrapper": {
+                                            "width": "",
+                                            "class": "",
+                                            "id": ""
+                                        },
+                                        "default_value": "",
+                                        "acfe_settings": "",
+                                        "acfe_validate": "",
+                                        "maxlength": "",
+                                        "placeholder": "",
+                                        "prepend": "",
+                                        "append": ""
+                                    },
+                                    {
+                                        "key": "field_68a4a6700ed45",
+                                        "label": "Unit ID",
+                                        "name": "unit_id",
+                                        "aria-label": "",
+                                        "type": "acfe_hidden",
+                                        "instructions": "",
+                                        "required": 0,
+                                        "conditional_logic": 0,
+                                        "wrapper": {
+                                            "width": "",
+                                            "class": "",
+                                            "id": ""
+                                        },
+                                        "acfe_permissions": [
+                                            "administrator"
+                                        ],
+                                        "default_value": "",
+                                        "acfe_settings": "",
+                                        "acfe_validate": "",
+                                        "allow_in_bindings": 0
+                                    }
+                                ],
+                                "acfe_group_modal_close": 0,
+                                "acfe_group_modal_button": "",
+                                "acfe_group_modal_size": "large",
+                                "parent_repeater": "field_6893861e9d5b8"
+                            }
+                        ]
+                    },
+                    {
+                        "key": "field_698aac86bc547",
+                        "label": "",
+                        "name": "",
+                        "aria-label": "",
+                        "type": "text",
+                        "instructions": "",
+                        "required": 0,
+                        "conditional_logic": 0,
+                        "wrapper": {
+                            "width": "",
+                            "class": "",
+                            "id": ""
+                        },
+                        "default_value": "",
+                        "acfe_settings": "",
+                        "acfe_validate": "",
+                        "maxlength": "",
+                        "acfe_permissions": "",
+                        "allow_in_bindings": 0,
+                        "placeholder": "",
+                        "prepend": "",
+                        "append": ""
+                    }
+                ]
+            },
+            {
+                "key": "field_6893815329b29",
+                "label": "Business Contact Details",
+                "name": "business_contact_details",
+                "aria-label": "",
+                "type": "group",
+                "instructions": "",
+                "required": 0,
+                "conditional_logic": 0,
+                "wrapper": {
+                    "width": "",
+                    "class": "",
+                    "id": ""
+                },
+                "layout": "block",
+                "acfe_seamless_style": 0,
+                "acfe_group_modal": 0,
+                "acfe_settings": "",
+                "acfe_permissions": "",
+                "acfe_group_modal_close": 0,
+                "acfe_group_modal_button": "",
+                "acfe_group_modal_size": "large",
+                "sub_fields": [
+                    {
+                        "key": "field_6893815370a38",
+                        "label": "First Name",
+                        "name": "first_name",
+                        "aria-label": "",
+                        "type": "text",
+                        "instructions": "",
+                        "required": 1,
+                        "conditional_logic": 0,
+                        "wrapper": {
+                            "width": "",
+                            "class": "",
+                            "id": ""
+                        },
+                        "field_cacf_civicrm_custom_field": "",
+                        "default_value": "",
+                        "acfe_settings": "",
+                        "acfe_validate": "",
+                        "maxlength": "",
+                        "acfe_permissions": "",
+                        "placeholder": "",
+                        "prepend": "",
+                        "append": ""
+                    },
+                    {
+                        "key": "field_6893815370a53",
+                        "label": "Last Name",
+                        "name": "last_name",
+                        "aria-label": "",
+                        "type": "text",
+                        "instructions": "",
+                        "required": 1,
+                        "conditional_logic": 0,
+                        "wrapper": {
+                            "width": "",
+                            "class": "",
+                            "id": ""
+                        },
+                        "field_cacf_civicrm_custom_field": "",
+                        "default_value": "",
+                        "acfe_settings": "",
+                        "acfe_validate": "",
+                        "maxlength": "",
+                        "acfe_permissions": "",
+                        "placeholder": "",
+                        "prepend": "",
+                        "append": ""
+                    },
+                    {
+                        "key": "field_6893815370a5d",
+                        "label": "Email",
+                        "name": "contact_email",
+                        "aria-label": "",
+                        "type": "email",
+                        "instructions": "",
+                        "required": 1,
+                        "conditional_logic": 0,
+                        "wrapper": {
+                            "width": "",
+                            "class": "",
+                            "id": ""
+                        },
+                        "field_cacf_civicrm_custom_field": "",
+                        "default_value": "",
+                        "acfe_settings": "",
+                        "acfe_validate": "",
+                        "acfe_permissions": "",
+                        "placeholder": "",
+                        "prepend": "",
+                        "append": ""
+                    },
+                    {
+                        "key": "field_6893815370a67",
+                        "label": "Telephone Number",
+                        "name": "contact_phone",
+                        "aria-label": "",
+                        "type": "text",
+                        "instructions": "",
+                        "required": 0,
+                        "conditional_logic": 0,
+                        "wrapper": {
+                            "width": "",
+                            "class": "",
+                            "id": ""
+                        },
+                        "field_cacf_civicrm_custom_field": "",
+                        "default_value": "",
+                        "acfe_settings": "",
+                        "acfe_validate": "",
+                        "maxlength": "",
+                        "acfe_permissions": "",
+                        "placeholder": "",
+                        "prepend": "",
+                        "append": ""
+                    },
+                    {
+                        "key": "field_6893815370a71",
+                        "label": "Position",
+                        "name": "contact_position",
+                        "aria-label": "",
+                        "type": "text",
+                        "instructions": "",
+                        "required": 0,
+                        "conditional_logic": 0,
+                        "wrapper": {
+                            "width": "",
+                            "class": "",
+                            "id": ""
+                        },
+                        "field_cacf_civicrm_custom_field": "",
+                        "default_value": "",
+                        "acfe_settings": "",
+                        "acfe_validate": "",
+                        "maxlength": "",
+                        "acfe_permissions": "",
+                        "placeholder": "",
+                        "prepend": "",
+                        "append": ""
+                    }
+                ]
+            }
+        ],
+        "location": [
+            [
+                {
+                    "param": "form_civicrm",
+                    "operator": "==",
+                    "value": "contact-3"
+                }
+            ]
+        ],
+        "menu_order": 0,
+        "position": "normal",
+        "style": "default",
+        "label_placement": "left",
+        "instruction_placement": "label",
+        "hide_on_screen": "",
+        "active": true,
+        "description": "",
+        "show_in_rest": 0,
+        "display_title": "",
+        "acfe_autosync": [
+            "php",
+            "json"
+        ],
+        "acfe_permissions": [
+            "administrator",
+            "editor",
+            "author",
+            "contributor",
+            "subscriber",
+            "bia_staff",
+            "obiaa_admin"
+        ],
+        "acfe_form": 1,
+        "acfe_meta": "",
+        "acfe_note": ""
+    }
+]
