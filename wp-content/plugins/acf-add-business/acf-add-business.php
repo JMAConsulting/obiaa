@@ -411,6 +411,22 @@ function validate_property_present($valid, $value, $field, $input) {
 }
 
 add_action('acfe/form/submit/update-contact-detail', 'add_business_form_handler_save_post', 10, 2);
+add_filter('acfe/form/submit_email_args/action=send-bia-email', 'add_business_email_argument', 10, 3);
+function add_business_email_argument($args, $form, $action) {
+  $toEmail = get_field('contact_email');
+  if ( empty( $toEmail ) ) {
+    $toEmail = \Civi\Api4\Contact::get(FALSE)
+      ->addSelect('email_primary')
+      ->addWhere('contact_sub_type', '=', 'OBIAA_Staff')
+      ->addWhere('Staff_Information.Primary_Staff_Member_', '=', TRUE)
+      ->execute()->first()['email_primary'];
+  }
+  if ( empty( $toEmail ) ) {
+    $toEmail = get_bloginfo( 'admin_email' );
+  }
+  $args['to'] = $toEmail;
+  return $args;
+}
 
 function add_business_form_handler_save_post($form, $action) {
   // Check if this is an ACF form and either an Add a Business form or Update Business form
