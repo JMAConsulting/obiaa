@@ -43,7 +43,7 @@ function redirect_invalid_checksum($template) {
     }
   }
   // Not a valid request so we redirect them to WP home
-  // NOTE: we might want to redirect to a custom notice page saying it was a 
+  // NOTE: we might want to redirect to a custom notice page saying it was a
   // invalid request. This is where we would indicate the url
   wp_redirect(home_url());
   exit();
