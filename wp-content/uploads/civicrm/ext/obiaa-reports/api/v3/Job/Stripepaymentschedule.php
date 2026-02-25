@@ -28,11 +28,11 @@ function _civicrm_api3_job_Stripepaymentschedule_spec(&$spec) {
 function civicrm_api3_job_Stripepaymentschedule($params) {
   $contributions=[];
   $resultsActivity=[];
-  
+
   try {
-    
+
     //get contact id, payment process type, email address, total amount, month, site name
-    
+
     $contributions = \Civi\Api4\Contribution::get()
       ->addSelect('contact_id', 'payment_processor.payment_processor_type_id', 'email.email', 'SUM(total_amount)', 'EXTRACT(YEAR_MONTH FROM receive_date)', 'financial_type.name')
       ->addJoin('FinancialTrxn AS financial_trxn', 'LEFT', ['financial_trxn.trxn_id', '=', 'trxn_id'])
@@ -52,12 +52,12 @@ function civicrm_api3_job_Stripepaymentschedule($params) {
       ->addWhere('financial_trxn.is_payment', '=', TRUE)
       ->execute();
 
-    Civi::log()->debug("contribution result is: ".$contributions);  
+    Civi::log()->debug("contribution result is: ".$contributions);
     // return $contributions;
     // CRM_Core_Error::debug('contribution information', $contributions);
-    
+
     foreach ($contributions as $contribution) {
-      // create activities 
+      // create activities
       $resultsActivity = \Civi\Api4\Activity::create()
         ->addValue('source_contact_id', $contribution['contact_id'])
         ->addValue('subject', 'contact id: '.$contribution['contact_id'].' contact email: '.$contribution['email.email'].' and month is '.$contribution['EXTRACT:receive_date'].' and financial type: '.$contribution['financial_type.name'].' total amount: '.$contribution['SUM:total_amount'])
@@ -67,7 +67,7 @@ function civicrm_api3_job_Stripepaymentschedule($params) {
         ->addValue('activity_type_id', 56) //56 is activity type id=56 and type name is Stripe Payments
         ->addValue('priority_id', 2)
         ->execute();
-      Civi::log()->debug("activity result is: ".$resultsActivity);  
+      Civi::log()->debug("activity result is: ".$resultsActivity);
     }
     // exit();
   }
@@ -80,6 +80,6 @@ function civicrm_api3_job_Stripepaymentschedule($params) {
   // ALTERNATIVE: $returnValues = ["Some value"]; // OK, return a single value
 
   // Spec: civicrm_api3_create_success($values = 1, $params = [], $entity = NULL, $action = NULL)
-  return civicrm_api3_create_success($contributions, $params, 'Job', 'Stripepaymentschedule');
-  
+  return civicrm_api3_create_success($contributions->getArrayCopy(), $params, 'Job', 'Stripepaymentschedule');
+
 }
