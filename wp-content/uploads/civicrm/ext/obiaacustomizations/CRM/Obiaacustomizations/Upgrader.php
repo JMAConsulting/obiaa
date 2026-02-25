@@ -91,6 +91,25 @@ class CRM_Obiaacustomizations_Upgrader extends CRM_Extension_Upgrader_Base {
     return TRUE;
   }
 
+  public function upgrade_2200(): bool {
+    $this->ctx->log->info('Applying upgrade 2200: Disable certain CiviMobile Schedule jobs and unit address parsing job where applicable');
+    $jobsToDisable = [
+      'PushNotificationEventReminder' => 'send',
+      'CiviMobileEventPushNotification' => 'send',
+    ];
+    foreach ($jobsToDisable as $entity => $method) {
+      CRM_Core_DAO::executeQuery("UPDATE civicrm_job SET is_active = 0 WHERE api_entity = %1 AND api_action = %2", [
+        1 => [$entity, 'String'],
+        2 => [$method, 'String'],
+      ]);
+    }
+    $streetParsing = Civi::settings()->get('address_standardization_provider');
+    if (empty($streetParsing)) {
+      CRM_Core_DAO::executeQuery("UPDATE civicrm_job SET is_active = 0 WHERE api_entity = 'Job' AND api_action = 'Geocodeunitaddress'");
+    }
+    return TRUE;
+  }
+
   /**
    * Example: Run an external SQL script.
    *
