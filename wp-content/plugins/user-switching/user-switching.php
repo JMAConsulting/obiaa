@@ -5,14 +5,13 @@
  * @package   user-switching
  * @link      https://github.com/johnbillion/user-switching
  * @author    John Blackbourn
- * @copyright 2009-2025 John Blackbourn
+ * @copyright 2009-2026 John Blackbourn
  * @license   GPL v2 or later
  *
  * Plugin Name:       User Switching
- * Description:       Instant switching between user accounts in WordPress
- * Version:           1.11.1
+ * Description:       Instant switching between user accounts in WordPress and WooCommerce.
+ * Version:           1.11.2
  * Plugin URI:        https://wordpress.org/plugins/user-switching/
- * Plugin ID:         did:plc:ap4bi3w5w42oy7hfom57tehj
  * Author:            John Blackbourn
  * Author URI:        https://johnblackbourn.com
  * Text Domain:       user-switching
@@ -68,6 +67,7 @@ final class user_switching {
 		add_action( 'all_admin_notices', [ $this, 'action_admin_notices' ], 1 );
 		add_action( 'wp_logout', 'user_switching_clear_olduser_cookie', 10, 0 );
 		add_action( 'wp_login', 'user_switching_clear_olduser_cookie', 10, 0 );
+		add_action( 'clear_auth_cookie', [ $this, 'action_clear_auth_cookie' ] );
 
 		// Nice-to-haves:
 		add_filter( 'ms_user_row_actions', [ $this, 'filter_user_row_actions' ], 10, 2 );
@@ -114,6 +114,20 @@ final class user_switching {
 		if ( ! defined( 'USER_SWITCHING_OLDUSER_COOKIE' ) ) {
 			define( 'USER_SWITCHING_OLDUSER_COOKIE', 'wordpress_user_sw_olduser_' . COOKIEHASH );
 		}
+	}
+
+	/**
+	 * Clears the stale logged-in cookie from the superglobal when auth cookies are being cleared.
+	 *
+	 * WordPress's `wp_clear_auth_cookie()` sends `Set-Cookie` headers to clear the browser cookies
+	 * but does not update `$_COOKIE`, so code running later in the same request still sees the stale
+	 * value. This causes `wp_get_session_token()` to return a dead session token, which in turn
+	 * causes `wp_create_nonce()` to generate a nonce that will fail verification on the next request.
+	 *
+	 * @link https://github.com/johnbillion/user-switching/issues/144
+	 */
+	public function action_clear_auth_cookie(): void {
+		unset( $_COOKIE[ LOGGED_IN_COOKIE ] );
 	}
 
 	/**
@@ -665,6 +679,10 @@ final class user_switching {
 	 */
 	public function action_shutdown_for_wp_die(): void {
 		if ( ! did_action( 'admin_page_access_denied' ) && ! ( function_exists( 'did_filter' ) && did_filter( 'wp_die_handler' ) ) ) {
+			return;
+		}
+
+		if ( ! defined( 'USER_SWITCHING_OLDUSER_COOKIE' ) ) {
 			return;
 		}
 

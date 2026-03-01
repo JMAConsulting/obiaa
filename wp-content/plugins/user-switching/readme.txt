@@ -1,13 +1,13 @@
 # User Switching
 
-Stable tag: 1.11.1
+Stable tag: 1.11.2
 Tested up to: 6.9
 License: GPL v2 or later
 Tags: users, user switching, fast user switching, multisite, woocommerce
 Contributors: johnbillion
 Donate link: https://github.com/sponsors/johnbillion
 
-Instant switching between user accounts in WordPress.
+Instant switching between user accounts in WordPress and WooCommerce.
 
 ## Description
 
@@ -109,7 +109,7 @@ Yes, and you'll also be able to switch users from member profile screens.
 
 Yes, mostly.
 
-One exception I'm aware of is [Duo Security](https://wordpress.org/plugins/duo-wordpress/). If you're using this plugin, you should install the [User Switching for Duo Security](https://github.com/johnbillion/user-switching-duo-security) add-on plugin which will prevent the two-factor authentication prompt from appearing when you switch between users.
+One exception I'm aware of is Duo. If you're using [Duo Universal](https://wordpress.org/plugins/duo-universal/) or [Duo Security](https://wordpress.org/plugins/duo-wordpress/) then you should install the [User Switching for Duo](https://github.com/johnbillion/user-switching-duo-security) add-on plugin which will prevent the two-factor authentication prompt from appearing when you switch between users.
 
 ### What capability does a user need in order to switch accounts?
 
@@ -336,6 +336,11 @@ In addition, User Switching respects the following filters from WordPress core w
 [I am accepting sponsorships via the GitHub Sponsors program](https://github.com/sponsors/johnbillion) and any support you can give will help me maintain this plugin and keep it free for everyone.
 ## Changelog ##
 
+### 1.11.2 (27 February 2026) ###
+
+* Fixes an expired nonce on the switch back link after the user session is destroyed
+* Fixes a potential undefined cookie constant warning in the wp_die handler
+
 ### 1.11.1 (4 December 2025) ###
 
 * Confirms support for WordPress 6.9
@@ -381,11 +386,6 @@ In addition, User Switching respects the following filters from WordPress core w
 
 * Confirm support for WordPress 6.4
 * Reinstate the missing plugin readme file
-
-### 1.7.1 (16 November 2023) ###
-
-* Fix the redirect type parameter passed to the `user_switching_redirect_to` filter
-* Increase the minimum supported version of PHP to 7.4
 
 ### Earlier versions ###
 
