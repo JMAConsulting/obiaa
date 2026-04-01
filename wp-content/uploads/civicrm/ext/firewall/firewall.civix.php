@@ -89,6 +89,7 @@ class CRM_Firewall_ExtensionUtil {
 
 use CRM_Firewall_ExtensionUtil as E;
 
+pathload()->addSearchDir(__DIR__ . '/mixin/lib');
 spl_autoload_register('_firewall_civix_class_loader', TRUE, TRUE);
 
 function _firewall_civix_class_loader($class) {

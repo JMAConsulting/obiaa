@@ -133,10 +133,10 @@ class Firewall {
       // The client IP address
       1 => [$this->clientIP, 'String'],
     ];
-    $blockDeclinesAfter = 10;
-    $blockFormProtectionAfter = 10;
-    $blockFraudAfter = 3;
-    $blockInvalidCSRFAfter = 5;
+    $blockDeclinesAfter = \Civi::settings()->get('firewall_declines_threshold') ?? 10;
+    $blockFormProtectionAfter = \Civi::settings()->get('firewall_formprotection_threshold') ?? 10;
+    $blockFraudAfter = \Civi::settings()->get('firewall_fraud_threshold') ?? 3;
+    $blockInvalidCSRFAfter = \Civi::settings()->get('firewall_invalidcsrf_threshold') ?? 5;
 
     $sql = "
 SELECT COUNT(*) as eventCount,event_type FROM `civicrm_firewall_ipaddress`

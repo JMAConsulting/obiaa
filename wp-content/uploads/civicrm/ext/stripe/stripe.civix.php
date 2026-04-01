@@ -89,6 +89,7 @@ class CRM_Stripe_ExtensionUtil {
 
 use CRM_Stripe_ExtensionUtil as E;
 
+pathload()->addSearchDir(__DIR__ . '/mixin/lib');
 spl_autoload_register('_stripe_civix_class_loader', TRUE, TRUE);
 
 function _stripe_civix_class_loader($class) {
