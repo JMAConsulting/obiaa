@@ -9,6 +9,11 @@ Releases use the following numbering system:
 
 * **[BC]**: Items marked with [BC] indicate a breaking change that will require updates to your code if you are using that code in your extension.
 
+## 6.14.2 (2026-01-21)
+
+* Fix case of API4 actions which caused payments to fail in CiviCRM 6.10.
+* [!281](https://lab.civicrm.org/extensions/stripe/-/merge_requests/286) info.xml: depend on civi_contribute
+
 ## Release 6.14.1 (2025-12-05)
 
 * Fix create webhooks form if API version doesn't match.

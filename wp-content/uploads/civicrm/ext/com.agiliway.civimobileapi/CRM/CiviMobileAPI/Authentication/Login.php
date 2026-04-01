@@ -20,26 +20,11 @@ class CRM_CiviMobileAPI_Authentication_Login {
   public $password;
 
   /**
-   * Drupal Id which related to email and password
-   *
-   * @var int
-   */
-  public $drupalContactId;
-
-  /**
    * CiviCrm contact assign drupal contact
    *
    * @var \CRM_Contact_BAO_Contact
    */
-  public $civiContact;
-
-
-  /**
-   * Reference to null object
-   *
-   * @var null
-   */
-  private $nullObject;
+  public $contact;
 
   /**
    * Response which was sent to user
@@ -51,26 +36,14 @@ class CRM_CiviMobileAPI_Authentication_Login {
   public function __construct($request) {
     $this->emailOrUsername = $request->emailOrUsername;
     $this->password = $request->password;
-    $this->civiContact = $request->civiContact;
-    $this->drupalContactId = $request->drupalContactId ?? 0;
-    $this->nullObject = NULL;
+    $this->contact = $request->contact;
   }
 
   /**
    *  Launch sending response process
    */
   public function run() {
-    $this->invokePreResponseHook();
     $this->sendResponse();
-    $this->invokePostResponseHook();
-  }
-
-  /**
-   * Invokes pre response hooks
-   */
-  private function invokePreResponseHook() {
-    CRM_Utils_Hook::singleton()
-      ->commonInvoke(1, $this->drupalContactId, $this->nullObject, $this->nullObject, $this->nullObject, $this->nullObject, $this->nullObject, 'civimobile_auth_pre', '');
   }
 
   /**
@@ -81,8 +54,8 @@ class CRM_CiviMobileAPI_Authentication_Login {
     $this->responseData['values'] = [
       'api_key' => $this->getUserApiKey(),
       'key' => $this->getSiteKey(),
-      'id' => $this->civiContact->id,
-      'display_name' => $this->civiContact->display_name,
+      'id' => $this->contact->id,
+      'display_name' => $this->contact->display_name,
       'cms' => CRM_CiviMobileAPI_Utils_CmsUser::getInstance()->getSystem(),
       'rest_path' => $restPath->get(),
       'absolute_rest_url_v4' => $restPath->getAbsoluteUrlApiV4(),
@@ -99,7 +72,7 @@ class CRM_CiviMobileAPI_Authentication_Login {
    * @return string
    */
   private function getUserApiKey() {
-    $apiKey = $this->civiContact->api_key ? $this->civiContact->api_key : $this->setApiKey($this->civiContact->id);
+    $apiKey = $this->contact->api_key ? $this->contact->api_key : $this->setApiKey($this->contact->id);
     if (!$apiKey) {
       JsonResponse::sendErrorResponse(E::ts('Something went wrong, we can not create the API KEY'));
     }
@@ -135,14 +108,6 @@ class CRM_CiviMobileAPI_Authentication_Login {
    */
   private function getSiteKey() {
     return CIVICRM_SITE_KEY;
-  }
-
-  /**
-   * Invokes post response hook
-   */
-  private function invokePostResponseHook() {
-    CRM_Utils_Hook::singleton()
-      ->commonInvoke(4, $this->responseData, $this->emailOrUsername, $this->password, $this->civiContact->id, $nullObject, $nullObject, 'civimobile_auth_success', '');
   }
 
 }

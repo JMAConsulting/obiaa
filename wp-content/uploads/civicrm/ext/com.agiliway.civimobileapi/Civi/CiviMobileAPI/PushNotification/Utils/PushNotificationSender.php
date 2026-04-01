@@ -69,8 +69,9 @@ class PushNotificationSender {
   private static function sendFirebasePush($notificationBody, $tokens, $data) {
     $token = self::generateFirebaseToken();
 
-    if(!$token)
+    if (!$token) {
       return [];
+    }
 
     $key = 'Bearer ' . $token;
 
@@ -187,7 +188,12 @@ class PushNotificationSender {
       "exp" => $now + 3600,
     ];
 
-    $jwt = JWT::encode($payload, $privateKey, 'RS256');
+    try {
+      $jwt = JWT::encode($payload, $privateKey, 'RS256');
+    }
+    catch (\Exception $e) {
+      return FALSE;
+    }
 
     $client = new Client();
     try {

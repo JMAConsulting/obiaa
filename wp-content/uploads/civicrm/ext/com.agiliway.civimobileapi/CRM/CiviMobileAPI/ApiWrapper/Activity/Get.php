@@ -46,6 +46,7 @@ class CRM_CiviMobileAPI_ApiWrapper_Activity_Get implements API_Wrapper {
       $value['can_delete'] = 0;
 
       if (isset($value['details'])) {
+        $value['details'] = implode("", (array) $value['details']);
         $value['details'] = preg_replace('/&nbsp;/', ' ', $value['details']);
         $value['details'] = preg_replace('/&#39;/', "'", $value['details']);
         $value['details'] = html_entity_decode($value['details']);
