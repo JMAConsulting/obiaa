@@ -24,19 +24,12 @@ class CRM_CiviMobileAPI_Page_Auth extends CRM_Core_Page {
   public $password;
 
   /**
-   * Drupal Id which related to email and password
-   *
-   * @var int
-   */
-  public $contactId;
-
-  /**
-   * CiviCrm contact assigns to drupal contact
+   * CiviCrm contact
    *
    * @var \CRM_Contact_BAO_Contact
    */
-  public $civiContact;
-  //login
+  public $contact;
+
   /**
    * CRM_CiviMobileAPI_Page_Auth constructor.
    */
@@ -45,13 +38,11 @@ class CRM_CiviMobileAPI_Page_Auth extends CRM_Core_Page {
 
     $this->emailOrUsername = $this->getEmailOrUsername();
     $this->password = $this->getPassword();
-    $this->contactId = CRM_CiviMobileAPI_Authentication_AuthenticationHelper::getUserIdByMailAndPassword($this->emailOrUsername, $this->password);
+    $this->contact = (new CRM_CiviMobileAPI_Authentication_CiviMobileAuthX())->authenticate($this->emailOrUsername, $this->password);
 
-    if (CRM_CiviMobileAPI_Authentication_AuthenticationHelper::isUserBlocked($this->emailOrUsername)) {
-      JsonResponse::sendErrorResponse('User is blocked', 'email', 'cms_user_is_blocked');
+    if (!$this->contact) {
+      JsonResponse::sendErrorResponse(E::ts('Wrong email or password'), NULL, 'wrong_credentials');
     }
-
-    $this->civiContact = CRM_CiviMobileAPI_Authentication_AuthenticationHelper::getCiviContact($this->contactId);
 
     parent::__construct();
   }

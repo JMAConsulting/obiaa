@@ -15,7 +15,6 @@ class CRM_CiviMobileAPI_Page_PublicSettings extends CRM_Core_Page {
 
   public function run() {
     if (CRM_CiviMobileAPI_Authentication_AuthenticationHelper::isRequestValid()) {
-
       $currentCMS = CRM_CiviMobileAPI_Utils_CmsUser::getInstance()->getSystem();
       if ($currentCMS == CRM_CiviMobileAPI_Utils_CmsUser::CMS_DRUPAL7) {
         session_destroy();
@@ -32,7 +31,8 @@ class CRM_CiviMobileAPI_Page_PublicSettings extends CRM_Core_Page {
         'crm_version' => CRM_Utils_System::version(),
         'time_zone_utc_offset' => CRM_CiviMobileAPI_Utils_Cms::getTimeZoneUTCOffset(),
         'civicrm_enable_components' => CRM_CiviMobileAPI_Utils_CiviCRM::getEnabledComponents(),
-        'ext_version' => CRM_CiviMobileAPI_Utils_VersionController::getInstance()->getCurrentFullVersion(),
+        'ext_version' => CRM_CiviMobileAPI_Utils_VersionController::getInstance()
+          ->getCurrentFullVersion(),
         'is_civimobile_ext_has_right_folder_name' => (int) CRM_CiviMobileAPI_Utils_Extension::hasExtensionRightFolderName(),
         'is_allow_cms_registration' => CRM_CiviMobileAPI_Utils_Extension::isAllowCmsRegistration(),
         'is_showed_events_in_public_area' => CRM_CiviMobileAPI_Utils_Extension::isShowedEventsInPublicArea(),

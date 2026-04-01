@@ -154,7 +154,7 @@
         }
         if (CRM.payment.getIsRecur() || (totalAmount === null)) {
           try {
-            let paymentIntentProcessResponse = await CRM.api4('StripePaymentintent', 'ProcessPublic', {
+            let paymentIntentProcessResponse = await CRM.api4('StripePaymentintent', 'processPublic', {
               setup: true,
               paymentMethodID: createPaymentMethodResult.paymentMethod.id,
               paymentProcessorID: CRM.vars[script.name].id,
@@ -250,7 +250,7 @@
               processParams.captcha = script.getReCAPTCHAToken();
             }
 
-            let paymentIntentProcessResponse = await CRM.api4('StripePaymentintent', 'Process' + processMode, processParams);
+            let paymentIntentProcessResponse = await CRM.api4('StripePaymentintent', 'process' + processMode, processParams);
             CRM.payment.swalClose();
             CRM.payment.debugging(script.name, 'StripePaymentintent.Process done (paymentIntent)');
             if (paymentIntentProcessResponse.requires_action) {
