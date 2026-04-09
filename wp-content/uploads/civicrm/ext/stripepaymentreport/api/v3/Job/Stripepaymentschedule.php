@@ -80,6 +80,6 @@ function civicrm_api3_job_Stripepaymentschedule($params) {
   // ALTERNATIVE: $returnValues = ["Some value"]; // OK, return a single value
 
   // Spec: civicrm_api3_create_success($values = 1, $params = [], $entity = NULL, $action = NULL)
-  return civicrm_api3_create_success($contributions, $params, 'Job', 'Stripepaymentschedule');
+  return civicrm_api3_create_success($contributions->toArray(), $params, 'Job', 'Stripepaymentschedule');
   
 }
