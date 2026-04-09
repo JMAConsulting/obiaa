@@ -1,0 +1,18 @@
+{
+    "require": {
+        "google/cloud-bigquery": "^1.36"
+    },
+    "replace": {
+	"brick/math": "*",
+	"guzzlehttp/guzzle": "*",
+	"guzzlehttp/psr7": "*",
+	"guzzlehttp/promises": "*",
+	"psr/log": "*",
+	"psr/cache": "*",
+	"firebase/php-jwt": "*",
+	"psr/http-client": "*",
+	"symfony/deprecation-contracts": "*",
+	"psr/http-factory": "*",
+	"psr/http-message": "*"
+    }
+}

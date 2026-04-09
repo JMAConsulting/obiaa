@@ -1,7 +1,7 @@
 <?php
 use CRM_Gcpstats_ExtensionUtil as E;
 
-require_once Civi::paths()->getPath("[civicrm.vendor]/autoload.php");
+require_once Civi::paths()->getPath("vendor/autoload.php");
 
 use Google\ApiCore\ApiException;
 use Google\ApiCore\ValidationException;
