@@ -1,7 +1,7 @@
 <?php
 
 use CRM_CiviMobileAPI_ExtensionUtil as E;
-$civiEventEnabled = (bool) (civicrm_api4('Extension', 'get', ['key' => 'civi_event'])[0]['status'] === 'installed');
+$civiEventEnabled = (bool) (civicrm_api4('Extension', 'get', ['where' => ['key' => 'civi_event']))[0]['status'] === 'installed');
 return [
   [
     'name' => 'Job_Civimobile_clean_old_push_notification_messages',
