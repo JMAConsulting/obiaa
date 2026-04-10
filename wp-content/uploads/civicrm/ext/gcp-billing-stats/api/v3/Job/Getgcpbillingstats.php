@@ -23,6 +23,13 @@ use Google\Cloud\BigQuery\BigQueryClient;
  *
  */
 function civicrm_api3_job_Getgcpbillingstats($params): array{
+  $json = CRM_Utils_Constant::value('GCP_BILLING_KEY_JSON', '');
+  $projectID = CRM_Utils_Constant::value('BILLING_ADMIN_PROJECT_ID', '');
+  $datasetName = CRM_Utils_Constant::value('DATASET_NAME', '');
+  $accountID = CRM_Utils_Constant::value('BILLING_ACCOUNT_ID', '');
+  if (empty($json) || empty($projectID) || empty($datasetName) || empty($accountID)) {
+    return civicrm_api3_create_success([], $params);
+  }
   // Authenticate Client using service account KeyFile
   $bigQuery = new BigQueryClient([
     'keyFile' => json_decode(GCP_BILLING_KEY_JSON, true)
