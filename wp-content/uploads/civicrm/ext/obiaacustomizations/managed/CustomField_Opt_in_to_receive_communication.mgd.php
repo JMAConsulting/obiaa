@@ -6,8 +6,8 @@ return [
   [
     'name' => 'CustomField_Opt_in_to_receive_communication_',
     'entity' => 'CustomField',
-    'cleanup' => 'unused',
-    'update' => 'unmodified',
+    'cleanup' => 'always',
+    'update' => 'always',
     'params' => [
       'version' => 4,
       'values' => [
