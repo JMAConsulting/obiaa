@@ -52,7 +52,7 @@ function civicrm_api3_job_Stripepaymentschedule($params) {
       ->addWhere('financial_trxn.is_payment', '=', TRUE)
       ->execute();
 
-    Civi::log()->debug("contribution result is: ".$contributions);
+    Civi::log()->debug("contribution result is: ", ['result' => $contributions]);
     // return $contributions;
     // CRM_Core_Error::debug('contribution information', $contributions);
 
@@ -67,7 +67,7 @@ function civicrm_api3_job_Stripepaymentschedule($params) {
         ->addValue('activity_type_id', 56) //56 is activity type id=56 and type name is Stripe Payments
         ->addValue('priority_id', 2)
         ->execute();
-      Civi::log()->debug("activity result is: ".$resultsActivity);
+      Civi::log()->debug("activity result is: ", ['activityResult' => $resultsActivity]);
     }
     // exit();
   }
