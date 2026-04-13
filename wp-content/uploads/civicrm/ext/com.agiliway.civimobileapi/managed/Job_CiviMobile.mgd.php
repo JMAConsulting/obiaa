@@ -1,7 +1,7 @@
 <?php
 
 use CRM_CiviMobileAPI_ExtensionUtil as E;
-
+$civiEventEnabled = (bool) (civicrm_api4('Extension', 'get', ['where' => [['key', '=', 'civi_event']]])[0]['status'] === 'installed');
 return [
   [
     'name' => 'Job_Civimobile_clean_old_push_notification_messages',
@@ -33,7 +33,7 @@ return [
         'description' => E::ts('Notify all participants that event is going to start'),
         'api_entity' => 'CiviMobileEventPushNotification',
         'api_action' => 'send',
-        'is_active' => TRUE,
+        'is_active' => $civiEventEnabled,
       ],
     ],
   ],
