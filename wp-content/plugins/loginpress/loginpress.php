@@ -3,13 +3,13 @@
  * Plugin Name: LoginPress
  * Plugin URI: https://loginpress.pro?utm_source=loginpress-lite&utm_medium=plugin-header&utm_campaign=pro-upgrade&utm_content=plugin-uri
  * Description: LoginPress is the best <code>wp-login</code> Login Page Customizer plugin by <a href="https://wpbrigade.com/?utm_source=loginpress-lite&utm_medium=plugins&utm_campaign=wpbrigade-home&utm_content=WPBrigade-text-link">WPBrigade</a> which allows you to completely change the layout of login, register and forgot password forms.
- * Version: 6.1.2
+ * Version: 6.2.2
  * Author: LoginPress
  * Author URI: https://loginpress.pro?utm_source=loginpress-lite&utm_medium=plugin-header&utm_campaign=pro-upgrade&utm_content=author-uri
  * Text Domain: loginpress
  * Domain Path: /languages
  * Requires at least: 4.0
- * Tested up to: 6.9
+ * Tested up to: 7.0
  * License: GPLv2 or later
  * GitHub Plugin URI: https://github.com/WPBrigade/loginpress
  *
@@ -19,6 +19,10 @@
  *
  * phpcs:disable Universal.Files.SeparateFunctionsFromOO.Mixed
  */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
 
 // Define constants for PHPStan.
 if ( ! defined( 'LOGINPRESS_PLUGIN_BASENAME' ) ) {
@@ -37,7 +41,7 @@ if ( ! defined( 'LOGINPRESS_ROOT_FILE' ) ) {
 	define( 'LOGINPRESS_ROOT_FILE', __FILE__ );
 }
 if ( ! defined( 'LOGINPRESS_VERSION' ) ) {
-	define( 'LOGINPRESS_VERSION', '6.1.2' );
+	define( 'LOGINPRESS_VERSION', '6.2.2' );
 }
 if ( ! defined( 'LOGINPRESS_FEEDBACK_SERVER' ) ) {
 	define( 'LOGINPRESS_FEEDBACK_SERVER', 'https://wpbrigade.com/' );
@@ -121,7 +125,7 @@ if ( ! class_exists( 'LoginPress' ) ) :
 	 *
 	 * @package   LoginPress
 	 * @since 1.0.0
-	 * @version 6.1.1
+	 * @version 6.2.2
 	 */
 	final class LoginPress {
 		use LoginPress_Rest_Trait;
@@ -131,7 +135,7 @@ if ( ! class_exists( 'LoginPress' ) ) :
 		 *
 		 * @var string Current version of the LoginPress plugin.
 		 */
-		public $version = '6.1.1';
+		public $version = '6.2.2';
 
 		/**
 		 * The single instance of the LoginPress class.
@@ -141,7 +145,7 @@ if ( ! class_exists( 'LoginPress' ) ) :
 		 *
 		 * phpcs:disable PSR2.Classes.PropertyDeclaration.Underscore
 		 */
-		protected static ?LoginPress $_instance = null;
+		protected static $_instance = null;
 
 		/**
 		 * Session data storage.
