@@ -1087,11 +1087,15 @@ function acfe_unarray($val){
  */
 function acfe_get_ip(){
     
+    // default
     $ip = false;
     
-    // http client
-    if(!empty($_SERVER['HTTP_CLIENT_IP'])){
+    // try cloudflare first
+    if(!empty($_SERVER['HTTP_CF_CONNECTING_IP'])){
+        $ip = filter_var(wp_unslash($_SERVER['HTTP_CF_CONNECTING_IP']), FILTER_VALIDATE_IP);
         
+    // http client
+    }elseif(!empty($_SERVER['HTTP_CLIENT_IP'])){
         $ip = filter_var(wp_unslash($_SERVER['HTTP_CLIENT_IP']), FILTER_VALIDATE_IP);
         
     // proxy pass
@@ -1106,7 +1110,6 @@ function acfe_get_ip(){
         
     // remote addr
     }elseif(!empty($_SERVER['REMOTE_ADDR'])){
-        
         $ip = filter_var(wp_unslash($_SERVER['REMOTE_ADDR']), FILTER_VALIDATE_IP);
         
     }
@@ -1118,8 +1121,12 @@ function acfe_get_ip(){
     $ip_array = explode(',', $ip);
     $ip_array = array_map('trim', $ip_array);
     
+    // return first ip
+    $ip = $ip_array[0];
+    $ip = apply_filters('acfe/load_ip', $ip);
+    
     // return
-    return $ip_array[0];
+    return $ip;
     
 }
 
@@ -1408,9 +1415,10 @@ function acfe_log(){
     // vars
     $args = func_get_args();
     
-    // loop
+    // loop arguments
     foreach($args as $i => $arg){
         
+        // parse log
         $arg = acfe_parse_log($arg);
         
         // array | object
@@ -1452,6 +1460,10 @@ function acfe_parse_log($arg){
     // null
     }elseif($arg === null){
         $arg = '(null)';
+        
+    // empty string
+    }elseif($arg === ''){
+        $arg = '""';
     }
     
     // return

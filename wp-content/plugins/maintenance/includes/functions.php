@@ -10,7 +10,7 @@ $mtnc_filesystem_initialized = false;
 function mtnc_wp_init_filesystem()
 {
     global $mtnc_filesystem_initialized;
-    
+
     if (! $mtnc_filesystem_initialized) {
         if (! class_exists('WP_Filesystem')) {
             require_once ABSPATH . 'wp-admin/includes/file.php';
@@ -411,7 +411,11 @@ function mtnc_page_create_meta_boxes_widget_support()
 {
   global $mtnc_variable;
 
-  add_meta_box('promo-mtnc', __('Work faster - get the PRO version', 'maintenance'), 'mtnc_promo_mtnc', $mtnc_variable->options_page, 'side', 'high');
+  add_meta_box('promo-mtnc', __('Get all the features in the PRO version', 'maintenance'), 'mtnc_promo_mtnc', $mtnc_variable->options_page, 'side', 'high');
+
+  if (!defined('WPCAPTCHA_PLUGIN_FILE')) {
+    add_meta_box('promo-wpcaptcha', __('Protect your site from spam &amp; bots', 'maintenance'), 'mtnc_promo_wpcaptcha', $mtnc_variable->options_page, 'side', 'high');
+  }
 
   if (!defined('WPFSSL_OPTIONS_KEY')) {
     add_meta_box('promo-wpfssl', __('Solve all SSL problems with the free WP Force SSL plugin', 'maintenance'), 'mtnc_promo_wpfssl', $mtnc_variable->options_page, 'side', 'high');
@@ -490,7 +494,7 @@ function mtnc_add_data_fields($object, $box)
 
             $active_languages = array();
             $active_languages_weglot = weglot_get_destination_languages();
-            
+
             foreach($active_languages_weglot as $language){
                 $active_languages[] = $language['language_to'];
             }
@@ -521,7 +525,7 @@ function mtnc_add_data_fields($object, $box)
       mtnc_generate_check_field(__('Show Contact Form', 'maintenance'), 'Enable &amp; customize a contact form on the page so that visitors can easily get in touch with you.', 'content_contact_form', '', false, true);
       mtnc_generate_check_field(__('Show Map', 'maintenance'), 'Make it super-easy for visitors to find your business by displaying a map with your location.', 'content_map', '', false, true);
       mtnc_generate_check_field(__('Show Progress Bar', 'maintenance'), 'Let visitors know how your new site is progressing and when is it going to be complete.', 'content_progress_bar', '', false, true);
-      mtnc_generate_check_field(__('Enable Frontend Login', 'maintenance'), '', 'is_login', 'is_login', (isset($mt_option['is_login']) && $mt_option['is_login'] == true ));
+      mtnc_generate_check_field(__('Enable Frontend Login', 'maintenance'), 'Show a link to the WP admin page on the maintenance page so you can easily log in.', 'is_login', 'is_login', (isset($mt_option['is_login']) && $mt_option['is_login'] == true ));
 
       mtnc_wp_kses('<tr><td colspan="2"><p><input type="submit" name="submit" id="submit" class="button button-primary" value="Save Changes"></p></td></tr>');
       ?>
@@ -820,6 +824,13 @@ function mtnc_add_themes_fields()
       'name_clean' => 'wellness',
       'status' => 'pro',
     ),
+    20 =>
+    array(
+      'id' => 'a88a503467ca22adf8991e5c90af41f1',
+      'name' => 'Accounting Service',
+      'name_clean' => 'accounting-service',
+      'status' => 'pro',
+    ),
   );
 
   function mntc_themes_sort($item1, $item2)
@@ -831,7 +842,7 @@ function mtnc_add_themes_fields()
   }
   //usort($themes,'mntc_themes_sort');
 
-  echo '<p>Are you in a hurry? Looking for something that looks great for your site? Pick one of <b>+20 premium pre-built themes</b> and be done in 5 minutes! Our PRO plugin comes with built-in SEO analyzer, a collection of over 3.7 million images and it can connect to any mailing system like Mailchimp so you can start collecting emails from day one! Did we mention you can <b>rebrand the plugin</b> and control all client sites from the plugin\'s centralized Dashboard?</p>';
+  echo '<p>Are you in a hurry? Looking for something that looks great for your site? Pick one of <b>+200 premium pre-built themes</b> and be done in 5 minutes! Our PRO plugin comes with built-in SEO analyzer, a collection of over <b>7 million images</b> and it can connect to any mailing system like Mailchimp so you can start collecting emails from day one! Did we mention you can <b>rebrand the plugin</b> and control all client sites from the plugin\'s centralized Dashboard?</p>';
 
   $i = 1;
   foreach ($themes as $theme) {
@@ -843,7 +854,7 @@ function mtnc_add_themes_fields()
     echo '<span class="name">' . esc_html($theme['name']) . '</span>';
     echo '<span name="actions">';
     if ($theme['status'] != 'free') {
-      echo '<a href="#" data-pro-feature="theme-' . esc_attr($theme['name_clean']) . '" class="open-pro-dialog button button-primary">BUY lifetime license</a>&nbsp; &nbsp;';
+      echo '<a href="#" data-pro-feature="theme-' . esc_attr($theme['name_clean']) . '" class="open-pro-dialog button button-primary">Get this theme</a>&nbsp; &nbsp;';
       echo '<a target="_blank" class="button button-secondary" href="' . esc_url('https://themes.wpmaintenancemode.com/?maintenance-preview=' . $theme['id']) . '">Preview</a>';
     }
     echo '</span>';
@@ -852,6 +863,8 @@ function mtnc_add_themes_fields()
     }
     echo '</div>';
   } // foreach theme
+
+  echo '<p class="center"><a href="https://wpmaintenancemode.com/themes/" class="button button-primary" target="_blank">View all themes (+200)</a></p>';
 }
 
 function mtnc_generate_web_link($placement = '', $page = '/', $params = array(), $anchor = '')
@@ -1016,6 +1029,17 @@ function mtnc_promo_wpfssl()
   mtnc_wp_kses($promo_text);
 } // mtnc_promo_wpfssl
 
+function mtnc_promo_wpcaptcha()
+{
+  $promo_text  = '';
+  $promo_text .= '<p class="textcenter"><a href="#" class="textcenter install-wpcaptcha"><img style="max-width: 90%;" src="' . MTNC_URI . 'images/wp-captcha-logo.png" alt="Advanced Google reCAPTCHA" title="Advanced Google reCAPTCHA"></a></p>';
+
+  $promo_text .= '<p class="textcenter"><br><a href="#" class="install-wpcaptcha button button-primary">Install &amp; activate the free Advanced Google reCAPTCHA</a></p>';
+
+  $promo_text .= '<p><a href="https://wordpress.org/plugins/advanced-google-recaptcha/" target="_blank">Advanced Google reCAPTCHA</a> is a free WP plugin that protects your site from various bad actors. It\'s maintained by the same team as this Maintenance plugin. It has <b>+200,000 users, 5-star rating</b>, and is hosted on the official WP repository.</p>';
+  mtnc_wp_kses($promo_text);
+} // mtnc_promo_wpcaptcha
+
 function mtnc_promo_weglot()
 {
   $promo_text  = '';
@@ -1028,7 +1052,7 @@ function mtnc_promo_mtnc()
 {
   $promo_text  = '';
   //$promo_text  .= '<h3 class="textcenter"><b>Problems with SSL certificate?<br>Moving a site from HTTP to HTTPS?<br>Mixed content giving you troubles?</b></h3>';
-  $promo_text .= '<p class="textcenter"><a data-pro-feature="sidebar-mascot" href="#" class="textcenter open-pro-dialog"><img style="max-width: 70%; max-height: 300px;" src="' . MTNC_URI . 'images/maintenance-mascot.png" alt="WP Maintenance PRO" title="WP Maintenance PRO"></a></p>';
+  $promo_text .= '<p class="textcenter"><a data-pro-feature="sidebar-mascot" href="#" class="textcenter open-pro-dialog"><img style="max-width: 70%; max-height: 150px;" src="' . MTNC_URI . 'images/maintenance-mascot.png" alt="WP Maintenance PRO" title="WP Maintenance PRO"></a></p>';
 
   $promo_text .= '<p class="textcenter"><br><a href="#" data-pro-feature="sidebar-button" class="open-pro-dialog button button-primary">Get PRO now</a></p>';
 
@@ -1041,7 +1065,7 @@ function mtnc_check_exclude()
   global $mt_options, $post;
   $mt_options = mtnc_get_plugin_options(true);
   $is_skip    = false;
-  
+
   if (is_page() || is_single()) {
     $curr_id = $post->ID;
   } else {
@@ -1216,7 +1240,7 @@ function mtnc_insert_attach_sample_files()
 {
   global $wpdb, $wp_filesystem;
   mtnc_wp_init_filesystem();
-  
+
 
   $title            = '';
   $attach_id        = 0;

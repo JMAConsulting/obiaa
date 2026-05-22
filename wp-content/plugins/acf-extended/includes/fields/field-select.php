@@ -33,11 +33,10 @@ class acfe_field_select extends acfe_field_extend{
         // allow custom
         acf_render_field_setting($field, array(
             'label'             => __('Allow Custom','acf'),
-            'instructions'      => '',
+            'instructions'      => __("Allow 'custom' values to be added", 'acf'),
             'name'              => 'allow_custom',
             'type'              => 'true_false',
             'ui'                => 1,
-            'message'           => __("Allow 'custom' values to be added", 'acf'),
             'conditional_logic' => array(
                 array(
                     array(
@@ -205,6 +204,34 @@ class acfe_field_select extends acfe_field_extend{
         
         // return
         return $wrapper;
+        
+    }
+    
+    
+    /**
+     * format_front_value
+     *
+     * @param $formatted
+     * @param $unformatted
+     * @param $post_id
+     * @param $field
+     * @param $form
+     *
+     * @return string
+     */
+    function format_front_value($formatted, $unformatted, $post_id, $field, $form){
+        
+        // vars
+        $value = acf_get_array($unformatted);
+        $array = array();
+        
+        // loop values
+        foreach($value as $v){
+            $array[] = acf_maybe_get($field['choices'], $v, $v);
+        }
+        
+        // merge
+        return implode(', ', $array);
         
     }
     

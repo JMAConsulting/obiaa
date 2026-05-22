@@ -2,8 +2,8 @@
 Contributors: WebFactory
 Tags: maintenance, maintenance mode, maintenance page, coming soon, coming soon page
 Requires at least: 4.0
-Tested up to: 6.9
-Stable tag: 4.20
+Tested up to: 7.0
+Stable tag: 4.21
 Requires PHP: 5.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -12,14 +12,15 @@ Great looking maintenance, coming soon & under construction pages. Put your site
 
 == Description ==
 
-Maintenance plugin allows the WordPress site administrator to close the website for maintenance, enable "503 Service temporarily unavailable”, set a temporary page with authorization, which can be edited via the plugin settings. Easy customize the good look on all devices. Add your logo, background image, select the desired color, add text. Maintenance uses Bunny Fonts for EU GDPR compliance.
+<a href="https://wpmaintenancemode.com/">WP Maintenance</a> plugin allows the WordPress site administrator to close the website for maintenance, enable "503 Service temporarily unavailable”, set a temporary page with authorization, which can be edited via the plugin settings. Easy customize the good look on all devices. Add your logo, background image, select the desired color, add text. Maintenance uses Bunny Fonts for EU GDPR compliance.
 
 Need **pre-made themes** and over 3 million free images to build maintenance, coming soon & landing pages faster? Have a look at <a href="https://wpmaintenancemode.com/">WP Maintenance PRO</a> plugin.
 
-If you're having problems with SSL or HTTPS try our free <a href="https://wordpress.org/plugins/wp-force-ssl/">WP Force SSL</a> plugin. It's a great plugin to enable SSL.
+Having problems with spam or bots? Try our free <a href="https://wordpress.org/plugins/advanced-google-recaptcha/">Advanced Google ReCaptcha</a> plugin. It's used on over 200,000 sites and provides great protection!
 
 <h3>Features</h3>
 <ul>
+<li>over <a href="https://wpmaintenancemode.com/#themes">200 themes in the PRO version</li>
 <li>retina ready HTML/CSS layout</li>
 <li>Full-screen background (<a target="_blank" href="https://github.com/srobbin/jquery-backstretch">Backstretch</a>)</li>
 <li>Blur background effect</li>
@@ -95,6 +96,10 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 
 
 == Changelog ==
+= v4.21 =
+- 2026/04/02
+- Minor fixes
+
 = v4.20 =
 - 2026/01/03
 - Fixed Bunny Fonts getting loaded even for system fonts
