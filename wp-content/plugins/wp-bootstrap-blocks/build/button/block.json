@@ -1,0 +1,42 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "version": "6.0.0",
+  "name": "wp-bootstrap-blocks/button",
+  "title": "Button (Bootstrap)",
+  "category": "wp-bootstrap-blocks",
+  "keywords": [
+    "Button",
+    "Bootstrap Button",
+    "Bootstrap"
+  ],
+  "attributes": {
+    "url": {
+      "type": "string",
+      "default": ""
+    },
+    "linkTarget": {
+      "type": "string",
+      "default": ""
+    },
+    "rel": {
+      "type": "string",
+      "default": ""
+    },
+    "text": {
+      "type": "string",
+      "default": ""
+    },
+    "style": {
+      "type": "string",
+      "default": "primary"
+    },
+    "alignment": {
+      "type": "string",
+      "default": ""
+    }
+  },
+  "textdomain": "wp-bootstrap-blocks",
+  "editorScript": "file:./index.js",
+  "editorStyle": "file:./index.css"
+}

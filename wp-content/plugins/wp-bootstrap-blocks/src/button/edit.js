@@ -1,12 +1,11 @@
 // WordPress dependencies
 import { __ } from '@wordpress/i18n';
 import {
-	Dashicon,
-	Button,
 	SelectControl,
 	PanelBody,
 	ToggleControl,
 	TextControl,
+	Popover,
 } from '@wordpress/components';
 import { applyFilters } from '@wordpress/hooks';
 import {
@@ -15,8 +14,12 @@ import {
 	InspectorControls,
 	BlockControls,
 	AlignmentToolbar,
+	useBlockProps,
 } from '@wordpress/block-editor';
+import { useState } from '@wordpress/element';
+import { useMergeRefs } from '@wordpress/compose';
 import { bgColors, colors } from '../constants';
+import './editor.scss';
 
 let styleOptions = [
 	{
@@ -41,13 +44,14 @@ const DEFAULT_BG_COLOR = bgColors.primary;
 const DEFAULT_TEXT_COLOR = colors.white;
 const NEW_TAB_REL_DEFAULT_VALUE = 'noreferrer noopener';
 
-const BootstrapButtonEdit = ( {
-	attributes,
-	className,
-	isSelected,
-	setAttributes,
-} ) => {
+const BootstrapButtonEdit = ( { attributes, isSelected, setAttributes } ) => {
 	const { url, linkTarget, rel, text, style, alignment } = attributes;
+
+	// Use internal state instead of a ref to make sure that the component
+	// re-renders when the popover's anchor updates.
+	const [ popoverAnchor, setPopoverAnchor ] = useState( null );
+
+	const richtTextInputRef = useMergeRefs( [ setPopoverAnchor ] );
 
 	// Open in new tab behavior from core/button (source: https://github.com/WordPress/gutenberg/blob/master/packages/block-library/src/button/edit.js)
 	const onToggleOpenInNewTab = ( value ) => {
@@ -113,28 +117,31 @@ const BootstrapButtonEdit = ( {
 
 	return (
 		<>
-			<div
-				className={ className }
-				data-alignment={ alignment }
-				style={ inlineStyle }
-			>
+			<div { ...useBlockProps() }>
 				<RichText
 					// eslint-disable-next-line @wordpress/i18n-ellipsis
 					placeholder={ __( 'Add text...', 'wp-bootstrap-blocks' ) }
 					value={ text }
 					onChange={ ( value ) => setAttributes( { text: value } ) }
+					withoutInteractiveFormatting
 					allowedFormats={ [] }
-					keepPlaceholderOnFocus
+					className="wp-block-wp-bootstrap-blocks-text-input"
+					style={ inlineStyle }
+					ref={ richtTextInputRef }
 				/>
 				<InspectorControls>
 					<PanelBody>
 						<SelectControl
 							label={ __( 'Style', 'wp-bootstrap-blocks' ) }
 							value={ style }
-							options={ styleOptions }
+							options={ styleOptions.map( ( option ) => ( {
+								label: option.label,
+								value: option.value,
+							} ) ) }
 							onChange={ ( selectedStyle ) => {
 								setAttributes( { style: selectedStyle } );
 							} }
+							__next40pxDefaultSize={ true }
 						/>
 					</PanelBody>
 					<PanelBody
@@ -154,6 +161,7 @@ const BootstrapButtonEdit = ( {
 							onChange={ ( newRel ) => {
 								setAttributes( { rel: newRel } );
 							} }
+							__next40pxDefaultSize={ true }
 						/>
 					</PanelBody>
 				</InspectorControls>
@@ -171,23 +179,21 @@ const BootstrapButtonEdit = ( {
 				</BlockControls>
 			</div>
 			{ isSelected && (
-				<form
-					className="wp-block-wp-bootstrap-blocks-button-link"
-					onSubmit={ ( event ) => event.preventDefault() }
+				<Popover
+					placement="bottom"
+					anchor={ popoverAnchor }
+					shift
+					focusOnMount={ false }
 				>
-					<Dashicon icon="admin-links" />
 					<URLInput
 						value={ url }
 						onChange={ ( value ) =>
-							setAttributes( { url: value } )
+							setAttributes( {
+								url: value,
+							} )
 						}
 					/>
-					<Button
-						icon="editor-break"
-						label={ __( 'Apply', 'wp-bootstrap-blocks' ) }
-						type="submit"
-					/>
-				</form>
+				</Popover>
 			) }
 		</>
 	);

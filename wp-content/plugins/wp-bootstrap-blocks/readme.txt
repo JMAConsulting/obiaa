@@ -2,12 +2,14 @@
 Contributors: tschortsch
 Donate link: https://juerghunziker.ch/
 Tags: gutenberg, blocks, bootstrap
-Requires at least: 5.3
-Tested up to: 6.8
-Requires PHP: 5.6
-Stable tag: 5.2.1
-License: GPLv2
+Requires at least: 6.8
+Tested up to: 7.0
+Stable tag: 6.0.1
+Requires PHP: 7.4
+License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
+
+Bootstrap Gutenberg Blocks for WordPress. This plugin adds Bootstrap components and layout options as Gutenberg blocks.
 
 == Description ==
 
@@ -142,6 +144,13 @@ Please create a new GitHub issue and let us know: [https://github.com/tschortsch
 1. Container block
 
 == Changelog ==
+
+= 6.0.1 =
+
+* [COMPATIBILITY] Tested up to WordPress 7.0.
+* [COMPATIBILITY] Removed compatibiltiy for WordPress versions < 6.8 and PHP versions < 7.4
+
+Previous release 6.0.0 was missing some files.
 
 = 5.2.1 =
 

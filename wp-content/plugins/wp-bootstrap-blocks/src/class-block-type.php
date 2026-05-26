@@ -75,6 +75,7 @@ if ( ! class_exists( '\WP_Bootstrap_Blocks\Block_Type', false ) ) :
 			register_block_type(
 				$block_type,
 				array(
+					'api_version' => 3,
 					'render_callback' => array( $this, 'render_callback' ),
 					'attributes' => $this->attributes,
 				)
