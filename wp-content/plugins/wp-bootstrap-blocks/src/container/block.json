@@ -1,17 +1,29 @@
 {
 	"$schema": "https://schemas.wp.org/trunk/block.json",
-	"apiVersion": 1,
+	"apiVersion": 3,
 	"name": "wp-bootstrap-blocks/container",
-	"title": "Container",
+	"version": "6.0.0",
+	"title": "Container (Bootstrap)",
 	"category": "wp-bootstrap-blocks",
-	"keywords": [
-		"Container",
-		"Bootstrap Container",
-		"Bootstrap"
-	],
+	"keywords": [ "Container", "Bootstrap Container", "Bootstrap" ],
 	"supports": {
 		"align": false
 	},
+	"attributes": {
+		"isFluid": {
+			"type": "boolean",
+			"default": false
+		},
+		"fluidBreakpoint": {
+			"type": "string",
+			"default": ""
+		},
+		"marginAfter": {
+			"type": "string",
+			"default": "mb-2"
+		}
+	},
 	"textdomain": "wp-bootstrap-blocks",
-	"version": "5.0.0"
+	"editorScript": "file:./index.js",
+	"editorStyle": "file:./index.css"
 }

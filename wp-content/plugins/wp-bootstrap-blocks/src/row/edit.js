@@ -15,6 +15,7 @@ import {
 	InspectorControls,
 	BlockControls,
 	AlignmentToolbar,
+	useBlockProps,
 } from '@wordpress/block-editor';
 
 import {
@@ -28,6 +29,7 @@ import {
 } from '../icons';
 
 import { isBootstrap5Active, isCssGridEnabled } from '../helper';
+import './editor.scss';
 
 export const CUSTOM_TEMPLATE_NAME = 'custom';
 
@@ -282,12 +284,7 @@ const getColumnsTemplateLock = ( templateName ) => {
 	return template ? template.templateLock : false;
 };
 
-const BootstrapRowEdit = ( {
-	className,
-	clientId,
-	attributes,
-	setAttributes,
-} ) => {
+const BootstrapRowEdit = ( { clientId, attributes, setAttributes } ) => {
 	const {
 		template: selectedTemplateName,
 		noGutters,
@@ -391,35 +388,29 @@ const BootstrapRowEdit = ( {
 					title={ __( 'Change layout', 'wp-bootstrap-blocks' ) }
 				>
 					<ul className="wp-bootstrap-blocks-template-selector-list">
-						{ templates.map(
-							(
-								template,
-								index // eslint-disable-line no-shadow
-							) => (
-								<li
-									className="wp-bootstrap-blocks-template-selector-button"
-									key={ index }
+						{ templates.map( ( template, index ) => (
+							<li
+								className="wp-bootstrap-blocks-template-selector-button"
+								key={ index }
+							>
+								<Button
+									label={ template.title }
+									icon={ template.icon }
+									onClick={ () => {
+										onTemplateChange( template.name );
+									} }
+									className={
+										selectedTemplateName === template.name
+											? 'is-active'
+											: null
+									}
 								>
-									<Button
-										label={ template.title }
-										icon={ template.icon }
-										onClick={ () => {
-											onTemplateChange( template.name );
-										} }
-										className={
-											selectedTemplateName ===
-											template.name
-												? 'is-active'
-												: null
-										}
-									>
-										<div className="wp-bootstrap-blocks-template-selector-button-label">
-											{ template.title }
-										</div>
-									</Button>
-								</li>
-							)
-						) }
+									<div className="wp-bootstrap-blocks-template-selector-button-label">
+										{ template.title }
+									</div>
+								</Button>
+							</li>
+						) ) }
 					</ul>
 				</PanelBody>
 				<PanelBody title={ __( 'Row options', 'wp-bootstrap-blocks' ) }>
@@ -441,6 +432,7 @@ const BootstrapRowEdit = ( {
 										cssGridGutters: value,
 									} );
 								} }
+								__next40pxDefaultSize={ true }
 							/>
 						) : (
 							isBootstrap5Active() && (
@@ -457,6 +449,7 @@ const BootstrapRowEdit = ( {
 												horizontalGutters: value,
 											} );
 										} }
+										__next40pxDefaultSize={ true }
 									/>
 									<SelectControl
 										label={ __(
@@ -470,6 +463,7 @@ const BootstrapRowEdit = ( {
 												verticalGutters: value,
 											} );
 										} }
+										__next40pxDefaultSize={ true }
 									/>
 								</>
 							)
@@ -506,7 +500,7 @@ const BootstrapRowEdit = ( {
 					</>
 				) }
 			</BlockControls>
-			<div className={ className }>
+			<div { ...useBlockProps() }>
 				<InnerBlocks
 					allowedBlocks={ ALLOWED_BLOCKS }
 					template={ getColumnsTemplate( selectedTemplateName ) }

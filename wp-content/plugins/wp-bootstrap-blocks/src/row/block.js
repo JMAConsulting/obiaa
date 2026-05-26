@@ -4,29 +4,16 @@
 
 // WordPress dependencies
 import { registerBlockType } from '@wordpress/blocks';
-import { __ } from '@wordpress/i18n';
 import { InnerBlocks } from '@wordpress/block-editor';
 
 import edit from './edit';
 import transforms from './transforms';
 import { columns } from '../icons';
-import './editor.scss';
+import metadata from './block.json';
 import './style.scss';
 
-registerBlockType( 'wp-bootstrap-blocks/row', {
-	// Block name. Block names must be string that contains a namespace prefix. Example: my-plugin/my-custom-block.
-	title: __( 'Row (Bootstrap)', 'wp-bootstrap-blocks' ), // Block title.
+registerBlockType( metadata.name, {
 	icon: columns, // Block icon from Dashicons → https://developer.wordpress.org/resource/dashicons/.
-	category: 'wp-bootstrap-blocks', // Block category — Group blocks together based on common traits E.g. common, formatting, layout widgets, embed.
-	keywords: [
-		__( 'Row', 'wp-bootstrap-blocks' ),
-		__( 'Bootstrap Row', 'wp-bootstrap-blocks' ),
-		__( 'Bootstrap', 'wp-bootstrap-blocks' ),
-	],
-
-	supports: {
-		align: [ 'full' ],
-	},
 
 	transforms,
 

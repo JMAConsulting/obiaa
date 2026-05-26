@@ -1,7 +1,7 @@
 # User Switching
 
-Stable tag: 1.11.2
-Tested up to: 6.9
+Stable tag: 1.12.0
+Tested up to: 7.0
 License: GPL v2 or later
 Tags: users, user switching, fast user switching, multisite, woocommerce
 Contributors: johnbillion
@@ -33,7 +33,6 @@ Note: User Switching supports versions of WordPress up to three years old, and P
  * Implements the nonce security system in WordPress, meaning only those who intend to switch users can switch.
  * Full support for user session validation where appropriate.
  * Full support for HTTPS.
- * Backed by [the Patchstack Vulnerability Disclosure Program](https://patchstack.com/database/vdp/user-switching)
 
 ### Usage
 
@@ -49,6 +48,15 @@ I maintain several other plugins for developers. Check them out:
 
 * [Query Monitor](https://wordpress.org/plugins/query-monitor/) is the developer tools panel for WordPress
 * [WP Crontrol](https://wordpress.org/plugins/wp-crontrol/) lets you view and control what's happening in the WP-Cron system
+
+### Thanks
+
+The time that I spend maintaining this plugin and others is in part sponsored by:
+
+* [Automattic](https://automattic.com/)
+* [ServMask](https://servmask.com/)
+* [WP Staging](https://wp-staging.com/)
+* [All my kind sponsors on GitHub](https://github.com/sponsors/johnbillion)
 
 ### Privacy Statement
 
@@ -250,7 +258,7 @@ This feature is useful if you have multiple users on your site who may be switch
 
 ### Can I switch users directly from the admin toolbar?
 
-Yes, there's a third party add-on plugin for this: [Admin Bar User Switching](https://wordpress.org/plugins/admin-bar-user-switching/).
+Yes, in the [WordPress Command Palette](https://wordpress.org/documentation/article/site-editor-command-palette/) you can search for a user and immediately switch into their account. You can switch off and switch back from there too.
 
 ### Are any plugin actions called when a user switches account?
 
@@ -329,12 +337,19 @@ In addition, User Switching respects the following filters from WordPress core w
 
 ### How can I report a security bug?
 
-[You can report security bugs through the official User Switching Vulnerability Disclosure Program on Patchstack](https://patchstack.com/database/vdp/user-switching). The Patchstack team helps validate, triage, and handle any security vulnerabilities.
+You can submit a private security vulnerability report to User Switching via [the Security tab on the GitHub repo](https://github.com/johnbillion/user-switching/security). The GitHub Security Advisory process facilitates private collaboration on security issues. You'll receive credit for a valid report and a CVE if necessary.
+
+Do not report security issues on the WordPress.org support forums or via email. Thank you.
 
 ### Do you accept donations?
 
 [I am accepting sponsorships via the GitHub Sponsors program](https://github.com/sponsors/johnbillion) and any support you can give will help me maintain this plugin and keep it free for everyone.
 ## Changelog ##
+
+### 1.12.0 (24 May 2026) ###
+
+- Introduces the ability to switch users from the WordPress Command Palette
+- Confirms support for WordPress 7.0
 
 ### 1.11.2 (27 February 2026) ###
 
@@ -381,11 +396,6 @@ In addition, User Switching respects the following filters from WordPress core w
 * Fixes compatibility with BuddyPress version 12
 * Adds configuration for the Live Preview feature on wordpress.org
 
-
-### 1.7.2 (16 November 2023) ###
-
-* Confirm support for WordPress 6.4
-* Reinstate the missing plugin readme file
 
 ### Earlier versions ###
 
