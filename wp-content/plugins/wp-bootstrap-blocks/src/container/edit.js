@@ -7,9 +7,13 @@ import {
 } from '@wordpress/components';
 import { useSelect } from '@wordpress/data';
 import { applyFilters } from '@wordpress/hooks';
-import { InnerBlocks, InspectorControls } from '@wordpress/block-editor';
-
+import {
+	InnerBlocks,
+	InspectorControls,
+	useBlockProps,
+} from '@wordpress/block-editor';
 import { isBootstrap5Active } from '../helper';
+import './editor.scss';
 
 let marginAfterOptions = [
 	{
@@ -75,12 +79,7 @@ fluidBreakpointOptions = [
 	...fluidBreakpointOptions,
 ];
 
-const BootstrapContainerEdit = ( {
-	attributes,
-	className,
-	clientId,
-	setAttributes,
-} ) => {
+const BootstrapContainerEdit = ( { attributes, clientId, setAttributes } ) => {
 	const { isFluid, fluidBreakpoint, marginAfter } = attributes;
 	const { hasChildBlocks } = useSelect( ( select ) => {
 		const { getBlockOrder } = select( 'core/block-editor' );
@@ -118,6 +117,7 @@ const BootstrapContainerEdit = ( {
 							'Fluid breakpoints only work with Bootstrap v4.4+. The container will be 100% wide until the specified breakpoint is reached, after which max-widths for each of the higher breakpoints will be applied.',
 							'wp-bootstrap-blocks'
 						) }
+						__next40pxDefaultSize={ true }
 					/>
 				</PanelBody>
 				<PanelBody title={ __( 'Margin', 'wp-bootstrap-blocks' ) }>
@@ -130,10 +130,11 @@ const BootstrapContainerEdit = ( {
 								marginAfter: selectedMarginAfter,
 							} );
 						} }
+						__next40pxDefaultSize={ true }
 					/>
 				</PanelBody>
 			</InspectorControls>
-			<div className={ className }>
+			<div { ...useBlockProps() }>
 				<InnerBlocks
 					renderAppender={
 						hasChildBlocks

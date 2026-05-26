@@ -3,20 +3,21 @@
  * Plugin Name: Bootstrap Blocks
  * Plugin URI: https://github.com/tschortsch/bootstrap-blocks-wordpress-plugin
  * Description: Bootstrap Gutenberg Blocks for WordPress.
+ * Version: 6.0.1
+ * Requires at least: 6.8
+ * Requires PHP: 7.4
  * Author: Jürg Hunziker
  * Author URI: https://juerghunziker.ch
- * Version: 5.2.1
- * License: GPL2+
- * License URI: https://www.gnu.org/licenses/gpl-2.0.txt
+ * License: GPL-2.0-or-later
+ * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: wp-bootstrap-blocks
  * Domain Path: /languages/
  *
  * @package wp-bootstrap-blocks
  */
 
-// Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
-	exit;
+	exit; // Exit if accessed directly.
 }
 
 // Define WP_BOOTSTRAP_BLOCKS_PLUGIN_FILE.

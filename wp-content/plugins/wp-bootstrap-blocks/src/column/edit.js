@@ -15,6 +15,7 @@ import {
 	InspectorControls,
 	BlockControls,
 	AlignmentToolbar,
+	useBlockProps,
 } from '@wordpress/block-editor';
 
 import { isBootstrap5Active, isCssGridEnabled } from '../helper';
@@ -61,6 +62,7 @@ const ColumnSizeRangeControl = ( {
 			} }
 			min={ 0 }
 			max={ 12 }
+			__next40pxDefaultSize={ true }
 			{ ...props }
 		/>
 	);
@@ -88,12 +90,7 @@ paddingOptions = applyFilters(
 	paddingOptions
 );
 
-const BootstrapColumnEdit = ( {
-	attributes,
-	className,
-	clientId,
-	setAttributes,
-} ) => {
+const BootstrapColumnEdit = ( { attributes, clientId, setAttributes } ) => {
 	const { hasChildBlocks } = useSelect( ( select ) => {
 		const { getBlockOrder } = select( 'core/block-editor' );
 
@@ -308,6 +305,7 @@ const BootstrapColumnEdit = ( {
 								padding: value,
 							} );
 						} }
+						__next40pxDefaultSize={ true }
 					/>
 				</PanelBody>
 			</InspectorControls>
@@ -327,7 +325,7 @@ const BootstrapColumnEdit = ( {
 					alignmentControls={ contentVerticalAlignmentControls }
 				/>
 			</BlockControls>
-			<div className={ className }>
+			<div { ...useBlockProps() }>
 				<InnerBlocks
 					templateLock={ false }
 					renderAppender={

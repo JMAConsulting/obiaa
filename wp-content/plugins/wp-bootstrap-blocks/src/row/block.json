@@ -1,8 +1,9 @@
 {
 	"$schema": "https://schemas.wp.org/trunk/block.json",
-	"apiVersion": 1,
+	"apiVersion": 3,
+	"version": "6.0.0",
 	"name": "wp-bootstrap-blocks/row",
-	"title": "Row",
+	"title": "Row (Bootstrap)",
 	"category": "wp-bootstrap-blocks",
 	"keywords": [
 		"Row",
@@ -12,6 +13,42 @@
 	"supports": {
 		"align": ["full"]
 	},
+	"attributes": {
+		"template": {
+			"type": "string",
+			"default": "1-1"
+		},
+		"noGutters": {
+			"type": "boolean",
+			"default": false
+		},
+		"alignment": {
+			"type": "string",
+			"default": ""
+		},
+		"verticalAlignment": {
+			"type": "string",
+			"default": ""
+		},
+		"editorStackColumns": {
+			"type": "boolean",
+			"default": false
+		},
+		"horizontalGutters": {
+			"type": "string",
+			"default": ""
+		},
+		"verticalGutters": {
+			"type": "string",
+			"default": ""
+		},
+		"cssGridGutters": {
+			"type": "string",
+			"default": ""
+		}
+	},
 	"textdomain": "wp-bootstrap-blocks",
-	"version": "5.0.0"
+	"editorScript": "file:./index.js",
+	"editorStyle": "file:./index.css",
+	"style": "file:./style-index.css"
 }

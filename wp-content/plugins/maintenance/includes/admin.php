@@ -162,6 +162,14 @@ function mtnc_admin_print_custom_styles()
                 ),
                 admin_url('admin.php')
             ),
+            'wpcaptcha_install_url' => add_query_arg(
+                array(
+                    'action' => 'mtnc_install_wpcaptcha',
+                    '_wpnonce' => wp_create_nonce('install_wpcaptcha'),
+                    'rnd' => wp_rand()
+                ),
+                admin_url('admin.php')
+            ),
             'weglot_install_url' => add_query_arg(
                 array(
                     'action' => 'mtnc_install_weglot',
