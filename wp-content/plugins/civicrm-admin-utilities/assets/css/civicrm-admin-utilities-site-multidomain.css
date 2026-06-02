@@ -1,0 +1,41 @@
+/**
+ * CiviCRM styles for for CiviCRM Admin Utilities Site Domain page.
+ *
+ * @package WordPress
+ * @subpackage CiviCRM_Admin_Utilities
+ */
+
+
+
+/* Hide edit sections initially */
+.cau-domain-group-edit,
+.cau-domain-org-edit
+{
+	/* display: none; */
+}
+
+/* Give Select2 room to breathe */
+.select2-container
+{
+	min-width: 300px;
+}
+
+/* Give input element room to breathe */
+.cau_text_input
+{
+	min-width: 300px;
+}
+
+/* Compress Domain Info table */
+#civicrm_au_domain_info .form-table th,
+#civicrm_au_domain_info .form-table td
+{
+	padding: 10px 10px 10px 0;
+}
+
+/* Give notice a little space */
+#civicrm_au_domain_edit .notice.notice-warning
+{
+	background-color: #f7f7f7;
+	margin: 12px 0 0 0;
+}
