@@ -245,6 +245,9 @@ class WP_Persistent_Login_Settings {
 
 		// update user preferences for active logins
 		$this->update_limit_active_logins($post_data);
+		
+		// update the profile page visibility for the active logins section
+		$this->update_hide_active_logins_profile($post_data);
 
 		// update the logic when login limit is reached
         $this->update_limit_reached_logic($post_data);
@@ -422,6 +425,44 @@ class WP_Persistent_Login_Settings {
         }
 
     }
+	
+	/**
+     * get_hide_active_logins_profile
+     *
+     * @return string
+     */
+	public function get_hide_active_logins_profile() {
+
+	    $options = $this->get_persistent_login_options();
+	    if( isset($options['hideActiveLoginsProfile']) ) {
+	        return $options['hideActiveLoginsProfile'];
+	    } else {
+	        return '0';
+	    }
+
+	}
+
+	/**
+     * update_hide_active_logins_profile
+     *
+     * @param  array $post_data
+     * @return bool
+     */
+	protected function update_hide_active_logins_profile($post_data) {
+
+	    $options = $this->get_persistent_login_options();
+
+	    // Store the profile visibility toggle alongside the other active login settings.
+	    if( isset($post_data['hideActiveLoginsProfile']) ) {
+	        $hide_active_logins_profile = sanitize_text_field($post_data['hideActiveLoginsProfile']);
+	    } else {
+	        $hide_active_logins_profile = '0';
+	    }
+	    $options['hideActiveLoginsProfile'] = $hide_active_logins_profile;
+
+	    return update_option('persistent_login_options', $options);
+
+	}
 
 
 
@@ -433,11 +474,28 @@ class WP_Persistent_Login_Settings {
     public function get_limit_reached_logic() {
         
         $options = $this->get_persistent_login_options();
-        if( isset( $options['activeLoginLogic'] ) ) {
-            $active_login_logic = $options['activeLoginLogic'];
-        } else {
-            $active_login_logic = 'automatic';
-        }
+		if( isset( $options['activeLoginLogic'] ) ) {
+			$active_login_logic = sanitize_text_field( $options['activeLoginLogic'] );
+		} else {
+			$active_login_logic = 'automatic';
+		}
+
+		// Backward compatibility for historical values that map to current logic names.
+		if ( 'oldest' === $active_login_logic ) {
+			$active_login_logic = 'automatic';
+		} elseif ( 'reject' === $active_login_logic ) {
+			$active_login_logic = 'block';
+		}
+
+		$valid_logic_values = array(
+			'automatic',
+			'manual',
+			'block',
+		);
+
+		if ( ! in_array( $active_login_logic, $valid_logic_values, true ) ) {
+			$active_login_logic = 'automatic';
+		}
 
         return $active_login_logic;
 
@@ -454,6 +512,24 @@ class WP_Persistent_Login_Settings {
         if( isset($post_data['activeLoginLogic']) ) : 
 							    
             $logic = sanitize_text_field($post_data['activeLoginLogic']);
+
+			// Allow legacy aliases while persisting canonical values.
+			if ( 'oldest' === $logic ) {
+				$logic = 'automatic';
+			} elseif ( 'reject' === $logic ) {
+				$logic = 'block';
+			}
+
+			$valid_logic_values = array(
+				'automatic',
+				'manual',
+				'block',
+			);
+
+			if ( ! in_array( $logic, $valid_logic_values, true ) ) {
+				$logic = 'automatic';
+			}
+
             $options = $this->get_persistent_login_options();
             $options['activeLoginLogic'] = $logic;
 

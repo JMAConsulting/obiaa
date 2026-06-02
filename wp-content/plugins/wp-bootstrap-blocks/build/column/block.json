@@ -1,0 +1,84 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "version": "6.0.0",
+  "name": "wp-bootstrap-blocks/column",
+  "title": "Column (Bootstrap)",
+  "category": "wp-bootstrap-blocks",
+  "keywords": [
+    "Column",
+    "Bootstrap Column",
+    "Bootstrap"
+  ],
+  "parent": [
+    "wp-bootstrap-blocks/row"
+  ],
+  "attributes": {
+    "sizeXxl": {
+      "type": "number",
+      "default": 0
+    },
+    "sizeXl": {
+      "type": "number",
+      "default": 0
+    },
+    "sizeLg": {
+      "type": "number",
+      "default": 0
+    },
+    "sizeMd": {
+      "type": "number",
+      "default": 0
+    },
+    "sizeSm": {
+      "type": "number",
+      "default": 0
+    },
+    "sizeXs": {
+      "type": "number",
+      "default": 0
+    },
+    "equalWidthXxl": {
+      "type": "boolean",
+      "default": false
+    },
+    "equalWidthXl": {
+      "type": "boolean",
+      "default": false
+    },
+    "equalWidthLg": {
+      "type": "boolean",
+      "default": false
+    },
+    "equalWidthMd": {
+      "type": "boolean",
+      "default": false
+    },
+    "equalWidthSm": {
+      "type": "boolean",
+      "default": false
+    },
+    "equalWidthXs": {
+      "type": "boolean",
+      "default": false
+    },
+    "bgColor": {
+      "type": "string",
+      "default": ""
+    },
+    "padding": {
+      "type": "string",
+      "default": ""
+    },
+    "centerContent": {
+      "type": "boolean",
+      "default": false
+    },
+    "contentVerticalAlignment": {
+      "type": "string",
+      "default": ""
+    }
+  },
+  "textdomain": "wp-bootstrap-blocks",
+  "editorScript": "file:./index.js"
+}

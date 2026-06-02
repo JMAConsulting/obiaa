@@ -509,6 +509,15 @@
   border: 3px solid #42982e;
 }
 
+#promo-wpcaptcha {
+  border: 3px solid #4285f4;
+}
+
+#promo-mtnc {
+  background: url("../images/clouds.png") no-repeat center center transparent;
+  border: 2px solid #000000;
+}
+
 #promo-wpfssl a.button:hover,
 #promo-wpfssl a.button:active,
 #promo-wpfssl a.button:focus {

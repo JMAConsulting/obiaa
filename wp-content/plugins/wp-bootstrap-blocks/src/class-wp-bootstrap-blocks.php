@@ -33,7 +33,7 @@ class WP_Bootstrap_Blocks {
 	 *
 	 * @var string
 	 */
-	public static $version = '5.2.1';
+	public static $version = '6.0.1';
 
 	/**
 	 * The plugin token.
@@ -165,6 +165,17 @@ class WP_Bootstrap_Blocks {
 			array(),
 			self::$version
 		);
+
+		// Load editor-styles only in the backend (see: https://developer.wordpress.org/block-editor/how-to-guides/enqueueing-assets-in-the-editor/#editor-content-scripts-and-styles)
+		if ( is_admin() ) {
+			// Styles.
+			wp_enqueue_style(
+				$this->token . '-editor-styles', // Handle.
+				esc_url( $this->assets_url ) . 'index.css', // Block editor CSS.
+				array( 'wp-edit-blocks' ), // Dependency to include the CSS after it.
+				self::$version
+			);
+		}
 	}
 
 	/**
@@ -197,14 +208,6 @@ class WP_Bootstrap_Blocks {
 				'isBootstrap5Active' => Settings::is_bootstrap_5_active(),
 				'isCssGridEnabled' => Settings::is_css_grid_enabled(),
 			)
-		);
-
-		// Styles.
-		wp_enqueue_style(
-			$this->token . '-editor-styles', // Handle.
-			esc_url( $this->assets_url ) . 'index.css', // Block editor CSS.
-			array( 'wp-edit-blocks' ), // Dependency to include the CSS after it.
-			self::$version
 		);
 	}
 

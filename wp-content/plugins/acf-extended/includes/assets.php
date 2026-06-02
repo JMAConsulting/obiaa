@@ -45,6 +45,7 @@ class acfe_assets{
         wp_register_style('acf-extended',               acfe_get_url("assets/css/acfe{$min}.css"),              array(),                                    $version);
         wp_register_style('acf-extended-input',         acfe_get_url("assets/css/acfe-input{$min}.css"),        array(),                                    $version);
         wp_register_style('acf-extended-admin',         acfe_get_url("assets/css/acfe-admin{$min}.css"),        array(),                                    $version);
+        wp_register_style('acf-extended-admin-input',   acfe_get_url("assets/css/acfe-admin-input{$min}.css"),  array(),                                    $version);
         wp_register_style('acf-extended-field-group',   acfe_get_url("assets/css/acfe-field-group{$min}.css"),  array(),                                    $version);
         wp_register_style('acf-extended-ui',            acfe_get_url("assets/css/acfe-ui{$min}.css"),           array(),                                    $version);
         
@@ -54,12 +55,17 @@ class acfe_assets{
     /**
      * admin_enqueue_scripts
      *
-     * All admin pages
+     * All WP admin pages
      */
     function admin_enqueue_scripts(){
     
         // admin
         wp_enqueue_style('acf-extended-admin');
+        
+        // admin (not internal acf pages)
+        if(!acf_is_filter_enabled('acfe/acf_internal_page')){
+            wp_enqueue_style('acf-extended-admin-input');
+        }
     
         // field groups
         if(acf_is_screen(array('edit-acf-field-group', 'acf-field-group'))){
@@ -121,13 +127,14 @@ class acfe_assets{
         
         // text
         $text = apply_filters('acfe/localize_text', array(
-            'Close'                                             => __('Close', 'acfe'),
-            'Update'                                            => __('Update', 'acfe'),
-            'Read more'                                         => __('Read more', 'acfe'),
-            'Details'                                           => __('Details', 'acfe'),
-            'Debug'                                             => __('Debug', 'acfe'),
-            'Data has been copied to your clipboard.'           => __('Data has been copied to your clipboard.', 'acfe'),
-            'Please copy the following data to your clipboard.' => __('Please copy the following data to your clipboard.', 'acfe'),
+            'Apply'                                                            => __('Apply', 'acfe'),
+            'Close'                                                            => __('Close', 'acfe'),
+            'Update'                                                           => __('Update', 'acfe'),
+            'Read more'                                                        => __('Read more', 'acfe'),
+            'Details'                                                          => __('Details', 'acfe'),
+            'Debug'                                                            => __('Debug', 'acfe'),
+            'Local file is different from the version in database.'            => __('Local file is different from the version in database.', 'acfe'),
+            'Do you want to replace the local file with the current settings?' => __('Do you want to replace the local file with the current settings?', 'acfe'),
         ));
         
         acf_localize_text($text);
