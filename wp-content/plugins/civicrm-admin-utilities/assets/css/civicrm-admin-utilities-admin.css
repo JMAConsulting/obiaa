@@ -50,6 +50,12 @@ html body.wp-admin:not(.toolbar)
 	background: #f0f0f1;
 }
 
+/* Radstock does not support Toggles */
+.crm-form-toggle-text
+{
+	display: none;
+}
+
 
 
 /*
@@ -425,7 +431,8 @@ body #bootstrap-theme.crm-search .api4-clause-fieldset fieldset
 	border-bottom: 1px solid #ddd;
 }
 
-#bootstrap-theme oauth-client-creator .form-horizontal .form-group
+#bootstrap-theme oauth-client-creator .form-horizontal .form-group,
+#bootstrap-theme oauth-client-editor .form-horizontal .form-group
 {
 	margin-right: 0;
 	margin-left: 0;

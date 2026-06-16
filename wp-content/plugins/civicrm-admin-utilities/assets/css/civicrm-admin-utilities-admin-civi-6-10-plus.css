@@ -16,7 +16,7 @@ Support for Bootstrap dashboard.
 /* Available Dashlets */
 #bootstrap-theme #civicrm-dashboard .crm-inactive-dashlet-fieldset {
 	padding: 4px 0;
-    margin: 10px 0;
+	margin: 10px 0;
 }
 
 #bootstrap-theme #civicrm-dashboard .crm-inactive-dashlet-fieldset legend {
@@ -25,8 +25,15 @@ Support for Bootstrap dashboard.
 
 #bootstrap-theme #civicrm-dashboard .crm-inactive-dashlet-fieldset legend a {
 	font-size: 14px;
-	padding-top: 6px;
+	padding-top: 12px;
 	padding-bottom: 6px;
+	border: none;
+}
+
+#bootstrap-theme #civicrm-dashboard .crm-inactive-dashlet-fieldset legend a:focus {
+	outline: none;
+	border: none;
+	box-shadow: none;
 }
 
 #bootstrap-theme #civicrm-dashboard .crm-inactive-dashlet-fieldset legend .crm-form-text {
@@ -88,15 +95,84 @@ Misc fixes.
 --------------------------------------------------------------------------------
 */
 
-.crm-option-label-pair {
-	display: inline;
-	margin-left: 1em;
+/* Implement "Options Per Line" setting. */
+.crm-container .crm-multiple-checkbox-radio-options {
+	--gap: 1em;
+	--checkbox-width: 2em;
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--gap);
 }
 
-.crm-option-label-pair:first-child {
-	margin-left: 0em;
+.crm-container .crm-multiple-checkbox-radio-options .crm-option-label-pair {
+	display: grid;
+	grid-template-columns: var(--checkbox-width) 1fr;
+	align-items: baseline;
 }
 
-.crm-case-common-form-block-case_status_id .crm-option-label-pair:first-child {
-	margin-left: 1em;
+.crm-container .crm-multiple-checkbox-radio-options.crm-options-per-line .crm-option-label-pair {
+	flex: 0 0 calc((100% - (var(--crm-opts-per-line) - 1) * var(--gap)) / var(--crm-opts-per-line));
+}
+
+
+
+/* "Reset all selections", "Advanced Search" and helpicon. */
+#search-status .float-right.right a,
+#search-status > a.crm-selection-reset {
+/* 	margin-top: 0.65rem; */
+	padding: 0.1rem 0.5rem;
+}
+
+#search-status > a.crm-selection-reset {
+	margin-top: 0.2rem;
+}
+
+/* "Reset all selections", "Advanced Search" hover state. */
+#search-status .float-right.right a:not(.helpicon):hover,
+#search-status > a.crm-selection-reset:hover {
+	text-decoration: none;
+}
+
+/* "Reset all selections", "Advanced Search" focus state. */
+#search-status .float-right.right a:not(.helpicon):focus,
+#search-status > a.crm-selection-reset:focus {
+	border-radius: 2px;
+	text-decoration: none;
+}
+
+/* "Advanced Search" and helpicon. */
+#search-status .float-right.right a {
+	display: inline-block;
+}
+
+/* Tweaks to helpicon. */
+#search-status .float-right.right a.helpicon {
+	padding: 0;
+	padding-inline-start: 4px;
+	margin-right: 12px;
+}
+
+/* Make helpicon inline. */
+#search-status .float-right.right br {
+	display: none;
+}
+
+
+
+/* APIv4 fixes. */
+.crm-container #bootstrap-theme.api4-explorer-page fieldset,
+.crm-container #bootstrap-theme.api4-explorer-page .api4-clause-fieldset fieldset {
+	background: #fafafa;
+	background: rgb(0 0 0 / 2.5%);
+	margin-top: 0;
+}
+
+
+
+/* SearchKit fixes. */
+.crm-container #bootstrap-theme.crm-search div[role="tabpanel"] {
+	padding: 12px;
+	background: #fff;
+	border: 1px solid #dddddd;
+	border-top: none;
 }
