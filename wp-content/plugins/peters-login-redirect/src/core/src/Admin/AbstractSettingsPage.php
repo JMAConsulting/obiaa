@@ -25,6 +25,9 @@ abstract class AbstractSettingsPage
                 <img src="<?= $logo_url ?>" alt="">
             </div>
             <div class="loginwp-admin-banner__helplinks">
+                <span><a class="lwp-active" rel="noopener" href="https://loginwp.com/docs/" target="_blank">
+                        <span class="dashicons dashicons-admin-users"></span> <?= __('Talk with AI assistant', 'peters-login-redirect'); ?>
+                    </a></span>
                 <?php if (defined('LOGINWP_DETACH_LIBSODIUM')) : ?>
                     <span><a rel="noopener" href="https://loginwp.com/submit-ticket/" target="_blank">
                             <span class="dashicons dashicons-admin-users"></span> <?= __('Request Support', 'peters-login-redirect'); ?>

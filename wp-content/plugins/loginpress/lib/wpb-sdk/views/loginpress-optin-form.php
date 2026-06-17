@@ -55,7 +55,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 		/* background-color: #fdfdfd; */
 		text-align: center
 	}
-	.admin_page_loginpress-optin #wpbody-content form #loginpress-splash{
+	.admin_page_loginpress-optin #wpbody-content #loginpress-splash{
 		max-width: 680px;
 	}
 	#loginpress-splash h1 {
@@ -432,12 +432,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 </style>
 <?php
 
-$loginpress_optin_user       = wp_get_current_user();
-$loginpress_optin_name       = empty( $loginpress_optin_user->user_firstname ) ? $loginpress_optin_user->display_name : $loginpress_optin_user->user_firstname;
-$loginpress_optin_email      = $loginpress_optin_user->user_email;
-$loginpress_site_link        = '<a href="' . get_site_url() . '">' . get_site_url() . '</a>';
-$loginpress_website          = get_site_url();
-$loginpress_optin_nonce      = wp_create_nonce( 'loginpress_submit_optin_nonce' );
+$loginpress_optin_user  = wp_get_current_user();
+$loginpress_optin_name  = empty( $loginpress_optin_user->user_firstname ) ? $loginpress_optin_user->display_name : $loginpress_optin_user->user_firstname;
+$loginpress_website     = get_site_url();
+$loginpress_optin_nonce = wp_create_nonce( 'loginpress_optin_page_nonce' );
+$loginpress_main_file   = dirname( dirname( dirname( dirname( __FILE__ ) ) ) ) . '/loginpress.php';
 $loginpress_default_redirect = 'loginpress-settings';
 
 /**
@@ -459,15 +458,15 @@ if ( isset( $_GET['redirect-page'] ) ) {
  */
 // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Static method outputs escaped content.
 echo LoginPress_Settings::loginpress_admin_page_header();
-echo '<form method="post" action="' . esc_url( admin_url( 'admin.php?page=' . $loginpress_default_redirect ) ) . '">';
-echo "<input type='hidden' name='email' value='" . esc_attr( $loginpress_optin_email ) . "'>";
-echo "<input type='hidden' name='loginpress_submit_optin_nonce' value='" . esc_attr( $loginpress_optin_nonce ) . "'>";
+echo '<div class="loginpress-optin-wrap">';
+echo "<input type='hidden' id='loginpress-optin-page-nonce' value='" . esc_attr( $loginpress_optin_nonce ) . "'>";
 echo '<div id="loginpress-splash">';
-echo '<h1> <img id="loginpress-logo-text" src="' . esc_url( plugins_url( 'img/loginpress.png', __DIR__ ) ) . '"> ' . esc_html__( 'Welcome to LoginPress', 'loginpress' ) . '</h1>';
+echo '<h1> <img id="loginpress-logo-text" src="' . esc_url( plugins_url( 'img/loginpress.png', $loginpress_main_file ) ) . '"> ' . esc_html__( 'Welcome to LoginPress', 'loginpress' ) . '</h1>';
 echo '<div id="loginpress-splash-main" class="loginpress-splash-box">';
 echo '<div class="step-wrapper">';
 
-if ( 'no' === get_option( '_loginpress_optin' ) || ! get_option( '_loginpress_optin' ) ) {
+// Show until user opts in with "yes" (empty, no, and skip must still see Allow / Skip).
+if ( 'yes' !== get_option( '_loginpress_optin' ) ) {
 	echo "<div class='first-step step'>";
 	// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Translated string with HTML tags for formatting.
 	echo sprintf(
@@ -482,8 +481,8 @@ if ( 'no' === get_option( '_loginpress_optin' ) || ! get_option( '_loginpress_op
 		'<strong>',
 		'</strong>'
 	) . '</p>';
-	echo "<button type='submit' id='loginpress-ga-submit-btn' class='loginpress-ga-button button button-primary' name='loginpress-submit-optin' >" . esc_html__( 'Allow and Continue  ', 'loginpress' ) . '</button><br>';
-	echo "<button type='submit' id='loginpress-ga-optout-btn' name='loginpress-submit-optout' >" . esc_html__( 'Skip This Step', 'loginpress' ) . '</button>';
+	echo "<button type='button' id='loginpress-ga-submit-btn' class='loginpress-ga-button button button-primary' name='loginpress-submit-optin' >" . esc_html__( 'Allow and Continue  ', 'loginpress' ) . '</button><img class="loginpress-optin-loader" style="display:none" src="' . esc_url( admin_url( 'images/spinner.gif' ) ) . '" alt=""/><br>';
+	echo "<button type='button' id='loginpress-ga-optout-btn' name='loginpress-submit-optout' >" . esc_html__( 'Skip This Step', 'loginpress' ) . '</button><img class="loginpress-skip-loader" style="display:none" src="' . esc_url( admin_url( 'images/spinner.gif' ) ) . '" alt=""/>';
 	echo '<div id="loginpress-splash-permissions" class="loginpress-splash-box">';
 	echo '<a id="loginpress-splash-permissions-toggle" href="#" >' . esc_html__( 'What permissions are being granted?', 'loginpress' ) . '</a>';
 	echo '<div id="loginpress-splash-permissions-dropdown" style="display: none;">';
@@ -506,14 +505,51 @@ if ( 'no' === get_option( '_loginpress_optin' ) || ! get_option( '_loginpress_op
 echo '</div>';
 echo '</div>';
 echo '</div>';
-echo '</form>';
+echo '</div>';
 ?>
 
 <script type="text/javascript">
 	jQuery(document).ready(function(s) {
-		var o = parseInt(s("#loginpress-splash-footer").css("margin-top"));
+		var o = parseInt(s("#loginpress-splash-footer").css("margin-top"), 10) || 0;
 		s("#loginpress-splash-permissions-toggle").click(function(a) {
 			a.preventDefault(), s("#loginpress-splash-permissions-dropdown").toggle(), 1 == s("#loginpress-splash-permissions-dropdown:visible").length ? s("#loginpress-splash-footer").css("margin-top", o - 208 + "px") : s("#loginpress-splash-footer").css("margin-top", o + "px")
-		})
+		});
+		var lpOptinNonce = s("#loginpress-optin-page-nonce").val();
+		var lpOptinRedirect = <?php echo wp_json_encode( admin_url( 'admin.php?page=' . sanitize_key( $loginpress_default_redirect ) ) ); ?>;
+		var lpAjaxUrl = <?php echo wp_json_encode( admin_url( 'admin-ajax.php' ) ); ?>;
+		s("#loginpress-ga-submit-btn").on("click", function(e) {
+			e.preventDefault();
+			s.ajax({
+				url: lpAjaxUrl,
+				type: "POST",
+				data: {
+					action: "loginpress_optin_yes",
+					optin_yes_nonce: lpOptinNonce
+				},
+				beforeSend: function() {
+					s("#loginpress-ga-submit-btn").prop("disabled", true);
+					s(".loginpress-optin-loader").css("display", "inline");
+				}
+			}).always(function() {
+				window.location.href = lpOptinRedirect;
+			});
+		});
+		s("#loginpress-ga-optout-btn").on("click", function(e) {
+			e.preventDefault();
+			s.ajax({
+				url: lpAjaxUrl,
+				type: "POST",
+				data: {
+					action: "loginpress_optin_skip",
+					optin_skip_nonce: lpOptinNonce
+				},
+				beforeSend: function() {
+					s("#loginpress-ga-optout-btn").prop("disabled", true);
+					s(".loginpress-skip-loader").css("display", "inline");
+				}
+			}).always(function() {
+				window.location.href = lpOptinRedirect;
+			});
+		});
 	});
 </script>
