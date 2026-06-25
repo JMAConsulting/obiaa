@@ -294,10 +294,23 @@ class CRM_Core_Payment_Stripe extends CRM_Core_Payment {
    * @param \Civi\Payment\PropertyBag $propertyBag
    *
    * @throws \Brick\Money\Exception\UnknownCurrencyException
+   * @deprecated Use getAmountForStripeAPI
    */
   public function getAmountFormattedForStripeAPI(PropertyBag $propertyBag): string {
-    return Money::of($propertyBag->getAmount(), $propertyBag->getCurrency(), NULL, RoundingMode::HALF_UP)->getMinorAmount()->getIntegralPart();
+    return (string) Money::of((string) $propertyBag->getAmount(), $propertyBag->getCurrency(), NULL, RoundingMode::HALF_UP)->getMinorAmount()->toInt();
   }
+
+  /**
+   * @param float $amount
+   * @param string $currency
+   *
+   * @return int
+   * @throws \Brick\Money\Exception\UnknownCurrencyException
+   */
+  public function getAmountForStripeAPI(float $amount, string $currency): int {
+    return (int) Money::of((string) $amount, $currency, NULL, RoundingMode::HALF_UP)->getMinorAmount()->toInt();
+  }
+
 
   /**
    * Set API parameters for Stripe (such as identifier, api version, api key)
@@ -380,44 +393,103 @@ class CRM_Core_Payment_Stripe extends CRM_Core_Payment {
   }
 
   /**
-   * Create or update a Stripe Plan
+   * Generates a product name for Stripe using the provided parameters.
+   * This is how we've always done it in CiviCRM, maybe we want to change in the future?
    *
-   * @param \Civi\Payment\PropertyBag $propertyBag
-   * @param integer $amount
+   * Required Keys: amount, currency, frequency_unit, frequency_interval
    *
-   * @return \Stripe\Plan
+   * @param array $recur API4 style ContributionRecur record
+   *   Required Keys: amount, currency, frequency_unit, frequency_interval
+   *
+   * @return string
    */
-  public function createPlan(\Civi\Payment\PropertyBag $propertyBag, int $amount): \Stripe\Plan {
-    $planID = "every-{$propertyBag->getRecurFrequencyInterval()}-{$propertyBag->getRecurFrequencyUnit()}-{$amount}-" . strtolower($propertyBag->getCurrency());
+  public function getStripeProductNameFromRecur(array $recur): string {
+    // In 6.14 and earlier plan names were constructed like this:
+    // "every-{$frequepropertyBag->getRecurFrequencyInterval()}-{$propertyBag->getRecurFrequencyUnit()}-{$amount}-" . strtolower($propertyBag->getCurrency());
+    // They got converted to product names like "CiviCRM every 1 year(s) GBP5.00".
+    // Stripe "adjusts" the name to make it more user-friendly:
+    //   - Adds the app name, makes currency uppercase, adds (s) to unit.
+    //   - Also, 5.00 GBP matches GBP5.00.
+    //   - "GBP5.00 every 1 year" will match "every 1 year GBP5.00"
+    // We can do a case insensitive search with spaces and ignore the (s), it will still match.
+    $formattedAmount = CRM_Utils_Money::formatLocaleNumericRoundedByCurrency($recur['amount'], $recur['currency']);
+    // This productName will match on ones that were created as Stripe Plans
+    return "{$recur['currency']}{$formattedAmount} every {$recur['frequency_interval']} {$recur['frequency_unit']}";
+  }
 
-    // Try and retrieve existing plan from Stripe
-    // If this fails, we'll create a new one
-    try {
-      $plan = $this->stripeClient->plans->retrieve($planID);
+  /**
+   * Create or update a product using the given product name
+   *
+   * @param string $productName
+   *
+   * @return \Stripe\Product
+   * @throws \Stripe\Exception\ApiErrorException
+   */
+  public function createOrUpdateStripeProductByName(string $productName): \Stripe\Product {
+    $productQueryParams = [
+      'active:"true"',
+      // 'description~"mydescription"',
+      'name~"' . $productName . '"',
+    ];
+    $products = $this->stripeClient->products->search(['query' => implode(' AND ', $productQueryParams)]);
+    if ($products->first()) {
+      // We found a matching product, return it
+      return $products->first();
     }
-    catch (\Stripe\Exception\InvalidRequestException $e) {
-      if ($e->getStripeCode() === 'resource_missing') {
-        $formattedAmount = CRM_Utils_Money::formatLocaleNumericRoundedByCurrency(($amount / 100), $propertyBag->getCurrency());
-        $productName = "{$propertyBag->getCurrency()}{$formattedAmount} "
-          . ($propertyBag->has('membership_name') ? $propertyBag->getCustomProperty('membership_name') . ' ' : '')
-          . "every {$propertyBag->getRecurFrequencyInterval()} {$propertyBag->getRecurFrequencyUnit()}(s)";
-        $product = $this->stripeClient->products->create([
-          'name' => $productName,
-          'type' => 'service'
-        ]);
-        // Create a new Plan.
-        $stripePlan = [
-          'amount' => $amount,
-          'interval' => $propertyBag->getRecurFrequencyUnit(),
-          'product' => $product->id,
-          'currency' => $propertyBag->getCurrency(),
-          'id' => $planID,
-          'interval_count' => $propertyBag->getRecurFrequencyInterval(),
-        ];
-        $plan = $this->stripeClient->plans->create($stripePlan);
+
+    return $this->stripeClient->products->create([
+      'name' => $productName,
+      'type' => 'service'
+    ]);
+  }
+
+  /**
+   * Create or update an existing price for a given stripe product
+   *
+   * @param string $stripeProductID
+   * @param float $amount
+   * @param string $currency
+   * @param array|null $recur API4 style ContributionRecur record
+   *   Required Keys: amount, currency, frequency_unit, frequency_interval
+   *
+   * @return \Stripe\Price
+   * @throws \Brick\Money\Exception\UnknownCurrencyException
+   * @throws \Stripe\Exception\ApiErrorException
+   */
+  public function createOrUpdateStripePrice(string $stripeProductID, float $amount, string $currency, ?array $recur = NULL): \Stripe\Price {
+    $priceSearchParams = [
+      'active' => TRUE,
+      'currency' => $currency,
+      'product' => $stripeProductID,
+      'type' => 'one_time',
+    ];
+    if ($recur) {
+      $priceSearchParams['type'] = 'recurring';
+      $priceSearchParams['recurring']['interval'] = $recur['frequency_unit'];
+    }
+    $prices = $this->stripeClient->prices->all($priceSearchParams);
+    foreach ($prices as $price) {
+      if ($price->unit_amount === $this->getAmountForStripeAPI($amount, $currency)) {
+        // Found an existing, matching price. Use it!
+        return $price;
       }
     }
-    return $plan;
+
+    // Create a new price
+    $stripePriceParams = [
+      'currency' => $recur['currency'],
+      'product' => $stripeProductID,
+      'tax_behavior' => 'inclusive',
+      'unit_amount' => $this->getAmountForStripeAPI($recur['amount'], $recur['currency']),
+      // 'nickname' => 'Description of the price, hidden from customers',
+    ];
+    if ($recur) {
+      $stripePriceParams['recurring'] = [
+        'interval' => $recur['frequency_unit'], // frequency_unit: day, week, month, year
+        'interval_count' => $recur['frequency_interval'], // frequency_interval
+      ];
+    }
+    return $this->stripeClient->prices->create($stripePriceParams);
   }
 
   /**
@@ -642,7 +714,7 @@ class CRM_Core_Payment_Stripe extends CRM_Core_Payment {
     $newParams = [];
     CRM_Utils_Hook::alterPaymentProcessorParams($this, $propertyBag, $newParams);
 
-    $amountFormattedForStripe = $this->getAmountFormattedForStripeAPI($propertyBag);
+    $amountFormattedForStripe = $this->getAmountForStripeAPI($propertyBag->getAmount(), $propertyBag->getCurrency());
 
     $stripeCustomer = $this->getStripeCustomer($propertyBag);
 
@@ -737,11 +809,12 @@ class CRM_Core_Payment_Stripe extends CRM_Core_Payment {
   /**
    * @param \Civi\Payment\PropertyBag $propertyBag
    *
-   * @return \Stripe\Customer|PropertySpy
+   * @return \PropertySpy|\Stripe\Customer
    * @throws \CRM_Core_Exception
+   * @throws \Civi\API\Exception\UnauthorizedException
    * @throws \Civi\Payment\Exception\PaymentProcessorException
    */
-  protected function getStripeCustomer(\Civi\Payment\PropertyBag $propertyBag) {
+  public function getStripeCustomer(\Civi\Payment\PropertyBag $propertyBag) {
     if (!$propertyBag->has('email')) {
       // @fixme: Check if we still need to call the getBillingEmail function - eg. how does it handle "email-Primary".
       $email = $this->getBillingEmail($propertyBag);
@@ -876,29 +949,53 @@ class CRM_Core_Payment_Stripe extends CRM_Core_Payment {
     }
 
     // Create the stripe plan
-    $plan = self::createPlan($propertyBag, $amountFormattedForStripe);
+    $recurApi4 = [
+      'amount' => (float) $propertyBag->getAmount(),
+      'currency' => (string) $propertyBag->getCurrency(),
+      'frequency_unit' => (string) $propertyBag->getRecurFrequencyUnit(),
+      'frequency_interval' => (int) $propertyBag->getRecurFrequencyInterval(),
+    ];
+    $productName = $this->getStripeProductNameFromRecur($recurApi4);
+    $product = $this->createOrUpdateStripeProductByName($productName);
+    $price = $this->createOrUpdateStripePrice($product->id, $recurApi4['amount'], $recurApi4['currency'], $recurApi4);
 
     // Attach the Subscription to the Stripe Customer.
     $subscriptionParams = [
       'proration_behavior' => 'none',
-      'plan' => $plan->id,
       'metadata' => ['Description' => $propertyBag->getDescription()],
       'expand' => ['latest_invoice.payment_intent'],
       'customer' => $stripeCustomer->id,
       'off_session' => TRUE,
+      'items' => [
+        [
+          'price' => $price->id,
+          'quantity' => 1,
+        ],
+      ],
     ];
+    if (!empty($propertyBag->getDescription())) {
+      $subscriptionParams['description'] = $propertyBag->getDescription();
+    }
+
     // This is the parameter that specifies the start date for the subscription.
     // If omitted the subscription will start immediately.
-    $billingCycleAnchor = $this->getRecurBillingCycleDay($params);
-    if ($billingCycleAnchor) {
-      $subscriptionParams['billing_cycle_anchor'] = $billingCycleAnchor;
+    if (isset($params['receive_date'])) {
+      $billingCycleAnchorTimestamp = $this->getRecurBillingCycleDay($params['receive_date']);
+      if ($billingCycleAnchorTimestamp) {
+        $subscriptionParams['billing_cycle_anchor'] = $billingCycleAnchorTimestamp;
+      }
     }
 
     // Create the stripe subscription for the customer
     $stripeSubscription = $this->stripeClient->subscriptions->create($subscriptionParams);
     $this->setPaymentProcessorSubscriptionID($stripeSubscription->id);
 
-    $nextScheduledContributionDate = $this->calculateNextScheduledDate($params);
+    $nextScheduledContributionDate = $this->calculateNextScheduledDate(
+      $propertyBag->getRecurFrequencyUnit(),
+      $propertyBag->getRecurFrequencyInterval(),
+      $params['next_sched_contribution_date'] ?? NULL,
+      $params['receive_date'] ?? NULL
+    );
     $contributionRecur = ContributionRecur::update(FALSE)
       ->addWhere('id', '=', $this->getRecurringContributionId($propertyBag))
       ->addValue('processor_id', $this->getPaymentProcessorSubscriptionID())
@@ -965,20 +1062,18 @@ class CRM_Core_Payment_Stripe extends CRM_Core_Payment {
 
   /**
    * Get the billing cycle day (timestamp)
-   * @param array $params
+   *
+   * @param string $date
    *
    * @return int|null
    */
-  private function getRecurBillingCycleDay($params) {
-    if (isset($params['receive_date'])) {
-      $receiveDateTimestamp = strtotime($params['receive_date']);
-      // If `receive_date` was set to "now" it will be in the past (by a few seconds) by the time we actually send it to Stripe.
-      if ($receiveDateTimestamp > strtotime('now')) {
-        // We've specified a receive_date in the future, use it!
-        return $receiveDateTimestamp;
-      }
+  public function getRecurBillingCycleDay(string $date): ?int {
+    $receiveDateTimestamp = strtotime($date);
+    // If `receive_date` was set to "now" it will be in the past (by a few seconds) by the time we actually send it to Stripe.
+    if ($receiveDateTimestamp > strtotime('now')) {
+      // We've specified a receive_date in the future, use it!
+      return $receiveDateTimestamp;
     }
-    // Either we had no receive_date or receive_date was in the past (or "now" when form was submitted).
     return NULL;
   }
 
@@ -1052,7 +1147,7 @@ class CRM_Core_Payment_Stripe extends CRM_Core_Payment {
         'payment_processor_id' => $this->_paymentProcessor['id'],
         'status' => $intent->status,
         'contribution_id' =>  $params['contributionID'] ?? NULL,
-        'description' => $this->getDescription($params, 'description'),
+        'description' => $this->getDescription($params),
         'identifier' => $params['qfKey'] ?? NULL,
         'contact_id' => $params['contactID'],
         'extra_data' => ($errorMessage ?? '') . ';' . ($email ?? ''),
@@ -1086,12 +1181,13 @@ class CRM_Core_Payment_Stripe extends CRM_Core_Payment {
       }
     }
 
-    $propertyBag = PropertyBag::cast($params);
+    // We only need currency to format the value for Stripe API. We don't send currency to Stripe.
+    $currency = $params['currency'] ?? CRM_Core_Config::singleton()->defaultCurrency;
 
     $refundParams = [
       'charge' => $params['trxn_id'],
+      'amount' => $this->getAmountForStripeAPI($params['amount'], $currency),
     ];
-    $refundParams['amount'] = $this->getAmountFormattedForStripeAPI($propertyBag);
     try {
       $refund = $this->stripeClient->refunds->create($refundParams);
       // Stripe does not refund fees - see https://support.stripe.com/questions/understanding-fees-for-refunded-payments
@@ -1242,55 +1338,54 @@ class CRM_Core_Payment_Stripe extends CRM_Core_Payment {
   }
 
   /**
-   * Calculate the end_date for a recurring contribution based on the number of installments
-   * @param $params
+   * Calculate the next_sched_contribution_date for a recurring contribution based on the frequency and dates
+   *
+   * @param string $frequencyUnit
+   * @param int $frequencyInterval
+   * @param string|null $nextSchedContributionDate
+   * @param string|null $receiveDate
    *
    * @return string
    * @throws \CRM_Core_Exception
    */
-  public function calculateNextScheduledDate($params) {
-    $requiredParams = ['recurFrequencyInterval', 'recurFrequencyUnit'];
-    foreach ($requiredParams as $required) {
-      if (!isset($params[$required])) {
-        $message = $this->getLogPrefix() . 'calculateNextScheduledDate: Missing mandatory parameter: ' . $required;
-        Civi::log()->error($message);
-        throw new CRM_Core_Exception($message);
-      }
-    }
-    if (empty($params['receive_date']) && empty($params['next_sched_contribution_date'])) {
+  public function calculateNextScheduledDate(string $frequencyUnit, int $frequencyInterval, ?string $nextSchedContributionDate = NULL, ?string $receiveDate = NULL): string {
+    if (empty($receiveDate) && empty($nextSchedContributionDate)) {
       $startDate = date('YmdHis');
     }
-    elseif (!empty($params['next_sched_contribution_date'])) {
-      if ($params['next_sched_contribution_date'] < date('YmdHis')) {
-        $startDate = $params['next_sched_contribution_date'];
+    elseif (!empty($nextSchedContributionDate)) {
+      if ($nextSchedContributionDate < date('YmdHis')) {
+        $startDate = $nextSchedContributionDate;
       }
     }
     else {
-      $startDate = $params['receive_date'];
+      $startDate = $receiveDate;
     }
 
-    switch ($params['recurFrequencyUnit']) {
+    switch ($frequencyUnit) {
       case 'day':
-        $frequencyUnit = 'D';
+        $dateIntervalFrequencyUnit = 'D';
         break;
 
       case 'week':
-        $frequencyUnit = 'W';
+        $dateIntervalFrequencyUnit = 'W';
         break;
 
       case 'month':
-        $frequencyUnit = 'M';
+        $dateIntervalFrequencyUnit = 'M';
         break;
 
       case 'year':
-        $frequencyUnit = 'Y';
+        $dateIntervalFrequencyUnit = 'Y';
         break;
+
+      default:
+        throw new CRM_Core_Exception('Unknown frequencyUnit: ' . $frequencyUnit);
     }
 
-    $numberOfUnits = $params['recurFrequencyInterval'];
-    $endDate = new DateTime($startDate);
-    $endDate->add(new DateInterval("P{$numberOfUnits}{$frequencyUnit}"));
-    return $endDate->format('Ymd');
+    $numberOfUnits = $frequencyInterval;
+    $nextSchedDate = new DateTime($startDate);
+    $nextSchedDate->add(new DateInterval("P{$numberOfUnits}{$dateIntervalFrequencyUnit}"));
+    return $nextSchedDate->format('YmdHis');
   }
 
   /**
@@ -1371,8 +1466,8 @@ class CRM_Core_Payment_Stripe extends CRM_Core_Payment {
       $contributionRecurKey = mb_strtolower($propertyBag->getCurrency()) . "_{$propertyBag->getRecurFrequencyUnit()}_{$propertyBag->getRecurFrequencyInterval()}";
       if (isset($calculatedItems[$contributionRecurKey])) {
         $calculatedItem = $calculatedItems[$contributionRecurKey];
-        if (Money::of($calculatedItem['amount'], mb_strtoupper($calculatedItem['currency']))
-          ->isAmountAndCurrencyEqualTo(Money::of($propertyBag->getAmount(), $propertyBag->getCurrency()))) {
+        if (Money::of((string) $calculatedItem['amount'], mb_strtoupper($calculatedItem['currency']))
+          ->isAmountAndCurrencyEqualTo(Money::of((string) $propertyBag->getAmount(), $propertyBag->getCurrency()))) {
           throw new PaymentProcessorException('Amount is the same as before!');
         }
       }
@@ -1381,7 +1476,7 @@ class CRM_Core_Payment_Stripe extends CRM_Core_Payment {
       }
 
       // Get the existing Price
-      $existingPrice = $subscription->items->data[0]->price;
+      $existingPrice = $subscription->items->first()->price;
       $stripeProductID = $existingPrice->product;
       $existingProduct = $this->stripeClient->products->retrieve($stripeProductID);
       if (!$existingProduct->isDeleted() && $existingProduct->active) {
@@ -1398,7 +1493,7 @@ class CRM_Core_Payment_Stripe extends CRM_Core_Payment {
         ];
         $existingPrices = $this->stripeClient->prices->all($priceToMatch);
         foreach ($existingPrices as $price) {
-          if ($price->unit_amount === (int)$this->getAmountFormattedForStripeAPI($propertyBag)) {
+          if ($price->unit_amount === $this->getAmountForStripeAPI($propertyBag->getAmount(), $propertyBag->getCurrency())) {
             // Yes, we already have a matching price option - use it!
             $newPriceID = $price->id;
             break;
@@ -1409,7 +1504,7 @@ class CRM_Core_Payment_Stripe extends CRM_Core_Payment {
         // We didn't find an existing price that matched for the product. Create a new one.
         $newPriceParameters = [
           'currency' => $subscription->currency,
-          'unit_amount' => $this->getAmountFormattedForStripeAPI($propertyBag),
+          'unit_amount' => $this->getAmountForStripeAPI($propertyBag->getAmount(), $propertyBag->getCurrency()),
           'product' => $stripeProductID,
           'metadata' => $existingPrice->metadata->toArray(),
           'recurring' => [
@@ -1456,7 +1551,7 @@ class CRM_Core_Payment_Stripe extends CRM_Core_Payment {
       $this->stripeClient->subscriptions->update($propertyBag->getRecurProcessorID(), [
         'items' => [
           [
-            'id' => $subscription->items->data[0]->id,
+            'id' => $subscription->items->first()->id,
             'price' => $newPriceID,
           ],
         ],

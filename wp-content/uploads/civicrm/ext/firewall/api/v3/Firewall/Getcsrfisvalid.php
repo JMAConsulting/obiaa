@@ -1,4 +1,6 @@
 <?php
+
+use Civi\Firewall\Firewall;
 use CRM_Firewall_ExtensionUtil as E;
 
 /**
@@ -14,7 +16,7 @@ use CRM_Firewall_ExtensionUtil as E;
  * @throws CRM_Core_Exception
  */
 function civicrm_api3_firewall_Getcsrfisvalid($params) {
-  $isValid = \Civi\Firewall\Firewall::isCSRFTokenValid($params['token']);
+  $isValid = Firewall::isCSRFTokenValid($params['token']);
   return civicrm_api3_create_success(['valid' => $isValid], $params, 'Firewall', 'Getcsrfisvalid');
 }
 

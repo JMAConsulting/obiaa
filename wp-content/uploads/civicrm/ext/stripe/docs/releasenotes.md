@@ -9,10 +9,46 @@ Releases use the following numbering system:
 
 * **[BC]**: Items marked with [BC] indicate a breaking change that will require updates to your code if you are using that code in your extension.
 
+## 6.16.2 (2026-06-15)
+
+* [!303](https://lab.civicrm.org/extensions/stripe/-/merge_requests/303) Fix #496 StripeCheckout LineItems: Handle negative quantity/amount and non-integer quantity.
+* Update PaymentInstrument managed entity so it will be added (domain_id was getting set to 0).
+
+## 6.16.1 (2026-06-02)
+
+* Fix warning about resaving managed payment instrument.
+* Test mode fixes for Formbuilder (CheckoutOptions).
+
+## 6.16.0 (2026-05-27)
+
+* Support FormBuilder Payments.
+
+## 6.15.3 (2026-04-22)
+
+* Don't crash if charge is not 'succeeded' and we don't have a balance transaction.
+* We should always have/find a template contribution but if we don't record a helpful error instead of a backtrace.
+
+## 6.15.2 (2026-04-22)
+
+* [!299](https://lab.civicrm.org/extensions/stripe/-/merge_requests/299) Support refunds when no currency is specified (ie. through API4 PaymentProcessor::refund).
+* [!300](https://lab.civicrm.org/extensions/stripe/-/merge_requests/300) Support empty balance_transaction ID in charge when processing webhooks.
+
+## 6.15.1 (2026-04-21)
+
+* [!298](https://lab.civicrm.org/extensions/stripe/-/merge_requests/298) Fix #494 empty balanceTransactionID when using Stripe Checkout.
+
+## 6.15.0 (2026-04-02)
+
+* [!288](https://lab.civicrm.org/extensions/stripe/-/merge_requests/288) Resolve "Support multiple partial refunds".
+* [!287](https://lab.civicrm.org/extensions/stripe/-/merge_requests/287) Support ContributionLog for failed payments.
+* [!293](https://lab.civicrm.org/extensions/stripe/-/merge_requests/293) Update SDK to v16. Change from plans to products/prices.
+* [!295](https://lab.civicrm.org/extensions/stripe/-/merge_requests/295) Deprecated passing of floats into brick money::of.
+* [!297](https://lab.civicrm.org/extensions/stripe/-/merge_requests/297) CI to publish composer package.
+
 ## 6.14.2 (2026-01-21)
 
 * Fix case of API4 actions which caused payments to fail in CiviCRM 6.10.
-* [!281](https://lab.civicrm.org/extensions/stripe/-/merge_requests/286) info.xml: depend on civi_contribute
+* [!286](https://lab.civicrm.org/extensions/stripe/-/merge_requests/286) info.xml: depend on civi_contribute
 
 ## Release 6.14.1 (2025-12-05)
 

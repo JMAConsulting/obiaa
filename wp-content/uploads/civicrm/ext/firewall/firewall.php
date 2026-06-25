@@ -1,6 +1,7 @@
 <?php
 
 require_once 'firewall.civix.php';
+use Civi\Firewall\Firewall;
 use CRM_Firewall_ExtensionUtil as E;
 
 /**
@@ -18,16 +19,8 @@ function firewall_civicrm_config(&$config) {
 }
 
 function firewall_civicrm_boot() {
-  $firewall = new \Civi\Firewall\Firewall();
+  $firewall = new Firewall();
   $firewall->run();
-}
-
-/**
- * Implements hook_civicrm_container().
- */
-function firewall_civicrm_container(\Symfony\Component\DependencyInjection\ContainerBuilder $container) {
-  $container->addResource(new \Symfony\Component\Config\Resource\FileResource(__FILE__));
-  \Civi\Firewall\Services::registerServices($container);
 }
 
 /**
@@ -62,19 +55,4 @@ function firewall_civicrm_alterLogTables(&$logTableSpec) {
       unset($logTableSpec[$key]);
     }
   }
-}
-
-/**
- * Implements hook_civicrm_navigationMenu().
- */
-function firewall_civicrm_navigationMenu(&$menu) {
-  _firewall_civix_insert_navigation_menu($menu, 'Administer/System Settings', [
-    'label' => E::ts('Firewall Settings'),
-    'name' => 'firewall_settings',
-    'url' => 'civicrm/admin/setting/firewall',
-    'permission' => 'administer CiviCRM',
-    'operator' => 'OR',
-    'separator' => 0,
-  ]);
-  _firewall_civix_navigationMenu($menu);
 }

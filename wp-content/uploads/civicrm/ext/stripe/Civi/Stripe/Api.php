@@ -75,6 +75,10 @@ class Api {
    */
   public function getDetailsFromBalanceTransactionByChargeID(string $chargeID): array {
     $chargeObject = $this->getPaymentProcessor()->stripeClient->charges->retrieve($chargeID);
+    if ($this->getValueFromStripeObject('status', 'String', $chargeObject) !== 'succeeded') {
+      // Only successful charges have a balanceTransaction
+      return [];
+    }
     $balanceTransactionID = $this->getValueFromStripeObject('balance_transaction', 'String', $chargeObject);
     return $this->getDetailsFromBalanceTransaction($balanceTransactionID, $chargeObject);
   }
@@ -90,6 +94,14 @@ class Api {
   public function getDetailsFromBalanceTransactionByChargeObject($chargeObject): array {
     if ($chargeObject && ($chargeObject->object === 'charge')) {
       $balanceTransactionID = $this->getValueFromStripeObject('balance_transaction', 'String', $chargeObject);
+      if (empty($balanceTransactionID)) {
+        // This can happen if PaymentIntent was setup with capture_method=automatic_async
+        $chargeObject = $this->getPaymentProcessor()->stripeClient->charges->retrieve($chargeObject->id);
+        $balanceTransactionID = $this->getValueFromStripeObject('balance_transaction', 'String', $chargeObject);
+        if (empty($balanceTransactionID)) {
+          throw new PaymentProcessorException('BalanceTransactionID not found in Stripe Charge object.');
+        }
+      }
       return $this->getDetailsFromBalanceTransaction($balanceTransactionID, $chargeObject);
     }
     else {
@@ -184,5 +196,38 @@ class Api {
     }
     return $calculatedItems;
   }
+
+  /**
+   * @param string $currency
+   *
+   * @return array
+   * @throws \Civi\Payment\Exception\PaymentProcessorException
+   */
+  public function getPaymentMethodsForCurrency(string $currency): array {
+    $paymentMethods = \Civi::settings()->get('stripe_checkout_supported_payment_methods');
+    $result = [];
+    $supportedPaymentMethods = \CRM_Stripe_Api::getSupportedPaymentMethodsCheckout();
+    foreach ($supportedPaymentMethods as $supportedPaymentMethod) {
+      if (in_array($supportedPaymentMethod['name'], $paymentMethods)) {
+        // Check for all currencies
+        if (in_array('*', $supportedPaymentMethod['currencies'])) {
+          $result[] = $supportedPaymentMethod['name'];
+        }
+        else {
+          foreach ($supportedPaymentMethod['currencies'] as $methodCurrency) {
+            if ($currency === $methodCurrency) {
+              $result[] = $supportedPaymentMethod['name'];
+            }
+            break;
+          }
+        }
+      }
+    }
+    if (empty($result)) {
+      throw new PaymentProcessorException('There are no valid Stripe payment methods enabled for this configuration. Check currency etc.');
+    }
+    return $result;
+  }
+
 
 }

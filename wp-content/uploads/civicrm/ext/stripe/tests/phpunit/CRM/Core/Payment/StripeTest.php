@@ -36,7 +36,7 @@ require_once(__DIR__ . '/../../Stripe/TestBase.php');
 
 class CRM_Core_Payment_StripeTest extends CRM_Stripe_TestBase {
 
-  protected $contributionRecurID;
+  protected int $contributionRecurID;
 
   /**
    * This test is primarily to test the fix for
@@ -93,7 +93,7 @@ class CRM_Core_Payment_StripeTest extends CRM_Stripe_TestBase {
     PropertySpy::$outputMode = 'exception';
 
     // Create a mock stripe client.
-    $stripeClient = $this->createMock('Stripe\\StripeClient');
+    $stripeClient = $this->createMock('CRM_Stripe_MockStripeClient');
     // Update our CRM_Core_Payment_Stripe object and ensure any others
     // instantiated separately will also use it.
     $this->paymentObject->setMockStripeClient($stripeClient);
@@ -128,11 +128,43 @@ class CRM_Core_Payment_StripeTest extends CRM_Stripe_TestBase {
         new PropertySpy('customers.retrieve', ['id' => 'cus_mock'])
       );
 
+    // Product
+    $mockProduct = \Stripe\Product::constructFrom([
+      'id' => 'prod_mock',
+      'name' => 'every 1 month ' . ($this->total * 100) . ' USD',
+    ]);
+    // Mock the products service
+    $stripeClient->products = $this->createMock('Stripe\\Service\\ProductService');
+    $stripeClient->products
+      ->method('search')
+      ->willReturn(
+        new PropertySpy('products.search', [$mockProduct])
+      );
+
+    // Price
+    $mockPrice = \Stripe\Price::constructFrom([
+      'unit_amount' => $this->total,
+      'id' => 'price_mock',
+      'currency' => 'USD',
+    ]);
+    // Mock the prices service
+    $stripeClient->prices = $this->createMock('Stripe\\Service\\PriceService');
+    $stripeClient->prices
+      ->method('all')
+      ->willReturn(
+        new PropertySpy('prices.all', [$mockPrice])
+      );
+    $stripeClient->prices
+      ->method('create')
+      ->willReturn(
+        $mockPrice
+      );
+
     $mockPlan = $this->createMock('Stripe\\Plan');
     $mockPlan
     ->method('__get')
     ->will($this->returnValueMap([
-      ['id', 'every-1-month-' . ($this->total * 100) . '-usd-test']
+      ['id', 'every-1-month-' . ($this->total * 100) . '-usd']
     ]));
 
     $stripeClient->plans = $this->createMock('Stripe\\Service\\PlanService');
@@ -155,25 +187,22 @@ class CRM_Core_Payment_StripeTest extends CRM_Stripe_TestBase {
       // we cannot mock static methods. Bad bad.
       // $stripeClient->products = $this->createMock(\Stripe\Product::class);
       // $stripeClient->products->method('create')->willReturn((object) ['id' => 'mock_product_id']);
-      $stripeClient->products = new mockProducts();
+//      $stripeClient->products = new mockProducts();
     }
 
     // Need a mock intent with id and status
-    $mockCharge = $this->createMock('Stripe\\Charge');
-    $mockCharge
-      ->method('__get')
-      ->will($this->returnValueMap([
-        ['id', 'ch_mock'],
-        ['captured', TRUE],
-        ['currency', 'usd'],
-        ['status', 'succeeded'],
-        ['balance_transaction', 'txn_mock'],
-      ]));
+    $mockCharge = \Stripe\Charge::constructFrom([
+      'id' => 'ch_mock',
+      'captured' => TRUE,
+      'currency' => 'usd',
+      'status' => 'succeeded',
+      'balance_transaction' => 'txn_mock',
+    ]);
 
     $mockChargesCollection = new \Stripe\Collection();
     $mockChargesCollection->data = [$mockCharge];
 
-    $mockCharge = new PropertySpy('Charge', [
+    $mockCharge2 = \Stripe\Charge::constructFrom([
       'id' => 'ch_mock',
       'object' => 'charge',
       'captured' => TRUE,
@@ -186,21 +215,20 @@ class CRM_Core_Payment_StripeTest extends CRM_Stripe_TestBase {
     $stripeClient->charges
       ->method('retrieve')
       ->with($this->equalTo('ch_mock'))
-      ->willReturn($mockCharge);
+      ->willReturn($mockCharge2);
 
-    $mockPaymentIntent = new PropertySpy('PaymentIntent', [
+    $mockPaymentIntent = \Stripe\PaymentIntent::constructFrom([
       'id' => 'pi_mock',
       'status' => 'succeeded',
       'latest_charge' => 'ch_mock'
     ]);
-
     $stripeClient->paymentIntents = $this->createMock('Stripe\\Service\\PaymentIntentService');
     $stripeClient->paymentIntents
       ->method('retrieve')
       ->with($this->equalTo('pi_mock'))
       ->willReturn($mockPaymentIntent);
 
-    $mockPaymentIntentWithAmount = new PropertySpy('PaymentIntent', [
+    $mockPaymentIntentWithAmount = \Stripe\PaymentIntent::constructFrom([
       'id' => 'pi_mock',
       'status' => 'succeeded',
       'latest_charge' => 'ch_mock',
@@ -211,7 +239,7 @@ class CRM_Core_Payment_StripeTest extends CRM_Stripe_TestBase {
       ->with($this->equalTo('pi_mock'))
       ->willReturn($mockPaymentIntentWithAmount);
 
-    $mockSubscription = new PropertySpy('subscription.create', [
+    $mockSubscription = \Stripe\Subscription::constructFrom([
       'id' => 'sub_mock',
       'object' => 'subscription',
       'current_period_end' => time()+60*60*24,
@@ -246,7 +274,7 @@ class CRM_Core_Payment_StripeTest extends CRM_Stripe_TestBase {
     // todo change the status from requires_capture to ?
     //$stripeClient->paymentIntents ->method('update') ->willReturn();
 
-    $mockInvoice = new PropertySpy('Invoice', [
+    $mockInvoice = \Stripe\Invoice::constructFrom([
       'amount_due' => $this->total*100,
       'charge_id' => 'ch_mock', //xxx
       'created' => time(),

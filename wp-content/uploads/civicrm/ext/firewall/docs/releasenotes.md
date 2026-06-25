@@ -9,6 +9,24 @@ Releases use the following numbering system:
 
 * **[BC]**: Items marked with [BC] indicate a breaking change that will require updates to your code if you are using that code in your extension.
 
+## 1.7.1 (2026-06-22)
+
+* [!28](https://lab.civicrm.org/extensions/firewall/-/merge_requests/28) Fix implicitly nullable $source parameter (PHP 8.4).
+
+## 1.7.0 (2026-06-16)
+
+* [!23](https://lab.civicrm.org/extensions/firewall/-/merge_requests/23) Protect standalone login - first working version.
+
+## 1.6.0 (2026-06-02)
+
+* [!27](https://lab.civicrm.org/extensions/firewall/-/merge_requests/27) Support wildcard IP addresses in firewall_reverse_proxy_addresses
+* Replace legacy code / update to latest standards
+
+## 1.5.13 (2026-04-13)
+
+* [!24](https://lab.civicrm.org/extensions/firewall/-/merge_requests/24) Add composer package publish CI.
+* [!25](https://lab.civicrm.org/extensions/firewall/-/merge_requests/25) Fix implicit null deprecation errors.
+
 ## 1.5.12 (2026-02-19)
 
 * [!20](https://lab.civicrm.org/extensions/firewall/-/merge_requests/20) Updated docs to reflect how CSRF token timeout works since 1.5.3.

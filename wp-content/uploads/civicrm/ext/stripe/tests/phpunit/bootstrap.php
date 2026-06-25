@@ -22,6 +22,8 @@ $loader->add('api_', __DIR__);
 $loader->add('api\\', __DIR__);
 $loader->register();
 
+require_once(__DIR__ . '/../../vendor/stripe/stripe-php/init.php');
+
 if (CIVICRM_UF === 'UnitTests') {
   Civi\Test::headless()->apply();
 }
