@@ -29,7 +29,7 @@ class Check extends AutoSubscriber {
    * @var string
    */
   const API_VERSION = \Stripe\Util\ApiVersion::CURRENT;
-  const MIN_VERSION_MJWSHARED = '1.5.0';
+  const MIN_VERSION_MJWSHARED = '1.5.5';
   const MIN_VERSION_FIREWALL = '1.5.11';
 
   /**

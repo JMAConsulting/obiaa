@@ -47,6 +47,7 @@ function _civicrm_api3_stripe_ListEvents_spec(&$spec) {
  * @return boolean True if valid type, false otherwise.
  */
 function civicrm_api3_stripe_VerifyEventType($eventType) {
+  // @fixme: Maybe we should just use our supported list from CRM_Stripe_Webhook::getDefaultEnabledEvents()?
   return in_array($eventType, [
       'account.external_account.created',
       'account.external_account.deleted',
@@ -71,6 +72,7 @@ function civicrm_api3_stripe_VerifyEventType($eventType) {
       'charge.dispute.funds_withdrawn',
       'charge.dispute.updated',
       'charge.refund.updated',
+      'checkout.session.completed',
       'coupon.created',
       'coupon.deleted',
       'coupon.updated',

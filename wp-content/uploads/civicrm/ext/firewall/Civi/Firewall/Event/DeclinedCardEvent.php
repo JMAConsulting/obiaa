@@ -10,10 +10,12 @@
  */
 namespace Civi\Firewall\Event;
 
+use Civi\Core\Event\GenericHookEvent;
+
 /**
  * Class DeclinedCardEvent
  */
-class DeclinedCardEvent extends \Civi\Core\Event\GenericHookEvent {
+class DeclinedCardEvent extends GenericHookEvent {
 
   /**
    * @var string
@@ -36,7 +38,7 @@ class DeclinedCardEvent extends \Civi\Core\Event\GenericHookEvent {
    * @param string $ipAddress
    * @param string|NULL $source
    */
-  public function __construct(string $ipAddress, string $source = NULL) {
+  public function __construct(string $ipAddress, ?string $source = NULL) {
     $this->ipAddress = $ipAddress;
     $this->source = $source;
     $this->eventType = 'DeclinedCardEvent';
@@ -48,8 +50,8 @@ class DeclinedCardEvent extends \Civi\Core\Event\GenericHookEvent {
    * @param string $ipAddress
    * @param string|NULL $source
    */
-  public static function trigger(string $ipAddress, string $source = NULL) {
-    $event = new \Civi\Firewall\Event\DeclinedCardEvent($ipAddress, $source);
+  public static function trigger(string $ipAddress, ?string $source = NULL) {
+    $event = new DeclinedCardEvent($ipAddress, $source);
     \Civi::dispatcher()->dispatch('civi.firewall.declinedcard', $event);
   }
 

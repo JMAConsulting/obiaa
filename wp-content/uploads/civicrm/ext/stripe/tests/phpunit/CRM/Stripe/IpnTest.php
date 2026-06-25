@@ -36,7 +36,7 @@ require_once('TestBase.php');
 
 class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
 
-  protected $contributionRecurID;
+  protected int $contributionRecurID;
 
   /**
    * Test creating a one-off contribution and
@@ -707,6 +707,20 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
       'cancel_reason'          => 'Mocked failure',
     ]);
     $this->checkContribRecur(['contribution_status_id' => 'Pending']);
+
+    $contributionLog = \Civi\Api4\ContributionLog::get(FALSE)
+      ->setOrderBy(['id' => 'DESC'])
+      ->execute()
+      ->first();
+    $this->assertNotEmpty($contributionLog);
+    $expectedValues = [
+      'identifier' => 'ch_mock',
+      'message' => 'Mocked failure',
+      'level' => 'error',
+    ];
+    foreach ($expectedValues as $key => $expectedValue) {
+      $this->assertEquals($expectedValue, $contributionLog[$key]);
+    }
   }
 
   /**
@@ -958,6 +972,7 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
       'customer'     => 'cus_mock',
       'created'      => $createdTimestamp,
       'failure_message' => 'payment failed',
+      'status'       => 'failed',
     ]);
     $balanceTransaction2 = new PropertySpy('balance_transaction2', [
       'id'            => 'txn_mock_2',
@@ -1044,7 +1059,6 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
       'contribution_status_id' => 'Failed',
       'trxn_id' => 'in_mock_2',
       'cancel_reason' => 'payment failed',
-      'cancel_date' => date('Y-m-d H:i:s', $createdTimestamp),
     ], $contributions[1]);
 
     //
@@ -1059,6 +1073,7 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
       'subscription'        => 'sub_mock',
       'customer'            => 'cus_mock',
       'created'             => time(),
+      'status'              => 'succeeded',
     ]);
     $balanceTransaction2 = new PropertySpy('balance_transaction3', [
       'id'            => 'txn_mock_3',
@@ -1261,6 +1276,7 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
         'balance_transaction' => 'txn_mock',
         'currency'            => 'usd',
         'amount'              => $this->total*100,
+        'status'              => 'succeeded',
       ]);
     $mockCharge2 = new PropertySpy('charge2', $common + [
         'id'                  => 'ch_mock_2',
@@ -1268,6 +1284,7 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
         'balance_transaction' => 'txn_mock_2',
         'currency'            => 'usd',
         'amount'              => $this->total*100,
+        'status'              => 'succeeded',
       ]);
     $mockInvoice2 = new PropertySpy('invoice2', $common + [
         'id'           => 'in_mock_2',
@@ -1316,7 +1333,7 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
     PropertySpy::$outputMode = 'exception';
 
     // Create a mock stripe client.
-    $stripeClient = $this->createMock('Stripe\\StripeClient');
+    $stripeClient = $this->createMock('CRM_Stripe_MockStripeClient');
     // Update our CRM_Core_Payment_Stripe object and ensure any others
     // instantiated separately will also use it.
     $this->paymentObject->setMockStripeClient($stripeClient);
@@ -1351,11 +1368,48 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
         new PropertySpy('customers.retrieve', ['id' => 'cus_mock'])
       );
 
+    // Product
+    $mockProduct = $this->createMock('Stripe\\Product');
+    $mockProduct
+      ->method('__get')
+      ->will($this->returnValueMap([
+        ['id', 'prod_mock'],
+        ['name', 'every 1 month ' . ($this->total * 100) . ' USD'],
+      ]));
+
+    // Mock the products service
+    $stripeClient->products = $this->createMock('Stripe\\Service\\ProductService');
+    $stripeClient->products
+      ->method('search')
+      ->willReturn(
+        new PropertySpy('products.search', [$mockProduct])
+      );
+
+    // Price
+    $mockPrice = \Stripe\Price::constructFrom([
+      'unit_amount' => $this->total,
+      'id' => 'price_mock',
+      'currency' => 'USD',
+    ]);
+
+    // Mock the prices service
+    $stripeClient->prices = $this->createMock('Stripe\\Service\\PriceService');
+    $stripeClient->prices
+      ->method('all')
+      ->willReturn(
+        new PropertySpy('prices.all', [$mockPrice])
+      );
+    $stripeClient->prices
+      ->method('create')
+      ->willReturn(
+        $mockPrice
+      );
+
     $mockPlan = $this->createMock('Stripe\\Plan');
     $mockPlan
       ->method('__get')
       ->will($this->returnValueMap([
-        ['id', 'every-1-month-' . ($this->total * 100) . '-usd-test']
+        ['id', 'every-1-month-' . ($this->total * 100) . '-usd']
       ]));
     $stripeClient->plans = $this->createMock('Stripe\\Service\\PlanService');
     $stripeClient->plans

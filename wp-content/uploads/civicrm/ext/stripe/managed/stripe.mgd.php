@@ -56,4 +56,21 @@ return [
       'match' => ['name'],
     ],
   ],
+  [
+    'name' => 'OptionGroup_payment_instrument_OptionValue_Stripe',
+    'entity' => 'OptionValue',
+    'cleanup' => 'never',
+    'update' => 'unmodified',
+    'params' => [
+      'version' => 4,
+      'values' => [
+        'option_group_id:name' => 'payment_instrument',
+        'label' => E::ts('Stripe'),
+        'name' => 'Stripe',
+        'is_reserved' => TRUE,
+        'is_active' => TRUE,
+      ],
+      'match' => ['option_group_id', 'name'],
+    ],
+  ],
 ];

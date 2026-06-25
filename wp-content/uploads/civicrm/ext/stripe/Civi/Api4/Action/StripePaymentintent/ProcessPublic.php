@@ -124,8 +124,8 @@ class ProcessPublic extends \Civi\Api4\Generic\AbstractAction {
     // If we configured a minimum allowed amount for processing check it now
     $minAmount = \Civi::settings()->get('stripe_minamount');
     if (!$this->setup && !empty($minAmount)) {
-      $moneyAmount = Money::of($this->amount, $this->currency, new DefaultContext(), RoundingMode::CEILING);
-      $moneyMinAmount = Money::of($minAmount, $this->currency, new DefaultContext(), RoundingMode::CEILING);
+      $moneyAmount = Money::of((string) $this->amount, $this->currency, new DefaultContext(), RoundingMode::CEILING);
+      $moneyMinAmount = Money::of((string) $minAmount, $this->currency, new DefaultContext(), RoundingMode::CEILING);
       if ($moneyAmount->isLessThan($moneyMinAmount)) {
         \Civi::log('stripe')->error('StripeProcessintent: ' . 'amount: ' . $this->amount . ' is less than min_amount: ' . $minAmount);
         throw new \CRM_Core_Exception('Bad request');

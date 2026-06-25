@@ -10,9 +10,11 @@
  */
 namespace Civi\Firewall\Listener;
 
-use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Civi\Core\Service\AutoSubscriber;
+use Civi\Firewall\Firewall;
+use Civi\Stripe\Event\AuthorizeEvent;
 
-class StripeAuthorize implements EventSubscriberInterface {
+class StripeAuthorize extends AutoSubscriber {
 
   /**
    * @return array
@@ -32,7 +34,7 @@ class StripeAuthorize implements EventSubscriberInterface {
    * @param \Civi\Stripe\Event\AuthorizeEvent $event
    *   API authorization event.
    */
-  public function onStripeAuthorize(\Civi\Stripe\Event\AuthorizeEvent $event) {
+  public function onStripeAuthorize(AuthorizeEvent $event) {
     if ($event->getEntityName() !== 'StripePaymentintent') {
       return;
     }
@@ -49,7 +51,7 @@ class StripeAuthorize implements EventSubscriberInterface {
 
     // Check firewall
     $csrfToken = $event->getParams()['csrfToken'];
-    $firewall = new \Civi\Firewall\Firewall();
+    $firewall = new Firewall();
     if (!$firewall->checkIsCSRFTokenValid(\CRM_Utils_Type::validate($csrfToken, 'String'))) {
       $event->setReasonDescription(__CLASS__, $firewall->getReasonDescription());
       $event->setAuthorized(FALSE);

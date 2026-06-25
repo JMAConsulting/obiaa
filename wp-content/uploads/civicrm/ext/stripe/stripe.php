@@ -9,11 +9,25 @@
  +--------------------------------------------------------------------+
  */
 
+// load composer dependencies if using extension
+// packaged versions
 require_once 'stripe.civix.php';
 $autoload = __DIR__ . '/vendor/autoload.php';
 if (file_exists($autoload)) {
   require_once $autoload;
 }
+
+// backfill empty versions of CheckoutOptionInterface to prevent crash on old civicrm core
+spl_autoload_register(function ($class) {
+  if ($class === 'Civi\\Checkout\\CheckoutOptionInterface' && version_compare(CRM_Utils_System::version(), '6.14.alpha1', '<')) {
+    interface CRM_Stripe_CheckoutOptionInterface {};
+    class_alias('CRM_Stripe_CheckoutOptionInterface', $class);
+  }
+  if ($class === 'Civi\\Checkout\\AfformCheckoutOptionInterface' && version_compare(CRM_Utils_System::version(), '6.14.alpha1', '<')) {
+    interface CRM_Stripe_AfformCheckoutOptionInterface {};
+    class_alias('CRM_Stripe_AfformCheckoutOptionInterface', $class);
+  }
+}, TRUE, TRUE);
 
 use CRM_Stripe_ExtensionUtil as E;
 

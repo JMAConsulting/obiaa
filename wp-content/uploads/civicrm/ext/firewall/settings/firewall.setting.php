@@ -172,4 +172,23 @@ return [
       ]
     ],
   ],
+  'firewall_standalone_login_threshold' => [
+    'name' => 'firewall_standalone_login_threshold',
+    'type' => 'String',
+    'html_type' => 'text',
+    'default' => 50,
+    'is_domain' => 1,
+    'is_contact' => 1,
+    'title' => E::ts('Threshold of standalone login events before an IP Address is blocked'),
+    'description' => E::ts('How many times should an IP Address be able to trigger standalone login fail before being blocked.
+      Be careful: Do not set too low if you have many users coming from the same IP Address.'),
+    'html_attributes' => [
+      'size' => 20,
+    ],
+    'settings_pages' => [
+      'firewall' => [
+        'weight' => 110,
+      ]
+    ],
+  ],
 ];

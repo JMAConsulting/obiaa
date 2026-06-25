@@ -9,9 +9,11 @@
  +--------------------------------------------------------------------+
  */
 
-use CRM_Stripe_ExtensionUtil as E;
 use Civi\Payment\PropertyBag;
 use Civi\Payment\Exception\PaymentProcessorException;
+use Stripe\PaymentIntent;
+use Civi\Stripe\CheckoutOption\StripeHostedCheckout;
+use CRM_Stripe_ExtensionUtil as E;
 
 /**
  * Class CRM_Core_Payment_Stripe
@@ -132,204 +134,40 @@ class CRM_Core_Payment_StripeCheckout extends CRM_Core_Payment_Stripe {
    * @throws \Civi\Payment\Exception\PaymentProcessorException
    */
   public function doPayment(&$paymentParams, $component = 'contribute') {
-    /* @var \Civi\Payment\PropertyBag $propertyBag */
-    $propertyBag = \Civi\Payment\PropertyBag::cast($paymentParams);
-
-    $zeroAmountPayment = $this->processZeroAmountPayment($propertyBag);
+    $zeroAmountPayment = $this->processZeroAmountPayment(PropertyBag::cast($paymentParams));
     if ($zeroAmountPayment) {
       return $zeroAmountPayment;
     }
-    $propertyBag = $this->beginDoPayment($propertyBag);
 
-    // Not sure what the point of this next line is.
-    $this->_component = $component;
+    $this->getIsTestMode() ? $testConnection = $this->_paymentProcessor : $liveConnection = $this->_paymentProcessor;
+    $hostedCheckoutOption = new StripeHostedCheckout($liveConnection ?? [], $testConnection ?? []);
 
-    $successUrl = $this->getReturnSuccessUrl($paymentParams['qfKey']);
-    $failUrl = $this->getCancelUrl($paymentParams['qfKey'], NULL);
-    $lineItems = $this->calculateLineItems($paymentParams);
-    $checkoutSession = $this->createCheckoutSession($successUrl, $failUrl, $propertyBag, $lineItems);
+    $checkoutSession = $hostedCheckoutOption->createHostedCheckoutSession(
+        $this->getReturnSuccessUrl($paymentParams['qfKey']),
+        $this->getCancelUrl($paymentParams['qfKey']),
+        $this->getIsTestMode(),
+        $paymentParams['contributionID'],
+        // NOTE: frequency_unit is passed even if not a recurring contribution
+        // so check the presence of contributionRecurID
+        !empty($paymentParams['contributionRecurID']) ? $paymentParams['frequency_unit'] : NULL,
+        $paymentParams['frequency_interval'] ?? 1,
+      );
+
+    $redirectUrl = $checkoutSession->url;
 
     // Allow each CMS to do a pre-flight check before redirecting to Stripe.
     CRM_Core_Config::singleton()->userSystem->prePostRedirect();
 
     if ((\CRM_Core_Config::singleton()->userFramework === 'Drupal8') && CRM_Utils_Request::retrieve('_drupal_ajax', 'Boolean', FALSE)) {
-      $webformRedirect = new \Drupal\webform\Ajax\WebformRefreshCommand($checkoutSession->url);
+      $webformRedirect = new \Drupal\webform\Ajax\WebformRefreshCommand($redirectUrl);
       CRM_Core_Page_AJAX::returnJsonResponse([
-        $webformRedirect->render()
+        $webformRedirect->render(),
       ]);
       exit();
     }
 
     CRM_Utils_System::setHttpHeader("HTTP/1.1 303 See Other", '');
-    CRM_Utils_System::redirect($checkoutSession->url);
-  }
-
-  /**
-   * This gathers the line items which are then used in buildCheckoutLineItems()
-   *
-   * @param array|PropertyBag $paymentParams
-   */
-  public function calculateLineItems($paymentParams): array {
-    $lineItems = [];
-    if (!empty($paymentParams['skipLineItem']) || empty($paymentParams['line_item'])) {
-      if (!empty($paymentParams['participants_info'])) {
-        // Events: Multiple participants. Lineitem for each participant is in participantDetail.
-        foreach ($paymentParams['participants_info'] as $participantID => $participantDetail) {
-          $lineItems = array_merge($lineItems, $participantDetail['lineItem']);
-        }
-      }
-      else {
-        // Fallback if no lineitems (some contribution pages)
-        $lineItems = [
-          'priceset' => [
-            'pricesetline' => [
-              'unit_price' => $paymentParams['amount'],
-              // source is available on contribution pages, description on event registration
-              'field_title' => $paymentParams['source'] ?? $paymentParams['description'],
-              'label' => $paymentParams['source'] ?? $paymentParams['description'],
-              'qty' => 1,
-            ],
-          ],
-        ];
-      }
-    }
-    else {
-      $lineItems = $paymentParams['line_item'] ?? [];
-    }
-    return $lineItems;
-  }
-
-  /**
-   * Create a Stripe Checkout Session
-   *
-   * @return \Stripe\Checkout\Session
-   */
-  public function createCheckoutSession(string $successUrl, string $failUrl, PropertyBag $propertyBag, array $lineItems) {
-
-    // Get existing/saved Stripe customer or create a new one
-    $existingStripeCustomer = \Civi\Api4\StripeCustomer::get(FALSE)
-      ->addWhere('contact_id', '=', $propertyBag->getContactID())
-      ->addWhere('processor_id', '=', $this->getPaymentProcessor()['id'])
-      ->execute()
-      ->first();
-    if (empty($existingStripeCustomer)) {
-      $stripeCustomer = $this->getStripeCustomer($propertyBag);
-      $stripeCustomerID = $stripeCustomer->id;
-    }
-    else {
-      $stripeCustomerID = $existingStripeCustomer['customer_id'];
-    }
-
-    // Build the checkout session parameters
-    $checkoutSessionParams = [
-      'line_items' => $this->buildCheckoutLineItems($lineItems, $propertyBag),
-      'mode' => $propertyBag->getIsRecur() ? 'subscription' : 'payment',
-      'success_url' => $successUrl,
-      'cancel_url' => $failUrl,
-      // Nb. We can only specify customer_email|customer, not both.
-      // 'customer_email' => $propertyBag->getEmail(),
-      'customer' => $stripeCustomerID,
-      // 'submit_type' => one of 'auto', pay, book, donate
-      'client_reference_id' => $propertyBag->getInvoiceID(),
-      'payment_method_types' => $this->getSupportedPaymentMethods($propertyBag),
-    ];
-
-    // Stripe Error:
-    // Stripe\Exception\InvalidRequestException: You can not pass `payment_intent_data` in `subscription` mode.
-    if ($propertyBag->getIsRecur()) {
-      $checkoutSessionParams['subscription_data'] = [
-        'description' => $this->getDescription($propertyBag, 'description'),
-      ];
-    }
-    else {
-      $checkoutSessionParams['payment_intent_data'] = [
-        'description' => $this->getDescription($propertyBag, 'description'),
-      ];
-    }
-
-    // Allows you to alter the params passed to StripeCheckout (eg. payment_method_types)
-    CRM_Utils_Hook::alterPaymentProcessorParams($this, $propertyBag, $checkoutSessionParams);
-
-    try {
-      $checkoutSession = $this->stripeClient->checkout->sessions->create($checkoutSessionParams);
-    }
-    catch (Exception $e) {
-      $parsedError = $this->parseStripeException('doPayment', $e);
-      throw new PaymentProcessorException($parsedError['message']);
-    }
-
-    CRM_Stripe_BAO_StripeCustomer::updateMetadata(['contact_id' => $propertyBag->getContactID()], $this, $checkoutSession['customer']);
-
-    return $checkoutSession;
-  }
-
-  /**
-   * @param \Civi\Payment\PropertyBag $propertyBag
-   *
-   * @return array
-   */
-  private function getSupportedPaymentMethods(\Civi\Payment\PropertyBag $propertyBag): array {
-    $paymentMethods = \Civi::settings()->get('stripe_checkout_supported_payment_methods');
-    $result = [];
-    $supportedPaymentMethods = CRM_Stripe_Api::getSupportedPaymentMethodsCheckout();
-    foreach ($supportedPaymentMethods as $supportedPaymentMethod) {
-      if (in_array($supportedPaymentMethod['name'], $paymentMethods)) {
-        // Check for all currencies
-        if (in_array('*', $supportedPaymentMethod['currencies'])) {
-          $result[] = $supportedPaymentMethod['name'];
-        }
-        else {
-          foreach ($supportedPaymentMethod['currencies'] as $currency) {
-            if ($propertyBag->getCurrency() === $currency) {
-              $result[] = $supportedPaymentMethod['name'];
-            }
-            break;
-          }
-        }
-      }
-    }
-    if (empty($result)) {
-      throw new PaymentProcessorException('There are no valid Stripe payment methods enabled for this configuration. Check currency etc.');
-    }
-    return $result;
-  }
-
-  /**
-   * Takes the lineitems passed into doPayment and converts them into an array suitable for passing to Stripe Checkout
-   *
-   * @param array $civicrmLineItems
-   * @param \Civi\Payment\PropertyBag $propertyBag
-   *
-   * @return array
-   * @throws \Brick\Money\Exception\UnknownCurrencyException
-   */
-  private function buildCheckoutLineItems(array $civicrmLineItems, PropertyBag $propertyBag) {
-    foreach ($civicrmLineItems as $priceSetLines) {
-      foreach ($priceSetLines as $lineItem) {
-        $amount = $lineItem['unit_price'] + ($lineItem['tax_amount'] ?? 0);
-        $checkoutLineItem = [
-          'price_data' => [
-            'currency' => $propertyBag->getCurrency(),
-            'unit_amount' => $this->getAmountFormattedForStripeAPI(PropertyBag::cast(['amount' => $amount, 'currency' => $propertyBag->getCurrency()])),
-            'product_data' => [
-              'name' => $lineItem['field_title'],
-              // An empty label on a contribution page amounts configuration gives an empty $lineItem['label']. StripeCheckout needs it set.
-              'description' => $lineItem['label'] ?: $lineItem['field_title'],
-              //'images' => ['https://example.com/t-shirt.png'],
-            ],
-          ],
-          'quantity' => $lineItem['qty'],
-        ];
-        if ($propertyBag->getIsRecur()) {
-          $checkoutLineItem['price_data']['recurring'] = [
-            'interval' => $propertyBag->getRecurFrequencyUnit(),
-            'interval_count' => $propertyBag->getRecurFrequencyInterval(),
-          ];
-        }
-        $checkoutLineItems[] = $checkoutLineItem;
-      }
-    }
-    return $checkoutLineItems ?? [];
+    CRM_Utils_System::redirect($redirectUrl);
   }
 
 }

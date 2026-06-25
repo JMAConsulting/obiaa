@@ -2,7 +2,7 @@
     "name": "civicrm/stripe",
     "description": "Stripe Payment Processor",
     "require": {
-        "stripe/stripe-php": "^12"
+        "stripe/stripe-php": "^16.6"
     },
     "type": "civicrm-ext"
 }

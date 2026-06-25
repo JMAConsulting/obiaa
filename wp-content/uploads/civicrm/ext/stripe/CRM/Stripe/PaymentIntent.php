@@ -11,6 +11,7 @@
 
 use Civi\Payment\PropertyBag;
 use CRM_Stripe_ExtensionUtil as E;
+use Stripe\PaymentIntent;
 
 /**
  * Manage the civicrm_stripe_paymentintent database table which records all created paymentintents
@@ -438,9 +439,9 @@ class CRM_Stripe_PaymentIntent {
         $intentParams['amount'] = $this->paymentProcessor->getAmountFormattedForStripeAPI(PropertyBag::cast(['amount' => $params['amount'], 'currency' => $params['currency']]));
         $intentParams['currency'] = $params['currency'];
         // authorize the amount but don't take from card yet
-        $intentParams['capture_method'] = 'manual';
+        $intentParams['capture_method'] = PaymentIntent::CAPTURE_METHOD_MANUAL;
         // Setup the card to be saved and used later
-        $intentParams['setup_future_usage'] = 'off_session';
+        $intentParams['setup_future_usage'] = PaymentIntent::SETUP_FUTURE_USAGE_OFF_SESSION;
         if (isset($params['paymentMethodID'])) {
           $intentParams['payment_method'] = $params['paymentMethodID'];
         }

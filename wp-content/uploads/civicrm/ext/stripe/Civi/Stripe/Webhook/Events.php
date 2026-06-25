@@ -15,6 +15,7 @@ use Brick\Money\Money;
 use Civi\Api4\Contribution;
 use Civi\Api4\ContributionRecur;
 use CRM_Stripe_ExtensionUtil as E;
+use Psr\Log\LogLevel;
 
 class Events {
 
@@ -241,7 +242,7 @@ class Events {
     // We have a recurring contribution but no contribution so we'll repeattransaction
     // Stripe has generated a new invoice (next payment in a subscription) so we
     //   create a new contribution in CiviCRM
-    $balanceTransactionDetails = $this->api->getDetailsFromBalanceTransactionByChargeID($chargeID);
+    $balanceTransactionDetails = empty($chargeID) ? [] : $this->api->getDetailsFromBalanceTransactionByChargeID($chargeID);
     $repeatContributionParams = [
       'contribution_recur_id' => $contributionRecur['id'],
       'contribution_status_id' => \CRM_Core_PseudoConstant::getKey('CRM_Contribute_BAO_Contribution', 'contribution_status_id', 'Pending'),
@@ -441,7 +442,7 @@ class Events {
 
     // Stripe does not refund fees - see https://support.stripe.com/questions/understanding-fees-for-refunded-payments
     // This gives us the actual amount refunded
-    $amountRefunded = $this->api->getValueFromStripeObject('amount_refunded', 'Float', $this->getData()->object);
+    $amountRefunded = $this->api->getValueFromStripeObject('amount', 'Float', $refund);
 
     // Get the CiviCRM contribution that matches the Stripe metadata we have from the event
     $contribution = $this->findContribution($chargeID, $invoiceID);
@@ -543,8 +544,11 @@ class Events {
 
     $failedContributionParams = [
       'contribution_id' => $contribution['id'],
-      'cancel_date' => $this->api->getValueFromStripeObject('receive_date', 'String', $this->getData()->object),
-      'cancel_reason' => $this->api->getValueFromStripeObject('failure_message', 'String', $this->getData()->object),
+      // 'failure_date' => $this->api->getValueFromStripeObject('receive_date', 'String', $this->getData()->object),
+      'failure_reason' => $this->api->getValueFromStripeObject('failure_message', 'String', $this->getData()->object),
+      'data' => $this->getData(),
+      'identifier' => $chargeID,
+      'level' => LogLevel::ERROR,
     ];
     // Fallback from invoiceID to chargeID. We can't use ?? because invoiceID might be empty string ie. '' and not NULL
     $failedContributionParams['order_reference'] = empty($invoiceID) ? $chargeID : $invoiceID;
@@ -930,14 +934,16 @@ class Events {
         $failureMessage = is_string($failureMessage) ? $failureMessage : '';
       }
 
-      $receiveDate = $this->api->getValueFromStripeObject('receive_date', 'String', $this->getData()->object);
-      $params = [
+      $failedContributionParams = [
         'contribution_id' => $contribution['id'],
         'order_reference' => $invoiceID,
-        'cancel_date' => $receiveDate,
-        'cancel_reason'   => $failureMessage,
+        'failure_reason' => $failureMessage,
+        'data' => $this->getData(),
+        'identifier' => $invoiceID,
+        'level' => LogLevel::ERROR,
       ];
-      $this->updateContributionFailed($params);
+
+      $this->updateContributionFailed($failedContributionParams);
     }
     $return->message = $this->formatResultMessage(__FUNCTION__, 'OK', ['coid' => $contribution['id']]);
     $return->ok = TRUE;
@@ -1057,8 +1063,12 @@ class Events {
     if (isset($calculatedItems[$contributionRecurKey])) {
       $calculatedItem = $calculatedItems[$contributionRecurKey];
       $templateContribution = \CRM_Contribute_BAO_ContributionRecur::getTemplateContribution($contributionRecur['id']);
-      if (!Money::of($calculatedItem['amount'], mb_strtoupper($calculatedItem['currency']))
-        ->isAmountAndCurrencyEqualTo(Money::of($templateContribution['total_amount'], $templateContribution['currency']))) {
+      if (empty($templateContribution)) {
+        $return->message = $this->formatResultMessage(__FUNCTION__, 'Missing template contribution for recur: ' . $contributionRecur['id']);
+        return $return;
+      }
+      if (!Money::of((string) $calculatedItem['amount'], mb_strtoupper($calculatedItem['currency']))
+        ->isAmountAndCurrencyEqualTo(Money::of((string) $templateContribution['total_amount'], $templateContribution['currency']))) {
         // Create a new template contribution to update the amount
         ContributionRecur::updateAmountOnRecurMJW(FALSE)
           ->setAmount($calculatedItem['amount'])
