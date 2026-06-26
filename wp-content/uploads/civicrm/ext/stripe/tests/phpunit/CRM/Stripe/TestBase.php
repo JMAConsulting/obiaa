@@ -23,32 +23,32 @@ define('STRIPE_PHPUNIT_TEST', 1);
 abstract class CRM_Stripe_TestBase extends CiviUnitTestCase implements HeadlessInterface, HookInterface {
 
   /** @var int */
-  protected $created_ts;
+  protected int $created_ts;
   /** @var int */
-  protected $contributionID;
+  protected int $contributionID;
   /** @var int */
-  protected $financialTypeID = 1;
+  protected int $financialTypeID = 1;
   /** @var array */
-  protected $contact;
+  protected array $contact;
   /** @var int */
-  protected $contactID;
+  protected int $contactID;
   /** @var int */
-  protected $paymentProcessorID;
+  protected int $paymentProcessorID;
   /** @var array of payment processor configuration values */
-  protected $paymentProcessor;
+  protected array $paymentProcessor;
   /** @var CRM_Core_Payment_Stripe */
-  protected $paymentObject;
+  protected \CRM_Core_Payment_Stripe $paymentObject;
   /** @var string */
-  protected $trxn_id;
+  protected string $trxn_id;
   /** @var string */
-  protected $processorID;
+  protected string $processorID;
   /** @var string */
-  protected $cc = '4111111111111111';
+  protected string $cc = '4111111111111111';
   /** @var string */
-  protected $total = '400.00';
+  protected string $total = '400.00';
 
   /** @var array */
-  protected $contributionRecur = [
+  protected array $contributionRecur = [
     'frequency_unit' => 'month',
     'frequency_interval' => 1,
     'installments' => 5,
@@ -62,18 +62,11 @@ abstract class CRM_Stripe_TestBase extends CiviUnitTestCase implements HeadlessI
   protected array $requiredExtensions = [
     'mjwshared' => 'mjwshared',
     'firewall' => 'firewall',
+    'contributionlog' => 'contributionlog',
   ];
 
   /**
-   * Setup used when HeadlessInterface is implemented.
-   *
-   * Civi\Test has many helpers, like install(), uninstall(), sql(), and sqlFile().
-   *
-   * @link https://github.com/civicrm/org.civicrm.testapalooza/blob/master/civi-test.md
-   *
-   * @return \Civi\Test\CiviEnvBuilder
-   *
-   * @throws \CRM_Extension_Exception_ParseException
+   * @inheritDoc
    */
   public function setUpHeadless() {
     // Civi\Test has many helpers, like install(), uninstall(), sql(), and sqlFile().
@@ -101,6 +94,9 @@ abstract class CRM_Stripe_TestBase extends CiviUnitTestCase implements HeadlessI
       ->apply($reInstall);
   }
 
+  /**
+   * @inheritDoc
+   */
   public function setUp(): void {
     parent::setUp();
 
@@ -126,6 +122,9 @@ abstract class CRM_Stripe_TestBase extends CiviUnitTestCase implements HeadlessI
     $this->created_ts = time();
   }
 
+  /**
+   * @inheritDoc
+   */
   public function tearDown(): void {
     $this->quickCleanUpFinancialEntities();
     $this->quickCleanup(['civicrm_stripe_customers', 'civicrm_paymentprocessor_webhook']);
@@ -133,9 +132,11 @@ abstract class CRM_Stripe_TestBase extends CiviUnitTestCase implements HeadlessI
   }
 
   /**
+   * @param array $map
    *
+   * @return \ValueMapOrDie
    */
-  protected function returnValueMapOrDie($map): ValueMapOrDie {
+  protected function returnValueMapOrDie(array $map): ValueMapOrDie {
     return new ValueMapOrDie($map);
   }
 
@@ -152,7 +153,7 @@ abstract class CRM_Stripe_TestBase extends CiviUnitTestCase implements HeadlessI
       'last_name' => 'Lopez'
     ]);;
     $this->contactID = $results['id'];
-    $this->contact = (Object) array_pop($results['values']);
+    $this->contact = array_pop($results['values']);
 
     // Now we have to add an email address.
     $email = 'susie@example.org';
@@ -161,7 +162,7 @@ abstract class CRM_Stripe_TestBase extends CiviUnitTestCase implements HeadlessI
       'email' => $email,
       'location_type_id' => 1
     ]);
-    $this->contact->email = $email;
+    $this->contact['email'] = $email;
   }
 
   /**
@@ -247,7 +248,7 @@ abstract class CRM_Stripe_TestBase extends CiviUnitTestCase implements HeadlessI
     PropertySpy::$outputMode = 'exception';
 
     // Create a mock stripe client.
-    $stripeClient = $this->createMock('Stripe\\StripeClient');
+    $stripeClient = $this->createMock('CRM_Stripe_MockStripeClient');
     // Update our CRM_Core_Payment_Stripe object and ensure any others
     // instantiated separately will also use it.
     $this->paymentObject->setMockStripeClient($stripeClient);
@@ -346,7 +347,7 @@ abstract class CRM_Stripe_TestBase extends CiviUnitTestCase implements HeadlessI
       ]));
 
     $mockRefund = new PropertySpy('Refund', [
-      'amount_refunded' => $this->total*100,
+      'amount' => $this->total*100,
       'charge_id' => 'ch_mock', //xxx
       'created' => time(),
       'currency' => 'usd',
@@ -466,8 +467,8 @@ abstract class CRM_Stripe_TestBase extends CiviUnitTestCase implements HeadlessI
       'amount' => $this->total,
       'paymentIntentID' => $paymentIntentID,
       'paymentMethodID' => $paymentMethodID,
-      'email' => $this->contact->email,
-      'contactID' => $this->contact->id,
+      'email' => $this->contact['email'],
+      'contactID' => $this->contact['id'],
       'description' => 'Test from Stripe Test Code',
       'currencyID' => 'USD',
       // Avoid missing key php errors by adding these un-needed parameters.
@@ -691,7 +692,7 @@ class PropertySpy implements ArrayAccess, Iterator, Countable, JsonSerializable 
    */
   public static $buffer = 'none'; /* none|global|local */
   protected $_name;
-  protected $_props;
+  protected array $_props;
   protected $localLog = [];
   public static $globalLog = [];
   public static $globalObjects = 0;
@@ -704,7 +705,7 @@ class PropertySpy implements ArrayAccess, Iterator, Countable, JsonSerializable 
   }
 
   /**
-   * Implemetns Countable
+   * Implements Countable
    */
   public function count(): int {
     return \count($this->_props);
@@ -728,6 +729,10 @@ class PropertySpy implements ArrayAccess, Iterator, Countable, JsonSerializable 
 
   public function toArray() {
     return $this->_props;
+  }
+
+  public function first() {
+    return reset($this->_props);
   }
 
   public function __construct($name, $props) {

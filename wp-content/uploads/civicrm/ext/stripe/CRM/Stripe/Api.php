@@ -165,8 +165,8 @@ class CRM_Stripe_Api {
             foreach ($stripeObject->items as $item) {
               if ($item->price->active && ($item->quantity > 0)) {
                 $plan['amount'] += $item->price->unit_amount * $item->quantity;
-                $plan['interval'] = $item->plan->interval;
-                $plan['interval_count'] = $item->plan->interval_count;
+                $plan['interval'] = $item->price->recurring->interval;
+                $plan['interval_count'] = $item->price->recurring->interval_count;
               }
             }
 
@@ -287,6 +287,14 @@ class CRM_Stripe_Api {
             \Civi::log('stripe')->error('getObjectParam: Tried to get param "' . $name . '" from "' . $stripeObject->object . '" but it is not set');
             return NULL;
           // unit_amount
+        }
+        break;
+
+      case 'refund':
+        /** @var \Stripe\Refund $stripeObject */
+        switch ($name) {
+          case 'amount':
+            return (float) $stripeObject->amount / 100;
         }
         break;
 

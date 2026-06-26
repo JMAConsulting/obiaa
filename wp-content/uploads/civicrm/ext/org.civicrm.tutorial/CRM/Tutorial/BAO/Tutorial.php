@@ -174,7 +174,7 @@ class CRM_Tutorial_BAO_Tutorial {
    * @param $tutorial
    * @param int $cid
    * @return bool
-   * @throws \CiviCRM_API3_Exception
+   * @throws \CRM_Core_Exception
    */
   public static function matchGroup($tutorial, $cid = NULL) {
     if (empty($tutorial['groups'])) {

@@ -10,6 +10,7 @@
  */
 namespace Civi\Firewall;
 
+use Civi\Firewall\Event\InvalidCSRFEvent;
 use CRM_Firewall_ExtensionUtil as E;
 
 class Firewall {
@@ -133,10 +134,12 @@ class Firewall {
       // The client IP address
       1 => [$this->clientIP, 'String'],
     ];
+
     $blockDeclinesAfter = \Civi::settings()->get('firewall_declines_threshold') ?? 10;
     $blockFormProtectionAfter = \Civi::settings()->get('firewall_formprotection_threshold') ?? 10;
     $blockFraudAfter = \Civi::settings()->get('firewall_fraud_threshold') ?? 3;
     $blockInvalidCSRFAfter = \Civi::settings()->get('firewall_invalidcsrf_threshold') ?? 5;
+    $blockStandaloneLogin = \Civi::settings()->get('firewall_standalone_login_threshold') ?? 50;
 
     $sql = "
 SELECT COUNT(*) as eventCount,event_type FROM `civicrm_firewall_ipaddress`
@@ -181,6 +184,14 @@ GROUP BY event_type
             break 2;
           }
           break;
+
+        case 'StandaloneLoginEvent':
+          if ($dao->eventCount >= $blockStandaloneLogin) {
+            $block = TRUE;
+            $this->setReason('blockedstandalonelogin');
+            break 2;
+          }
+          break;
       }
     }
     return $block;
@@ -191,14 +202,17 @@ GROUP BY event_type
    * Currently only supports ipv4 addresses
    *
    * @param array $ipAddresses
+   * @param string|null $ip
+   *   Optional IP address to check. Defaults to $this->clientIP.
    *
    * @return bool
    */
-  private function isWildcardIPV4Match(array $ipAddresses): bool {
-    $ipv4 = (strpos($this->clientIP, '.') !== FALSE);
+  private function isWildcardIPV4Match(array $ipAddresses, ?string $ip = NULL): bool {
+    $ip = $ip ?? $this->clientIP;
+    $ipv4 = (strpos($ip, '.') !== FALSE);
 
     if ($ipv4) {
-      $parts = explode(".", $this->clientIP);
+      $parts = explode(".", $ip);
       $wilds = [
         sprintf('%s.*', $parts[0]),
       ];
@@ -213,6 +227,47 @@ GROUP BY event_type
       }
     }
     return FALSE;
+  }
+
+  /**
+   * Filter out trusted proxy addresses from the forwarded IP list.
+   * Supports both exact IP matches and wildcard patterns (e.g. 192.168.*).
+   *
+   * @param array $forwarded
+   *   List of forwarded IP addresses (from XFF header + REMOTE_ADDR).
+   * @param array $trustedProxyPatterns
+   *   List of trusted proxy addresses/patterns from settings.
+   *
+   * @return array
+   *   Filtered list with trusted proxy IPs removed.
+   */
+  private function filterTrustedProxies(array $forwarded, array $trustedProxyPatterns): array {
+    $exactAddresses = [];
+    $wildcardPatterns = [];
+    foreach ($trustedProxyPatterns as $pattern) {
+      $pattern = trim($pattern);
+      if ($pattern === '') {
+        continue;
+      }
+      if (strpos($pattern, '*') !== FALSE) {
+        $wildcardPatterns[] = $pattern;
+      }
+      else {
+        $exactAddresses[] = $pattern;
+      }
+    }
+
+    // Remove exact matches.
+    $remaining = array_diff($forwarded, $exactAddresses);
+
+    // Remove wildcard matches.
+    if (!empty($wildcardPatterns)) {
+      $remaining = array_filter($remaining, function ($ip) use ($wildcardPatterns) {
+        return !$this->isWildcardIPV4Match($wildcardPatterns, $ip);
+      });
+    }
+
+    return array_values($remaining);
   }
 
   /**
@@ -319,12 +374,12 @@ GROUP BY event_type
   public function checkIsCSRFTokenValid(string $givenToken): bool {
     $this->setReason('');
     if (!preg_match('/^(\d+)\.([a-f0-9]+)\.([a-f0-9]+)$/', $givenToken, $matches)) {
-      \Civi\Firewall\Event\InvalidCSRFEvent::trigger(self::getIPAddress(), 'invalid token');
+      InvalidCSRFEvent::trigger(self::getIPAddress(), 'invalid token');
       $this->setReason('invalidcsrf');
       return FALSE;
     }
     if (time() > $matches[1]) {
-      \Civi\Firewall\Event\InvalidCSRFEvent::trigger(self::getIPAddress(), 'expired token');
+      InvalidCSRFEvent::trigger(self::getIPAddress(), 'expired token');
       $this->setReason('expiredcsrf');
       return FALSE;
     }
@@ -336,7 +391,7 @@ GROUP BY event_type
     }
     $dataToHash = "$matches[1].$matches[2]." . CIVICRM_SITE_KEY . $sessionId;
     if ($matches[3] !== hash('sha256', $dataToHash)) {
-      \Civi\Firewall\Event\InvalidCSRFEvent::trigger(self::getIPAddress(), 'tampered hash');
+      InvalidCSRFEvent::trigger(self::getIPAddress(), 'tampered hash');
       $this->setReason('tamperedcsrf');
       return FALSE;
     }
@@ -369,8 +424,9 @@ GROUP BY event_type
           // Tack direct client IP onto end of forwarded array.
           $forwarded[] = $ipAddress;
 
-          // Eliminate all trusted IPs.
-          $untrusted = array_diff($forwarded, $reverseProxyAddresses);
+          // Eliminate all trusted IPs (supports exact and wildcard matching).
+          $firewall = new self();
+          $untrusted = $firewall->filterTrustedProxies($forwarded, $reverseProxyAddresses);
 
           if (!empty($untrusted)) {
             // The right-most IP is the most specific we can trust.

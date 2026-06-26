@@ -10,9 +10,11 @@
  */
 namespace Civi\Firewall\Listener;
 
-use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Civi\Api4\FirewallIpaddress;
+use Civi\Core\Service\AutoSubscriber;
+use Civi\Firewall\Event\InvalidCSRFEvent;
 
-class InvalidCSRFRequest implements EventSubscriberInterface {
+class InvalidCSRFRequest extends AutoSubscriber {
 
   /**
    * @return array
@@ -26,10 +28,9 @@ class InvalidCSRFRequest implements EventSubscriberInterface {
     ];
   }
 
-  public function onTrigger(\Civi\Firewall\Event\InvalidCSRFEvent $event) {
+  public function onTrigger(InvalidCSRFEvent $event) {
     // Add to firewall ip address log table with timestamp + event type
-    \Civi\Api4\FirewallIpaddress::create()
-      ->setCheckPermissions(FALSE)
+    FirewallIpaddress::create(FALSE)
       ->addValue('ip_address', $event->ipAddress)
       ->addValue('source', $event->source)
       ->addValue('event_type', $event->eventType)
