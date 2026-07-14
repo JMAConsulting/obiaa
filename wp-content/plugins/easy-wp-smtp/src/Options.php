@@ -1509,6 +1509,9 @@ class Options {
 						break;
 
 					case 'has_pro_plan': // mailersend.
+						$options[ $mailer ][ $option_name ] = $this->is_const_defined( $mailer, $option_name ) ? false : (bool) $option_value;
+						break;
+
 					case 'quick_connect': // sendlayer.
 					case 'is_shared_domain': // sendlayer.
 						$options[ $mailer ][ $option_name ] = (bool) $option_value;

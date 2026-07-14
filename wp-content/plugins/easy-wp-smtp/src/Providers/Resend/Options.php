@@ -37,7 +37,7 @@ class Options extends OptionsAbstract {
 			wp_kses( /* translators: %1$s - URL to resend.com site. */
 				__( '<a href="%1$s" target="_blank" rel="noopener noreferrer">Resend</a> is an email delivery platform that helps developers send transactional and marketing emails efficiently and reliably. New users can send up to 3,000 emails per month without needing to provide a credit card.', 'easy-wp-smtp' ) .
 				'<br><br>' .
-				/* translators: %2$s - URL to wpmailsmtp.com doc. */
+				/* translators: %2$s - URL to easywpsmtp.com doc. */
 				__( 'To get started, read our <a href="%2$s" target="_blank" rel="noopener noreferrer">Resend documentation</a>.', 'easy-wp-smtp' ),
 				[
 					'strong' => true,
