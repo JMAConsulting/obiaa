@@ -1,14 +1,14 @@
-=== Easy WP SMTP – WordPress SMTP and Email Logs: Gmail, Office 365, Outlook, Custom SMTP, and more ===
-Contributors: sendlayer, jaredatch, smub, capuderg
+=== Easy WP SMTP – WordPress SMTP and Email Logs: Gmail SMTP, Office 365, Outlook, Custom SMTP, and more ===
+Contributors: sendlayer, smub, capuderg
 Tags: email, smtp, email logs, gmail, outlook
-Requires at least: 5.2
+Requires at least: 5.5
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 2.14.0
+Stable tag: 2.15.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Make SMTP email sending and delivery easy. Configure Gmail, Outlook, Brevo, SendGrid, Mailgun, SendLayer or connect to any SMTP server.
+Make SMTP email sending and delivery easy. Configure Gmail SMTP, Outlook, Brevo, SendGrid, Mailgun, SendLayer or connect to any SMTP server.
 
 == Description ==
 
@@ -20,7 +20,7 @@ Easy WP SMTP allows you to configure and send all outgoing emails via 8 transact
 
 Now with a new <strong>Gmail/Google integration</strong> for the quickest set-up and reliable email sending. All you need to do is log into your Google account and allow Easy WP SMTP to send emails on your behalf. You will be up and running in less than a minute! Available in the <a href="https://easywpsmtp.com/?utm_source=wprepo&utm_medium=link&utm_campaign=liteplugin&utm_content=gmail-readme-top" rel="friend">Easy WP SMTP Pro</a>.
 
-You can resolve your email deliverability issues by configuring one of these mailers:
+You can resolve your email deliverability issues by configuring one of these SMTP mailers:
 
 * SendLayer (recommended)
 * Amazon SES <a href="https://easywpsmtp.com/?utm_source=wprepo&utm_medium=link&utm_campaign=liteplugin&utm_content=amazon-ses-readme" rel="friend">[Pro]</a>
@@ -36,6 +36,14 @@ You can resolve your email deliverability issues by configuring one of these mai
 * SMTP2GO
 * Zoho Mail <a href="https://easywpsmtp.com/?utm_source=wprepo&utm_medium=link&utm_campaign=liteplugin&utm_content=zoho-readme" rel="friend">[Pro]</a>
 * Other SMTP - configure any SMTP mail server
+
+### How Easy WP SMTP Fixes WordPress Email Delivery
+
+By default, WordPress sends mail using the PHP mail() function, which most hosting servers don't configure correctly. That's the number one cause of WordPress email delivery problems, and it's why your emails land in spam or never arrive at all. Easy WP SMTP fixes WordPress email delivery by routing every outgoing message through a proper SMTP connection or transactional mailer.
+
+SMTP (Simple Mail Transfer Protocol) is the industry standard for sending email. When your WordPress site sends email through an authenticated SMTP server, mailbox providers can verify your messages, which dramatically improves email delivery and inbox placement. Easy WP SMTP makes SMTP setup simple - connect your SMTP server or mailer once, and the plugin handles SMTP authentication and reliable email delivery for every WordPress email you send.
+
+Whether you connect a custom SMTP server, use Gmail SMTP, Outlook SMTP, or a transactional SMTP service, Easy WP SMTP gives you dependable WordPress email delivery with no technical SMTP knowledge required. It is the easiest way to set up SMTP in WordPress and finally fix your email delivery for good.
 
 ### Easy WP SMTP Features
 
@@ -57,6 +65,9 @@ You can resolve your email deliverability issues by configuring one of these mai
 * Debug Events that log any failed email sending attempts and the error that caused them.
 * Ability to specify a Reply-to or BCC email address.
 * All features supported regardless of mailer or SMTP configuration!
+* **Custom SMTP server support** - connect any SMTP host with your own SMTP port, SMTP username, SMTP password, and SMTP encryption settings.
+* **WordPress SMTP made easy** - replace the unreliable default WordPress mailer with authenticated SMTP for better email delivery.
+* **Fix WordPress email delivery** - stop WordPress emails from going to spam and improve email delivery across contact forms, WooCommerce, and notifications.
 
 ### Mailer Options
 
@@ -240,7 +251,7 @@ Stay on top of your WordPress email statistics with our weekly email reports, se
 
 *WordPress Multisite Network Settings*
 
-Manage WP Mail SMTP settings for all your multisite subsites in one place, simplifying administration for your multisite network.
+Manage Easy WP SMTP settings for all your multisite subsites in one place, simplifying administration for your multisite network.
 
 *Easily Manage Multisite Emails*
 
@@ -288,7 +299,7 @@ Inspired by [WP Mail SMTP](http://wordpress.org/plugins/wp-mail-smtp/) plugin
 
 = Can this plugin be used to send emails via Outlook, Gmail, Google Workspace, Hotmail, Yahoo, Zoho SMTP? =
 
-Yes, it can. You should use the dedicated Gmail or Outlook mailer options, since they are faster and more reliable, compared the the "Other SMTP" mailer.
+Yes, it can. You should use the dedicated Gmail or Outlook mailer options, since they are faster and more reliable, compared to the "Other SMTP" mailer.
 
 If you want to use other providers, you'll need to select the "Other SMTP" mailer and configure the correct SMTP host details.
 
@@ -312,6 +323,18 @@ And we will try to help out as soon as possible.
 10. Setup Wizard - Step 2
 
 == Changelog ==
+
+= 2.15.0 - 2026-06-30 =
+* IMPORTANT: Support for WordPress versions 5.4.x or lower has been discontinued. If you are using one of those versions, you MUST upgrade WordPress before installing or upgrading to Easy WP SMTP v2.15.0. Failure to do that will disable Easy WP SMTP functionality.
+* Added: WP-CLI commands to configure Easy WP SMTP from the command line, including SMTP and API-key mailer setup and individual setting management.
+* Added: Support for the WordPress Abilities API (WordPress 6.9), letting connected tools and AI assistants securely read your debug events.
+* Added: A one-click option to deactivate a conflicting plugin directly from the conflict notice.
+* Added: Confirmation prompt before enabling the "Hide Email Delivery Errors" option, so the setting is not turned on by accident.
+* Changed: Improved error handling and troubleshooting guidance when an email fails to send.
+* Changed: Updated Action Scheduler library to 4.0.0.
+* Fixed: The "Last week" stat in the weekly summary email showed the just-started current week's count instead of the actual previous week's total.
+* Fixed: Hardened permission checks and request handling across several admin features to address potential security issues.
+* Fixed: Prevent orphaned Action Scheduler log entries from completed task cleanup.
 
 = 2.14.0 - 2026-03-31 =
 * Changed: Improved plugin security.

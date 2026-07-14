@@ -2,6 +2,7 @@
 
 namespace EasyWPSMTP\Admin;
 
+use EasyWPSMTP\Admin\Recommendations\RecommendedPlugins;
 use EasyWPSMTP\Options;
 use EasyWPSMTP\WP;
 
@@ -38,6 +39,15 @@ class Area {
 	 * @var PageAbstract[]
 	 */
 	private $pages;
+
+	/**
+	 * Recommended-plugins feature controller.
+	 *
+	 * @since 2.15.0
+	 *
+	 * @var RecommendedPlugins
+	 */
+	private $recommended_plugins;
 
 	/**
 	 * List of official registered pages.
@@ -114,9 +124,12 @@ class Area {
 		// Process all AJAX requests.
 		add_action( 'wp_ajax_easy_wp_smtp_ajax', [ $this, 'process_ajax' ] );
 
-		// Init parent admin pages.
 		if ( WP::in_wp_admin() || WP::is_doing_self_ajax() ) {
-			add_action( 'init', [ $this, 'get_parent_pages' ] );
+			if ( did_action( 'init' ) ) {
+				$this->get_parent_pages();
+			} else {
+				add_action( 'init', [ $this, 'get_parent_pages' ] );
+			}
 		}
 
 		// Manage other admin notices.
@@ -124,6 +137,12 @@ class Area {
 
 		( new UserFeedback() )->init();
 		( new SetupWizard() )->hooks();
+
+		$this->recommended_plugins = new RecommendedPlugins();
+
+		$this->recommended_plugins->hooks();
+
+		( new WooCommerceActiveLayerEducation() )->hooks();
 
 		// Enable "Compact Mode" menu view.
 		if ( $this->is_top_level_menu_hidden() ) {
@@ -195,7 +214,7 @@ class Area {
 
 		switch ( $error ) {
 			case 'oauth_invalid_state':
-				WP::add_admin_notice(
+				WP::add_admin_notice_with_debug(
 					esc_html__( 'There was an error while processing the authentication request. The state key is invalid. Please try again.', 'easy-wp-smtp' ),
 					WP::ADMIN_NOTICE_ERROR
 				);
@@ -330,6 +349,10 @@ class Area {
 			);
 		}
 
+		// Surface the rotating recommended-plugins item as a trailing submenu.
+		// It registers after the parent pages so it lands at the end of the menu.
+		$this->recommended_plugins->add_submenu_item( $access_capability );
+
 		if ( ! easy_wp_smtp()->is_pro() ) {
 			add_submenu_page(
 				self::SLUG,
@@ -393,6 +416,19 @@ class Area {
 
 				return $classes;
 			}
+		);
+
+		wp_register_style(
+			'easy-wp-smtp-admin-lity',
+			easy_wp_smtp()->assets_url . '/css/vendor/lity.min.css',
+			[],
+			'2.4.1'
+		);
+		wp_register_script(
+			'easy-wp-smtp-admin-lity',
+			easy_wp_smtp()->assets_url . '/js/vendor/lity.min.js',
+			[],
+			'2.4.1'
 		);
 
 		// General styles and js.
@@ -475,6 +511,29 @@ class Area {
 				'error_text'      => esc_html__( 'An error occurred. Please try again.', 'easy-wp-smtp' ),
 				'server_error'    => esc_html__( 'A server error occurred. Please try again.', 'easy-wp-smtp' ),
 				'connecting_text' => esc_html__( 'Connecting...', 'easy-wp-smtp' ),
+			],
+			'plugin_install'          => [
+				'processing'         => esc_html__( 'Processing...', 'easy-wp-smtp' ),
+				'installed'          => esc_html__( 'Installed', 'easy-wp-smtp' ),
+				'activate'           => esc_html__( 'Activate', 'easy-wp-smtp' ),
+				/* translators: %s - plugin name (e.g. WPConsent). */
+				'activate_with_name' => esc_html__( 'Activate %s', 'easy-wp-smtp' ),
+				'setup_now'          => esc_html__( 'Setup Now', 'easy-wp-smtp' ),
+				'error'              => esc_html__( 'Could not install a plugin. Please download from WordPress.org and install manually.', 'easy-wp-smtp' ),
+				'error_title'        => esc_html__( 'Error', 'easy-wp-smtp' ),
+				'btn_ok'             => esc_html__( 'OK', 'easy-wp-smtp' ),
+			],
+			'dismiss_error'           => esc_html__( 'Could not dismiss the notice. Please try again.', 'easy-wp-smtp' ),
+			'hide_delivery_errors'    => [
+				'title'         => esc_html__( 'Are you sure?', 'easy-wp-smtp' ),
+				'content'       => wp_kses(
+					__( '<p>Hiding email delivery errors means you will no longer be warned when emails fail to send. This is not recommended and should only be used on staging or development sites.</p>', 'easy-wp-smtp' ),
+					[
+						'p' => [],
+					]
+				),
+				'confirm_button' => esc_html__( 'Yes', 'easy-wp-smtp' ),
+				'cancel_button'  => esc_html__( 'Cancel', 'easy-wp-smtp' ),
 			],
 		];
 
@@ -627,7 +686,7 @@ class Area {
 	public function get_admin_footer( $text ) {
 
 		if ( $this->is_admin_page() ) {
-			$url = 'https://wordpress.org/support/plugin/easy-wp-smtp/reviews/#new-post';
+			$url = 'https://easywpsmtp.com/easywpsmtp-wordpress-review/';
 
 			$text = sprintf(
 				wp_kses(
@@ -774,11 +833,14 @@ class Area {
 						if ( empty( $label ) ) {
 							continue;
 						}
-						$class = $page_slug === $this->get_current_tab() ? 'easy-wp-smtp-nav-menu__item--active' : '';
+						$class     = $page_slug === $this->get_current_tab() ? 'easy-wp-smtp-nav-menu__item--active' : '';
+						$tab_class = self::SLUG . '-tab-' . str_replace( '_', '-', sanitize_title( $page_slug ) );
+						$class     = trim( $class . ' ' . $tab_class );
 						?>
 
 						<a href="<?php echo esc_url( $page->get_link() ); ?>"
-							 class="easy-wp-smtp-nav-menu__item <?php echo esc_attr( $class ); ?>">
+							 class="easy-wp-smtp-nav-menu__item <?php echo esc_attr( $class ); ?>"
+							 data-label="<?php echo esc_attr( $label ); ?>">
 							<?php echo esc_html( $label ); ?>
 						</a>
 
@@ -853,12 +915,7 @@ class Area {
 					]
 				),
 				'tools'   => new Pages\Tools(
-					[
-						'test'             => Pages\TestTab::class,
-						'export'           => Pages\ExportTab::class,
-						'action-scheduler' => Pages\ActionSchedulerTab::class,
-						'debug-events'     => Pages\DebugEventsTab::class,
-					]
+					$this->get_tools_tabs()
 				),
 			];
 		}
@@ -871,6 +928,32 @@ class Area {
 		 * @param ParentPageAbstract[] $pages Parent pages.
 		 */
 		return apply_filters( 'easy_wp_smtp_admin_area_get_parent_pages', $pages );
+	}
+
+	/**
+	 * Tabs registered under the Tools parent page.
+	 *
+	 * The AI MCP tab registers only on WP 6.9+, where the Abilities API exists
+	 * and the plugin's read-only abilities are available for AI clients to use.
+	 *
+	 * @since 2.15.0
+	 *
+	 * @return array
+	 */
+	private function get_tools_tabs() {
+
+		$tabs = [
+			'test'             => Pages\TestTab::class,
+			'export'           => Pages\ExportTab::class,
+			'action-scheduler' => Pages\ActionSchedulerTab::class,
+			'debug-events'     => Pages\DebugEventsTab::class,
+		];
+
+		if ( function_exists( 'wp_register_ability' ) ) {
+			$tabs['ai-mcp'] = Pages\AiMcpTab::class;
+		}
+
+		return $tabs;
 	}
 
 	/**
@@ -893,6 +976,11 @@ class Area {
 				'misc'        => new Pages\MiscTab(),
 				'auth'        => new Pages\AuthTab(),
 			];
+
+			// Product-education upsell tab, shown to non-Pro users.
+			if ( ! easy_wp_smtp()->is_pro() ) {
+				$this->pages['get-pro'] = new Pages\GetProTab();
+			}
 		}
 
 		return apply_filters( 'easy_wp_smtp_admin_get_pages', $this->pages );
@@ -925,7 +1013,7 @@ class Area {
 	 *
 	 * @return bool
 	 */
-	public function is_admin_page( $slug = array() ) { // phpcs:ignore Generic.Metrics.NestingLevel.MaxExceeded
+	public function is_admin_page( $slug = [] ) { // phpcs:ignore Generic.Metrics.NestingLevel.MaxExceeded
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		$cur_page    = isset( $_GET['page'] ) ? sanitize_key( $_GET['page'] ) : '';
@@ -1020,7 +1108,7 @@ class Area {
 			$current_tab->check_admin_referer();
 
 			// Capability checks.
-			if ( ! current_user_can( easy_wp_smtp()->get_capability_manage_options() ) ) {
+			if ( ! current_user_can( easy_wp_smtp()->get_capability_manage_global_options() ) ) {
 				return;
 			}
 
@@ -1089,6 +1177,18 @@ class Area {
 				}
 
 				$data['message'] = $dismissal_response;
+				break;
+
+			case 'about_plugin_install':
+				// Installs (and silently activates) a curated recommended plugin.
+				// Sends its own JSON response and exits.
+				$this->recommended_plugins->ajax_plugin_install();
+				break;
+
+			case 'about_plugin_activate':
+				// Activates an already-installed curated recommended plugin.
+				// Sends its own JSON response and exits.
+				$this->recommended_plugins->ajax_plugin_activate();
 				break;
 
 			default:
@@ -1203,8 +1303,7 @@ class Area {
 			$args['tab'] = $tab;
 		}
 
-		return add_query_arg( $args, WP::admin_url( 'admin.php' )
-		);
+		return add_query_arg( $args, WP::admin_url( 'admin.php' ) );
 	}
 
 	/**
@@ -1459,7 +1558,7 @@ class Area {
 		add_menu_page(
 			esc_html__( 'Easy WP SMTP', 'easy-wp-smtp' ),
 			esc_html__( 'Easy WP SMTP', 'easy-wp-smtp' ),
-			easy_wp_smtp()->get_capability_manage_options(),
+			easy_wp_smtp()->get_capability_manage_global_options(),
 			self::SLUG,
 			[ $this, 'display_network_product_education_page' ],
 			'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMTMiIHZpZXdCb3g9IjAgMCAyMCAxMyIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTUuODgyMTEgMTEuMzI4NkM2LjAxMzM2IDExLjI1ODggNi4xNjAxMiAxMS4yMjIyIDYuMzA5MjIgMTEuMjIyMkwxMy42OTA4IDExLjIyMjJDMTMuODM5OSAxMS4yMjIyIDEzLjk4NjYgMTEuMjU4OCAxNC4xMTc5IDExLjMyODZDMTQuOTQxMiAxMS43NjY2IDE0LjYyNiAxMyAxMy42OTA4IDEzTDYuMzA5MjEgMTNDNS4zNzQwMSAxMyA1LjA1ODgzIDExLjc2NjYgNS44ODIxMSAxMS4zMjg2WiIgZmlsbD0id2hpdGUiLz4KPHBhdGggZD0iTTMuMTMzNTQgOC4yMTc0OUMzLjI2MjYzIDguMTQ3NjcgMy40MDY5OCA4LjExMTExIDMuNTUzNjIgOC4xMTExMUwxNi40NDY0IDguMTExMTFDMTYuNTkzIDguMTExMTEgMTYuNzM3NCA4LjE0NzY3IDE2Ljg2NjUgOC4yMTc0OUMxNy42NzYyIDguNjU1NSAxNy4zNjYyIDkuODg4ODkgMTYuNDQ2NCA5Ljg4ODg5TDMuNTUzNjIgOS44ODg4OUMyLjYzMzc5IDkuODg4ODkgMi4zMjM4IDguNjU1NSAzLjEzMzU0IDguMjE3NDlaIiBmaWxsPSJ3aGl0ZSIvPgo8cGF0aCBkPSJNMi4yNjMzNCAwLjUzNjY5M0MyLjEyMTQyIDAuNjY4NzY5IDEuOTk5MDIgMC44MjQwMzMgMS45MDIzNSAwLjk5ODgyM0wwLjIzNTM4MiA0LjAxMjg3Qy0wLjQ1MTQ3OCA1LjI1NDc4IDAuNDQ3MTA2IDYuNzc3NzggMS44NjY3MSA2Ljc3Nzc4TDE4LjEzMzMgNi43Nzc3OEMxOS41NTI5IDYuNzc3NzggMjAuNDUxNSA1LjI1NDc4IDE5Ljc2NDYgNC4wMTI4N0wxOC4wOTc2IDAuOTk4ODIyQzE3Ljk5MjMgMC44MDgzNTQgMTcuODU2NCAwLjY0MTA3MiAxNy42OTggMC41MDE3MTRDMTYuMDk1OSAxLjUwNTg5IDEyLjA5MTQgMy44NzM3NyA5Ljk1MjcyIDMuODczNzdDNy44Mzg0OSAzLjg3Mzc3IDMuOTAwODcgMS41NTk3MyAyLjI2MzM0IDAuNTM2NjkzWiIgZmlsbD0id2hpdGUiLz4KPHBhdGggZD0iTTIuOTYwNjMgMC4xMjcyMzNDNC43MjU2NiAxLjE5ODU5IDguMDk5MzEgMy4wODY3NyA5Ljk1MjcyIDMuMDg2NzdDMTEuODE3MiAzLjA4Njc3IDE1LjIyMDIgMS4xNzU5MiAxNi45NzYzIDAuMTA4MDlDMTYuODEyNyAwLjA2MTU0MjMgMTYuNjQxMyAwLjAzNzAzOSAxNi40NjYzIDAuMDM3MDM5TDMuNTMzNjggMC4wMzcwMzc4QzMuMzM2MTIgMC4wMzcwMzc5IDMuMTQzMSAwLjA2ODI4MjcgMi45NjA2MyAwLjEyNzIzM1oiIGZpbGw9IndoaXRlIi8+Cjwvc3ZnPgo=',

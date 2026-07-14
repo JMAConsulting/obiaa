@@ -205,7 +205,7 @@ class DashboardWidget {
 
 		check_admin_referer( 'easy_wp_smtp_' . static::SLUG . '_nonce' );
 
-		if ( ! current_user_can( easy_wp_smtp()->get_capability_manage_options() ) ) {
+		if ( ! current_user_can( easy_wp_smtp()->get_capability_manage_global_options() ) ) {
 			wp_send_json_error();
 		}
 
@@ -308,7 +308,11 @@ class DashboardWidget {
 
 		$hide_summary_report_email_block = (bool) $this->widget_meta( 'get', 'hide_summary_report_email_block' );
 
-		if ( SummaryReportEmail::is_disabled() && ! $hide_summary_report_email_block ) {
+		if (
+			SummaryReportEmail::is_disabled() &&
+			! $hide_summary_report_email_block &&
+			current_user_can( easy_wp_smtp()->get_capability_manage_global_options() )
+		) {
 			$this->show_summary_report_email_block();
 		}
 
