@@ -10,7 +10,7 @@
  *
  * Plugin Name:       User Switching
  * Description:       Instant switching between user accounts in WordPress and WooCommerce.
- * Version:           1.12.0
+ * Version:           1.12.1
  * Plugin URI:        https://wordpress.org/plugins/user-switching/
  * Author:            John Blackbourn
  * Author URI:        https://johnblackbourn.com
@@ -36,7 +36,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'USER_SWITCHING_VERSION', '1.12.0' );
+define( 'USER_SWITCHING_VERSION', '1.12.1' );
 
 /**
  * Main singleton class for the User Switching plugin.
@@ -520,7 +520,7 @@ final class user_switching {
 				], self::switch_back_url( $old_user ) );
 
 				$message .= sprintf(
-					' <a href="%s">%s</a>.',
+					' <a href="%s">%s</a>',
 					esc_url( $switch_back_url ),
 					esc_html( self::switch_back_message( $old_user ) )
 				);
@@ -708,16 +708,16 @@ final class user_switching {
 			esc_html( self::switch_back_message( $old_user ) )
 		);
 
-		?>
-		<script>
 		// Move the switch back link so it's within the wp_die message container.
-		document.addEventListener( 'DOMContentLoaded', function() {
-			document.querySelector( '.wp-die-message' ).appendChild(
-				document.getElementById( 'user_switching_wp_die' )
-			);
-		} );
-		</script>
-		<?php
+		function_exists( 'wp_print_inline_script_tag' ) && wp_print_inline_script_tag(
+			<<<'JS'
+			document.addEventListener( 'DOMContentLoaded', function() {
+				document.querySelector( '.wp-die-message' ).appendChild(
+					document.getElementById( 'user_switching_wp_die' )
+				);
+			} );
+			JS
+		);
 	}
 
 	/**
@@ -806,7 +806,7 @@ final class user_switching {
 			'<p id="user_switching_switch_on" style="%s"><a href="%s" style="%s">%s</a></p>',
 			'position: fixed; bottom: 40px; padding: 0; margin: 0; left: 10px; font-size: 13px; z-index:99999;',
 			esc_url( $url ),
-			'padding: 8px 10px; background: #fff; color: #3858e9;',
+			'padding: 9px 12px; background: #3858e9; color: #fff; text-decoration: none; border-radius: 2px;',
 			esc_html( self::switch_back_message( $old_user ) )
 		);
 	}
@@ -1523,7 +1523,7 @@ if ( ! function_exists( 'user_switching_clear_olduser_cookie' ) ) {
 		}
 		if ( $clear_all || empty( $auth_cookie ) ) {
 			/**
-			 * Fires just before the user switching cookies are cleared.
+			 * Fires just before the User Switching cookies are cleared.
 			 *
 			 * @since 1.4.0
 			 */

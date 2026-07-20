@@ -200,9 +200,21 @@ class Processor {
 	}
 
 	/**
-	 * This method will be called every time 'smtp' and 'mail' mailers will be used to send emails.
+	 * Deprecated stub kept for backwards compatibility.
 	 *
-	 * @since 2.0.0
+	 * Previously registered as PHPMailer's $action_function and dispatched per recipient
+	 * via PHPMailer's doCallback(). The fan-out caused duplicate `easy_wp_smtp_mailcatcher_smtp_send_after`
+	 * invocations and racing EmailSendingDebug writes on partial-recipient failures.
+	 *
+	 * Logic moved to MailCatcherTrait: doCallback() collects failed recipients, and
+	 * smtp_send() fires the after-send action exactly once per email in its success
+	 * and failure paths.
+	 *
+	 * No replacement. Kept for third-party code that may still reference the
+	 * callable directly. Behavior is now a no-op.
+	 *
+	 * @since      2.0.0
+	 * @deprecated {VERSION}
 	 *
 	 * @param bool   $is_sent If the email was sent.
 	 * @param array  $to      To email address.
@@ -212,20 +224,7 @@ class Processor {
 	 * @param string $body    The email body.
 	 * @param string $from    The from email address.
 	 */
-	public static function send_callback( $is_sent, $to, $cc, $bcc, $subject, $body, $from ) {
-
-		if ( ! $is_sent ) {
-			// Add mailer to the beginning and save to display later.
-			Debug::set(
-				'Mailer: ' . esc_html( easy_wp_smtp()->get_providers()->get_options( easy_wp_smtp()->get_connections_manager()->get_mail_connection()->get_mailer_slug() )->get_title() ) . "\r\n" .
-				'PHPMailer was able to connect to SMTP server but failed while trying to send an email.'
-			);
-		} else {
-			Debug::clear();
-		}
-
-		do_action( 'easy_wp_smtp_mailcatcher_smtp_send_after', $is_sent, $to, $cc, $bcc, $subject, $body, $from );
-	}
+	public static function send_callback( $is_sent, $to, $cc, $bcc, $subject, $body, $from ) { }
 
 	/**
 	 * Validate the email address.

@@ -5,7 +5,7 @@ namespace EasyWPSMTP\UsageTracking;
 use EasyWPSMTP\Admin\DomainChecker;
 use EasyWPSMTP\Admin\SetupWizard;
 use EasyWPSMTP\Conflicts;
-use EasyWPSMTP\Debug;
+use EasyWPSMTP\EmailSendingDebug;
 use EasyWPSMTP\Helpers\Helpers;
 use EasyWPSMTP\OptimizedEmailSending;
 use EasyWPSMTP\Options;
@@ -71,8 +71,19 @@ class UsageTracking {
 			}
 		);
 
-		// Register the action handler only if enabled.
+		// Register the action handler and error stats tracking only if enabled.
 		if ( $this->is_enabled() ) {
+			/**
+			 * Filter whether to enable error stats collection.
+			 *
+			 * @since 2.15.0
+			 *
+			 * @param bool $enabled Whether error stats collection is enabled. Default true.
+			 */
+			if ( apply_filters( 'easy_wp_smtp_usage_tracking_error_stats_enabled', true ) ) { // phpcs:ignore WPForms.PHP.ValidateHooks.InvalidHookName
+				( new ErrorStats() )->hooks();
+			}
+
 			add_filter(
 				'easy_wp_smtp_tasks_get_tasks',
 				static function ( $tasks ) {
@@ -120,30 +131,32 @@ class UsageTracking {
 			$this->get_additional_data(),
 			[
 				// Generic data (environment).
-				'mysql_version'                                    => $wpdb->db_version(),
-				'server_version'                                   => isset( $_SERVER['SERVER_SOFTWARE'] ) ? sanitize_text_field( wp_unslash( $_SERVER['SERVER_SOFTWARE'] ) ) : '',
-				'is_ssl'                                           => is_ssl(),
-				'is_multisite'                                     => is_multisite(),
-				'sites_count'                                      => $this->get_sites_total(),
-				'theme_name'                                       => $theme_data->name,
-				'theme_version'                                    => $theme_data->version,
-				'locale'                                           => get_locale(),
-				'timezone_offset'                                  => $this->get_timezone_offset(),
+				'mysql_version'                            => $wpdb->db_version(),
+				'server_version'                           => isset( $_SERVER['SERVER_SOFTWARE'] ) ? sanitize_text_field( wp_unslash( $_SERVER['SERVER_SOFTWARE'] ) ) : '',
+				'is_ssl'                                   => is_ssl(),
+				'is_multisite'                             => is_multisite(),
+				'sites_count'                              => $this->get_sites_total(),
+				'theme_name'                               => $theme_data->name,
+				'theme_version'                            => $theme_data->version,
+				'locale'                                   => get_locale(),
+				'timezone_offset'                          => $this->get_timezone_offset(),
 				// Easy WP SMTP - specific data.
-				'easy_wp_smtp_version'                             => EasyWPSMTP_PLUGIN_VERSION,
-				'easy_wp_smtp_activated'                           => get_option( 'easy_wp_smtp_activated_time', 0 ),
-				'easy_wp_smtp_mailer'                              => $options->get( 'mail', 'mailer' ),
-				'easy_wp_smtp_from_email_force'                    => (bool) $options->get( 'mail', 'from_email_force' ),
-				'easy_wp_smtp_from_name_force'                     => (bool) $options->get( 'mail', 'from_name_force' ),
-				'easy_wp_smtp_return_path'                         => (bool) $options->get( 'mail', 'return_path' ),
-				'easy_wp_smtp_do_not_send'                         => (bool) $options->get( 'general', 'do_not_send' ),
-				'easy_wp_smtp_is_const_enabled'                    => (bool) $options->is_const_enabled(),
-				'easy_wp_smtp_conflicts_is_detected'               => ( new Conflicts() )->is_detected(),
-				'easy_wp_smtp_is_mailer_complete'                  => empty( $mailer ) ? false : $mailer->is_mailer_complete(),
-				'easy_wp_smtp_setup_wizard_launched_time'          => isset( $setup_wizard_stats['launched_time'] ) ? (int) $setup_wizard_stats['launched_time'] : 0,
-				'easy_wp_smtp_setup_wizard_completed_time'         => isset( $setup_wizard_stats['completed_time'] ) ? (int) $setup_wizard_stats['completed_time'] : 0,
+				'easy_wp_smtp_version'                     => EasyWPSMTP_PLUGIN_VERSION,
+				'easy_wp_smtp_activated'                   => get_option( 'easy_wp_smtp_activated_time', 0 ),
+				'easy_wp_smtp_mailer'                      => $options->get( 'mail', 'mailer' ),
+				'easy_wp_smtp_setup_type'                  => $this->get_setup_type( $options ),
+				'easy_wp_smtp_from_email_force'            => (bool) $options->get( 'mail', 'from_email_force' ),
+				'easy_wp_smtp_from_name_force'             => (bool) $options->get( 'mail', 'from_name_force' ),
+				'easy_wp_smtp_return_path'                 => (bool) $options->get( 'mail', 'return_path' ),
+				'easy_wp_smtp_do_not_send'                 => (bool) $options->get( 'general', 'do_not_send' ),
+				'easy_wp_smtp_is_const_enabled'            => (bool) $options->is_const_enabled(),
+				'easy_wp_smtp_conflicts_is_detected'       => ( new Conflicts() )->is_detected(),
+				'easy_wp_smtp_is_mailer_complete'          => empty( $mailer ) ? false : $mailer->is_mailer_complete(),
+				'easy_wp_smtp_setup_wizard_launched_time'  => isset( $setup_wizard_stats['launched_time'] ) ? (int) $setup_wizard_stats['launched_time'] : 0,
+				'easy_wp_smtp_setup_wizard_completed_time' => isset( $setup_wizard_stats['completed_time'] ) ? (int) $setup_wizard_stats['completed_time'] : 0,
 				'easy_wp_smtp_setup_wizard_completed_successfully' => ! empty( $setup_wizard_stats['was_successful'] ),
-				'easy_wp_smtp_optimize_email_sending'              => OptimizedEmailSending::is_enabled(),
+				'easy_wp_smtp_setup_wizard_mailer'         => isset( $setup_wizard_stats['mailer'] ) ? $setup_wizard_stats['mailer'] : '',
+				'easy_wp_smtp_optimize_email_sending'      => OptimizedEmailSending::is_enabled(),
 			]
 		);
 
@@ -165,6 +178,34 @@ class UsageTracking {
 		}
 
 		return apply_filters( 'easy_wp_smtp_usage_tracking_get_data', $data );
+	}
+
+	/**
+	 * How the active mailer was set up: 'quick_connect' (Gmail/Outlook One-Click or
+	 * SendLayer Quick Connect), 'manual' for any other configured mailer, or '' when none is set.
+	 *
+	 * @since 2.15.0
+	 *
+	 * @param Options $options Plugin options.
+	 *
+	 * @return string
+	 */
+	private function get_setup_type( Options $options ) {
+
+		$mailer = $options->get( 'mail', 'mailer' );
+
+		if ( empty( $mailer ) || $mailer === 'mail' ) {
+			return '';
+		}
+
+		$is_quick_connect =
+			(
+				in_array( $mailer, [ 'gmail', 'outlook' ], true ) &&
+				$options->get( $mailer, 'one_click_setup_enabled' )
+			) ||
+			( $mailer === 'sendlayer' && $options->get( 'sendlayer', 'quick_connect' ) );
+
+		return $is_quick_connect ? 'quick_connect' : 'manual';
 	}
 
 	/**
@@ -320,7 +361,7 @@ class UsageTracking {
 			$this->get_additional_data(),
 			[
 				'easy_wp_smtp_mailer'     => $options->get( 'mail', 'mailer' ),
-				'easy_wp_smtp_mail_error' => Debug::get_last(),
+				'easy_wp_smtp_mail_error' => EmailSendingDebug::get_message( 'primary' ),
 			],
 			$this->get_domain_checker_results( $domain_checker )
 		);

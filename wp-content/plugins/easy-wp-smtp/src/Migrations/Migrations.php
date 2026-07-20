@@ -3,6 +3,7 @@
 namespace EasyWPSMTP\Migrations;
 
 use EasyWPSMTP\Admin\DebugEvents\Migration as DebugEventsMigration;
+use EasyWPSMTP\Admin\Recommendations\Migration as RecommendationsMigration;
 use EasyWPSMTP\Queue\Migration as QueueMigration;
 use EasyWPSMTP\WP;
 use WP_Upgrader;
@@ -80,6 +81,7 @@ class Migrations {
 			GeneralMigration::class,
 			DebugEventsMigration::class,
 			QueueMigration::class,
+			RecommendationsMigration::class,
 		];
 
 		/**
