@@ -281,6 +281,7 @@ abstract class ParentPageAbstract implements PageInterface {
 			$current_tab->check_admin_referer();
 
 			// Capability checks.
+			// Per-site cap is intentional: the only tab routed here that writes to the global option store (Debug Events) gates itself with manage_network_options.
 			if ( ! current_user_can( easy_wp_smtp()->get_capability_manage_options() ) ) {
 				return;
 			}

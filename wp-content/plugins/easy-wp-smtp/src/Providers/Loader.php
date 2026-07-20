@@ -2,8 +2,8 @@
 
 namespace EasyWPSMTP\Providers;
 
+use EasyWPSMTP\Admin\DebugEvents\DebugEvents;
 use EasyWPSMTP\ConnectionInterface;
-use EasyWPSMTP\Debug;
 use EasyWPSMTP\MailCatcherInterface;
 
 /**
@@ -161,11 +161,10 @@ class Loader {
 	 *
 	 * @param string $provider
 	 * @param string $request
-	 * @param array  $args Entity instantiation arguments.
+	 * @param array  $args     Entity instantiation arguments.
 	 *
 	 * @return OptionsAbstract|MailerAbstract|AuthAbstract|null
-	 * @uses  \ReflectionClass
-	 *
+	 * @uses  ReflectionClass
 	 */
 	protected function get_entity( $provider, $request, $args = [] ) {
 
@@ -186,7 +185,7 @@ class Loader {
 				$entity = new $class( ...$args );
 			}
 		} catch ( \Exception $e ) {
-			Debug::set( "There was a problem while retrieving {$request} for {$provider}: {$e->getMessage()}" );
+			DebugEvents::add( "There was a problem while retrieving {$request} for {$provider}: {$e->getMessage()}" );
 			$entity = null;
 		}
 

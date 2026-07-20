@@ -2,8 +2,8 @@
 
 namespace EasyWPSMTP\Admin;
 
-use EasyWPSMTP\Admin\Pages\TestTab;
 use EasyWPSMTP\Connect;
+use EasyWPSMTP\TestEmail\TestEmail;
 use EasyWPSMTP\Helpers\Helpers;
 use EasyWPSMTP\Options;
 use EasyWPSMTP\UsageTracking\UsageTracking;
@@ -79,7 +79,7 @@ class SetupWizard {
 				isset( $_GET['page'] ) && // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 				Area::SLUG . '-setup-wizard' === $_GET['page'] && // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 				$this->should_setup_wizard_load() &&
-				current_user_can( easy_wp_smtp()->get_capability_manage_options() )
+				current_user_can( easy_wp_smtp()->get_capability_manage_global_options() )
 			)
 		) {
 			return;
@@ -161,7 +161,7 @@ class SetupWizard {
 			return;
 		}
 
-		add_submenu_page( '', '', '', easy_wp_smtp()->get_capability_manage_options(), Area::SLUG . '-setup-wizard', '' );
+		add_submenu_page( '', '', '', easy_wp_smtp()->get_capability_manage_global_options(), Area::SLUG . '-setup-wizard', '' );
 	}
 
 	/**
@@ -229,7 +229,7 @@ class SetupWizard {
 				'plugin_version'     => EasyWPSMTP_PLUGIN_VERSION,
 				'mailer_options'     => $this->prepare_mailer_options(),
 				'defined_constants'  => $this->prepare_defined_constants(),
-				'upgrade_link'       => easy_wp_smtp()->get_upgrade_link( 'setup-wizard' ),
+				'upgrade_link'       => easy_wp_smtp()->get_upgrade_link( [ 'medium' => 'setup-wizard' ] ),
 				'versions'           => $this->prepare_versions_data(),
 				'public_url'         => easy_wp_smtp()->assets_url . '/vue/',
 				'current_user_email' => wp_get_current_user()->user_email,
@@ -565,7 +565,7 @@ class SetupWizard {
 
 		check_ajax_referer( 'easywpsmtp-admin-nonce', 'nonce' );
 
-		if ( ! current_user_can( easy_wp_smtp()->get_capability_manage_options() ) ) {
+		if ( ! current_user_can( easy_wp_smtp()->get_capability_manage_global_options() ) ) {
 			wp_send_json_error( esc_html__( 'You don\'t have permission to change options for this WP site!', 'easy-wp-smtp' ) );
 		}
 
@@ -583,7 +583,7 @@ class SetupWizard {
 
 		check_ajax_referer( 'easywpsmtp-admin-nonce', 'nonce' );
 
-		if ( ! current_user_can( easy_wp_smtp()->get_capability_manage_options() ) ) {
+		if ( ! current_user_can( easy_wp_smtp()->get_capability_manage_global_options() ) ) {
 			wp_send_json_error( esc_html__( 'You don\'t have permission to change options for this WP site!', 'easy-wp-smtp' ) );
 		}
 
@@ -605,7 +605,7 @@ class SetupWizard {
 
 		check_ajax_referer( 'easywpsmtp-admin-nonce', 'nonce' );
 
-		if ( ! current_user_can( easy_wp_smtp()->get_capability_manage_options() ) ) {
+		if ( ! current_user_can( easy_wp_smtp()->get_capability_manage_global_options() ) ) {
 			wp_send_json_error();
 		}
 
@@ -673,7 +673,7 @@ class SetupWizard {
 
 		check_ajax_referer( 'easywpsmtp-admin-nonce', 'nonce' );
 
-		if ( ! current_user_can( easy_wp_smtp()->get_capability_manage_options() ) ) {
+		if ( ! current_user_can( easy_wp_smtp()->get_capability_manage_global_options() ) ) {
 			wp_send_json_error();
 		}
 
@@ -706,7 +706,7 @@ class SetupWizard {
 
 		check_ajax_referer( 'easywpsmtp-admin-nonce', 'nonce' );
 
-		if ( ! current_user_can( easy_wp_smtp()->get_capability_manage_options() ) ) {
+		if ( ! current_user_can( easy_wp_smtp()->get_capability_manage_global_options() ) ) {
 			wp_send_json_error();
 		}
 
@@ -721,7 +721,7 @@ class SetupWizard {
 
 		foreach ( $old_opt[ $mailer ] as $key => $value ) {
 			// Unset everything except Client ID, Client Secret and Domain.
-			if ( ! in_array( $key, array( 'domain', 'client_id', 'client_secret' ), true ) ) {
+			if ( ! in_array( $key, [ 'domain', 'client_id', 'client_secret' ], true ) ) {
 				unset( $old_opt[ $mailer ][ $key ] );
 			}
 		}
@@ -760,7 +760,7 @@ class SetupWizard {
 			wp_send_json_error( esc_html__( 'Could not install the plugin. Plugin is not whitelisted.', 'easy-wp-smtp' ) );
 		}
 
-		$url   = esc_url_raw( WP::admin_url( 'admin.php?page=' . Area::SLUG . '-setup-wizard' ) );
+		$url = esc_url_raw( WP::admin_url( 'admin.php?page=' . Area::SLUG . '-setup-wizard' ) );
 
 		/*
 		 * The `request_filesystem_credentials` function will output a credentials form in case of failure.
@@ -873,6 +873,10 @@ class SetupWizard {
 
 		check_ajax_referer( 'easywpsmtp-admin-nonce', 'nonce' );
 
+		if ( ! current_user_can( easy_wp_smtp()->get_capability_manage_global_options() ) ) {
+			wp_send_json_error( esc_html__( 'You don\'t have the permission to perform this action.', 'easy-wp-smtp' ) );
+		}
+
 		$contact_form_plugin_already_installed = false;
 
 		$contact_form_basenames = [
@@ -914,6 +918,10 @@ class SetupWizard {
 	public function subscribe_to_newsletter() {
 
 		check_ajax_referer( 'easywpsmtp-admin-nonce', 'nonce' );
+
+		if ( ! current_user_can( easy_wp_smtp()->get_capability_manage_global_options() ) ) {
+			wp_send_json_error( esc_html__( 'You don\'t have the permission to perform this action.', 'easy-wp-smtp' ) );
+		}
 
 		$email = ! empty( $_POST['email'] ) ? filter_var( wp_unslash( $_POST['email'] ), FILTER_VALIDATE_EMAIL ) : '';
 
@@ -1011,23 +1019,26 @@ class SetupWizard {
 
 		check_ajax_referer( 'easywpsmtp-admin-nonce', 'nonce' );
 
+		if ( ! current_user_can( easy_wp_smtp()->get_capability_manage_global_options() ) ) {
+			wp_send_json_error( esc_html__( 'You don\'t have the permission to perform this action.', 'easy-wp-smtp' ) );
+		}
+
 		$options = Options::init();
 		$mailer  = $options->get( 'mail', 'mailer' );
 		$email   = $options->get( 'mail', 'from_email' );
 		$domain  = '';
 
-		// Send the test mail.
-		$result = wp_mail(
-			$email,
-			'Easy WP SMTP Automatic Email Test',
-			TestTab::get_email_message_text(),
-			array(
-				'X-Mailer-Type:EasyWPSMTP/Admin/SetupWizard/Test',
-			)
-		);
+		// Send the test mail. Domain check runs below with its own (warnings-tolerated)
+		// threshold, so we opt out of TestEmail's stricter no_issues() check.
+		$test_email = ( new TestEmail() )
+			->with_context( TestEmail::CONTEXT_SETUP_WIZARD )
+			->as_html( false )
+			->with_domain_check( false );
 
-		if ( ! $result ) {
-			$this->update_completed_stat( false );
+		$test_email->send( $email );
+
+		if ( ! $test_email->is_successful() ) {
+			$this->update_completed_stat( false, $mailer );
 
 			( new UsageTracking() )->send_failed_setup_wizard_usage_tracking_data();
 
@@ -1043,14 +1054,14 @@ class SetupWizard {
 		$domain_checker = new DomainChecker( $mailer, $email, $domain );
 
 		if ( $domain_checker->has_errors() ) {
-			$this->update_completed_stat( false );
+			$this->update_completed_stat( false, $mailer );
 
 			( new UsageTracking() )->send_failed_setup_wizard_usage_tracking_data( $domain_checker );
 
 			wp_send_json_error();
 		}
 
-		$this->update_completed_stat( true );
+		$this->update_completed_stat( true, $mailer );
 
 		wp_send_json_success();
 	}
@@ -1063,8 +1074,8 @@ class SetupWizard {
 	public function send_feedback() {
 
 		check_ajax_referer( 'easywpsmtp-admin-nonce', 'nonce' );
-		
-		if ( ! current_user_can( easy_wp_smtp()->get_capability_manage_options() ) ) {
+
+		if ( ! current_user_can( easy_wp_smtp()->get_capability_manage_global_options() ) ) {
 			wp_send_json_error();
 		}
 
@@ -1147,9 +1158,10 @@ class SetupWizard {
 
 	/**
 	 * Get the Setup Wizard stats.
-	 * - launched_time  -> when the Setup Wizard was last launched.
-	 * - completed_time -> when the Setup Wizard was last completed.
-	 * - was_successful -> if the Setup Wizard was completed successfully.
+	 * - launched_time     -> when the Setup Wizard was last launched.
+	 * - completed_time    -> when the Setup Wizard was last completed.
+	 * - was_successful    -> if the Setup Wizard was completed successfully.
+	 * - mailer            -> mailer slug configured in the Setup Wizard on its last completion attempt.
 	 *
 	 * @since 2.1.0
 	 *
@@ -1161,6 +1173,7 @@ class SetupWizard {
 			'launched_time'  => 0,
 			'completed_time' => 0,
 			'was_successful' => false,
+			'mailer'         => '',
 		];
 
 		return get_option( self::STATS_OPTION_KEY, $defaults );
@@ -1183,14 +1196,16 @@ class SetupWizard {
 	 *
 	 * @since 2.1.0
 	 *
-	 * @param bool $was_successful If the Setup Wizard was completed successfully.
+	 * @param bool   $was_successful If the Setup Wizard was completed successfully.
+	 * @param string $mailer         Mailer slug configured in the Setup Wizard.
 	 */
-	private function update_completed_stat( $was_successful ) {
+	private function update_completed_stat( $was_successful, $mailer = '' ) {
 
 		self::update_stats(
 			[
 				'completed_time' => time(),
 				'was_successful' => $was_successful,
+				'mailer'         => $mailer,
 			]
 		);
 	}

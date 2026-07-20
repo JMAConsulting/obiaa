@@ -1,8 +1,8 @@
 <?php
 /**
  * Plugin Name: Easy WP SMTP
- * Version: 2.14.0
- * Requires at least: 5.2
+ * Version: 2.15.0
+ * Requires at least: 5.5
  * Requires PHP: 7.4
  * Plugin URI: https://easywpsmtp.com/
  * Author: Easy WP SMTP
@@ -13,13 +13,13 @@
  */
 
 if ( ! defined( 'EasyWPSMTP_PLUGIN_VERSION' ) ) {
-	define( 'EasyWPSMTP_PLUGIN_VERSION', '2.14.0' );
+	define( 'EasyWPSMTP_PLUGIN_VERSION', '2.15.0' );
 }
 if ( ! defined( 'EasyWPSMTP_PHP_VERSION' ) ) {
 	define( 'EasyWPSMTP_PHP_VERSION', '7.4' );
 }
 if ( ! defined( 'EasyWPSMTP_WP_VERSION' ) ) {
-	define( 'EasyWPSMTP_WP_VERSION', '5.2' );
+	define( 'EasyWPSMTP_WP_VERSION', '5.5' );
 }
 if ( ! defined( 'EasyWPSMTP_PLUGIN_FILE' ) ) {
 	define( 'EasyWPSMTP_PLUGIN_FILE', __FILE__ );
@@ -274,6 +274,8 @@ if ( version_compare( get_bloginfo( 'version' ), EasyWPSMTP_WP_VERSION, '<' ) ) 
 
 	return;
 }
+
+require_once __DIR__ . '/polyfills.php';
 
 /**
  * Autoloader. We need it being separate and not using Composer autoloader because of the vendor libs,

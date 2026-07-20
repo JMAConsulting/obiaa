@@ -84,19 +84,8 @@ class SettingsTab extends PageAbstract {
 		}
 
 		if ( $this->is_display_pro_banner() ) {
-			wp_enqueue_style(
-				'easy-wp-smtp-admin-lity',
-				easy_wp_smtp()->assets_url . '/css/vendor/lity.min.css',
-				[],
-				'2.4.1'
-			);
-			wp_enqueue_script(
-				'easy-wp-smtp-admin-lity',
-				easy_wp_smtp()->assets_url . '/js/vendor/lity.min.js',
-				[],
-				'2.4.1',
-				false
-			);
+			wp_enqueue_style( 'easy-wp-smtp-admin-lity' );
+			wp_enqueue_script( 'easy-wp-smtp-admin-lity' );
 		}
 	}
 
