@@ -4,14 +4,14 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit47424cba955c1bc4cba423170ce4cac8
+class ComposerStaticInitc2a9329b707efe4dec8a61352acc0955
 {
     public static $files = array (
         '6e3fae29631ef280660b3cdad06f25a8' => __DIR__ . '/..' . '/symfony/deprecation-contracts/function.php',
         'a4a119a56e50fbb293281d9a48007e0e' => __DIR__ . '/..' . '/symfony/polyfill-php80/bootstrap.php',
-        '0e6d7bf4a5811bfa5cf40c5ccd6fae6a' => __DIR__ . '/..' . '/symfony/polyfill-mbstring/bootstrap.php',
         '7b11c4dc42b3b3023073cb14e519683c' => __DIR__ . '/..' . '/ralouphie/getallheaders/src/getallheaders.php',
         '320cde22f66dd4f5d3fd621d3e88b98f' => __DIR__ . '/..' . '/symfony/polyfill-ctype/bootstrap.php',
+        '0e6d7bf4a5811bfa5cf40c5ccd6fae6a' => __DIR__ . '/..' . '/symfony/polyfill-mbstring/bootstrap.php',
         '37a3dc5111fe8f707ab4c132ef1dbc62' => __DIR__ . '/..' . '/guzzlehttp/guzzle/src/functions_include.php',
         'decc78cc4436b1292c6c0d151b19445c' => __DIR__ . '/..' . '/phpseclib/phpseclib/phpseclib/bootstrap.php',
         '2cffec82183ee1cea088009cef9a6fc3' => __DIR__ . '/..' . '/ezyang/htmlpurifier/library/HTMLPurifier.composer.php',
@@ -104,7 +104,6 @@ class ComposerStaticInit47424cba955c1bc4cba423170ce4cac8
         ),
         'M' =>
         array (
-            'MyCLabs\\Enum\\' => 13,
             'MimeTyper\\' => 10,
             'Matrix\\' => 7,
             'Masterminds\\' => 12,
@@ -344,10 +343,6 @@ class ComposerStaticInit47424cba955c1bc4cba423170ce4cac8
         'Padaliyajay\\PHPAutoprefixer\\' =>
         array (
             0 => __DIR__ . '/..' . '/padaliyajay/php-autoprefixer/src',
-        ),
-        'MyCLabs\\Enum\\' =>
-        array (
-            0 => __DIR__ . '/..' . '/myclabs/php-enum/src',
         ),
         'MimeTyper\\' =>
         array (
@@ -608,7 +603,7 @@ class ComposerStaticInit47424cba955c1bc4cba423170ce4cac8
         'SQLite3Exception' => __DIR__ . '/..' . '/symfony/polyfill-php83/Resources/stubs/SQLite3Exception.php',
         'SensitiveParameter' => __DIR__ . '/..' . '/symfony/polyfill-php82/Resources/stubs/SensitiveParameter.php',
         'SensitiveParameterValue' => __DIR__ . '/..' . '/symfony/polyfill-php82/Resources/stubs/SensitiveParameterValue.php',
-        'Stringable' => __DIR__ . '/..' . '/myclabs/php-enum/stubs/Stringable.php',
+        'Stringable' => __DIR__ . '/..' . '/symfony/polyfill-php80/Resources/stubs/Stringable.php',
         'TCPDF' => __DIR__ . '/..' . '/tecnickcom/tcpdf/tcpdf.php',
         'TCPDF2DBarcode' => __DIR__ . '/..' . '/tecnickcom/tcpdf/tcpdf_barcodes_2d.php',
         'TCPDFBarcode' => __DIR__ . '/..' . '/tecnickcom/tcpdf/tcpdf_barcodes_1d.php',
@@ -736,11 +731,11 @@ class ComposerStaticInit47424cba955c1bc4cba423170ce4cac8
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit47424cba955c1bc4cba423170ce4cac8::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit47424cba955c1bc4cba423170ce4cac8::$prefixDirsPsr4;
-            $loader->prefixesPsr0 = ComposerStaticInit47424cba955c1bc4cba423170ce4cac8::$prefixesPsr0;
-            $loader->fallbackDirsPsr0 = ComposerStaticInit47424cba955c1bc4cba423170ce4cac8::$fallbackDirsPsr0;
-            $loader->classMap = ComposerStaticInit47424cba955c1bc4cba423170ce4cac8::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInitc2a9329b707efe4dec8a61352acc0955::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInitc2a9329b707efe4dec8a61352acc0955::$prefixDirsPsr4;
+            $loader->prefixesPsr0 = ComposerStaticInitc2a9329b707efe4dec8a61352acc0955::$prefixesPsr0;
+            $loader->fallbackDirsPsr0 = ComposerStaticInitc2a9329b707efe4dec8a61352acc0955::$fallbackDirsPsr0;
+            $loader->classMap = ComposerStaticInitc2a9329b707efe4dec8a61352acc0955::$classMap;
 
         }, null, ClassLoader::class);
     }
