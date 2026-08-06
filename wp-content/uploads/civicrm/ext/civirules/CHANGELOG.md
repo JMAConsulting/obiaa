@@ -1,4 +1,16 @@
 # CHANGELOG
+# Version 3.41.0 (2026-07-21)
+* Fixed issue with action Sum Values and Subtract Values and case trigger.
+# Version 3.40.0 (2026-07-21)
+
+* added condition Is Membership Payment, made membership actions available if condition is part of a rule on a Contribution trigger and add Membership entity to TriggerData if membership payment
+
+# Version 3.40.0 (2026-07-21)
+* [!364](https://lab.civicrm.org/extensions/civirules/-/merge_requests/364) - Added condition Is Membership Payment, made membership actions available if condition is part of a rule on a Contribution trigger and add Membership entity to TriggerData if membership payment
+
+# Version 3.39.0 (2026-07-17)
+
+* Added actions Sum Values and Subtract Values
 
 # Version 3.38.0 (2026-06-18)
 
