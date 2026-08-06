@@ -1,0 +1,16 @@
+{
+    "name": "civicrm/apikey",
+    "description": "API Key Management",
+    "type": "civicrm-ext",
+    "license": "AGPL-3.0-only",
+    "authors": [
+        {
+            "name": "Nicolas Ganivet",
+            "email": "nicolas@cividesk.com"
+        },
+        {
+            "name": "Mikey O'Toole",
+            "email": "mikey@mjco.uk"
+        }
+    ]
+}

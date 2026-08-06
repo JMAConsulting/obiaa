@@ -149,7 +149,8 @@ class Refund extends AbstractCreateAction {
       else {
         throw new \CRM_Core_Exception("Refund status '{$refund['refund_status']}' is not supported at this time and was not recorded in CiviCRM.");
       }
-    } catch (\Throwable $e) {
+    }
+    catch (\Throwable $e) {
       throw new \CRM_Core_Exception($e->getMessage(), NULL, ['error' => 'Refund failed']);
     }
 
