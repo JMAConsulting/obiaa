@@ -1,4 +1,7 @@
-<?php if (!defined('ABSPATH')) die('No direct access.'); ?>
+<?php
+// phpcs:disable WordPress.WP.I18n.TextDomainMismatch -- both free and premium versions have different plugin slugs but share the same text domain to ensure consistency and simplify translation management.
+if (!defined('ABSPATH')) die('No direct access.');
+?>
 <h3><?php esc_html_e('Plugin update options', 'stops-core-theme-and-plugin-updates'); ?></h3>
 <?php
 	$core_options = MPSUM_Updates_Manager::get_options('core');

@@ -1,4 +1,6 @@
 <?php
+// phpcs:disable WordPress.WP.I18n.TextDomainMismatch -- both free and premium versions have different plugin slugs but share the same text domain to ensure consistency and simplify translation management.
+if (!defined('ABSPATH')) die('No direct access.');
 /**
  * Base class for displaying a list of items in an ajaxified HTML table.
  * Copied from wp-admin/includes as per http://codex.wordpress.org/Class_Reference/WP_List_Table
@@ -461,7 +463,7 @@ class MPSUM_List_Table {
 		foreach ($this->_actions as $name => $title) {
 			$class = 'edit' == $name ? ' class="hide-if-no-js"' : '';
 
-			echo "\t<option value='".esc_attr($name).esc_html($class).">".esc_html($title)."</option>\n";
+			echo "\t<option value='".esc_attr($name)."' ".esc_html($class).">".esc_html($title)."</option>\n";
 		}
 
 		echo "</select>\n";
@@ -799,13 +801,13 @@ class MPSUM_List_Table {
 		} else {
 			$html_current_page = sprintf("%s<input class='current-page' id='current-page-selector' type='text' name='paged' value='%s' size='%d' aria-describedby='table-paging' data-tab='%s' data-view='%s' />",
 				'<label for="current-page-selector" class="screen-reader-text">' . esc_html__('Current Page') . '</label>', // phpcs:ignore WordPress.WP.I18n.MissingArgDomain -- WordPress core handles the translation.
-				$current,
-				strlen($total_pages),
-				$tab,
-				$view
+				esc_attr($current),
+				esc_attr(strlen($total_pages)),
+				esc_attr($tab),
+				esc_attr($view)
 			);
 		}
-		$html_total_pages = sprintf("<span class='total-pages'>%s</span>", number_format_i18n($total_pages));
+		$html_total_pages = sprintf("<span class='total-pages'>%s</span>", esc_html(number_format_i18n($total_pages)));
 		if (0 == $total_items) {
 			$html_current_page = 0;
 			$html_total_pages = 0;
@@ -837,7 +839,7 @@ class MPSUM_List_Table {
 		if (! empty($infinite_scroll)) {
 			$pagination_links_class = ' hide-if-js';
 		}
-		$output .= "\n<span class='$pagination_links_class'>" . join("\n", $page_links) . '</span>';
+		$output .= "\n<span class='".esc_attr($pagination_links_class)."'>" . join("\n", $page_links) . '</span>';
 
 		if ($total_pages) {
 			$page_class = $total_pages < 2 ? ' one-page' : '';
@@ -1043,8 +1045,8 @@ class MPSUM_List_Table {
 		if (! empty($columns['cb'])) {
 			static $cb_counter = 1;
 			// phpcs:ignore WordPress.WP.I18n.MissingArgDomain -- WordPress core handles the translation.
-			$columns['cb'] = '<label class="screen-reader-text" for="cb-select-all-' . $cb_counter . '">' . esc_html__('Select All') . '</label>'
-				. '<input id="cb-select-all-' . $cb_counter . '" type="checkbox" />';
+			$columns['cb'] = '<label class="screen-reader-text" for="cb-select-all-' . esc_attr($cb_counter) . '">' . esc_html__('Select All') . '</label>'
+				. '<input id="cb-select-all-' . esc_attr($cb_counter) . '" type="checkbox" />';
 			$cb_counter++;
 		}
 
@@ -1077,12 +1079,12 @@ class MPSUM_List_Table {
 					$class[] = $desc_first ? 'asc' : 'desc';
 				}
 
-				$column_display_name = '<a href="' . esc_url(add_query_arg(compact('orderby', 'order'), $current_url)) . '"><span>' . $column_display_name . '</span><span class="sorting-indicator"></span></a>';
+				$column_display_name = '<a href="' . esc_url(add_query_arg(compact('orderby', 'order'), $current_url)) . '"><span>' . esc_html($column_display_name) . '</span><span class="sorting-indicator"></span></a>';
 			}
 
 			$tag = ( 'cb' === $column_key ) ? 'td' : 'th';
 			$scope = ( 'th' === $tag ) ? 'scope="col"' : '';
-			$id = $with_id ? "id='$column_key'" : '';
+			$id = $with_id ? "id='".esc_attr($column_key)."'" : '';
 
 			if (!empty($class))
 				$class = "class='" . join(' ', $class) . "'";
@@ -1231,7 +1233,7 @@ class MPSUM_List_Table {
 			// Instead of using esc_attr(), we strip tags to get closer to a user-friendly string.
 			$data = 'data-colname="' . wp_strip_all_tags($column_display_name) . '"';
 
-			$attributes = "class='$classes' $data";
+			$attributes = "class='".esc_attr($classes)."' $data";
 			
 			// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped
 			if ('cb' == $column_name) {

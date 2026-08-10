@@ -1,4 +1,5 @@
 <?php
+// phpcs:disable WordPress.WP.I18n.TextDomainMismatch -- both free and premium versions have different plugin slugs but share the same text domain to ensure consistency and simplify translation management.
 if (!defined('ABSPATH')) die('No direct access.');
 /**
  * Easy Updates Manager Plugins List Table class.
@@ -52,14 +53,14 @@ class MPSUM_Plugins_List_Table extends MPSUM_List_Table {
 			if (isset($_REQUEST['s']))
 				$_SERVER['REQUEST_URI'] = add_query_arg('s', sanitize_text_field(wp_unslash($_REQUEST['s'])));
 
-			$this->page = isset($_REQUEST['paged']) ? sanitize_text_field(wp_unslash($_REQUEST['paged'])) : '1';
+			$this->page = isset($_REQUEST['paged']) ? max(1, absint($_REQUEST['paged'])) : '1';
 		} else {
 			$this->status = 'all';
 			if (isset($args['view']) && in_array($args['view'], array_values(array_diff($this->allowed_statuses, array($this->status))))) {
 				$this->status = $args['view'];
 			}
 
-			$this->page = isset($args['paged']) ? $args['paged'] : '1';
+			$this->page = isset($args['paged']) ? max(1, absint($args['paged'])) : '1';
 		}
 		// phpcs:enable WordPress.Security.NonceVerification.Recommended
 	}
@@ -362,14 +363,14 @@ class MPSUM_Plugins_List_Table extends MPSUM_List_Table {
 			if ('search' != $type) {
 				$plugin_url = MPSUM_Admin::get_url();
 				$query_args = array(
-					'tab' => $this->tab,
-					'view' => $type
+					'tab' => rawurlencode($this->tab),
+					'view' => rawurlencode($type)
 				);
 				$status_links[$type] = sprintf("<a href='%s' data-view='%s' %s>%s</a>",
 					add_query_arg($query_args, $plugin_url),
-					$this->status,
+					esc_attr($this->status),
 					($type == $this->status) ? ' class="current"' : '',
-					sprintf($text, number_format_i18n($count))
+					sprintf(wp_kses_post($text), esc_html(number_format_i18n($count)))
 				);
 			}
 		}

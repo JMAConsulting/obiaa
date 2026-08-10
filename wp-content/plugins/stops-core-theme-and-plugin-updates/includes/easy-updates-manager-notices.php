@@ -1,5 +1,5 @@
 <?php
-
+// phpcs:disable WordPress.WP.I18n.TextDomainMismatch -- both free and premium versions have different plugin slugs but share the same text domain to ensure consistency and simplify translation management.
 if (!defined('EASY_UPDATES_MANAGER_MAIN_PATH')) die('No direct access allowed');
 
 if (!class_exists('Updraft_Notices_1_2')) require_once(EASY_UPDATES_MANAGER_MAIN_PATH.'/vendor/team-updraft/common-libs/src/updraft-notices/updraft-notices.php');

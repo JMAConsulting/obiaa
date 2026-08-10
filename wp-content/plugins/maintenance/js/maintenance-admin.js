@@ -116,7 +116,7 @@ jQuery(document).ready(function ($) {
 
     $('#mtnc-pro-dialog').dialog('open');
 
-    $('#mtnc-pro-table .button-buy').each(function (ind, el) {
+    $('#mtnc-pro-table .button-buy, .link-buy').each(function (ind, el) {
       tmp = $(el).data('href-org');
       tmp = tmp.replace('pricing-table', feature);
       $(el).attr('href', tmp);

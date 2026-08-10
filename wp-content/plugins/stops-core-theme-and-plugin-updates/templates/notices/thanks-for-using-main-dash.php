@@ -1,4 +1,7 @@
-<?php if (!defined('EASY_UPDATES_MANAGER_MAIN_PATH')) die('No direct access allowed'); ?>
+<?php
+// phpcs:disable WordPress.WP.I18n.TextDomainMismatch -- both free and premium versions have different plugin slugs but share the same text domain to ensure consistency and simplify translation management.
+if (!defined('ABSPATH')) die('No direct access allowed');
+?>
 
 <div id="easy-updates-manager-dashnotice" class="updated">
 	<?php
