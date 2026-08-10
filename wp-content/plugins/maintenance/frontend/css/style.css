@@ -2150,3 +2150,6 @@ website:    http://www.burocratik.com
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
+.open-login-form .login-button:before {
+    content: "\f528";
+}

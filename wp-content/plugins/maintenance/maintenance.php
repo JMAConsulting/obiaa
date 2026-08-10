@@ -3,7 +3,7 @@
 	Plugin Name: Maintenance
 	Plugin URI: https://wpmaintenancemode.com/
 	Description: Put your site in maintenance mode, away from the public view. Use maintenance plugin if your website is in development or you need to change a few things, run an upgrade. Make it only accessible to logged in users.
-	Version: 4.31
+	Version: 4.32
 	Author: WebFactory Ltd
 	Author URI: https://www.webfactoryltd.com/
 	License: GPL2
@@ -2078,6 +2078,8 @@ class MTNC
         $out .= '</tr>';
 
         $out .= '</table>';
+        
+        $out .= '<div class="upsell-footer">Need the plugin only for a <b>short period of time</b>? <a class="link-buy" target="_blank" data-href-org="https://wpmaintenancemode.com/buy/?product=personal-monthly&ref=pricing-table" href="https://wpmaintenancemode.com/buy/?product=personal-monthly&ref=pricing-table"><b>Get it for only $9.99</b><small> /month</small></a> &amp; cancel any time!</div>';
 
         $out .= '<div class="center footer"><b>100% No-Risk Money Back Guarantee!</b> If you don\'t like the plugin over the next 7 days, we will happily refund 100% of your money. No questions asked! Payments are processed by our merchant of records - <a href="https://paddle.com/" target="_blank">Paddle</a>.</div></div>';
 

@@ -1,4 +1,5 @@
 <?php
+// phpcs:disable WordPress.WP.I18n.TextDomainMismatch -- both free and premium versions have different plugin slugs but share the same text domain to ensure consistency and simplify translation management.
 if (!defined('ABSPATH')) die('No direct access.');
 /**
  * Easy Updates Manager Themes List Table class.
@@ -48,13 +49,13 @@ class MPSUM_Themes_List_Table extends MPSUM_List_Table {
 			if (!in_array($this->status, $this->allowed_statuses))
 				$this->status = 'all';
 
-			$this->page = isset($_REQUEST['paged']) ? sanitize_text_field(wp_unslash($_REQUEST['paged'])) : '1';
+			$this->page = isset($_REQUEST['paged']) ? max(1, absint($_REQUEST['paged'])) : '1';
 		} else {
 			$this->status = isset($args['view']) ? $args['view'] : 'all';
 			if (!in_array($this->status, $this->allowed_statuses))
 				$this->status = 'all';
 
-			$this->page = isset($args['paged']) ? $args['paged'] : 1;
+			$this->page = isset($_REQUEST['paged']) ? max(1, absint($_REQUEST['paged'])) : '1';
 		}
 
 		$this->is_site_themes = ('site-themes-network' == $this->screen->id) ? true : false;
@@ -258,8 +259,8 @@ class MPSUM_Themes_List_Table extends MPSUM_List_Table {
 	public function get_columns() {
 		return array(
 			'cb'          => '<input type="checkbox" />',
-			'name'        => __('Theme', 'stops-core-theme-and-plugin-updates'),
-			'description' => __('Description', 'stops-core-theme-and-plugin-updates'),
+			'name'        => esc_html__('Theme', 'stops-core-theme-and-plugin-updates'),
+			'description' => esc_html__('Description', 'stops-core-theme-and-plugin-updates'),
 		);
 	}
 
@@ -310,15 +311,15 @@ class MPSUM_Themes_List_Table extends MPSUM_List_Table {
 			if ('search' != $type) {
 				$theme_url = MPSUM_Admin::get_url();
 				$query_args = array(
-					'tab' => $this->tab,
-					'view' => $type
+					'tab' => rawurlencode($this->tab),
+					'view' => rawurlencode($type)
 				);
 
 				$status_links[$type] = sprintf("<a href='%s' data-view='%s' %s>%s</a>",
 					add_query_arg($query_args, $theme_url),
-					$this->status,
+					esc_attr($this->status),
 					($type == $this->status) ? ' class="current"' : '',
-					sprintf($text, number_format_i18n($count))
+					sprintf(wp_kses_post($text), esc_html(number_format_i18n($count)))
 				);
 			}
 		}
@@ -375,7 +376,7 @@ class MPSUM_Themes_List_Table extends MPSUM_List_Table {
 		* @param string   $this->status     Status of the theme.
 		*/
 		$checkbox_id = "checkbox_" . md5($theme->get('Name'));
-		$checkbox = "<input type='checkbox' name='checked[]' value='" . esc_attr($stylesheet) . "' id='" . $checkbox_id . "' /><label class='screen-reader-text' for='" . $checkbox_id . "' >" . __('Select', 'stops-core-theme-and-plugin-updates') . " " . $theme->display('Name') . "</label>";
+		$checkbox = "<input type='checkbox' name='checked[]' value='" . esc_attr($stylesheet) . "' id='" . $checkbox_id . "' /><label class='screen-reader-text' for='" . $checkbox_id . "' >" . esc_html__('Select', 'stops-core-theme-and-plugin-updates') . " " . $theme->display('Name') . "</label>";
 
 		$id = sanitize_html_class($theme->get_stylesheet());
 		$class = 'active';
@@ -490,14 +491,14 @@ class MPSUM_Themes_List_Table extends MPSUM_List_Table {
 
 					if ($theme->get('Version')) {
 						/* translators: %s: Theme version. */
-						$theme_meta[] = sprintf(__('Version %s', 'stops-core-theme-and-plugin-updates'), $theme->display('Version'));
+						$theme_meta[] = sprintf(esc_html__('Version %s', 'stops-core-theme-and-plugin-updates'), $theme->display('Version'));
 					}
 
 					/* translators: %s: Theme author. */
-					$theme_meta[] = sprintf(__('By %s', 'stops-core-theme-and-plugin-updates'), $theme->display('Author'));
+					$theme_meta[] = sprintf(esc_html__('By %s', 'stops-core-theme-and-plugin-updates'), $theme->display('Author'));
 
 					if ($theme->get('ThemeURI'))
-						$theme_meta[] = '<a href="' . $theme->display('ThemeURI') . '" title="' . esc_attr__('Visit theme homepage', 'stops-core-theme-and-plugin-updates') . '">' . __('Visit theme site', 'stops-core-theme-and-plugin-updates') . '</a>';
+						$theme_meta[] = '<a href="' . esc_url($theme->display('ThemeURI')) . '" title="' . esc_attr__('Visit theme homepage', 'stops-core-theme-and-plugin-updates') . '">' . esc_html__('Visit theme site', 'stops-core-theme-and-plugin-updates') . '</a>';
 
 					/**
 					 * Filter the array of row meta for each theme in the Multisite themes

@@ -1,4 +1,6 @@
 <?php
+// phpcs:disable WordPress.WP.I18n.TextDomainMismatch -- both free and premium versions have different plugin slugs but share the same text domain to ensure consistency and simplify translation management.
+if (!defined('ABSPATH')) die('No direct access.');
 /**
  * Controls the main (general) tab and handles the saving of its options.
  *
@@ -319,7 +321,7 @@ class MPSUM_Admin_Core {
 					}
 					?>
 					<input type="text" name="options[email_addresses]" value="<?php echo esc_attr($email_addresses); ?>" style="width: 50%" /><br />
-					<p class="description"><?php echo esc_html_e('e-mails can be comma separated', 'stops-core-theme-and-plugin-updates'); ?></p>
+					<p class="description"><?php esc_html_e('e-mails can be comma separated', 'stops-core-theme-and-plugin-updates'); ?></p>
 				</td>
 			</tr>
 		</table>
