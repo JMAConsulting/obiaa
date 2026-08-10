@@ -3636,6 +3636,18 @@ textarea.mtnc-form-input-lg {
   padding: 20px;
 }
 
+.mtnc-pro-dialog .upsell-footer {
+  text-align: center;
+  border: 3px solid #0387e6;
+  margin: -15px 0 10px 0;
+  padding: 10px;
+  background-color: #0387e61a;
+}
+
+.mtnc-pro-dialog .upsell-footer a {
+  color: #0387e6;
+}
+
 .mtnc-pro-dialog .logo span {
   display: block;
   font-size: 18px;
