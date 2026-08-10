@@ -1,4 +1,7 @@
-<?php if (!defined('ABSPATH')) die('No direct access.'); ?>
+<?php
+// phpcs:disable WordPress.WP.I18n.TextDomainMismatch -- both free and premium versions have different plugin slugs but share the same text domain to ensure consistency and simplify translation management.
+if (!defined('ABSPATH')) die('No direct access.');
+?>
 <div id="result"><?php
 $reset_options = get_site_option('easy_updates_manager_reset');
 // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- A nonce has already been checked by this point (in the AJAX handler) as part of the 'reset settings' action. It is not a form data.

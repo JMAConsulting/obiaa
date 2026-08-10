@@ -4,8 +4,8 @@ Tags: updates manager, easy updates manager, disable updates manager, disable up
 Requires at least: 5.1
 Requires PHP: 5.6
 Donate link: https://easyupdatesmanager.com
-Tested up to: 6.9
-Stable tag: 9.0.20
+Tested up to: 7.0
+Stable tag: 9.0.21
 License: GPLv2 or later
 
 Manage all your WordPress updates, including individual updates, automatic updates, logs, and loads more. This also works very well with WordPress Multisite.
@@ -125,6 +125,15 @@ Since third-party providers use custom update mechanisms, we cannot always guara
 For additional information and FAQs for Easy Updates Manager <a href="https://easyupdatesmanager.com">check out our website</a>.
 
 == Changelog ==
+
+= 9.0.21 - 2026-05-13 =
+
+* SECURITY: Fix a non-persistent reflected XSS vulnerability due to a missing validation and output escaping on the "paged" URL argument. This could allow an attacker, who persuaded you to click a personally-crafted link to your site's dashboard whilst you were logged in, to once run harmful JavaScript code. Thanks to Dmitrii Ignatyev for finding and responsibly disclosing this issue.
+* TWEAK: Improved the delay updates feature to record the timestamp of the first occurrence of available plugin, theme, or core updates early, when their associated transient option is updated.
+* TWEAK: Corrected improper usage of esc_html_e() when preceded by echo
+* TWEAK: Added missing direct file access protection check for 'ABSPATH' to prevent unauthorized access.
+* TWEAK: Get rid of the "implicitly marking parameter $logger as nullable is deprecated" deprecation warning
+* TWEAK: Suppress false positive WordPress.WP.I18n.TextDomainMismatch warning due to different plugin slugs in free and premium versions. 
 
 = 9.0.20 - 2025-12-08 =
 
@@ -444,4 +453,4 @@ For past changelogs, <a href="https://easyupdatesmanager.com/blog/">please visit
 
 == Upgrade Notice ==
 
-* 9.0.20: Various tweaks and fixes. Safe calls to serialization and unserialization functions; timely invocation of translation functions. See changelog for full details. A recommended update for all.
+* 9.0.21: This update addresses a security problem and improves how the first update time is recorded, aligning it with the delay updates feature. Various tweaks and fixes. A recommended update for all.

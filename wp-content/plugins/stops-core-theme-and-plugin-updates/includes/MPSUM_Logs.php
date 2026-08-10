@@ -1,4 +1,6 @@
 <?php
+// phpcs:disable WordPress.WP.I18n.TextDomainMismatch -- both free and premium versions have different plugin slugs but share the same text domain to ensure consistency and simplify translation management.
+if (!defined('ABSPATH')) die('No direct access.');
 /**
  * Easy Updates Manager log controller
  *
@@ -111,7 +113,7 @@ class MPSUM_Logs {
 		} catch (Exception $e) {
 			$stacktrace = serialize(array()); // if an exception still happens even after the call stack is already normalised then we won't provide stacktrace for a log entry
 		// @codingStandardsIgnoreLine
-		} catch (Error $e) {
+		} catch (Error $e) { //phpcs:ignore PHPCompatibility.Classes.NewClasses.errorFound -- This Error class will only get triggered during runtime but we don't explicitly throw this class in our code; so we only catch it when PHP throws it.
 			$stacktrace = serialize(array());
 		}
 		foreach ($this->log_messages as $type => $entities) {
@@ -273,7 +275,7 @@ class MPSUM_Logs {
 		} catch (Exception $e) {
 			$stacktrace = serialize(array()); // if an exception still happens even after the call stack is already normalised then we won't provide stacktrace for a log entry
 		// @codingStandardsIgnoreLine
-		} catch (Error $e) {
+		} catch (Error $e) { //phpcs:ignore PHPCompatibility.Classes.NewClasses.errorFound -- This Error class will only get triggered during runtime but we don't explicitly throw this class in our code; so we only catch it when PHP throws it.
 			$stacktrace = serialize(array());
 		}
 		$notes = '';
@@ -390,7 +392,7 @@ class MPSUM_Logs {
 		} catch (Exception $e) {
 			$stacktrace = serialize(array()); // if an exception still happens even after the call stack is already normalised then we won't provide stacktrace for a log entry
 		// @codingStandardsIgnoreLine
-		} catch (Error $e) {
+		} catch (Error $e) { //phpcs:ignore PHPCompatibility.Classes.NewClasses.errorFound -- This Error class will only get triggered during runtime but we don't explicitly throw this class in our code; so we only catch it when PHP throws it.
 			$stacktrace = serialize(array());
 		}
 		foreach ($update_results as $type => $results) {

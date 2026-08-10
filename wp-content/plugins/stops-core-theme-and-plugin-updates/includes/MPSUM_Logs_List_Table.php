@@ -1,4 +1,5 @@
 <?php
+// phpcs:disable WordPress.WP.I18n.TextDomainMismatch -- both free and premium versions have different plugin slugs but share the same text domain to ensure consistency and simplify translation management.
 if (!defined('ABSPATH')) die('No direct access.');
 /**
  * Easy Updates Manager Logs List Table class.
@@ -85,8 +86,10 @@ class MPSUM_Logs_List_Table extends MPSUM_List_Table {
 				$this->status = sanitize_text_field(wp_unslash($_REQUEST['status']));
 			}
 
-			$this->page = isset($_REQUEST['paged']) ? sanitize_text_field(wp_unslash($_REQUEST['paged'])) : '1';
-			$this->order = isset($_REQUEST['order']) ? sanitize_text_field(wp_unslash($_REQUEST['order'])) : 'DESC';
+			$this->page = isset($_REQUEST['paged']) ? max(1, absint($_REQUEST['paged'])) : '1';
+			if (isset($_REQUEST['order']) && in_array($_REQUEST['order'], array('ASC', 'DESC'))) {
+				$this->order = sanitize_text_field(wp_unslash($_REQUEST['order']));
+			}
 
 			if (isset($_REQUEST['view']) && 'search' == $_REQUEST['view']) {
 				$this->is_search = true;
@@ -879,7 +882,7 @@ class MPSUM_Logs_List_Table extends MPSUM_List_Table {
 		} else {
 			$page_links[] = sprintf("<a class='first-page' href='%s'><span class='screen-reader-text'>%s</span><span aria-hidden='true'>%s</span></a>",
 				esc_url(add_query_arg(array('tab' => $tab, 'view' => $view, 'term' => $term, 'paged' => 1), $current_url)),
-				__('First page'), // phpcs:ignore WordPress.WP.I18n.MissingArgDomain -- WordPress core handles the translation.
+				esc_html__('First page'), // phpcs:ignore WordPress.WP.I18n.MissingArgDomain -- WordPress core handles the translation.
 				'&laquo;'
 			);
 		}
@@ -889,7 +892,7 @@ class MPSUM_Logs_List_Table extends MPSUM_List_Table {
 		} else {
 			$page_links[] = sprintf("<a class='prev-page' href='%s'><span class='screen-reader-text'>%s</span><span aria-hidden='true'>%s</span></a>",
 				esc_url(add_query_arg(array('paged' => max(1, $current-1), 'tab' => $tab, 'view' => $view, 'term' => $term), $current_url)),
-				__('Previous page'), // phpcs:ignore WordPress.WP.I18n.MissingArgDomain -- WordPress core handles the translation.
+				esc_html__('Previous page'), // phpcs:ignore WordPress.WP.I18n.MissingArgDomain -- WordPress core handles the translation.
 				'&lsaquo;'
 			);
 		}
@@ -900,10 +903,10 @@ class MPSUM_Logs_List_Table extends MPSUM_List_Table {
 		} else {
 			$html_current_page = sprintf("%s<input class='current-page' id='current-page-selector' type='text' name='paged' value='%s' size='%d' aria-describedby='table-paging' data-tab='%s' data-view='%s' />",
 				'<label for="current-page-selector" class="screen-reader-text">' . __('Current Page') . '</label>', // phpcs:ignore WordPress.WP.I18n.MissingArgDomain -- WordPress core handles the translation.
-				$current,
-				strlen($total_pages),
-				$tab,
-				$view
+				esc_attr($current),
+				esc_attr(strlen($total_pages)),
+				esc_attr($tab),
+				esc_attr($view)
 			);
 		}
 		$html_total_pages = sprintf("<span class='total-pages'>%s</span>", number_format_i18n($total_pages));
@@ -919,7 +922,7 @@ class MPSUM_Logs_List_Table extends MPSUM_List_Table {
 		} else {
 			$page_links[] = sprintf("<a class='next-page' href='%s'><span class='screen-reader-text'>%s</span><span aria-hidden='true'>%s</span></a>",
 				esc_url(add_query_arg(array('paged' => min($total_pages, $current+1), 'tab' => $tab, 'view' => $view, 'term' => $term), $current_url)),
-				__('Next page'), // phpcs:ignore WordPress.WP.I18n.MissingArgDomain -- WordPress core handles the translation.
+				esc_html__('Next page'), // phpcs:ignore WordPress.WP.I18n.MissingArgDomain -- WordPress core handles the translation.
 				'&rsaquo;'
 			);
 		}
@@ -929,7 +932,7 @@ class MPSUM_Logs_List_Table extends MPSUM_List_Table {
 		} else {
 			$page_links[] = sprintf("<a class='last-page' href='%s'><span class='screen-reader-text'>%s</span><span aria-hidden='true'>%s</span></a>",
 				esc_url(add_query_arg(array('paged' => $total_pages, 'tab' => $tab, 'view' => $view, 'term' => $term), $current_url)),
-				__('Last page'), // phpcs:ignore WordPress.WP.I18n.MissingArgDomain -- WordPress core handles the translation.
+				esc_html__('Last page'), // phpcs:ignore WordPress.WP.I18n.MissingArgDomain -- WordPress core handles the translation.
 				'&raquo;'
 			);
 		}
@@ -938,14 +941,14 @@ class MPSUM_Logs_List_Table extends MPSUM_List_Table {
 		if (! empty($infinite_scroll)) {
 			$pagination_links_class = ' hide-if-js';
 		}
-		$output .= "\n<span class='$pagination_links_class'>" . join("\n", $page_links) . '</span>';
+		$output .= "\n<span class='".esc_attr($pagination_links_class)."'>" . join("\n", $page_links) . '</span>';
 
 		if ($total_pages) {
 			$page_class = $total_pages < 2 ? ' one-page' : '';
 		} else {
 			$page_class = ' no-pages';
 		}
-		$this->_pagination = "<div class='tablenav-pages{$page_class}'>$output</div>";
+		$this->_pagination = "<div class='".esc_attr("tablenav-pages$page_class")."'>$output</div>";
 
 		echo $this->_pagination;// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- needs to be presented in html
 	}

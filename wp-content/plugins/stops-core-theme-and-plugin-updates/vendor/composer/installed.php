@@ -3,7 +3,7 @@
         'name' => 'updraftplus/stops-core-theme-and-plugin-updates',
         'pretty_version' => 'dev-master',
         'version' => 'dev-master',
-        'reference' => 'f29aa5298f5401b5aea9b10e11fc3f0e749444ed',
+        'reference' => '7a410dc830a2d00905ecf8f6f3f841010b14e161',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -31,7 +31,7 @@
         'updraftplus/stops-core-theme-and-plugin-updates' => array(
             'pretty_version' => 'dev-master',
             'version' => 'dev-master',
-            'reference' => 'f29aa5298f5401b5aea9b10e11fc3f0e749444ed',
+            'reference' => '7a410dc830a2d00905ecf8f6f3f841010b14e161',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

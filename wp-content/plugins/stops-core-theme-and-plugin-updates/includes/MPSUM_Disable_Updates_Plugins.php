@@ -1,4 +1,5 @@
 <?php
+if (!defined('ABSPATH')) die('No direct access.');
 /**
  * Disables all WordPress plugin updates.
  *

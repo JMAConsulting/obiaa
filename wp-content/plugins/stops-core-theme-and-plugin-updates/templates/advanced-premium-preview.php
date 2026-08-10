@@ -1,4 +1,7 @@
-<?php if (!defined('ABSPATH')) die('No direct access.'); ?>
+<?php
+// phpcs:disable WordPress.WP.I18n.TextDomainMismatch -- both free and premium versions have different plugin slugs but share the same text domain to ensure consistency and simplify translation management.
+if (!defined('ABSPATH')) die('No direct access.');
+?>
 <div class="eum-advanced-settings-container advanced-premium-preview_<?php echo esc_attr($key); ?>">
 	<h3><?php echo esc_html($item['label']); ?></h3>
 

@@ -1,4 +1,5 @@
 <?php
+// phpcs:disable WordPress.WP.I18n.TextDomainMismatch -- both free and premium versions have different plugin slugs but share the same text domain to ensure consistency and simplify translation management.
 if (!defined('ABSPATH')) die('No direct access.');
 echo '<div class="eum-advanced-settings-container admin-bar">';
 printf('<h3>%s</h3>', esc_html__('Disable/enable the Easy Updates Manager admin bar menu', 'stops-core-theme-and-plugin-updates'));
