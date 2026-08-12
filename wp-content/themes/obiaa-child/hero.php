@@ -13,11 +13,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 $heroImg = get_theme_mod('obiaa_hero_image');
 $mobileHeroImg = get_theme_mod('obiaa_mobile_hero_image');
 $titleSuffix = get_theme_mod('obiaa_name_suffix');
-civicrm_initialize();
-$domain = civicrm_api3('Domain', 'get', [
-  'sequential' => 1,
-])['values'][0]['name'];
- ?>
+$domain = '';
+if (function_exists('civicrm_initialize')) {
+  civicrm_initialize();
+  $domain = civicrm_api3('Domain', 'get', [
+    'sequential' => 1,
+  ])['values'][0]['name'];
+}
+?>
 
 <div class="hero hero__main" style="
 background-image: url('<?php echo esc_attr($heroImg); ?>')">
