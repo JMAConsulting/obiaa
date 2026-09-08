@@ -1,5 +1,6 @@
 <?php
 // phpcs:disable WordPress.WP.I18n.TextDomainMismatch -- both free and premium versions have different plugin slugs but share the same text domain to ensure consistency and simplify translation management.
+// phpcs:disable WordPress.Security.NonceVerification.Recommended -- Verified in our AJAX handler.
 if (!defined('ABSPATH')) die('No direct access.');
 /**
  * Easy Updates Manager Logs List Table class.
@@ -57,7 +58,6 @@ class MPSUM_Logs_List_Table extends MPSUM_List_Table {
 			'ajax' => true
 		));
 
-		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- Verified in our AJAX handler.
 		if (isset($_REQUEST['action']) && ('eum_ajax' === $_REQUEST['action'] || 'eum_export_logs' === $_REQUEST['action'] || 'eum_export_csv' === $_REQUEST['action'] || 'eum_export_json' === $_REQUEST['action'])) {
 			$this->action_type = isset($_REQUEST['action_type']) ? sanitize_text_field(wp_unslash($_REQUEST['action_type'])) : 'all';
 
@@ -125,7 +125,6 @@ class MPSUM_Logs_List_Table extends MPSUM_List_Table {
 				$this->search_term = '';
 			}
 		}
-		// phpcs:enable WordPress.Security.NonceVerification.Recommended
 	}
 
 	/**
@@ -146,7 +145,6 @@ class MPSUM_Logs_List_Table extends MPSUM_List_Table {
 		}
 
 		// Show the last thousand records if exporting
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Verified in our AJAX handler.
 		if (isset($_REQUEST['action']) && ('eum_export_logs' === $_REQUEST['action'] || 'eum_export_csv' === $_REQUEST['action'] || 'eum_export_json' === $_REQUEST['action'])) {
 			$per_page = 1000;
 		}
@@ -780,7 +778,7 @@ class MPSUM_Logs_List_Table extends MPSUM_List_Table {
 		$views = ob_get_clean();
 
 		ob_start();
-		if (!empty($_REQUEST['no_placeholder'])) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Verified in our AJAX handler.
+		if (!empty($_REQUEST['no_placeholder'])) {
 			$this->display_rows();
 		} else {
 			$this->display_rows_or_placeholder();

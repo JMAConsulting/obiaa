@@ -2,8 +2,9 @@
 Contributors: freewebmentor
 Tags: disable, core update, plugin update, update notifications, hide Warnings
 Requires at least: 5.0
-Tested up to: 6.7
-Stable tag: 2.4.2
+Requires PHP: 7.4
+Tested up to: 7.1
+Stable tag: 2.4.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -48,6 +49,10 @@ Yes.
 2. screenshot-2.png
 
 == Changelog ==
+= 2.4.3 - 07/09/2026 =
+* Tested on WordPress 7.1
+
+
 = 2.4.2 - 13/03/2024 =
 * Add: Generic function and option names
 * Fix: Security and performance issues
