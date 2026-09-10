@@ -4,8 +4,8 @@ Tags: updates manager, easy updates manager, disable updates manager, disable up
 Requires at least: 5.1
 Requires PHP: 5.6
 Donate link: https://easyupdatesmanager.com
-Tested up to: 7.0
-Stable tag: 9.0.21
+Tested up to: 7.1
+Stable tag: 9.0.22
 License: GPLv2 or later
 
 Manage all your WordPress updates, including individual updates, automatic updates, logs, and loads more. This also works very well with WordPress Multisite.
@@ -125,6 +125,11 @@ Since third-party providers use custom update mechanisms, we cannot always guara
 For additional information and FAQs for Easy Updates Manager <a href="https://easyupdatesmanager.com">check out our website</a>.
 
 == Changelog ==
+
+= 9.0.22 - 2026-08-31 =
+
+* FIX: Delayed plugin updates now stay in the list when the WordPress updates cron runs outside the user's scheduled automatic-update time, ensuring updates remain scheduled based on their initial first-time occurrence.
+* TWEAK: Updated some affected code fragments to satisfy the WordPress.Security.NonceVerification.Recommended PHPCS rule.
 
 = 9.0.21 - 2026-05-13 =
 
@@ -453,4 +458,4 @@ For past changelogs, <a href="https://easyupdatesmanager.com/blog/">please visit
 
 == Upgrade Notice ==
 
-* 9.0.21: This update addresses a security problem and improves how the first update time is recorded, aligning it with the delay updates feature. Various tweaks and fixes. A recommended update for all.
+* 9.0.22: Various tweaks and fixes. A recommended update for all.

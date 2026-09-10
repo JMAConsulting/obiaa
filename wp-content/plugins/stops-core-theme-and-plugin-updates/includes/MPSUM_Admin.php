@@ -244,10 +244,8 @@ class MPSUM_Admin {
 	public function enqueue_scripts() {
 
 		// Get active page and active tab fore enqueuing
-		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- It gets the page and checks for the active tab.
-		$pagenow = isset($_GET['page']) ? sanitize_text_field(wp_unslash($_GET['page'])) : false;
-		$is_active_tab = isset($_GET['tab']) ? sanitize_text_field(wp_unslash($_GET['tab'])) : false;
-		// phpcs:enable WordPress.Security.NonceVerification.Recommended
+		$pagenow = isset($_GET['page']) ? sanitize_text_field(wp_unslash($_GET['page'])) : false; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- It gets the page and checks for the active tab.
+		$is_active_tab = isset($_GET['tab']) ? sanitize_text_field(wp_unslash($_GET['tab'])) : false; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- It gets the page and checks for the active tab.
 
 		// Check to make sure we're on the mpsum admin page
 		if ('mpsum-update-options' != $pagenow) {

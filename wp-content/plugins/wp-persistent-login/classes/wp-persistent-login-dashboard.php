@@ -20,8 +20,9 @@ class WP_Persistent_Login_Dashboard {
      * @return void
      */
     public function __construct() {
-        // Add AJAX hook for stopping user count
-        add_action( 'wp_ajax_wppl_stop_user_count', array( $this, 'ajax_stop_user_count' ) );
+        
+        // constructor code here if needed in the future
+
     }
 
     /**
@@ -122,8 +123,9 @@ class WP_Persistent_Login_Dashboard {
                 if( defined('DISABLE_WP_CRON') ) {
                     if( DISABLE_WP_CRON == true ) {
                         echo sprintf(
-                            '<p class="wppl-cron-check--warning">%s</p>', 
-                            __('Notice: WP Cron is disabled. The user count below will not work without it. Persistent Login will still function normally. Please enable WP Cron to view logged in user metrics.', 'wp-persistent-login' )
+                            '<p class="wppl-cron-check--warning notice notice-warning is-dismissible">%s %s</p>', 
+                            __('Notice: WP Cron is disabled. The user count below will not work without it. Persistent Login will still function normally. <br/>', 'wp-persistent-login' ),
+                            __('Please enable WP Cron to view logged in user metrics.', 'wp-persistent-login' )
                         );
                     }
                 }
@@ -169,19 +171,41 @@ class WP_Persistent_Login_Dashboard {
                 }
             ?>  
 
+            <div class="wppl-transient-messages-container" style="margin-block: 1rem;">
+                <?php
+                     // Check for any persistent_login_user_count_warning transient and display it
+                    $warning_message = get_transient('persistent_login_user_count_warning');
+                    if ( $warning_message ) {
+                        echo sprintf(
+                            '<div class="notice notice-warning is-dismissible"><p>%s</p></div>',
+                            esc_html( $warning_message )
+                        );
+                        // Delete the transient after displaying the message
+                        delete_transient('persistent_login_user_count_warning');
+                    }
+                ?>
+            </div>
+
             <div class="dashboard-main-content">
                 <div class="wppl-box-outline bg-light-green usage-breakdown">
                     <div class="usage-breakdown-header">
                         <h3><?php _e('Usage Breakdown', 'wp-persistent-login'); ?></h3>
-                        <?php if( $count->is_user_count_running() ) : ?>
-                            <div class="stop-count-container">
-                                <button id="wppl-stop-count-btn" class="button button-secondary" type="button">
+                            <div class="count-actions-container">
+                            <!-- <div class="start-count-container"> -->
+                                <button id="wppl-start-count-btn" class="button button-secondary" type="button">
+                                    <span class="dashicons dashicons-controls-play"></span>
+                                    <?php _e('Start Count', 'wp-persistent-login'); ?>
+                                </button>
+                                <span id="start-count-spinner" class="spinner" style="display: none; visibility: visible; float: none; margin-left: 10px;"></span>
+                            <!-- </div> -->
+                            <!-- <div class="stop-count-container"> -->
+                                <button id="wppl-stop-count-btn" class="button button-secondary" type="button" style="display: none;">
                                     <span class="dashicons dashicons-no"></span>
                                     <?php _e('Stop Count', 'wp-persistent-login'); ?>
                                 </button>
                                 <span id="stop-count-spinner" class="spinner" style="display: none; visibility: visible; float: none; margin-left: 10px;"></span>
+                            <!-- </div> -->
                             </div>
-                        <?php endif; ?>
                     </div>
                     
                     <div id="stop-count-messages" style="display: none; margin-top: 10px;"></div>
@@ -374,6 +398,145 @@ class WP_Persistent_Login_Dashboard {
 
             </div>
         </div>
+
+
+        <script>
+            
+            jQuery(document).ready(function($) {
+
+                var startCountButton = $('#wppl-start-count-btn');
+                var stopCountButton = $('#wppl-stop-count-btn');
+
+                if( checkIfUserCountIsRunning() ) {
+                    startCountButton.hide();
+                    stopCountButton.show();
+                } else {
+                    startCountButton.show();
+                    stopCountButton.hide();
+                }
+
+                // Handle Stop Count button click
+                $('#wppl-stop-count-btn').on('click', function(e) {
+                    e.preventDefault();
+                    
+                    var button = $(this);
+                    var spinner = $('#stop-count-spinner');
+                    var messageContainer = $('#stop-count-messages');
+                    
+                    // Confirm the action
+                    if (!confirm('<?php _e("Are you sure you want to stop the current user count? The count data will be saved.", "wp-persistent-login"); ?>')) {
+                        return;
+                    }
+                    
+                    // Disable button and show spinner
+                    button.prop('disabled', true);
+                    spinner.show();
+                    messageContainer.hide().empty();
+                    
+                    // Make AJAX request to stop the count
+                    $.ajax({
+                        url: ajaxurl,
+                        type: 'POST',
+                        data: {
+                            action: 'wppl_stop_user_count',
+                            nonce: '<?php echo wp_create_nonce('wppl_stop_user_count'); ?>'
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                messageContainer
+                                    .removeClass('notice-error')
+                                    .addClass('notice notice-success')
+                                    .html('<p>' + response.data.message + '</p>')
+                                    .show();
+                                
+                                // Reload the page after 2 seconds to show updated count
+                                setTimeout(function() {
+                                    location.reload();
+                                }, 1000);
+                            } else {
+                                messageContainer
+                                    .removeClass('notice-success')
+                                    .addClass('notice notice-error')
+                                    .html('<p>' + response.data.message + '</p>')
+                                    .show();
+                                button.prop('disabled', false);
+                            }
+                        },
+                        error: function(xhr, status, error) {
+
+                            messageContainer
+                                .removeClass('notice-success')
+                                .addClass('notice notice-error')
+                                .html('<p><?php _e("An error occurred while trying to stop the count. Please try again.", "wp-persistent-login"); ?></p>')
+                                .show();
+                            button.prop('disabled', false);
+                        },
+                        complete: function() {
+                            spinner.hide();
+                        }
+                    });
+                });
+
+
+                // Handle Start Count button click
+                $('#wppl-start-count-btn').on('click', function(e) {
+                    e.preventDefault();
+                    
+                    var button = $(this);
+                    var spinner = $('#start-count-spinner');
+                    var messageContainer = $('#stop-count-messages');
+                    
+                    // Disable button and show spinner
+                    button.prop('disabled', true);
+                    spinner.show();
+                    messageContainer.hide().empty();
+                    
+                    // Make AJAX request to start the count
+                    $.ajax({
+                        url: ajaxurl,
+                        type: 'POST',
+                        data: {
+                            action: 'wppl_start_user_count',
+                            nonce: '<?php echo wp_create_nonce('wppl_start_user_count'); ?>'
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                startUserCountPolling(); // Start polling for count updates
+                                messageContainer
+                                    .removeClass('notice-error')
+                                    .addClass('notice notice-success')
+                                    .html('<p>' + response.data.message + '</p>')
+                                    .show()
+                                    .delay(2000)
+                                    .hide();
+
+                                button.hide();
+                                stopCountButton.show();
+
+                            } else {
+                                messageContainer
+                                    .removeClass('notice-success')
+                                    .addClass('notice notice-error')
+                                    .html('<p>' + response.data.message + '</p>')
+                                    .show();
+                                button.prop('disabled', false);
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            messageContainer
+                                .removeClass('notice-success')
+                                .addClass('notice notice-error')
+                                .html('<p><?php _e("An error occurred while trying to start the count. Please try again.", "wp-persistent-login"); ?></p>')
+                                .show();
+                            button.prop('disabled', false);
+                        },
+                        complete: function() {
+                            spinner.hide();
+                        }
+                    });
+                });
+            });
+        </script>
         <?php
     }
 
@@ -943,67 +1106,6 @@ class WP_Persistent_Login_Dashboard {
                                 $('#empty-login-history-form').submit();
                             }
                         });
-
-                        // Handle Stop Count button click
-                        $('#wppl-stop-count-btn').on('click', function(e) {
-                            e.preventDefault();
-                            
-                            var button = $(this);
-                            var spinner = $('#stop-count-spinner');
-                            var messageContainer = $('#stop-count-messages');
-                            
-                            // Confirm the action
-                            if (!confirm('<?php _e("Are you sure you want to stop the current user count? The count data will be saved.", "wp-persistent-login"); ?>')) {
-                                return;
-                            }
-                            
-                            // Disable button and show spinner
-                            button.prop('disabled', true);
-                            spinner.show();
-                            messageContainer.hide().empty();
-                            
-                            // Make AJAX request to stop the count
-                            $.ajax({
-                                url: ajaxurl,
-                                type: 'POST',
-                                data: {
-                                    action: 'wppl_stop_user_count',
-                                    nonce: '<?php echo wp_create_nonce('wppl_stop_user_count'); ?>'
-                                },
-                                success: function(response) {
-                                    if (response.success) {
-                                        messageContainer
-                                            .removeClass('notice-error')
-                                            .addClass('notice notice-success')
-                                            .html('<p>' + response.data.message + '</p>')
-                                            .show();
-                                        
-                                        // Reload the page after 2 seconds to show updated count
-                                        setTimeout(function() {
-                                            location.reload();
-                                        }, 2000);
-                                    } else {
-                                        messageContainer
-                                            .removeClass('notice-success')
-                                            .addClass('notice notice-error')
-                                            .html('<p>' + response.data.message + '</p>')
-                                            .show();
-                                        button.prop('disabled', false);
-                                    }
-                                },
-                                error: function() {
-                                    messageContainer
-                                        .removeClass('notice-success')
-                                        .addClass('notice notice-error')
-                                        .html('<p><?php _e("An error occurred while trying to stop the count. Please try again.", "wp-persistent-login"); ?></p>')
-                                        .show();
-                                    button.prop('disabled', false);
-                                },
-                                complete: function() {
-                                    spinner.hide();
-                                }
-                            });
-                        });
                     });
                 </script>
             </div>
@@ -1011,48 +1113,4 @@ class WP_Persistent_Login_Dashboard {
         <?php
     }
 
-    /**
-     * AJAX handler to stop user count on demand
-     *
-     * @since 2.3.0
-     * @return void
-     */
-    public function ajax_stop_user_count() {
-        // Verify nonce for security
-        if ( ! wp_verify_nonce( $_POST['nonce'], 'wppl_stop_user_count' ) ) {
-            wp_send_json_error( array( 'message' => __( 'Security check failed', 'wp-persistent-login' ) ) );
-            return;
-        }
-
-        // Check user capabilities
-        if ( ! current_user_can( 'manage_options' ) ) {
-            wp_send_json_error( array( 'message' => __( 'You do not have sufficient permissions to perform this action.', 'wp-persistent-login' ) ) );
-            return;
-        }
-
-        try {
-            // Initialize the user count class
-            $count = new WP_Persistent_Login_User_Count();
-            
-            // Check if a count is actually running
-            if ( ! $count->is_user_count_running() ) {
-                wp_send_json_error( array( 
-                    'message' => __( 'No user count is currently running.', 'wp-persistent-login' )
-                ) );
-                return;
-            }
-            
-            // Stop the count and update the user count breakdown
-            $count->stop_count(true);
-
-            wp_send_json_success( array(
-                'message' => __( 'User count stopped successfully! The count data has been saved.', 'wp-persistent-login' )
-            ) );
-
-        } catch ( Exception $e ) {
-            wp_send_json_error( array( 
-                'message' => sprintf( __( 'Failed to stop user count: %s', 'wp-persistent-login' ), $e->getMessage() )
-            ) );
-        }
-    }
 }

@@ -4,10 +4,12 @@
  * Plugin URI: https://www.premtiwari.in/disable-wordpress-update-notifications/
  * Description: This plugin will disable WordPress core update notification, plugin update notification and theme update notifications and inline warnings in your admin panel.
  * Author: Prem Tiwari
- * Version: 2.4.2
+ * Version: 2.4.3
+ * Requires PHP: 7.4
  * Author URI: https://www.premtiwari.in/
  * License: GPLv2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
+ * Text Domain: disable-update-notifications
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -20,7 +22,9 @@ define( 'DWUN_PLUGIN_BASE', plugin_basename( __FILE__ ) );
 require_once( ABSPATH . 'wp-includes/pluggable.php' );
 
 function dwun_plugin_admin_style() {
-	if ( isset( $_GET['page'] ) && 'fm-dwns' === $_GET['page'] ) {
+	$page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : '';
+
+	if ( 'fm-dwns' === $page ) {
 		wp_enqueue_style( 'dwun-admin-style', plugins_url( "css/admin-style.css", __FILE__ ) );
 	}
 }
@@ -73,7 +77,7 @@ function dwun_plugin_settings() {
 						<tr class="mlw-box-left">
 							<th scope="row">
 								<span for="dpun">Plugin Update </span><br>
-								<small>Hide all plugins update notifications.</small>
+								<small>Select 'On' to hide all plugins update notifications.</small>
 							</th>
 							<td>
 								<div class="onoffswitch">
@@ -90,7 +94,7 @@ function dwun_plugin_settings() {
 						<tr class="mlw-box-left">
 							<th scope="row">
 								<span for="dwtu">Theme Update</span><br>
-								<small>Hide all themes update notifications.</small>
+								<small>Select 'On' to hide all themes update notifications.</small>
 							</th>
 							<td>
 								<div class="onoffswitch">
@@ -106,7 +110,7 @@ function dwun_plugin_settings() {
 						<tr class="mlw-box-left">
 							<th scope="row">
 								<span for="dwcun">WordPress Core Update</span><br>
-								<small>Hide WordPress core version update notifications.</small>
+								<small>Select 'On' to hide WordPress core version update notifications.</small>
 							</th>
 							<td>
 								<div class="onoffswitch">
@@ -123,7 +127,7 @@ function dwun_plugin_settings() {
 						<tr class="mlw-box-left">
 							<th scope="row">
 								<span for="den">Disable auto-update Email Notifications</span><br>
-								<small>Disable plugins & themes auto-update email notifications.</small>
+								<small>Select 'On' to disable plugins & themes auto-update email notifications.</small>
 							</th>
 							<td>
 								<div class="onoffswitch">
@@ -160,7 +164,7 @@ function dwun_plugin_settings() {
 					<p>
 						<strong>Do you want the plugin to improved and update?</strong>
 					</p>
-					<p>Help the author, leave a review on wordpress.org. Thanks to feedback, I will know that the plugin is really useful to you and is needed.</p>
+					<p>Help the author, leave a review on WordPress.org. Thanks to feedback, I will know that the plugin is really useful to you and is needed.</p>
 					<p><strong>Having Issues?</strong></p>
 					<div class="wbcr-clr-support-widget-body">
 						<p>
@@ -181,7 +185,7 @@ function dwun_plugin_settings() {
 
 // Add in admin side panel.
 function dwun_plugin_admin_menu() {
-	add_options_page( 'Disable Wordpress Notification Settings', 'Disable Notifications', 'manage_options', 'fm-dwns', 'dwun_plugin_settings' );
+	add_options_page( 'Disable WordPress Notification Settings', 'Disable Notifications', 'manage_options', 'fm-dwns', 'dwun_plugin_settings' );
 }
 
 add_action( 'admin_menu', 'dwun_plugin_admin_menu' );
@@ -189,19 +193,19 @@ add_action( 'admin_menu', 'dwun_plugin_admin_menu' );
 // Get option settings values.
 $settings_values = get_option( 'dwun_plugin_options' );
 
-// Disable the wordpress plugin update notifications.
+// Disable the WordPress plugin update notifications.
 if ( ! empty( $settings_values[ 'dpun_setting' ] ) ) {
 	remove_action( 'load-update-core.php', 'wp_update_plugins' );
 	add_filter( 'pre_site_transient_update_plugins', '__return_null' );
 }
 
-// Disable the wordpress theme update notifications.
+// Disable the WordPress theme update notifications.
 if ( ! empty( $settings_values[ 'dwtu_setting' ] ) ) {
 	remove_action( 'load-update-core.php', 'wp_update_themes' );
 	add_filter('pre_site_transient_update_themes','dwun_plugin_disable_theme_updates');
 }
 
-// Disable the wordpress core update notifications
+// Disable the WordPress core update notifications
 if ( ! empty( $settings_values[ 'dwcun_setting' ] ) ) {
 	add_action( 'after_setup_theme', 'dwun_plugin_disable_core_updates' );
 	function dwun_plugin_disable_core_updates() {
