@@ -1360,12 +1360,29 @@ class CiviCRM_Admin_Utilities_Single {
 			$prettify_menu = 1;
 		}
 
-		// Init admin CSS checkbox and Theme preview visibility.
-		$admin_css     = 0;
-		$theme_preview = '';
+		// Init Radstock variables.
+		$theme_radstock   = 0;
+		$radstock_preview = '';
 		if ( $this->setting_get( 'css_admin', '0' ) === '1' ) {
-			$admin_css     = 1;
-			$theme_preview = ' display: none;';
+			$theme_radstock   = 1;
+			$radstock_preview = ' display: none;';
+		}
+
+		// Init Wellow Brook variables.
+		$wellow_capable = false;
+		if ( $this->plugin->civicrm->theme->is_capable() ) {
+			$wellow_capable = true;
+			$theme_wellow   = 0;
+			if ( $this->plugin->civicrm->theme->wellowbrook_installed() ) {
+				$theme_wellow = 1;
+			}
+		}
+
+		// Check if RiverLea is enabled.
+		if ( empty( $this->plugin->civicrm->extension_is_enabled( 'riverlea' ) ) ) {
+			$riverlea_enabled = false;
+		} else {
+			$riverlea_enabled = true;
 		}
 
 		// Include template file.
@@ -1730,32 +1747,6 @@ class CiviCRM_Admin_Utilities_Single {
 			return;
 		}
 
-		// Bail if disabled.
-		if ( $this->setting_get( 'prettify_menu', '0' ) === '1' ) {
-
-			// Set default CSS file.
-			$css = 'civicrm-admin-utilities-menu.css';
-
-			// Use specific CSS file for KAM if active.
-			if ( $this->kam_is_active() ) {
-				if ( version_compare( $wp_version, '6.9.99999', '>' ) ) {
-					$css = 'civicrm-admin-utilities-kam-7-plus.css';
-				} else {
-					$css = 'civicrm-admin-utilities-kam.css';
-				}
-			}
-
-			// Add menu stylesheet.
-			wp_enqueue_style(
-				'civicrm_admin_utilities_admin_tweaks',
-				plugins_url( 'assets/css/' . $css, CIVICRM_ADMIN_UTILITIES_FILE ),
-				null,
-				CIVICRM_ADMIN_UTILITIES_VERSION, // Version.
-				'all' // Media.
-			);
-
-		}
-
 		// Use specific CSS file for Shoreditch if active.
 		if ( $this->shoreditch_is_active() ) {
 
@@ -2073,48 +2064,6 @@ class CiviCRM_Admin_Utilities_Single {
 
 		// --<
 		return $shoreditch;
-
-	}
-
-	/**
-	 * Determine if the Keyboard Accessible Menu Extension is being used.
-	 *
-	 * @since 0.4.3
-	 * @since 0.5.4 Moved from plugin class.
-	 *
-	 * @return bool True if KAM Extension is active, false otherwise.
-	 */
-	public function kam_is_active() {
-
-		// Kick out if no CiviCRM.
-		if ( ! $this->plugin->civicrm->is_initialised() ) {
-			return false;
-		}
-
-		// Get current version of CiviCRM.
-		$civicrm_version = CRM_Utils_System::version();
-
-		// Init parsed version.
-		$version = $civicrm_version;
-
-		// We only need the major and minor parts.
-		$version_tmp = explode( '.', $civicrm_version );
-		if ( isset( $version_tmp[1] ) ) {
-			$version = $version_tmp[0] . '.' . $version_tmp[1];
-		}
-
-		// KAM is included in core from 5.12 onwards.
-		if ( version_compare( $version, '5.12', '>=' ) ) {
-			return true;
-		}
-
-		// Kick out if no KAM function.
-		if ( ! function_exists( 'kam_civicrm_coreResourceList' ) ) {
-			return false;
-		}
-
-		// KAM must be present.
-		return true;
 
 	}
 
@@ -3241,6 +3190,8 @@ class CiviCRM_Admin_Utilities_Single {
 		$admin_bar_groups     = isset( $_POST[ $prefix . 'admin_bar_groups' ] ) ? (int) sanitize_text_field( wp_unslash( $_POST[ $prefix . 'admin_bar_groups' ] ) ) : 0;
 		$fix_api_timezone     = isset( $_POST[ $prefix . 'fix_api_timezone' ] ) ? (int) sanitize_text_field( wp_unslash( $_POST[ $prefix . 'fix_api_timezone' ] ) ) : 0;
 		$flush_cache          = isset( $_POST[ $prefix . 'cache' ] ) ? (int) sanitize_text_field( wp_unslash( $_POST[ $prefix . 'cache' ] ) ) : 0;
+		$wellow_enable        = isset( $_POST[ $prefix . 'wellow_enable' ] ) ? (int) sanitize_text_field( wp_unslash( $_POST[ $prefix . 'wellow_enable' ] ) ) : 0;
+		$wellow_disable       = isset( $_POST[ $prefix . 'wellow_disable' ] ) ? (int) sanitize_text_field( wp_unslash( $_POST[ $prefix . 'wellow_disable' ] ) ) : 0;
 
 		// Retrieve Post Types array.
 		$post_types = filter_input( INPUT_POST, $prefix . 'post_types', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY );
@@ -3393,7 +3344,7 @@ class CiviCRM_Admin_Utilities_Single {
 			// Sanitise array.
 			array_walk(
 				$post_types,
-				function( &$item ) {
+				function ( &$item ) {
 					$item = sanitize_text_field( wp_unslash( $item ) );
 				}
 			);
@@ -3418,7 +3369,7 @@ class CiviCRM_Admin_Utilities_Single {
 			// Sanitise array.
 			array_walk(
 				$afforms,
-				function( &$item ) {
+				function ( &$item ) {
 					$item = sanitize_text_field( wp_unslash( $item ) );
 				}
 			);
@@ -3428,6 +3379,32 @@ class CiviCRM_Admin_Utilities_Single {
 
 		} else {
 			$this->setting_set( 'afforms', [] );
+		}
+
+		// Flush cache if there's a change to the Wellow Brook theme.
+		if ( 1 === $wellow_enable || 1 === $wellow_disable ) {
+			$force = true;
+		}
+
+		// Did we ask to enable the Wellow Brook theme?
+		if ( 1 === $wellow_enable ) {
+
+			/**
+			 * Fires when the Wellow Brook theme has been enabled.
+			 *
+			 * @since 1.1.2
+			 */
+			do_action( 'cau/theme/wellow/enabled' );
+
+		} elseif ( 1 === $wellow_disable ) {
+
+			/**
+			 * Fires when the Wellow Brook theme has been disabled.
+			 *
+			 * @since 1.1.2
+			 */
+			do_action( 'cau/theme/wellow/disabled' );
+
 		}
 
 		// Save options.
