@@ -49,87 +49,87 @@ function _civicrm_api3_stripe_ListEvents_spec(&$spec) {
 function civicrm_api3_stripe_VerifyEventType($eventType) {
   // @fixme: Maybe we should just use our supported list from CRM_Stripe_Webhook::getDefaultEnabledEvents()?
   return in_array($eventType, [
-      'account.external_account.created',
-      'account.external_account.deleted',
-      'account.external_account.updated',
-      'application_fee.created',
-      'application_fee.refunded',
-      'application_fee.refund.updated',
-      'balance.available',
-      'bitcoin.receiver.created',
-      'bitcoin.receiver.filled',
-      'bitcoin.receiver.updated',
-      'bitcoin.receiver.transaction.created',
-      'charge.captured',
-      'charge.failed',
-      'charge.pending',
-      'charge.refunded',
-      'charge.succeeded',
-      'charge.updated',
-      'charge.dispute.closed',
-      'charge.dispute.created',
-      'charge.dispute.funds_reinstated',
-      'charge.dispute.funds_withdrawn',
-      'charge.dispute.updated',
-      'charge.refund.updated',
-      'checkout.session.completed',
-      'coupon.created',
-      'coupon.deleted',
-      'coupon.updated',
-      'customer.created',
-      'customer.deleted',
-      'customer.updated',
-      'customer.discount.created',
-      'customer.discount.deleted',
-      'customer.discount.updated',
-      'customer.source.created',
-      'customer.source.deleted',
-      'customer.source.updated',
-      'customer.subscription.created',
-      'customer.subscription.deleted',
-      'customer.subscription.trial_will_end',
-      'customer.subscription.updated',
-      'invoice.created',
-      'invoice.payment_failed',
-      'invoice.payment_succeeded',
-      'invoice.upcoming',
-      'invoice.updated',
-      'invoiceitem.created',
-      'invoiceitem.deleted',
-      'invoiceitem.updated',
-      'order.created',
-      'order.payment_failed',
-      'order.payment_succeeded',
-      'order.updated',
-      'order_return.created',
-      'payout.canceled',
-      'payout.created',
-      'payout.failed',
-      'payout.paid',
-      'payout.updated',
-      'plan.created',
-      'plan.deleted',
-      'plan.updated',
-      'product.created',
-      'product.deleted',
-      'product.updated',
-      'recipient.created',
-      'recipient.deleted',
-      'recipient.updated',
-      'review.closed',
-      'review.opened',
-      'sku.created',
-      'sku.deleted',
-      'sku.updated',
-      'source.canceled',
-      'source.chargeable',
-      'source.failed',
-      'source.transaction.created',
-      'transfer.created',
-      'transfer.reversed',
-      'transfer.updated',
-      'ping',
-    ]
+    'account.external_account.created',
+    'account.external_account.deleted',
+    'account.external_account.updated',
+    'application_fee.created',
+    'application_fee.refunded',
+    'application_fee.refund.updated',
+    'balance.available',
+    'bitcoin.receiver.created',
+    'bitcoin.receiver.filled',
+    'bitcoin.receiver.updated',
+    'bitcoin.receiver.transaction.created',
+    'charge.captured',
+    'charge.failed',
+    'charge.pending',
+    'charge.refunded',
+    'charge.succeeded',
+    'charge.updated',
+    'charge.dispute.closed',
+    'charge.dispute.created',
+    'charge.dispute.funds_reinstated',
+    'charge.dispute.funds_withdrawn',
+    'charge.dispute.updated',
+    'charge.refund.updated',
+    'checkout.session.completed',
+    'coupon.created',
+    'coupon.deleted',
+    'coupon.updated',
+    'customer.created',
+    'customer.deleted',
+    'customer.updated',
+    'customer.discount.created',
+    'customer.discount.deleted',
+    'customer.discount.updated',
+    'customer.source.created',
+    'customer.source.deleted',
+    'customer.source.updated',
+    'customer.subscription.created',
+    'customer.subscription.deleted',
+    'customer.subscription.trial_will_end',
+    'customer.subscription.updated',
+    'invoice.created',
+    'invoice.payment_failed',
+    'invoice.payment_succeeded',
+    'invoice.upcoming',
+    'invoice.updated',
+    'invoiceitem.created',
+    'invoiceitem.deleted',
+    'invoiceitem.updated',
+    'order.created',
+    'order.payment_failed',
+    'order.payment_succeeded',
+    'order.updated',
+    'order_return.created',
+    'payout.canceled',
+    'payout.created',
+    'payout.failed',
+    'payout.paid',
+    'payout.updated',
+    'plan.created',
+    'plan.deleted',
+    'plan.updated',
+    'product.created',
+    'product.deleted',
+    'product.updated',
+    'recipient.created',
+    'recipient.deleted',
+    'recipient.updated',
+    'review.closed',
+    'review.opened',
+    'sku.created',
+    'sku.deleted',
+    'sku.updated',
+    'source.canceled',
+    'source.chargeable',
+    'source.failed',
+    'source.transaction.created',
+    'transfer.created',
+    'transfer.reversed',
+    'transfer.updated',
+    'ping',
+  ]
   );
 }
 
@@ -150,13 +150,13 @@ function civicrm_api3_stripe_ProcessParams($params) {
   $filter_processed = 0;
   $subscription = NULL;
 
-  if (array_key_exists('created', $params) ) {
+  if (array_key_exists('created', $params)) {
     $created = $params['created'];
   }
-  if (array_key_exists('limit', $params) ) {
+  if (array_key_exists('limit', $params)) {
     $limit = $params['limit'];
   }
-  if (array_key_exists('starting_after', $params) ) {
+  if (array_key_exists('starting_after', $params)) {
     $starting_after = $params['starting_after'];
   }
 
@@ -181,15 +181,15 @@ function civicrm_api3_stripe_ProcessParams($params) {
   }
 
   if (array_key_exists('source', $params)) {
-    $allowed = [ 'stripe', 'systemlog' ];
+    $allowed = ['stripe', 'systemlog'];
     if (!in_array($params['source'], $allowed)) {
-      throw new CRM_Core_Exception(E::ts('Source can only be set to %1 or %2.', [ 1 => 'stripe', 2 => 'systemlog' ]), 1238);
+      throw new CRM_Core_Exception(E::ts('Source can only be set to %1 or %2.', [1 => 'stripe', 2 => 'systemlog']), 1238);
     }
     $source = $params['source'];
   }
 
   if (array_key_exists('filter_processed', $params)) {
-    $allowed = [ 0, 1 ];
+    $allowed = [0, 1];
     if (!in_array($params['filter_processed'], $allowed)) {
       throw new CRM_Core_Exception(E::ts('Filter processed can only be set to 0 or 1.'), 1239);
     }
@@ -242,7 +242,7 @@ function civicrm_api3_stripe_Listevents($params) {
   $subscription = $parsed['subscription'];
 
   // $data_list will contain all the values we will return to the user.
-  $data_list = [ 'data' => [] ];
+  $data_list = ['data' => []];
 
   // Search by a single Stripe subscription id.
   if ($subscription) {
@@ -254,13 +254,13 @@ function civicrm_api3_stripe_Listevents($params) {
       "%invoice.payment_succeeded%") ORDER BY timestamp DESC';
 
     $sql_params = [
-      0 => [ 'payment_notification processor_id=' . $params['ppid'], 'String'  ],
-      1 => [ '%' . $subscription . '%', 'String' ],
+      0 => ['payment_notification processor_id=' . $params['ppid'], 'String'],
+      1 => ['%' . $subscription . '%', 'String'],
     ];
 
     $dao = CRM_Core_DAO::executeQuery($sql, $sql_params);
     $seen_charges = [];
-    while($dao->fetch()) {
+    while ($dao->fetch()) {
       $data = json_decode($dao->context);
       if (in_array($data->data->object->charge, $seen_charges)) {
         // We might get more then one event for a single charge if the first attempt fails. We
@@ -280,7 +280,7 @@ function civicrm_api3_stripe_Listevents($params) {
     $processor = \Civi\Payment\System::singleton()->getById($params['ppid']);
     $invoices = $processor->stripeClient->invoices->all(['subscription' => $subscription]);
     $seen_invoices = [];
-    foreach($invoices['data'] as $invoice) {
+    foreach ($invoices['data'] as $invoice) {
       if ($invoice->charge) {
         // We get a lot of repeats - for example, one item for the creation of the subscription
         // and another for the initial charge. We only want one record per charge.
@@ -323,13 +323,13 @@ function civicrm_api3_stripe_Listevents($params) {
   else {
     $sql = 'SELECT id, context FROM civicrm_system_log WHERE message = %0 AND context LIKE %1 ORDER BY timestamp DESC';
     $sql_params = [
-      0 => [ 'payment_notification processor_id=' . $params['ppid'], 'String'  ],
-      1 => [ '%' . $type . '%', 'String' ],
+      0 => ['payment_notification processor_id=' . $params['ppid'], 'String'],
+      1 => ['%' . $type . '%', 'String'],
     ];
 
     $dao = CRM_Core_DAO::executeQuery($sql, $sql_params);
     $seen_charges = [];
-    while($dao->fetch()) {
+    while ($dao->fetch()) {
       $data = json_decode($dao->context);
       $charge = $data->data->object->charge;
       if ($charge && in_array($charge, $seen_charges)) {
@@ -349,7 +349,7 @@ function civicrm_api3_stripe_Listevents($params) {
   else {
     $out = [];
     $count = 0;
-    foreach($data_list['data'] as $data) {
+    foreach ($data_list['data'] as $data) {
       if ($count >= $limit) {
         break;
       }
@@ -376,7 +376,7 @@ function civicrm_api3_stripe_Listevents($params) {
         $subscription = $data->data->object->subscription;
         $total = $data->data->object->total;
       }
-      elseif($data->object == 'invoice') {
+      elseif ($data->object == 'invoice') {
         $invoice = $data->id;
         $charge = $data->charge;
         $customer = $data->customer;
@@ -402,7 +402,7 @@ function civicrm_api3_stripe_Listevents($params) {
 
       if ($customer) {
         // Check if the customer is in the stripe customer table.
-        $results = civicrm_api3('StripeCustomer', 'get', [ 'customer_id' => $customer]);
+        $results = civicrm_api3('StripeCustomer', 'get', ['customer_id' => $customer]);
         if ($results['count'] == 1) {
           $value = array_pop($results['values']);
           $item['contact_id'] = $value['contact_id'];
@@ -424,7 +424,7 @@ function civicrm_api3_stripe_Listevents($params) {
         // Check if charge is in the contributions table.
         $contribution = NULL;
         $results = \Civi\Api4\Contribution::get()
-          ->addClause('OR', [ 'trxn_id', 'LIKE', '%' . $item['charge'] . '%' ], [ 'trxn_id', 'LIKE', '%' . $item['invoice'] . '%' ])
+          ->addClause('OR', ['trxn_id', 'LIKE', '%' . $item['charge'] . '%'], ['trxn_id', 'LIKE', '%' . $item['invoice'] . '%'])
           ->setCheckPermissions(FALSE)
           ->execute();
         if ($results->rowCount > 0) {

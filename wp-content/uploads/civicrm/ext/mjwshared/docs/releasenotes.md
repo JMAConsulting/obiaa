@@ -9,6 +9,20 @@ Releases use the following numbering system:
 
 * **[BC]**: Items marked with [BC] indicate a breaking change that will require updates to your code if you are using that code in your extension.
 
+## Release 1.6.1 (2026-08-22)
+
+* [!80](https://lab.civicrm.org/extensions/mjwshared/-/merge_requests/80) Fixed a crash processing queued webhooks if a payment processor referenced by one could no longer be loaded (e.g. its extension had been removed) - that event is now skipped and logged instead of failing the whole batch.
+* [!81](https://lab.civicrm.org/extensions/mjwshared/-/merge_requests/81) Improved field descriptions on the PaymentprocessorWebhook entity and tidied up the interface documentation introduced in 1.6.0. No functional change.
+
+## Release 1.6.0 (2026-08-19)
+
+* [!77](https://lab.civicrm.org/extensions/mjwshared/-/merge_requests/77) Tidied up how payment processor webhooks are handled behind the scenes, introducing a proper `Civi\Mjwshared\PaymentProcessorWebhookInterface` so extensions like Stripe and AuthNet can rely on shared, consistent code instead of each doing their own thing. No action needed for normal use - existing sites keep working as before. See [docs/webhookqueue.md](https://lab.civicrm.org/extensions/mjwshared/-/blob/master/docs/webhookqueue.md) if you're implementing this in your own payment processor.
+* [!78](https://lab.civicrm.org/extensions/mjwshared/-/merge_requests/78) Fixed a display glitch: a duplicate webhook that gets rejected now correctly shows as fully processed in the Payment Processor Webhooks admin screen, instead of looking stuck.
+
+## Release 1.5.11 (2026-08-07)
+
+* Guard `refund_trxn_id` and `fee_amount` when refunding a manual / refund-unsupported payment (fixes an undefined-array-key warning on every such refund) plus a regression test.
+
 ## Release 1.5.10 (2026-08-01)
 
 * [!70](https://lab.civicrm.org/extensions/mjwshared/-/merge_requests/70) Add CRM.payment.roundMoney() helper matching PHP round(), with tests and docs.

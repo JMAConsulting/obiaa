@@ -14,7 +14,7 @@
  *
  * @group headless
  */
-require_once('TestBase.php');
+require_once 'TestBase.php';
 class CRM_Stripe_DirectTest extends CRM_Stripe_TestBase {
 
   public function setUp(): void {

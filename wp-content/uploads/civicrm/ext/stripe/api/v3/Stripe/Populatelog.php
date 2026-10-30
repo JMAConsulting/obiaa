@@ -10,6 +10,7 @@
  */
 
 use CRM_Stripe_ExtensionUtil as E;
+
 /**
  * Populate the CiviCRM civicrm_system_log with Stripe events.
  *
@@ -60,7 +61,7 @@ function civicrm_api3_stripe_Populatelog($params) {
   $listEventsParams['ppid'] = $params['ppid'];
   $items = [];
   $last_item = NULL;
-  while(1) {
+  while (1) {
     if ($last_item) {
       $listEventsParams['starting_after'] = $last_item['id'];
     }
@@ -79,14 +80,14 @@ function civicrm_api3_stripe_Populatelog($params) {
     }
   }
   $results = [];
-  foreach($items as $item) {
+  foreach ($items as $item) {
     $id = $item['id'];
     // Insert into System Log if it doesn't exist.
     $like_event_id = '%event_id=' . addslashes($id);
     $sql = "SELECT id FROM civicrm_system_log WHERE message LIKE '$like_event_id'";
-    $dao= CRM_Core_DAO::executeQuery($sql);
+    $dao = CRM_Core_DAO::executeQuery($sql);
     if ($dao->N == 0) {
-      $message = "payment_notification processor_id=${params['ppid']} event_id=${id}";
+      $message = "payment_notification processor_id={$params['ppid']} event_id={$id}";
       $contact_id = _civicrm_api3_stripe_cid_for_trxn($item['charge']);
       if ($contact_id) {
         $item['contact_id'] = $contact_id;
@@ -108,7 +109,7 @@ function civicrm_api3_stripe_Populatelog($params) {
 function _civicrm_api3_stripe_cid_for_trxn($trxn) {
   try {
     $params = ['trxn_id' => $trxn, 'return' => 'contact_id'];
-    $result = (int)civicrm_api3('Contribution', 'getvalue', $params);
+    $result = (int) civicrm_api3('Contribution', 'getvalue', $params);
     return $result;
   }
   catch (Exception $e) {

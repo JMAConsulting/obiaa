@@ -1,5 +1,6 @@
 <?php
 use CRM_Stripe_ExtensionUtil as E;
+
 return [
   'name' => 'StripePaymentintent',
   'table' => 'civicrm_stripe_paymentintent',

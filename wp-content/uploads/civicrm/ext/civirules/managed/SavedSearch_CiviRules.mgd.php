@@ -87,6 +87,9 @@ return [
               'label' => E::ts('Tags'),
               'sortable' => TRUE,
               'editable' => TRUE,
+              'colors' => [
+                ['field' => 'tag_id:color'],
+              ],
             ],
             [
               'type' => 'field',
@@ -153,6 +156,18 @@ return [
               'size' => 'btn-xs',
               'icon' => 'fa-bars',
               'links' => [
+                [
+                  'task' => 'copy',
+                  'entity' => 'CiviRulesRule',
+                  'join' => '',
+                  'target' => 'crm-popup',
+                  'icon' => 'fa-copy',
+                  'text' => E::ts('Clone'),
+                  'style' => 'default',
+                  'path' => '',
+                  'action' => '',
+                  'condition' => [],
+                ],
                 [
                   'task' => 'disable',
                   'entity' => 'CiviRulesRule',

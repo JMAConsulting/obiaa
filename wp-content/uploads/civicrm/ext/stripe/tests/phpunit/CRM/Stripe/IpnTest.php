@@ -32,7 +32,7 @@
  *
  * @group headless
  */
-require_once('TestBase.php');
+require_once 'TestBase.php';
 
 class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
 
@@ -47,10 +47,11 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
     $success = $this->simulateEvent([
       'type'             => 'charge.succeeded',
       'id'               => 'evt_mock',
-      'object'           => 'event', // ?
+    // ?
+      'object'           => 'event',
       'livemode'         => FALSE,
       'pending_webhooks' => 0,
-      'request'          => [ 'id' => NULL ],
+      'request'          => ['id' => NULL],
       'data'             => [
         'object' => [
           'id'           => 'ch_mock',
@@ -58,10 +59,10 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
           'customer'     => 'cus_mock',
           'charge'       => 'ch_mock',
           'created'      => time(),
-          'amount'       => $this->total*100,
+          'amount'       => $this->total * 100,
           'status'       => 'succeeded',
           "captured"     => FALSE,
-        ]
+        ],
       ],
     ]);
     $this->assertEquals(TRUE, $success, 'IPN did not return OK');
@@ -103,7 +104,7 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
       'fee_amount' => 11.90,
       'total_amount' => $this->total,
       'order_reference' => 'ch_mock',
-      'trxn_id' => 'ch_mock'
+      'trxn_id' => 'ch_mock',
     ],
       $this->contributionID
     );
@@ -111,10 +112,11 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
     $success = $this->simulateEvent([
       'type'             => 'charge.succeeded',
       'id'               => 'evt_mock',
-      'object'           => 'event', // ?
+    // ?
+      'object'           => 'event',
       'livemode'         => FALSE,
       'pending_webhooks' => 0,
-      'request'          => [ 'id' => NULL ],
+      'request'          => ['id' => NULL],
       'data'             => [
         'object' => [
           'id'           => 'ch_mock',
@@ -123,11 +125,11 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
           'charge'       => 'ch_mock',
           'balance_transaction' => 'txn_mock',
           'created'      => time(),
-          'amount'       => $this->total*100,
+          'amount'       => $this->total * 100,
           'currency'     => 'usd',
           'status'       => 'succeeded',
           "captured"     => TRUE,
-        ]
+        ],
       ],
     ]);
     $this->assertEquals(TRUE, $success, 'IPN did not return OK');
@@ -141,12 +143,12 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
 
     // Now we should have a value for available_on
     $this->checkFinancialTrxn([
-        'Payment_details.available_on' => $this->getDateinCurrentTimezone('2023-06-10 20:05:05'),
-        'fee_amount' => 11.90,
-        'total_amount' => $this->total,
-        'order_reference' => 'ch_mock',
-        'trxn_id' => 'ch_mock'
-      ],
+      'Payment_details.available_on' => $this->getDateinCurrentTimezone('2023-06-10 20:05:05'),
+      'fee_amount' => 11.90,
+      'total_amount' => $this->total,
+      'order_reference' => 'ch_mock',
+      'trxn_id' => 'ch_mock',
+    ],
       $this->contributionID
     );
   }
@@ -174,17 +176,18 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
     $this->checkContrib([
       'contribution_status_id' => 'Pending',
       'trxn_id'                => '',
-      'invoice_id'             => $contribution['invoice_id']
+      'invoice_id'             => $contribution['invoice_id'],
     ]);
 
     // Set the new contribution to have trxn_id=pi_mock
     $success = $this->simulateEvent([
       'type'             => 'checkout.session.completed',
       'id'               => 'evt_mock',
-      'object'           => 'event', // ?
+    // ?
+      'object'           => 'event',
       'livemode'         => FALSE,
       'pending_webhooks' => 0,
-      'request'          => [ 'id' => NULL ],
+      'request'          => ['id' => NULL],
       'data'             => [
         'object' => [
           'id'           => 'cs_mock',
@@ -192,7 +195,7 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
           'customer'     => 'cus_mock',
           'payment_intent' => 'pi_mock',
           'client_reference_id' => $contribution['invoice_id'],
-        ]
+        ],
       ],
     ]);
     $this->assertEquals(TRUE, $success, 'IPN did not return OK');
@@ -202,13 +205,25 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
       'trxn_id'                => 'pi_mock',
     ]);
 
+    // checkout.session.completed should have recorded/updated a
+    // civicrm_stripe_paymentintent row for this Checkout Session so
+    // that it can be found for troubleshooting.
+    $paymentintent = \Civi\Api4\StripePaymentintent::get(FALSE)
+      ->addWhere('identifier', '=', 'cs_mock')
+      ->execute()
+      ->single();
+    $this->assertEquals('pi_mock', $paymentintent['stripe_intent_id']);
+    $this->assertEquals($contribution['id'], $paymentintent['contribution_id']);
+    $this->assertEquals($this->paymentProcessorID, $paymentintent['payment_processor_id']);
+
     $success = $this->simulateEvent([
       'type'             => 'charge.succeeded',
       'id'               => 'evt_mock',
-      'object'           => 'event', // ?
+    // ?
+      'object'           => 'event',
       'livemode'         => FALSE,
       'pending_webhooks' => 0,
-      'request'          => [ 'id' => NULL ],
+      'request'          => ['id' => NULL],
       'data'             => [
         'object' => [
           'id'           => 'ch_mock',
@@ -217,11 +232,11 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
           'payment_intent' => 'pi_mock',
           'balance_transaction' => 'txn_mock',
           'created'      => time(),
-          'amount'       => $this->total*100,
+          'amount'       => $this->total * 100,
           'currency'     => 'usd',
           'status'       => 'succeeded',
           "captured"     => TRUE,
-        ]
+        ],
       ],
     ]);
     $this->assertEquals(TRUE, $success, 'IPN did not return OK');
@@ -230,7 +245,7 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
     $this->checkContrib([
       'contribution_status_id' => 'Completed',
       'trxn_id'                => 'pi_mock,ch_mock',
-      'fee_amount'             => 11.90
+      'fee_amount'             => 11.90,
     ]);
   }
 
@@ -259,17 +274,18 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
     $this->checkContrib([
       'contribution_status_id' => 'Pending',
       'trxn_id'                => '',
-      'invoice_id'             => $contribution['invoice_id']
+      'invoice_id'             => $contribution['invoice_id'],
     ]);
 
     // This will be ignored as it comes in before checkout.session.completed
     $success = $this->simulateEvent([
       'type'             => 'charge.succeeded',
       'id'               => 'evt_mock',
-      'object'           => 'event', // ?
+    // ?
+      'object'           => 'event',
       'livemode'         => FALSE,
       'pending_webhooks' => 0,
-      'request'          => [ 'id' => NULL ],
+      'request'          => ['id' => NULL],
       'data'             => [
         'object' => [
           'id'           => 'ch_mock',
@@ -278,11 +294,11 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
           'payment_intent' => 'pi_mock',
           'balance_transaction' => 'trx_mock',
           'created'      => time(),
-          'amount'       => $this->total*100,
+          'amount'       => $this->total * 100,
           'currency'     => 'usd',
           'status'       => 'succeeded',
           'captured'     => TRUE,
-        ]
+        ],
       ],
     ]);
     $this->assertEquals(TRUE, $success, 'IPN did not return OK');
@@ -308,10 +324,11 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
     $success = $this->simulateEvent([
       'type'             => 'checkout.session.completed',
       'id'               => 'evt_mock',
-      'object'           => 'event', // ?
+    // ?
+      'object'           => 'event',
       'livemode'         => FALSE,
       'pending_webhooks' => 0,
-      'request'          => [ 'id' => NULL ],
+      'request'          => ['id' => NULL],
       'data'             => [
         'object' => [
           'id'           => 'cs_mock',
@@ -319,7 +336,7 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
           'customer'     => 'cus_mock',
           'payment_intent' => 'pi_mock',
           'client_reference_id' => $contribution['invoice_id'],
-        ]
+        ],
       ],
     ]);
     $this->assertEquals(TRUE, $success, 'IPN did not return OK');
@@ -342,10 +359,11 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
     $success = $this->simulateEvent([
       'type'             => 'charge.succeeded',
       'id'               => 'evt_mock',
-      'object'           => 'event', // ?
+    // ?
+      'object'           => 'event',
       'livemode'         => FALSE,
       'pending_webhooks' => 0,
-      'request'          => [ 'id' => NULL ],
+      'request'          => ['id' => NULL],
       'data'             => [
         'object' => [
           'id'           => 'ch_mock',
@@ -354,11 +372,11 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
           'payment_intent' => 'pi_mock',
           'balance_transaction' => 'txn_mock',
           'created'      => time(),
-          'amount'       => $this->total*100,
+          'amount'       => $this->total * 100,
           'currency'     => 'usd',
           'status'       => 'succeeded',
           'captured'     => TRUE,
-        ]
+        ],
       ],
     ]);
     $this->assertEquals(TRUE, $success, 'IPN did not return OK');
@@ -367,8 +385,314 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
     $this->checkContrib([
       'contribution_status_id' => 'Completed',
       'trxn_id'                => 'pi_mock,ch_mock',
-      'fee_amount'             => 11.90
+      'fee_amount'             => 11.90,
     ]);
+  }
+
+  /**
+   * Stripe redelivers events, so the queue can hold more than one row for a
+   * single event_id. The dedup guard only ever processes the lowest id for an
+   * event - every other row is rejected as a duplicate.
+   *
+   * The catch-up must therefore re-queue that lowest-id row. If it re-queues a
+   * higher-id sibling instead, reprocessing rejects it and the catch-up is
+   * silently a no-op, which is the case this covers.
+   */
+  public function testCheckoutSessionCompletedRequeuesLowestIdRowForRedeliveredEvent() {
+    $this->setOrCreateStripeCheckoutPaymentProcessor();
+    $this->getMocksForOneOffPayment();
+    $contribution = $this->setupPendingContribution(['invoice_id' => md5(uniqid(mt_rand(), TRUE))]);
+
+    // Two deliveries of the same event. created_date is set explicitly so that
+    // "newest by created_date" and "lowest id" are deliberately different rows.
+    $firstDelivery = \Civi\Api4\PaymentprocessorWebhook::create(FALSE)
+      ->addValue('payment_processor_id', $this->paymentProcessorID)
+      ->addValue('event_id', 'ev_mock')
+      ->addValue('trigger', 'charge.succeeded')
+      ->addValue('status', 'success')
+      ->addValue('identifier', 'pi_mock::')
+      ->addValue('data', '')
+      ->addValue('created_date', '2026-01-01 10:00:00')
+      ->execute()
+      ->first();
+    $secondDelivery = \Civi\Api4\PaymentprocessorWebhook::create(FALSE)
+      ->addValue('payment_processor_id', $this->paymentProcessorID)
+      ->addValue('event_id', 'ev_mock')
+      ->addValue('trigger', 'charge.succeeded')
+      ->addValue('status', 'success')
+      ->addValue('identifier', 'pi_mock::')
+      ->addValue('data', '')
+      ->addValue('created_date', '2026-01-01 10:05:00')
+      ->execute()
+      ->first();
+    $this->assertGreaterThan($firstDelivery['id'], $secondDelivery['id']);
+
+    $success = $this->simulateEvent([
+      'type'             => 'checkout.session.completed',
+      'id'               => 'evt_mock',
+      'object'           => 'event',
+      'livemode'         => FALSE,
+      'pending_webhooks' => 0,
+      'request'          => ['id' => NULL],
+      'data'             => [
+        'object' => [
+          'id'                  => 'cs_mock',
+          'object'              => 'checkout.session',
+          'customer'            => 'cus_mock',
+          'payment_intent'      => 'pi_mock',
+          'client_reference_id' => $contribution['invoice_id'],
+        ],
+      ],
+    ]);
+    $this->assertEquals(TRUE, $success, 'IPN did not return OK');
+
+    $requeued = \Civi\Api4\PaymentprocessorWebhook::get(FALSE)
+      ->addSelect('id')
+      ->addWhere('event_id', '=', 'ev_mock')
+      ->addWhere('status', '=', 'new')
+      ->execute();
+
+    $this->assertCount(1, $requeued, 'Exactly one row should be re-queued');
+    $this->assertEquals(
+      $firstDelivery['id'],
+      $requeued->first()['id'],
+      'The lowest-id row must be re-queued - any other is rejected as a duplicate'
+    );
+  }
+
+  /**
+   * A retried checkout on the same Contribution overwrites trxn_id (set by
+   * checkout.session.completed) before the first attempt's delayed
+   * charge.succeeded webhook gets reprocessed. findContribution() must still
+   * resolve the first attempt's Contribution via its own civicrm_stripe_paymentintent
+   * tracking row (keyed by that attempt's own payment_intent id, never touched
+   * by the second attempt), not just the now-stale trxn_id.
+   */
+  public function testChargeSucceededFindsContributionAfterRetryOverwritesTrxnId() {
+    $this->setOrCreateStripeCheckoutPaymentProcessor();
+    $this->getMocksForOneOffPayment();
+    $contribution = $this->setupPendingContribution(['invoice_id' => md5(uniqid(mt_rand(), TRUE))]);
+
+    // Attempt 1: first Checkout Session completes, sets trxn_id=pi_mock_a
+    $success = $this->simulateEvent([
+      'type'             => 'checkout.session.completed',
+      'id'               => 'evt_mock',
+      'object'           => 'event',
+      'livemode'         => FALSE,
+      'pending_webhooks' => 0,
+      'request'          => ['id' => NULL],
+      'data'             => [
+        'object' => [
+          'id'           => 'cs_mock_a',
+          'object'       => 'checkout.session',
+          'customer'     => 'cus_mock',
+          'payment_intent' => 'pi_mock_a',
+          'client_reference_id' => $contribution['invoice_id'],
+        ],
+      ],
+    ]);
+    $this->assertEquals(TRUE, $success, 'IPN did not return OK');
+    $this->checkContrib(['trxn_id' => 'pi_mock_a']);
+
+    // Attempt 2 (retry): a second Checkout Session for the same Contribution
+    // completes and overwrites trxn_id, before attempt 1's charge.succeeded
+    // has been (re)processed.
+    $success = $this->simulateEvent([
+      'type'             => 'checkout.session.completed',
+      'id'               => 'evt_mock',
+      'object'           => 'event',
+      'livemode'         => FALSE,
+      'pending_webhooks' => 0,
+      'request'          => ['id' => NULL],
+      'data'             => [
+        'object' => [
+          'id'           => 'cs_mock_b',
+          'object'       => 'checkout.session',
+          'customer'     => 'cus_mock',
+          'payment_intent' => 'pi_mock_b',
+          'client_reference_id' => $contribution['invoice_id'],
+        ],
+      ],
+    ]);
+    $this->assertEquals(TRUE, $success, 'IPN did not return OK');
+    $this->checkContrib(['trxn_id' => 'pi_mock_b']);
+
+    // Attempt 1's charge.succeeded now arrives - trxn_id no longer points at
+    // pi_mock_a, but the Contribution must still be found (via the
+    // civicrm_stripe_paymentintent row created for cs_mock_a) and completed.
+    $success = $this->simulateEvent([
+      'type'             => 'charge.succeeded',
+      'id'               => 'evt_mock',
+      'object'           => 'event',
+      'livemode'         => FALSE,
+      'pending_webhooks' => 0,
+      'request'          => ['id' => NULL],
+      'data'             => [
+        'object' => [
+          'id'           => 'ch_mock_a',
+          'object'       => 'charge',
+          'customer'     => 'cus_mock',
+          'payment_intent' => 'pi_mock_a',
+          'balance_transaction' => 'txn_mock',
+          'created'      => time(),
+          'amount'       => $this->total * 100,
+          'currency'     => 'usd',
+          'status'       => 'succeeded',
+          'captured'     => TRUE,
+        ],
+      ],
+    ]);
+    $this->assertEquals(TRUE, $success, 'IPN did not return OK');
+
+    $this->checkContrib([
+      'contribution_status_id' => 'Completed',
+      'trxn_id'                => 'pi_mock_b,ch_mock_a',
+      'fee_amount'             => 11.90,
+    ]);
+  }
+
+  /**
+   * If a retried Checkout Session's earlier attempt succeeded at Stripe but
+   * its charge.succeeded webhook is only (re)processed after a later attempt
+   * has already completed the Contribution, that's still a genuine second
+   * payment - it must be recorded, not silently dropped.
+   */
+  public function testChargeSucceededRecordsAdditionalPaymentWhenContributionAlreadyCompleted() {
+    $this->setOrCreateStripeCheckoutPaymentProcessor();
+    $this->getMocksForOneOffPayment();
+    $contribution = $this->setupPendingContribution(['invoice_id' => md5(uniqid(mt_rand(), TRUE))]);
+
+    // Attempt 1: first Checkout Session completes, sets trxn_id=pi_mock_a
+    $success = $this->simulateEvent([
+      'type'             => 'checkout.session.completed',
+      'id'               => 'evt_mock',
+      'object'           => 'event',
+      'livemode'         => FALSE,
+      'pending_webhooks' => 0,
+      'request'          => ['id' => NULL],
+      'data'             => [
+        'object' => [
+          'id'           => 'cs_mock_a',
+          'object'       => 'checkout.session',
+          'customer'     => 'cus_mock',
+          'payment_intent' => 'pi_mock_a',
+          'client_reference_id' => $contribution['invoice_id'],
+        ],
+      ],
+    ]);
+    $this->assertEquals(TRUE, $success, 'IPN did not return OK');
+
+    // Attempt 2 (retry): a second Checkout Session for the same Contribution
+    // completes and overwrites trxn_id.
+    $success = $this->simulateEvent([
+      'type'             => 'checkout.session.completed',
+      'id'               => 'evt_mock',
+      'object'           => 'event',
+      'livemode'         => FALSE,
+      'pending_webhooks' => 0,
+      'request'          => ['id' => NULL],
+      'data'             => [
+        'object' => [
+          'id'           => 'cs_mock_b',
+          'object'       => 'checkout.session',
+          'customer'     => 'cus_mock',
+          'payment_intent' => 'pi_mock_b',
+          'client_reference_id' => $contribution['invoice_id'],
+        ],
+      ],
+    ]);
+    $this->assertEquals(TRUE, $success, 'IPN did not return OK');
+
+    // Attempt 2's own charge.succeeded arrives and completes the Contribution.
+    $success = $this->simulateEvent([
+      'type'             => 'charge.succeeded',
+      'id'               => 'evt_mock',
+      'object'           => 'event',
+      'livemode'         => FALSE,
+      'pending_webhooks' => 0,
+      'request'          => ['id' => NULL],
+      'data'             => [
+        'object' => [
+          'id'           => 'ch_mock_b',
+          'object'       => 'charge',
+          'customer'     => 'cus_mock',
+          'payment_intent' => 'pi_mock_b',
+          'balance_transaction' => 'txn_mock',
+          'created'      => time(),
+          'amount'       => $this->total * 100,
+          'currency'     => 'usd',
+          'status'       => 'succeeded',
+          'captured'     => TRUE,
+        ],
+      ],
+    ]);
+    $this->assertEquals(TRUE, $success, 'IPN did not return OK');
+    $this->checkContrib([
+      'contribution_status_id' => 'Completed',
+      'total_amount'           => $this->total,
+    ]);
+    $this->assertPaidAmount($this->total);
+
+    // Attempt 1's charge.succeeded now (finally) arrives - the Contribution
+    // it resolves to (via the civicrm_stripe_paymentintent row for cs_mock_a)
+    // is already Completed by attempt 2's payment, but this is still a
+    // genuinely separate successful charge and must be recorded, not dropped.
+    $success = $this->simulateEvent([
+      'type'             => 'charge.succeeded',
+      'id'               => 'evt_mock',
+      'object'           => 'event',
+      'livemode'         => FALSE,
+      'pending_webhooks' => 0,
+      'request'          => ['id' => NULL],
+      'data'             => [
+        'object' => [
+          'id'           => 'ch_mock_a',
+          'object'       => 'charge',
+          'customer'     => 'cus_mock',
+          'payment_intent' => 'pi_mock_a',
+          'balance_transaction' => 'txn_mock',
+          'created'      => time(),
+          'amount'       => $this->total * 100,
+          'currency'     => 'usd',
+          'status'       => 'succeeded',
+          'captured'     => TRUE,
+        ],
+      ],
+    ]);
+    $this->assertEquals(TRUE, $success, 'IPN did not return OK');
+
+    // Contribution stays Completed, but now has both payments recorded.
+    $this->checkContrib([
+      'contribution_status_id' => 'Completed',
+      'total_amount'           => $this->total,
+    ]);
+    $this->assertPaidAmount($this->total * 2);
+
+    $paymentCount = \Civi\Api4\FinancialTrxn::get(FALSE)
+      ->addWhere('trxn_id', 'IN', ['ch_mock_a', 'ch_mock_b'])
+      ->addWhere('is_payment', '=', TRUE)
+      ->execute()
+      ->count();
+    $this->assertEquals(2, $paymentCount, 'Expected both charges to be recorded as separate Payments');
+
+    // Balance transaction detail (a Payment_details custom field) must have
+    // made it onto the additional payment too, not just the core columns.
+    $additionalFinancialTrxn = \Civi\Api4\FinancialTrxn::get(FALSE)
+      ->addSelect('custom.*')
+      ->addWhere('trxn_id', '=', 'ch_mock_a')
+      ->addWhere('is_payment', '=', TRUE)
+      ->execute()
+      ->first();
+    $this->assertEquals($this->getDateinCurrentTimezone('2023-06-10 20:05:05'), $additionalFinancialTrxn['Payment_details.available_on']);
+  }
+
+  private function assertPaidAmount(float $expected): void {
+    $paidAmount = \Civi\Api4\Contribution::get(FALSE)
+      ->addSelect('paid_amount')
+      ->addWhere('id', '=', $this->contributionID)
+      ->execute()
+      ->first()['paid_amount'];
+    $this->assertEquals($expected, $paidAmount);
   }
 
   /**
@@ -380,10 +704,11 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
     $success = $this->simulateEvent([
       'type'             => 'charge.captured',
       'id'               => 'evt_mock',
-      'object'           => 'event', // ?
+    // ?
+      'object'           => 'event',
       'livemode'         => FALSE,
       'pending_webhooks' => 0,
-      'request'          => [ 'id' => NULL ],
+      'request'          => ['id' => NULL],
       'data'             => [
         'object' => [
           'id'           => 'ch_mock',
@@ -392,11 +717,11 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
           'charge'       => 'ch_mock',
           'balance_transaction' => 'txn_mock',
           'created'      => time(),
-          'amount'       => $this->total*100,
+          'amount'       => $this->total * 100,
           'currency'     => 'usd',
           'status'       => 'succeeded',
           'captured'     => TRUE,
-        ]
+        ],
       ],
     ]);
     $this->assertEquals(TRUE, $success, 'IPN did not return OK');
@@ -405,7 +730,7 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
     $this->checkContrib([
       'contribution_status_id' => 'Completed',
       'trxn_id'                => 'ch_mock',
-      'fee_amount'             => 11.90
+      'fee_amount'             => 11.90,
     ]);
 
     // Check we set some values on the FinancialTrxn (payment)
@@ -414,7 +739,7 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
       'fee_amount' => 11.90,
       'total_amount' => $this->total,
       'order_reference' => 'ch_mock',
-      'trxn_id' => 'ch_mock'
+      'trxn_id' => 'ch_mock',
     ],
       $this->contributionID
     );
@@ -440,10 +765,11 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
     $success = $this->simulateEvent([
       'type'             => 'charge.refunded',
       'id'               => 'evt_mock',
-      'object'           => 'event', // ?
+    // ?
+      'object'           => 'event',
       'livemode'         => FALSE,
       'pending_webhooks' => 0,
-      'request'          => [ 'id' => NULL ],
+      'request'          => ['id' => NULL],
       'data'             => [
         'object' => [
           'id'              => 'ch_mock',
@@ -451,10 +777,10 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
           'customer'        => 'cus_mock',
           'charge'          => 'ch_mock',
           'created'         => time(),
-          'amount_refunded' => $this->total*100,
+          'amount_refunded' => $this->total * 100,
           'status'          => 'succeeded',
           "captured"        => TRUE,
-        ]
+        ],
       ],
     ]);
     $this->assertEquals(TRUE, $success, 'IPN did not return OK');
@@ -485,17 +811,18 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
     $this->checkContrib([
       'contribution_status_id' => 'Pending',
       'trxn_id'                => '',
-      'invoice_id'             => $contribution['invoice_id']
+      'invoice_id'             => $contribution['invoice_id'],
     ]);
 
     // Set the new contribution to have trxn_id=pi_mock
     $success = $this->simulateEvent([
       'type'             => 'checkout.session.completed',
       'id'               => 'evt_mock',
-      'object'           => 'event', // ?
+    // ?
+      'object'           => 'event',
       'livemode'         => FALSE,
       'pending_webhooks' => 0,
-      'request'          => [ 'id' => NULL ],
+      'request'          => ['id' => NULL],
       'data'             => [
         'object' => [
           'id'           => 'cs_mock',
@@ -503,7 +830,7 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
           'customer'     => 'cus_mock',
           'payment_intent' => 'pi_mock',
           'client_reference_id' => $contribution['invoice_id'],
-        ]
+        ],
       ],
     ]);
     $this->assertEquals(TRUE, $success, 'IPN did not return OK');
@@ -519,20 +846,20 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
       'object'           => 'event',
       'livemode'         => FALSE,
       'pending_webhooks' => 0,
-      'request'          => [ 'id' => NULL ],
+      'request'          => ['id' => NULL],
       'data'             => [
         'object' => [
           'id'                  => 'ch_mock',
           'object'              => 'charge',
-          'amount'              => $this->total*100,
-          'amount_captured'     => $this->total*100,
+          'amount'              => $this->total * 100,
+          'amount_captured'     => $this->total * 100,
           'captured'            => TRUE,
           'balance_transaction' => 'txn_mock',
           'customer'            => 'cus_mock',
           'payment_intent'      => 'pi_mock',
           'created'             => time(),
           'failure_message'     => 'Mocked failure',
-        ]
+        ],
       ],
     ]);
     $this->assertEquals(TRUE, $success, 'IPN did not return OK');
@@ -549,6 +876,143 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
   }
 
   /**
+   * Test that starting a FormBuilder Stripe Embedded Checkout session
+   * records a civicrm_stripe_paymentintent row (keyed by the Checkout
+   * Session id, since we don't have a stripe_intent_id for subscriptions
+   * until the first invoice is paid).
+   */
+  public function testEmbeddedCheckoutStartRecordsPaymentintent() {
+    $this->setOrCreateStripePaymentProcessor();
+    $this->getMocksForOneOffPayment();
+    $this->getMocksForCheckoutSession(['status' => 'open', 'payment_intent' => 'pi_mock']);
+    $contribution = $this->setupPendingContribution(['invoice_id' => md5(uniqid(mt_rand(), TRUE))]);
+
+    $checkoutOption = new \Civi\Stripe\CheckoutOption\StripeEmbeddedCheckout([], $this->paymentProcessor);
+    $session = new \Civi\Checkout\CheckoutSession($contribution['id'], 'stripe_embedded_checkout');
+    $checkoutOption->startCheckout($session);
+
+    $paymentintent = \Civi\Api4\StripePaymentintent::get(FALSE)
+      ->addWhere('identifier', '=', 'cs_mock')
+      ->execute()
+      ->single();
+    $this->assertEquals('pi_mock', $paymentintent['stripe_intent_id']);
+    $this->assertEquals($contribution['id'], $paymentintent['contribution_id']);
+    $this->assertEquals($this->paymentProcessorID, $paymentintent['payment_processor_id']);
+    $this->assertEquals('open', $paymentintent['status']);
+  }
+
+  /**
+   * Test that returning from a FormBuilder Stripe Embedded Checkout session
+   * (continueCheckout) updates the same civicrm_stripe_paymentintent row
+   * created when the session was started, rather than creating a duplicate.
+   */
+  public function testEmbeddedCheckoutContinueUpdatesPaymentintent() {
+    $this->setOrCreateStripePaymentProcessor();
+    $this->getMocksForOneOffPayment();
+    $this->getMocksForCheckoutSession(['status' => 'open', 'payment_intent' => 'pi_mock']);
+    $contribution = $this->setupPendingContribution(['invoice_id' => md5(uniqid(mt_rand(), TRUE))]);
+
+    $checkoutOption = new \Civi\Stripe\CheckoutOption\StripeEmbeddedCheckout([], $this->paymentProcessor);
+    $session = new \Civi\Checkout\CheckoutSession($contribution['id'], 'stripe_embedded_checkout');
+    $checkoutOption->startCheckout($session);
+
+    // Simulate the browser returning to continueCheckout() once Stripe
+    // shows the session as complete.
+    $this->getMocksForCheckoutSession(['status' => 'complete', 'payment_status' => 'paid', 'payment_intent' => 'pi_mock']);
+    $_REQUEST['session_id'] = 'cs_mock';
+    $checkoutOption->continueCheckout($session);
+    unset($_REQUEST['session_id']);
+
+    $paymentintents = \Civi\Api4\StripePaymentintent::get(FALSE)
+      ->addWhere('identifier', '=', 'cs_mock')
+      ->execute();
+    $this->assertCount(1, $paymentintents, 'continueCheckout() should update the existing row, not create a duplicate');
+    $this->assertEquals('complete', $paymentintents->single()['status']);
+  }
+
+  /**
+   * Stripe's own post-payment redirect for Embedded Checkout is opaque
+   * client-side and has no fallback if it silently fails to fire (eg. a
+   * backgrounded/suspended tab) for payment methods that don't need a
+   * redirect (eg. cards). We handle those ourselves via
+   * stripeEmbeddedCheckout.component.js's onComplete handler instead, so
+   * starting a session must ask for "if_required" rather than the default
+   * "always" - and, unlike "never", still pass return_url, since Stripe
+   * still needs it for payment methods that genuinely require a redirect
+   * (eg. Bancontact/iDEAL).
+   */
+  public function testEmbeddedCheckoutStartUsesIfRequiredRedirect() {
+    $this->setOrCreateStripePaymentProcessor();
+    $this->getMocksForOneOffPayment();
+    $mockCheckoutSession = \Stripe\Checkout\Session::constructFrom([
+      'id' => 'cs_mock',
+      'object' => 'checkout.session',
+      'customer' => 'cus_mock',
+      'payment_intent' => 'pi_mock',
+      'status' => 'open',
+      'payment_status' => 'unpaid',
+      'client_secret' => 'cs_mock_secret',
+      'url' => 'https://checkout.stripe.com/c/pay/cs_mock',
+    ]);
+    $stripeClient = $this->paymentObject->stripeClient;
+    $stripeClient->checkout = new stdClass();
+    $stripeClient->checkout->sessions = $this->createMock('Stripe\\Service\\Checkout\\SessionService');
+    $stripeClient->checkout->sessions
+      ->method('create')
+      ->with($this->callback(fn($params) => ($params['redirect_on_completion'] ?? NULL) === 'if_required'
+        && !empty($params['return_url'])))
+      ->willReturn($mockCheckoutSession);
+
+    $contribution = $this->setupPendingContribution(['invoice_id' => md5(uniqid(mt_rand(), TRUE))]);
+    $checkoutOption = new \Civi\Stripe\CheckoutOption\StripeEmbeddedCheckout([], $this->paymentProcessor);
+    $session = new \Civi\Checkout\CheckoutSession($contribution['id'], 'stripe_embedded_checkout');
+    // No exception/assertion failure from the mock's ->with() callback above
+    // means Stripe was asked for the right redirect behaviour.
+    $checkoutOption->startCheckout($session);
+  }
+
+  /**
+   * ...and the client needs return_url to navigate back itself from its
+   * onComplete handler once the checkout actually completes.
+   */
+  public function testEmbeddedCheckoutStartReturnsReturnUrlForClientFallback() {
+    $this->setOrCreateStripePaymentProcessor();
+    $this->getMocksForOneOffPayment();
+    $this->getMocksForCheckoutSession(['status' => 'open', 'payment_intent' => 'pi_mock']);
+    $contribution = $this->setupPendingContribution(['invoice_id' => md5(uniqid(mt_rand(), TRUE))]);
+
+    $checkoutOption = new \Civi\Stripe\CheckoutOption\StripeEmbeddedCheckout([], $this->paymentProcessor);
+    $session = new \Civi\Checkout\CheckoutSession($contribution['id'], 'stripe_embedded_checkout');
+    $checkoutOption->startCheckout($session);
+
+    // CheckoutSession::tokenise() signs an 'exp' claim taken from the wall
+    // clock, so each call mints a different token and the two URLs cannot be
+    // compared as strings - crossing a second boundary between them is what
+    // made this test flaky. Advancing time here forces that difference every
+    // run, so a regression to comparing raw URLs fails immediately.
+    \CRM_Utils_Time::setTime(date('YmdHis', \CRM_Utils_Time::time() + 1));
+    try {
+      $responseItems = $session->getResponseItems();
+      $returnUrl = $responseItems['stripe_embedded_checkout']['return_url'];
+
+      // Same landing URL apart from the token itself.
+      $tokenPattern = '/([?&]session=)[^&]*/';
+      $this->assertEquals(
+        preg_replace($tokenPattern, '$1', $session->getLandingUrl()),
+        preg_replace($tokenPattern, '$1', $returnUrl)
+      );
+
+      // ...and the token it does carry is for this checkout session.
+      parse_str((string) parse_url($returnUrl, PHP_URL_QUERY), $query);
+      $restored = \Civi\Checkout\CheckoutSession::restoreFromToken($query['session']);
+      $this->assertEquals($contribution['id'], $restored->getContributionId());
+    }
+    finally {
+      \CRM_Utils_Time::resetTime();
+    }
+  }
+
+  /**
    * Test creating a recurring contribution and
    * update it after creation. @todo The membership should also be updated.
    */
@@ -557,10 +1021,11 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
     $success = $this->simulateEvent([
       'type'             => 'invoice.payment_succeeded',
       'id'               => 'evt_mock',
-      'object'           => 'event', // ?
+    // ?
+      'object'           => 'event',
       'livemode'         => FALSE,
       'pending_webhooks' => 0,
-      'request'          => [ 'id' => NULL ],
+      'request'          => ['id' => NULL],
       'data'             => [
         'object' => [
           'id'           => 'in_mock',
@@ -569,10 +1034,10 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
           'customer'     => 'cus_mock',
           'charge'       => 'ch_mock',
           'created'      => time(),
-          'amount_due'   => $this->total*100,
+          'amount_due'   => $this->total * 100,
           'currency'     => 'usd',
           'status'      => 'paid',
-        ]
+        ],
       ],
     ]);
     $this->assertEquals(TRUE, $success, 'IPN did not return OK');
@@ -581,7 +1046,7 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
     $this->checkContrib([
       'contribution_status_id' => 'Completed',
       'trxn_id'                => 'ch_mock',
-      'fee_amount'             => 11.90
+      'fee_amount'             => 11.90,
     ]);
     $this->checkContribRecur(['contribution_status_id' => 'In Progress']);
   }
@@ -595,10 +1060,11 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
     $success = $this->simulateEvent([
       'type'             => 'invoice.paid',
       'id'               => 'evt_mock',
-      'object'           => 'event', // ?
+    // ?
+      'object'           => 'event',
       'livemode'         => FALSE,
       'pending_webhooks' => 0,
-      'request'          => [ 'id' => NULL ],
+      'request'          => ['id' => NULL],
       'data'             => [
         'object' => [
           'id'           => 'in_mock',
@@ -607,10 +1073,10 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
           'customer'     => 'cus_mock',
           'charge'       => 'ch_mock',
           'created'      => time(),
-          'amount_due'   => $this->total*100,
+          'amount_due'   => $this->total * 100,
           'currency'     => 'usd',
           'status'       => 'paid',
-        ]
+        ],
       ],
     ]);
     $this->assertEquals(TRUE, $success, 'IPN did not return OK');
@@ -619,7 +1085,383 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
     $this->checkContrib([
       'contribution_status_id' => 'Completed',
       'trxn_id'                => 'ch_mock',
-      'fee_amount'             => 11.90
+      'fee_amount'             => 11.90,
+    ]);
+    $this->checkContribRecur(['contribution_status_id' => 'In Progress']);
+  }
+
+  /**
+   * A Checkout Session in subscription mode carries no payment_intent - Stripe
+   * puts it on the generated invoice instead. doCheckoutSessionCompleted passes
+   * whatever it found to getPaymentMethodForContribution(), so on every
+   * subscription signup that is an empty string.
+   *
+   * Without a guard that becomes paymentIntents->retrieve(''), which costs a
+   * Stripe API round-trip and then throws "The resource ID cannot be null or
+   * whitespace" - caught and logged as an error, so the signup succeeds but
+   * every one leaves an error in the log and the Contribution keeps the default
+   * payment instrument rather than the actual method.
+   *
+   * Assert the lookup is skipped entirely rather than attempted and caught.
+   */
+  public function testCheckoutSessionCompletedForSubscriptionDoesNotLookUpEmptyPaymentIntent() {
+    $this->mockRecurringPaymentSetup();
+
+    $contribution = \Civi\Api4\Contribution::get(FALSE)
+      ->addWhere('id', '=', $this->contributionID)
+      ->addSelect('invoice_id')
+      ->execute()
+      ->first();
+
+    // A fresh mock: the setup helpers already stubbed retrieve() on the shared
+    // one, and a mock's method() cannot be re-declared.
+    $this->paymentObject->stripeClient->paymentIntents = $this->createMock('Stripe\\Service\\PaymentIntentService');
+    $this->paymentObject->stripeClient->paymentIntents
+      ->expects($this->never())
+      ->method('retrieve');
+
+    $success = $this->simulateEvent([
+      'type'             => 'checkout.session.completed',
+      'id'               => 'evt_mock',
+      'object'           => 'event',
+      'livemode'         => FALSE,
+      'pending_webhooks' => 0,
+      'request'          => ['id' => NULL],
+      'data'             => [
+        'object' => [
+          'id'                  => 'cs_mock',
+          'object'              => 'checkout.session',
+          'customer'            => 'cus_mock',
+          'client_reference_id' => $contribution['invoice_id'],
+          // Subscription mode: invoice + subscription, and no payment_intent.
+          'invoice'             => 'in_mock',
+          'subscription'        => 'sub_mock',
+        ],
+      ],
+    ]);
+    $this->assertEquals(TRUE, $success, 'IPN did not return OK');
+  }
+
+  /**
+   * Stripe Checkout + recurring: invoice.paid arrives before
+   * checkout.session.completed, so processor_id is still a placeholder hash.
+   *
+   * mockRecurringPaymentSetup() uses the Elements flow and asserts
+   * processor_id === 'sub_mock', so run it and then rewind the two fields
+   * Checkout would not yet have populated (processor_id, trxn_id).
+   *
+   * The metadata must resolve the recur and the payment must land on the
+   * existing contribution, leaving exactly one on the recur.
+   */
+  public function testRecurringStripeCheckoutInvoicePaidBeforeCheckoutSessionCompleted() {
+    $this->mockRecurringPaymentSetup();
+
+    // Rewind to the state Stripe Checkout leaves us in before
+    // checkout.session.completed has been processed.
+    $placeholderProcessorID = md5(uniqid(mt_rand(), TRUE));
+    \Civi\Api4\ContributionRecur::update(FALSE)
+      ->addWhere('id', '=', $this->contributionRecurID)
+      ->addValue('processor_id', $placeholderProcessorID)
+      ->execute();
+    \Civi\Api4\Contribution::update(FALSE)
+      ->addWhere('id', '=', $this->contributionID)
+      ->addValue('trxn_id', NULL)
+      ->execute();
+
+    // Precondition: the subscription ID resolves to nothing, and there is
+    // exactly one (Pending) contribution on the recur.
+    $this->assertEmpty(
+      \Civi\Api4\ContributionRecur::get(FALSE)
+        ->addWhere('processor_id', '=', 'sub_mock')
+        ->addWhere('is_test', 'IN', [TRUE, FALSE])
+        ->execute()
+        ->first(),
+      'Precondition failed: recur should not yet be linked to sub_mock'
+    );
+    $this->getContributionsAndAssertCount(1);
+
+    $success = $this->simulateEvent([
+      'type'             => 'invoice.paid',
+      'id'               => 'evt_mock',
+      'object'           => 'event',
+      'livemode'         => FALSE,
+      'pending_webhooks' => 0,
+      'request'          => ['id' => NULL],
+      'data'             => [
+        'object' => [
+          'id'           => 'in_mock',
+          'object'       => 'invoice',
+          'subscription' => 'sub_mock',
+          'customer'     => 'cus_mock',
+          'charge'       => 'ch_mock',
+          'created'      => time(),
+          'amount_due'   => $this->total * 100,
+          'currency'     => 'usd',
+          'status'       => 'paid',
+          // The first invoice of the subscription - so this pays for the
+          // Contribution that already exists, not a new instalment.
+          'billing_reason' => \Stripe\Invoice::BILLING_REASON_SUBSCRIPTION_CREATE,
+          // The snapshot Stripe copies from the subscription onto each invoice.
+          'subscription_details' => [
+            'metadata' => [
+              \CRM_Stripe_Api::METADATA_CONTRIBUTION_RECUR_ID => (string) $this->contributionRecurID,
+            ],
+          ],
+        ],
+      ],
+    ]);
+    $this->assertEquals(TRUE, $success, 'IPN did not return OK');
+
+    // The metadata fallback should have resolved the recur and backfilled
+    // processor_id, so every later event resolves via the normal lookup.
+    $this->checkContribRecur([
+      'contribution_status_id' => 'In Progress',
+      'processor_id'           => 'sub_mock',
+    ]);
+
+    // Must land on the existing contribution: the fall-through path calls
+    // Contribution.repeattransaction, which always INSERTs.
+    $contributions = $this->getContributionsAndAssertCount(1);
+    $this->checkContrib([
+      'contribution_status_id' => 'Completed',
+      'trxn_id'                => 'ch_mock',
+      'fee_amount'             => 11.90,
+    ], $contributions[0]);
+  }
+
+  /**
+   * Guard against the first-invoice fix over-reaching. Adoption is only correct
+   * for the first invoice: if it fired for renewals too, each renewal would
+   * overwrite the same Contribution instead of adding to the series.
+   *
+   * Same state as the test above, but billing_reason says renewal, so a new
+   * Contribution must be created regardless.
+   */
+  public function testRecurringInvoicePaidForRenewalDoesNotAdoptInitialContribution() {
+    $this->mockRecurringPaymentSetup();
+
+    $placeholderProcessorID = md5(uniqid(mt_rand(), TRUE));
+    \Civi\Api4\ContributionRecur::update(FALSE)
+      ->addWhere('id', '=', $this->contributionRecurID)
+      ->addValue('processor_id', $placeholderProcessorID)
+      ->execute();
+    \Civi\Api4\Contribution::update(FALSE)
+      ->addWhere('id', '=', $this->contributionID)
+      ->addValue('trxn_id', NULL)
+      ->execute();
+
+    $this->getContributionsAndAssertCount(1);
+
+    $success = $this->simulateEvent([
+      'type'             => 'invoice.paid',
+      'id'               => 'evt_mock',
+      'object'           => 'event',
+      'livemode'         => FALSE,
+      'pending_webhooks' => 0,
+      'request'          => ['id' => NULL],
+      'data'             => [
+        'object' => [
+          'id'           => 'in_mock',
+          'object'       => 'invoice',
+          'subscription' => 'sub_mock',
+          'customer'     => 'cus_mock',
+          'charge'       => 'ch_mock',
+          'created'      => time(),
+          'amount_due'   => $this->total * 100,
+          'currency'     => 'usd',
+          'status'       => 'paid',
+          // A renewal, NOT the first invoice.
+          'billing_reason' => \Stripe\Invoice::BILLING_REASON_SUBSCRIPTION_CYCLE,
+          'subscription_details' => [
+            'metadata' => [
+              \CRM_Stripe_Api::METADATA_CONTRIBUTION_RECUR_ID => (string) $this->contributionRecurID,
+            ],
+          ],
+        ],
+      ],
+    ]);
+    $this->assertEquals(TRUE, $success, 'IPN did not return OK');
+
+    // A renewal adds to the series: the pre-existing Pending Contribution must
+    // still be there untouched, alongside the new one.
+    $contributions = $this->getContributionsAndAssertCount(2);
+    $this->assertEquals(
+      $this->contributionID,
+      $contributions[0]['id'],
+      'The original Contribution should not have been adopted by a renewal invoice'
+    );
+  }
+
+  /**
+   * Adoption must not depend on trxn_id being empty: checkout.session.completed
+   * can stamp trxn_id within the same second as invoice.paid arrives.
+   *
+   * The Contribution here carries a trxn_id that findContribution() cannot match
+   * (it names a different invoice), so adoption is the only correct route.
+   * Exactly one Contribution must exist afterwards.
+   */
+  public function testRecurringInvoicePaidAdoptsInitialContributionEvenWhenTrxnIDAlreadySet() {
+    $this->mockRecurringPaymentSetup();
+
+    $placeholderProcessorID = md5(uniqid(mt_rand(), TRUE));
+    \Civi\Api4\ContributionRecur::update(FALSE)
+      ->addWhere('id', '=', $this->contributionRecurID)
+      ->addValue('processor_id', $placeholderProcessorID)
+      ->execute();
+    // Stamped, but not with anything this event's findContribution() can match.
+    \Civi\Api4\Contribution::update(FALSE)
+      ->addWhere('id', '=', $this->contributionID)
+      ->addValue('trxn_id', 'in_stale_mock')
+      ->execute();
+
+    $this->getContributionsAndAssertCount(1);
+
+    $success = $this->simulateEvent([
+      'type'             => 'invoice.paid',
+      'id'               => 'evt_mock',
+      'object'           => 'event',
+      'livemode'         => FALSE,
+      'pending_webhooks' => 0,
+      'request'          => ['id' => NULL],
+      'data'             => [
+        'object' => [
+          'id'           => 'in_mock',
+          'object'       => 'invoice',
+          'subscription' => 'sub_mock',
+          'customer'     => 'cus_mock',
+          'charge'       => 'ch_mock',
+          'created'      => time(),
+          'amount_due'   => $this->total * 100,
+          'currency'     => 'usd',
+          'status'       => 'paid',
+          'billing_reason' => \Stripe\Invoice::BILLING_REASON_SUBSCRIPTION_CREATE,
+          'subscription_details' => [
+            'metadata' => [
+              \CRM_Stripe_Api::METADATA_CONTRIBUTION_RECUR_ID => (string) $this->contributionRecurID,
+            ],
+          ],
+        ],
+      ],
+    ]);
+    $this->assertEquals(TRUE, $success, 'IPN did not return OK');
+
+    // Adopted, not duplicated.
+    $contributions = $this->getContributionsAndAssertCount(1);
+    $this->assertEquals(
+      $this->contributionID,
+      $contributions[0]['id'],
+      'The existing Contribution should have been adopted despite carrying a trxn_id'
+    );
+  }
+
+  /**
+   * Test invoice.paid where the invoice has no top-level `subscription` (eg.
+   * Stripe consolidated multiple subscriptions onto this invoice) but the
+   * subscription ID is still available on the invoice's line item.
+   */
+  public function testNewRecurringInvoicePaidSubscriptionFromLineItem() {
+    $this->mockRecurringPaymentSetup();
+    $success = $this->simulateEvent([
+      'type'             => 'invoice.paid',
+      'id'               => 'evt_mock',
+    // ?
+      'object'           => 'event',
+      'livemode'         => FALSE,
+      'pending_webhooks' => 0,
+      'request'          => ['id' => NULL],
+      'data'             => [
+        'object' => [
+          'id'           => 'in_mock',
+          'object'       => 'invoice',
+          'subscription' => NULL,
+          'customer'     => 'cus_mock',
+          'charge'       => 'ch_mock',
+          'created'      => time(),
+          'amount_due'   => $this->total * 100,
+          'currency'     => 'usd',
+          'status'       => 'paid',
+          'lines'        => [
+            'object' => 'list',
+            'data'   => [
+              ['id' => 'il_mock', 'object' => 'line_item', 'subscription' => 'sub_mock'],
+            ],
+          ],
+        ],
+      ],
+    ]);
+    $this->assertEquals(TRUE, $success, 'IPN did not return OK');
+
+    $this->checkContrib([
+      'contribution_status_id' => 'Completed',
+      'trxn_id'                => 'ch_mock',
+      'fee_amount'             => 11.90,
+    ]);
+    $this->checkContribRecur(['contribution_status_id' => 'In Progress']);
+  }
+
+  /**
+   * Test invoice.paid processed via the "no webhook secret configured" path
+   * (CRM_Core_Payment_StripeIPN::setVerifyData(TRUE)): the event data we get
+   * from events->retrieve() is missing `charge` and `subscription` entirely
+   * (as happens when Stripe renders it at eg. a basil account-default API
+   * version, which Stripe uses regardless of our pinned webhook version and
+   * ignores our Stripe-Version header for when re-retrieving an Event).
+   * CRM_Core_Payment_StripeIPN::retrieveFreshObject() should re-fetch the
+   * actual Invoice object directly (which does honour our pinned version)
+   * and use that instead, recovering both fields for all downstream
+   * processing.
+   */
+  public function testNewRecurringInvoicePaidViaVerifiedEventRecoversMissingFields() {
+    $this->mockRecurringPaymentSetup();
+
+    // This is what a real invoices->retrieve() call returns: a complete
+    // Invoice, unlike the sparse/incomplete one Stripe rendered onto the
+    // Event at the account's basil-or-later default API version.
+    $mockFreshInvoice = \Stripe\Invoice::constructFrom([
+      'id'           => 'in_mock',
+      'object'       => 'invoice',
+      'charge'       => 'ch_mock',
+      'subscription' => 'sub_mock',
+      'customer'     => 'cus_mock',
+      'created'      => time(),
+      'amount_due'   => $this->total * 100,
+      'currency'     => 'usd',
+      'status'       => 'paid',
+    ]);
+    $this->paymentObject->stripeClient->invoices = $this->createMock('Stripe\\Service\\InvoiceService');
+    $this->paymentObject->stripeClient->invoices
+      ->method('retrieve')
+      ->with($this->equalTo('in_mock'))
+      ->willReturn($mockFreshInvoice);
+
+    $success = $this->simulateVerifiedEvent([
+      'type'             => 'invoice.paid',
+      'id'               => 'evt_mock',
+    // ?
+      'object'           => 'event',
+      'livemode'         => FALSE,
+      'pending_webhooks' => 0,
+      'request'          => ['id' => NULL],
+      'data'             => [
+        'object' => [
+          'id'           => 'in_mock',
+          'object'       => 'invoice',
+          'charge'       => NULL,
+          'subscription' => NULL,
+          'customer'     => 'cus_mock',
+          'created'      => time(),
+          'amount_due'   => $this->total * 100,
+          'currency'     => 'usd',
+          'status'       => 'paid',
+        ],
+      ],
+    ]);
+    $this->assertEquals(TRUE, $success, 'IPN did not return OK');
+
+    $this->checkContrib([
+      'contribution_status_id' => 'Completed',
+      'trxn_id'                => 'ch_mock',
+      'fee_amount'             => 11.90,
     ]);
     $this->checkContribRecur(['contribution_status_id' => 'In Progress']);
   }
@@ -640,19 +1482,19 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
       'object'           => 'event',
       'livemode'         => FALSE,
       'pending_webhooks' => 0,
-      'request'          => [ 'id' => NULL ],
+      'request'          => ['id' => NULL],
       'data'             => [
         'object' => [
           'id'                  => 'ch_mock',
           'object'              => 'charge',
-          'amount'              => $this->total*100,
-          'amount_captured'     => $this->total*100,
+          'amount'              => $this->total * 100,
+          'amount_captured'     => $this->total * 100,
           'captured'            => TRUE,
           'balance_transaction' => 'txn_mock',
           'invoice'             => 'in_mock',
           'customer'            => 'cus_mock',
           'created'             => time(),
-        ]
+        ],
       ],
     ]);
     $this->assertEquals(TRUE, $success, 'IPN did not return OK');
@@ -664,7 +1506,7 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
       'contribution_status_id' => 'Pending',
       'trxn_id'                => 'ch_mock',
     ]);
-    $this->checkContribRecur([ 'contribution_status_id' => 'Pending' ]);
+    $this->checkContribRecur(['contribution_status_id' => 'Pending']);
   }
 
   /**
@@ -679,20 +1521,20 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
       'object'           => 'event',
       'livemode'         => FALSE,
       'pending_webhooks' => 0,
-      'request'          => [ 'id' => NULL ],
+      'request'          => ['id' => NULL],
       'data'             => [
         'object' => [
           'id'                  => 'ch_mock',
           'object'              => 'charge',
-          'amount'              => $this->total*100,
-          'amount_captured'     => $this->total*100,
+          'amount'              => $this->total * 100,
+          'amount_captured'     => $this->total * 100,
           'captured'            => TRUE,
           'balance_transaction' => 'txn_mock',
           'invoice'             => 'in_mock',
           'customer'            => 'cus_mock',
           'created'             => time(),
           'failure_message'     => 'Mocked failure',
-        ]
+        ],
       ],
     ]);
     $this->assertEquals(TRUE, $success, 'IPN did not return OK');
@@ -737,19 +1579,19 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
       'type'             => 'invoice.payment_failed',
       'livemode'         => FALSE,
       'pending_webhooks' => 0,
-      'request'          => [ 'id' => NULL ],
+      'request'          => ['id' => NULL],
       'data'             => [
         'object' => [
           'id'                  => 'in_mock',
           'object'              => 'invoice',
           'charge'              => 'ch_mock',
-          'amount_due'          => $this->total*100,
+          'amount_due'          => $this->total * 100,
           'amount_paid'         => 0,
           'currency'            => 'usd',
           'customer'            => 'cus_mock',
           'created'             => time(),
-          'status'              => 'uncollectible'
-        ]
+          'status'              => 'uncollectible',
+        ],
       ],
     ]);
     $this->assertEquals(TRUE, $success, 'IPN did not return OK');
@@ -762,8 +1604,9 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
       'contribution_status_id' => 'Failed',
       'trxn_id'                => 'in_mock',
     ]);
-    $this->checkContribRecur([ 'contribution_status_id' => 'Pending' ]);
+    $this->checkContribRecur(['contribution_status_id' => 'Pending']);
   }
+
   /**
    * What about the next payments in a recurring?
    *
@@ -788,15 +1631,15 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
       'object'           => 'event',
       'livemode'         => FALSE,
       'pending_webhooks' => 0,
-      'request'          => [ 'id' => NULL ],
+      'request'          => ['id' => NULL],
       'data'             => [
-        'object' => $mockInvoice2
+        'object' => $mockInvoice2,
       ],
     ], TRUE);
     $this->assertEquals(TRUE, $success, 'IPN did not return OK');
 
     // Recur should still be In Progress.
-    $this->checkContribRecur([ 'contribution_status_id' => 'In Progress' ]);
+    $this->checkContribRecur(['contribution_status_id' => 'In Progress']);
 
     // We should have a new contribution.
     $contributions = $this->getContributionsAndAssertCount(2);
@@ -813,7 +1656,7 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
       'object'           => 'event',
       'livemode'         => FALSE,
       'pending_webhooks' => 0,
-      'request'          => [ 'id' => NULL ],
+      'request'          => ['id' => NULL],
       'data'             => [
         'object' => [
           'id'           => 'in_mock_2',
@@ -822,32 +1665,33 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
           'customer'     => 'cus_mock',
           'charge'       => 'ch_mock_2',
           'created'      => time(),
-          'amount_due'   => $this->total*100,
+          'amount_due'   => $this->total * 100,
           'currency'     => 'usd',
           'status'       => 'paid',
-        ]
+        ],
       ],
     ], TRUE);
     // Check the contribution was updated.
     $this->checkContrib([
-        'contribution_status_id' => 'Completed',
-        'trxn_id'                => 'in_mock_2,ch_mock_2',
-        'fee_amount'             => 11.90
-      ],
+      'contribution_status_id' => 'Completed',
+      'trxn_id'                => 'in_mock_2,ch_mock_2',
+      'fee_amount'             => 11.90,
+    ],
       (int) $contrib2['id']
     );
 
     // Check we set some values on the FinancialTrxn (payment)
     $this->checkFinancialTrxn([
-        'Payment_details.available_on' => $this->getDateinCurrentTimezone('2023-06-10 20:05:05'),
-        'fee_amount' => 11.90,
-        'total_amount' => $this->total,
-        'order_reference' => 'in_mock_2',
-        'trxn_id' => 'ch_mock_2'
-      ],
+      'Payment_details.available_on' => $this->getDateinCurrentTimezone('2023-06-10 20:05:05'),
+      'fee_amount' => 11.90,
+      'total_amount' => $this->total,
+      'order_reference' => 'in_mock_2',
+      'trxn_id' => 'ch_mock_2',
+    ],
       (int) $contrib2['id']
     );
   }
+
   /**
    * It's possible that the payment_succeeded event comes in before finalized.
    *
@@ -873,7 +1717,7 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
       'object'           => 'event',
       'livemode'         => FALSE,
       'pending_webhooks' => 0,
-      'request'          => [ 'id' => NULL ],
+      'request'          => ['id' => NULL],
       'data'             => [
         'object' => [
           'id'           => 'in_mock_2',
@@ -882,10 +1726,10 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
           'customer'     => 'cus_mock',
           'charge'       => 'ch_mock_2',
           'created'      => time(),
-          'amount_due'   => $this->total*100,
+          'amount_due'   => $this->total * 100,
           'currency'     => 'usd',
           'status'       => 'paid',
-        ]
+        ],
       ],
     ], TRUE);
     $this->assertEquals(TRUE, $success, 'IPN did not return OK');
@@ -897,7 +1741,7 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
     $this->checkContrib([
       'contribution_status_id' => 'Completed',
       'trxn_id'                => 'in_mock_2,ch_mock_2',
-      'fee_amount'             => 11.90
+      'fee_amount'             => 11.90,
     ], $contrib2);
 
     // Now trigger invoice.finalized. We expect that it does nothing?
@@ -907,15 +1751,15 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
       'object'           => 'event',
       'livemode'         => FALSE,
       'pending_webhooks' => 0,
-      'request'          => [ 'id' => NULL ],
+      'request'          => ['id' => NULL],
       'data'             => [
-        'object' => $mockInvoice2
+        'object' => $mockInvoice2,
       ],
     ], TRUE);
     $this->assertEquals(TRUE, $success, 'IPN did not return OK');
 
     // Recur should still be In Progress.
-    $this->checkContribRecur([ 'contribution_status_id' => 'In Progress' ]);
+    $this->checkContribRecur(['contribution_status_id' => 'In Progress']);
 
     // We should still have just 2 contribs.
     $contributions = $this->getContributionsAndAssertCount(2);
@@ -925,10 +1769,11 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
     $this->checkContrib([
       'contribution_status_id' => 'Completed',
       'trxn_id'                => 'in_mock_2,ch_mock_2',
-      'fee_amount'             => 11.90
+      'fee_amount'             => 11.90,
     ], $contrib2);
 
   }
+
   /**
    * Tests situation when the initial recurring payment came in OK,
    * but the next one fails.
@@ -952,29 +1797,29 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
     //
     // To do this we'll need a new invoice and a new charge.
     // and pending balance transaction
-    $mockInvoice2 = new PropertySpy('invoice2', [
+    $mockInvoice2 = \Stripe\Invoice::constructFrom([
       'id'           => 'in_mock_2',
       'object'       => 'invoice',
-      'amount_due'   => $this->total*100,
+      'amount_due'   => $this->total * 100,
       'currency'     => 'usd',
       'charge'       => 'ch_mock_2',
       'subscription' => 'sub_mock',
       'customer'     => 'cus_mock',
       'created'      => time(),
     ]);
-    $mockCharge2 = new PropertySpy('charge2', [
+    $mockCharge2 = \Stripe\Charge::constructFrom([
       'id'                  => 'ch_mock_2',
       'object'              => 'charge',
       'balance_transaction' => 'txn_mock_2',
       'currency'     => 'usd',
-      'amount'              => $this->total*100,
+      'amount'              => $this->total * 100,
       'subscription' => 'sub_mock',
       'customer'     => 'cus_mock',
       'created'      => $createdTimestamp,
       'failure_message' => 'payment failed',
       'status'       => 'failed',
     ]);
-    $balanceTransaction2 = new PropertySpy('balance_transaction2', [
+    $balanceTransaction2 = \Stripe\BalanceTransaction::constructFrom([
       'id'            => 'txn_mock_2',
       'object'        => 'balance_transaction',
       'amount'        => $this->total * 100,
@@ -998,7 +1843,6 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
         ['ch_mock_2', NULL, NULL, $mockCharge2],
       ]));
 
-
     //
     // Simulate invoice.finalized
     //
@@ -1008,15 +1852,15 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
       'object'           => 'event',
       'livemode'         => FALSE,
       'pending_webhooks' => 0,
-      'request'          => [ 'id' => NULL ],
+      'request'          => ['id' => NULL],
       'data'             => [
-        'object' => $mockInvoice2
+        'object' => $mockInvoice2,
       ],
     ], TRUE);
     $this->assertEquals(TRUE, $success, 'IPN did not return OK');
 
     // Recur should still be In Progress.
-    $this->checkContribRecur([ 'contribution_status_id' => 'In Progress' ]);
+    $this->checkContribRecur(['contribution_status_id' => 'In Progress']);
 
     // We should have 2 contribs.
     // The 2nd one should be Pending.
@@ -1035,20 +1879,20 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
       'type'             => 'invoice.payment_failed',
       'livemode'         => FALSE,
       'pending_webhooks' => 0,
-      'request'          => [ 'id' => NULL ],
+      'request'          => ['id' => NULL],
       'data'             => [
         'object' => [
           'id'                  => 'in_mock_2',
           'object'              => 'invoice',
           'charge'              => 'ch_mock_2',
           'subscription'        => 'sub_mock',
-          'amount_due'          => $this->total*100,
+          'amount_due'          => $this->total * 100,
           'amount_paid'         => 0,
           'currency'            => 'usd',
           'customer'            => 'cus_mock',
           'created'             => $createdTimestamp,
-          'status'              => 'uncollectible'
-        ]
+          'status'              => 'uncollectible',
+        ],
       ],
     ]);
     $this->assertEquals(TRUE, $success, 'IPN did not return OK');
@@ -1064,18 +1908,18 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
     //
     // Now simulate an invoice.payment_succeeded - e.g. a 2nd charge attempt worked.
     //
-    $mockCharge3 = new PropertySpy('charge3', [
+    $mockCharge3 = \Stripe\Charge::constructFrom([
       'id'                  => 'ch_mock_3',
       'object'              => 'charge',
       'balance_transaction' => 'txn_mock_3',
       'currency'     => 'usd',
-      'amount'              => $this->total*100,
+      'amount'              => $this->total * 100,
       'subscription'        => 'sub_mock',
       'customer'            => 'cus_mock',
       'created'             => time(),
       'status'              => 'succeeded',
     ]);
-    $balanceTransaction2 = new PropertySpy('balance_transaction3', [
+    $balanceTransaction2 = \Stripe\BalanceTransaction::constructFrom([
       'id'            => 'txn_mock_3',
       'object'        => 'balance_transaction',
       'amount'        => $this->total * 100,
@@ -1105,20 +1949,22 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
       'type'             => 'invoice.payment_succeeded',
       'livemode'         => FALSE,
       'pending_webhooks' => 0,
-      'request'          => [ 'id' => NULL ],
+      'request'          => ['id' => NULL],
       'data'             => [
         'object' => [
-          'id'          => 'in_mock_2', // still same invoice
+    // still same invoice
+          'id'          => 'in_mock_2',
           'object'      => 'invoice',
-          'charge'      => 'ch_mock_3', // different charge
+    // different charge
+          'charge'      => 'ch_mock_3',
           'subscription' => 'sub_mock',
-          'amount_due'  => $this->total*100,
+          'amount_due'  => $this->total * 100,
           'amount_paid' => 0,
           'currency'    => 'usd',
           'customer'    => 'cus_mock',
           'created'     => time(),
           'status'      => 'paid',
-        ]
+        ],
       ],
     ]);
     $this->assertEquals(TRUE, $success, 'IPN did not return OK');
@@ -1128,7 +1974,7 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
     $this->checkContrib([
       'contribution_status_id' => 'Completed',
       'trxn_id' => 'in_mock_2,ch_mock_3',
-      'fee_amount' => 11.90
+      'fee_amount' => 11.90,
     ], $contributions[1]);
   }
 
@@ -1141,10 +1987,10 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
     $this->testNewRecurringInvoicePaymentSucceeded();
 
     $cancelTimestamp = time();
-    $mockSubscription = new PropertySpy('subscription', [
+    $mockSubscription = \Stripe\Subscription::constructFrom([
       'id'                 => 'sub_mock',
       'object'             => 'subscription',
-      'current_period_end' => time()+60*60*24,
+      'current_period_end' => time() + 60 * 60 * 24,
       'status'             => 'cancelled',
       // Note US? spelling of cancelled
       'canceled_at'        => $cancelTimestamp,
@@ -1169,15 +2015,15 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
       'object'           => 'event',
       'livemode'         => FALSE,
       'pending_webhooks' => 0,
-      'request'          => [ 'id' => NULL ],
+      'request'          => ['id' => NULL],
       'data'             => [
-        'object' => $mockSubscription
+        'object' => $mockSubscription,
       ],
     ], TRUE);
     $this->assertEquals(TRUE, $success, 'IPN did not return OK');
 
     // Recur should be Cancelled.
-    $this->checkContribRecur( [
+    $this->checkContribRecur([
       'contribution_status_id' => 'Cancelled',
       'cancel_date'            => date('Y-m-d H:i:s', $cancelTimestamp),
     ]);
@@ -1187,21 +2033,22 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
     $this->checkContrib([
       'contribution_status_id' => 'Completed',
       'trxn_id'                => 'ch_mock',
-      'fee_amount'             => 11.90
+      'fee_amount'             => 11.90,
     ]);
   }
 
   /**
    * Run the webhook/ipn
    *
-   * @return bool whether it was successful (nb. FALSE might be valid where we
-   * want stripe to resend something again later)
+   * @return bool
+   *   Whether it was successful (nb. FALSE might be valid where we want
+   *   stripe to resend something again later).
    */
-  public function ipn($event, $verifyRequest = TRUE, $exceptionOnFailure=FALSE) {
+  public function ipn($event, $verifyRequest = TRUE, $exceptionOnFailure = FALSE) {
     $ipnClass = new CRM_Core_Payment_StripeIPN($this->paymentObject);
 
     if ($exceptionOnFailure) {
-      // We don’t' expect failure, so ensure exceptions are not caught.
+      // We don’t expect failure, so ensure exceptions are not caught.
       $ipnClass->exceptionOnFailure = $exceptionOnFailure;
     }
     $ipnClass->setEventID($event->id);
@@ -1270,30 +2117,30 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
       'customer'     => 'cus_mock',
       'created'      => time(),
     ];
-    $mockCharge1 = new PropertySpy('charge1', $common + [
-        'id'                  => 'ch_mock',
-        'object'              => 'charge',
-        'balance_transaction' => 'txn_mock',
-        'currency'            => 'usd',
-        'amount'              => $this->total*100,
-        'status'              => 'succeeded',
-      ]);
-    $mockCharge2 = new PropertySpy('charge2', $common + [
-        'id'                  => 'ch_mock_2',
-        'object'              => 'charge',
-        'balance_transaction' => 'txn_mock_2',
-        'currency'            => 'usd',
-        'amount'              => $this->total*100,
-        'status'              => 'succeeded',
-      ]);
-    $mockInvoice2 = new PropertySpy('invoice2', $common + [
-        'id'           => 'in_mock_2',
-        'object'       => 'invoice',
-        'amount_due'   => $this->total*100,
-        'currency'     => 'usd',
-        'charge'       => 'ch_mock_2',
-      ]);
-    $balanceTransaction2 = new PropertySpy('balance_transaction2', [
+    $mockCharge1 = \Stripe\Charge::constructFrom($common + [
+      'id'                  => 'ch_mock',
+      'object'              => 'charge',
+      'balance_transaction' => 'txn_mock',
+      'currency'            => 'usd',
+      'amount'              => $this->total * 100,
+      'status'              => 'succeeded',
+    ]);
+    $mockCharge2 = \Stripe\Charge::constructFrom($common + [
+      'id'                  => 'ch_mock_2',
+      'object'              => 'charge',
+      'balance_transaction' => 'txn_mock_2',
+      'currency'            => 'usd',
+      'amount'              => $this->total * 100,
+      'status'              => 'succeeded',
+    ]);
+    $mockInvoice2 = \Stripe\Invoice::constructFrom($common + [
+      'id'           => 'in_mock_2',
+      'object'       => 'invoice',
+      'amount_due'   => $this->total * 100,
+      'currency'     => 'usd',
+      'charge'       => 'ch_mock_2',
+    ]);
+    $balanceTransaction2 = \Stripe\BalanceTransaction::constructFrom([
       'id'            => 'txn_mock_2',
       'object'        => 'balance_transaction',
       'amount'        => $this->total * 100,
@@ -1303,7 +2150,8 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
       'fee'           => 1190, /* means $11.90 */
       'status'        => 'available',
       'type'          => 'charge',
-      'available_on'  => '1686427505' // 2023-06-10 21:05:05
+    // 2023-06-10 21:05:05
+      'available_on'  => '1686427505',
     ]);
 
     $this->paymentObject->stripeClient->balanceTransactions = $this->createMock('Stripe\\Service\\BalanceTransactionService');
@@ -1327,11 +2175,6 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
    * @return void
    */
   protected function getMocksForRecurringPayment() {
-    PropertySpy::$buffer = 'none';
-    // Set this to 'print' or 'log' maybe more helpful in debugging but for
-    // generally running tests 'exception' suits as we don't expect any output.
-    PropertySpy::$outputMode = 'exception';
-
     // Create a mock stripe client.
     $stripeClient = $this->createMock('CRM_Stripe_MockStripeClient');
     // Update our CRM_Core_Payment_Stripe object and ensure any others
@@ -1342,7 +2185,7 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
     $mockPaymentMethod = $this->createMock('Stripe\\PaymentMethod');
     $mockPaymentMethod->method('__get')
       ->will($this->returnValueMap([
-        [ 'id', 'pm_mock']
+        ['id', 'pm_mock'],
       ]));
     $stripeClient->paymentMethods = $this->createMock('Stripe\\Service\\PaymentMethodService');
     $stripeClient->paymentMethods
@@ -1359,30 +2202,27 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
     $stripeClient->customers
       ->method('create')
       ->willReturn(
-        new PropertySpy('customers.create', ['id' => 'cus_mock'])
+        \Stripe\Customer::constructFrom(['id' => 'cus_mock', 'object' => 'customer'])
       );
     $stripeClient->customers
       ->method('retrieve')
       ->with($this->equalTo('cus_mock'))
       ->willReturn(
-        new PropertySpy('customers.retrieve', ['id' => 'cus_mock'])
+        \Stripe\Customer::constructFrom(['id' => 'cus_mock', 'object' => 'customer'])
       );
 
     // Product
-    $mockProduct = $this->createMock('Stripe\\Product');
-    $mockProduct
-      ->method('__get')
-      ->will($this->returnValueMap([
-        ['id', 'prod_mock'],
-        ['name', 'every 1 month ' . ($this->total * 100) . ' USD'],
-      ]));
+    $mockProduct = \Stripe\Product::constructFrom([
+      'id' => 'prod_mock',
+      'name' => 'every 1 month ' . ($this->total * 100) . ' USD',
+    ]);
 
     // Mock the products service
     $stripeClient->products = $this->createMock('Stripe\\Service\\ProductService');
     $stripeClient->products
       ->method('search')
       ->willReturn(
-        new PropertySpy('products.search', [$mockProduct])
+        \Stripe\SearchResult::constructFrom(['object' => 'search_result', 'data' => [$mockProduct], 'has_more' => FALSE, 'url' => '/v1/products/search'])
       );
 
     // Price
@@ -1397,7 +2237,7 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
     $stripeClient->prices
       ->method('all')
       ->willReturn(
-        new PropertySpy('prices.all', [$mockPrice])
+        \Stripe\Collection::constructFrom(['object' => 'list', 'data' => [$mockPrice], 'has_more' => FALSE, 'url' => '/v1/prices'])
       );
     $stripeClient->prices
       ->method('create')
@@ -1409,7 +2249,7 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
     $mockPlan
       ->method('__get')
       ->will($this->returnValueMap([
-        ['id', 'every-1-month-' . ($this->total * 100) . '-usd']
+        ['id', 'every-1-month-' . ($this->total * 100) . '-usd'],
       ]));
     $stripeClient->plans = $this->createMock('Stripe\\Service\\PlanService');
     $stripeClient->plans
@@ -1431,14 +2271,26 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
     $mockChargesCollection = new \Stripe\Collection();
     $mockChargesCollection->data = [$mockCharge];
 
-    $mockCharge = new PropertySpy('Charge', [
+    // This also serves charges->retrieve(..., ['expand' => ['invoice']])
+    // calls (see StripeIPN::setInputParameters()'s charge->invoice
+    // expansion) - real Stripe would return the full, current charge from
+    // this call (with 'invoice' expanded), so 'customer'/'failure_message'
+    // need to be present here too, matching what individual event fixtures
+    // for 'ch_mock' assume.
+    $mockCharge = \Stripe\Charge::constructFrom([
       'id' => 'ch_mock',
       'object' => 'charge',
       'captured' => TRUE,
       'currency' => 'usd',
       'status' => 'succeeded',
       'balance_transaction' => 'txn_mock',
-      'invoice' => 'in_mock'
+      'customer' => 'cus_mock',
+      'failure_message' => 'Mocked failure',
+      'invoice' => [
+        'id' => 'in_mock',
+        'object' => 'invoice',
+        'subscription' => 'sub_mock',
+      ],
     ]);
     $stripeClient->charges = $this->createMock('Stripe\\Service\\ChargeService');
     $stripeClient->charges
@@ -1446,10 +2298,11 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
       ->with($this->equalTo('ch_mock'))
       ->willReturn($mockCharge);
 
-    $mockPaymentIntent = new PropertySpy('PaymentIntent', [
+    $mockPaymentIntent = \Stripe\PaymentIntent::constructFrom([
       'id' => 'pi_mock',
+      'object' => 'payment_intent',
       'status' => 'succeeded',
-      'latest_charge' => 'ch_mock'
+      'latest_charge' => 'ch_mock',
     ]);
 
     $stripeClient->paymentIntents = $this->createMock('Stripe\\Service\\PaymentIntentService');
@@ -1458,8 +2311,9 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
       ->with($this->equalTo('pi_mock'))
       ->willReturn($mockPaymentIntent);
 
-    $mockPaymentIntentWithAmount = new PropertySpy('PaymentIntent', [
+    $mockPaymentIntentWithAmount = \Stripe\PaymentIntent::constructFrom([
       'id' => 'pi_mock',
+      'object' => 'payment_intent',
       'status' => 'succeeded',
       'latest_charge' => 'ch_mock',
       'amount' => '40000',
@@ -1469,10 +2323,10 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
       ->with($this->equalTo('pi_mock'))
       ->willReturn($mockPaymentIntentWithAmount);
 
-    $mockSubscription = new PropertySpy('subscription.create', [
+    $mockSubscription = \Stripe\Subscription::constructFrom([
       'id' => 'sub_mock',
       'object' => 'subscription',
-      'current_period_end' => time()+60*60*24,
+      'current_period_end' => time() + 60 * 60 * 24,
       'pending_setup_intent' => '',
       'latest_invoice' => [
         'id' => 'in_mock',
@@ -1492,7 +2346,7 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
     $stripeClient->balanceTransactions
       ->method('retrieve')
       ->with($this->equalTo('txn_mock'))
-      ->willReturn(new PropertySpy('balanceTransaction', [
+      ->willReturn(\Stripe\BalanceTransaction::constructFrom([
         'id' => 'txn_mock',
         'fee' => 1190, /* means $11.90 */
         'currency' => 'usd',
@@ -1504,9 +2358,10 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
     // todo change the status from requires_capture to ?
     //$stripeClient->paymentIntents ->method('update') ->willReturn();
 
-    $mockInvoice = new PropertySpy('Invoice', [
-      'amount_due' => $this->total*100,
-      'charge_id' => 'ch_mock', //xxx
+    $mockInvoice = \Stripe\Invoice::constructFrom([
+      'amount_due' => $this->total * 100,
+    //xxx
+      'charge_id' => 'ch_mock',
       'created' => time(),
       'currency' => 'usd',
       'customer' => 'cus_mock',
@@ -1587,27 +2442,57 @@ class CRM_Stripe_IpnTest extends CRM_Stripe_TestBase {
   /**
    * Simulate an event being sent from Stripe and processed by our IPN code.
    *
-   * @var array|Stripe\Event|PropertySpy|mock $eventData
+   * @var array|Stripe\Event $eventData
    * @var bool $exceptionOnFailure
    *
    * @return bool result from ipn()
    */
-  protected function simulateEvent($eventData, $exceptionOnFailure=TRUE) {
+  protected function simulateEvent($eventData, $exceptionOnFailure = TRUE) {
     // Mock Event service.
     $stripeClient = $this->paymentObject->stripeClient;
     $stripeClient->events = $this->createMock('Stripe\\Service\\EventService');
 
-    $mockEvent = PropertySpy::fromMixed('simulate ' . $eventData['type'], $eventData);
+    $mockEvent = \Stripe\Event::constructFrom($eventData);
     $stripeClient->events
       ->method('all')
-      ->willReturn(new PropertySpy('events.all', [ 'data' => [ $mockEvent ] ]));
+      ->willReturn(\Stripe\Collection::constructFrom(['object' => 'list', 'data' => [$mockEvent], 'has_more' => FALSE, 'url' => '/v1/events']));
     $stripeClient->events
       ->method('retrieve')
       ->with($this->equalTo($eventData['id']))
-      ->willReturn(new PropertySpy('events.retrieve', $mockEvent));
+      ->willReturn($mockEvent);
 
     // Process it with the IPN/webhook
     return $this->ipn($mockEvent, FALSE, $exceptionOnFailure);
+  }
+
+  /**
+   * Like simulateEvent() but exercises the "no webhook secret configured"
+   * path (CRM_Core_Payment_StripeIPN::setVerifyData(TRUE)): the class
+   * fetches the event live via events->retrieve() instead of trusting a
+   * pre-set/trusted payload, then (per
+   * CRM_Core_Payment_StripeIPN::retrieveFreshObject()) re-fetches the
+   * actual object by its type/id - callers should mock whichever
+   * stripeClient service that re-fetch will hit (eg. ->invoices,
+   * ->charges) before calling this.
+   *
+   * @param array $eventData As per simulateEvent().
+   * @param bool $exceptionOnFailure
+   *
+   * @return bool
+   */
+  protected function simulateVerifiedEvent($eventData, $exceptionOnFailure = TRUE) {
+    // Mock Event service.
+    $stripeClient = $this->paymentObject->stripeClient;
+    $stripeClient->events = $this->createMock('Stripe\\Service\\EventService');
+
+    $mockEvent = \Stripe\Event::constructFrom($eventData);
+    $stripeClient->events
+      ->method('retrieve')
+      ->with($this->equalTo($eventData['id']))
+      ->willReturn($mockEvent);
+
+    // Process it with the IPN/webhook, forcing the "verify" (live re-fetch) path.
+    return $this->ipn($mockEvent, TRUE, $exceptionOnFailure);
   }
 
 }

@@ -12,9 +12,7 @@
 use Brick\Money\Money;
 use Brick\Math\RoundingMode;
 use Civi\Api4\ContributionRecur;
-use Civi\Api4\PaymentprocessorWebhook;
 use Civi\Api4\StripeCustomer;
-use Civi\Api4\StripePaymentintent;
 use CRM_Stripe_ExtensionUtil as E;
 use Civi\Payment\PropertyBag;
 use Stripe\Stripe;
@@ -25,7 +23,7 @@ use Stripe\Webhook;
 /**
  * Class CRM_Core_Payment_Stripe
  */
-class CRM_Core_Payment_Stripe extends CRM_Core_Payment {
+class CRM_Core_Payment_Stripe extends CRM_Core_Payment implements \Civi\Mjwshared\PaymentProcessorWebhookInterface {
 
   use CRM_Core_Payment_MJWTrait;
 
@@ -35,7 +33,7 @@ class CRM_Core_Payment_Stripe extends CRM_Core_Payment {
   public $stripeClient;
 
   /**
-   * @var \Civi\Stripe\Api;
+   * @var \Civi\Stripe\Api
    */
   public \Civi\Stripe\Api $api;
 
@@ -311,7 +309,6 @@ class CRM_Core_Payment_Stripe extends CRM_Core_Payment {
     return (int) Money::of((string) $amount, $currency, NULL, RoundingMode::HALF_UP)->getMinorAmount()->toInt();
   }
 
-
   /**
    * Set API parameters for Stripe (such as identifier, api version, api key)
    */
@@ -344,7 +341,7 @@ class CRM_Core_Payment_Stripe extends CRM_Core_Payment {
       case 'Stripe\Exception\CardException':
         /** @var \Stripe\Exception\CardException $e */
         // Since it's a decline, \Stripe\Exception\CardException will be caught
-        \Civi::log('stripe')->error($this->getLogPrefix() . $op . ': ' . get_class($e) . ': ' . $e->getMessage() . print_r($e->getJsonBody(),TRUE));
+        \Civi::log('stripe')->error($this->getLogPrefix() . $op . ': ' . get_class($e) . ': ' . $e->getMessage() . print_r($e->getJsonBody(), TRUE));
         $error['code'] = $e->getStripeCode();
         $error['message'] = $e->getMessage();
         return $error;
@@ -373,7 +370,7 @@ class CRM_Core_Payment_Stripe extends CRM_Core_Payment {
         // Display a very generic error to the user, and maybe send yourself an email
         // Get the error array. Creat a "fake" error code if error is not set.
         // The calling code will parse this further.
-        \Civi::log('stripe')->error($this->getLogPrefix() . $op . ': ' . get_class($e) . ': ' . $e->getMessage() . print_r($e->getJsonBody(),TRUE));
+        \Civi::log('stripe')->error($this->getLogPrefix() . $op . ': ' . get_class($e) . ': ' . $e->getMessage() . print_r($e->getJsonBody(), TRUE));
         return $e->getJsonBody()['error'] ?? $genericError;
 
       case 'Stripe\Exception\PermissionException':
@@ -439,7 +436,7 @@ class CRM_Core_Payment_Stripe extends CRM_Core_Payment {
 
     return $this->stripeClient->products->create([
       'name' => $productName,
-      'type' => 'service'
+      'type' => 'service',
     ]);
   }
 
@@ -485,8 +482,10 @@ class CRM_Core_Payment_Stripe extends CRM_Core_Payment {
     ];
     if ($recur) {
       $stripePriceParams['recurring'] = [
-        'interval' => $recur['frequency_unit'], // frequency_unit: day, week, month, year
-        'interval_count' => $recur['frequency_interval'], // frequency_interval
+      // frequency_unit: day, week, month, year
+        'interval' => $recur['frequency_unit'],
+      // frequency_interval
+        'interval_count' => $recur['frequency_interval'],
       ];
     }
     return $this->stripeClient->prices->create($stripePriceParams);
@@ -538,7 +537,7 @@ class CRM_Core_Payment_Stripe extends CRM_Core_Payment {
    * @param int $billingLocationID
    *
    * @return array
-   *    Array of metadata for address fields.
+   *   Array of metadata for address fields.
    */
   public function getBillingAddressFieldsMetadata($billingLocationID = NULL): array {
     if ((bool) \Civi::settings()->get('stripe_nobillingaddress')) {
@@ -556,7 +555,7 @@ class CRM_Core_Payment_Stripe extends CRM_Core_Payment {
       // Stripe does not require some of the billing fields but users may still choose to fill them in.
       $nonRequiredBillingFields = [
         "billing_state_province_id-{$billingLocationID}",
-        "billing_postal_code-{$billingLocationID}"
+        "billing_postal_code-{$billingLocationID}",
       ];
       foreach ($nonRequiredBillingFields as $fieldName) {
         if (!empty($metadata[$fieldName]['is_required'])) {
@@ -782,8 +781,26 @@ class CRM_Core_Payment_Stripe extends CRM_Core_Payment {
         $paymentIntentID = $propertyBag->getCustomProperty('paymentIntentID');
       }
       $intent = $this->stripeClient->paymentIntents->retrieve($paymentIntentID);
-      if ($intent->amount != $this->getAmountFormattedForStripeAPI($propertyBag)) {
-        $intentParams['amount'] = $this->getAmountFormattedForStripeAPI($propertyBag);
+      $newAmount = $this->getAmountFormattedForStripeAPI($propertyBag);
+      if ($intent->amount != $newAmount) {
+        // Stripe only allows a PaymentIntent's amount to be changed while it is in
+        // one of these statuses. If the browser already confirmed the intent it
+        // will have moved on (typically to requires_capture) and an update attempt
+        // fails with a "payment_intent_unexpected_state" error, aborting the whole
+        // transaction. A single-minor-unit mismatch here is expected occasionally:
+        // the browser (JS) and CiviCRM (PHP) can round an exact tax-inclusive
+        // halfway value (eg. $21.525) to different cents. In that specific case,
+        // don't fail the transaction over the 1 unit difference - just proceed
+        // with the amount already authorized on the PaymentIntent.
+        // @see https://lab.civicrm.org/extensions/stripe/-/work_items/510
+        $amountUpdateableStatuses = ['requires_payment_method', 'requires_confirmation', 'requires_action'];
+        $amountDiff = abs(((int) $intent->amount) - ((int) $newAmount));
+        if (in_array($intent->status, $amountUpdateableStatuses, TRUE) || $amountDiff > 1) {
+          $intentParams['amount'] = $newAmount;
+        }
+        else {
+          \Civi::log('stripe')->warning($this->getLogPrefix() . "doPayment: PaymentIntent {$intent->id} amount ({$intent->amount}) differs from the calculated amount ({$newAmount}) by {$amountDiff} minor unit(s) but status ({$intent->status}) does not permit updating the amount. Proceeding with the PaymentIntent's existing amount.");
+        }
       }
       $intent = $this->stripeClient->paymentIntents->update($intent->id, $intentParams);
     }
@@ -809,7 +826,7 @@ class CRM_Core_Payment_Stripe extends CRM_Core_Payment {
   /**
    * @param \Civi\Payment\PropertyBag $propertyBag
    *
-   * @return \PropertySpy|\Stripe\Customer
+   * @return \Stripe\Customer
    * @throws \CRM_Core_Exception
    * @throws \Civi\API\Exception\UnauthorizedException
    * @throws \Civi\Payment\Exception\PaymentProcessorException
@@ -855,7 +872,8 @@ class CRM_Core_Payment_Stripe extends CRM_Core_Payment {
       try {
         $stripeCustomerObject = $this->stripeClient->customers->retrieve($stripeCustomer['customer_id']);
         $shouldDeleteStripeCustomer = $stripeCustomerObject->isDeleted();
-      } catch (Exception $e) {
+      }
+      catch (Exception $e) {
         $err = $this->parseStripeException('retrieve_customer', $e);
         \Civi::log('stripe')->error($this->getLogPrefix() . 'Failed to retrieve Stripe Customer: ' . $err['code']);
         $shouldDeleteStripeCustomer = TRUE;
@@ -883,7 +901,8 @@ class CRM_Core_Payment_Stripe extends CRM_Core_Payment {
       if ($shouldDeleteStripeCustomer || $shouldCreateNewStripeCustomer) {
         try {
           $stripeCustomerObject = CRM_Stripe_Customer::create($customerParams, $this);
-        } catch (Exception $e) {
+        }
+        catch (Exception $e) {
           // We still failed to create a customer
           $err = $this->parseStripeException('create_customer', $e);
           throw new PaymentProcessorException('Failed to create Stripe Customer: ' . $err['code']);
@@ -1043,7 +1062,7 @@ class CRM_Core_Payment_Stripe extends CRM_Core_Payment {
       $intentParams = [
         'stripe_intent_id' => $intent->id ?? $stripeSubscription->pending_setup_intent ?? $propertyBag->getCustomProperty('paymentMethodID'),
         'payment_processor_id' => $this->_paymentProcessor['id'],
-        'contribution_id' =>  $params['contributionID'] ?? NULL,
+        'contribution_id' => $params['contributionID'] ?? NULL,
         'identifier' => $params['qfKey'] ?? NULL,
         'contact_id' => $params['contactID'],
       ];
@@ -1146,7 +1165,7 @@ class CRM_Core_Payment_Stripe extends CRM_Core_Payment {
         'stripe_intent_id' => $intent->id,
         'payment_processor_id' => $this->_paymentProcessor['id'],
         'status' => $intent->status,
-        'contribution_id' =>  $params['contributionID'] ?? NULL,
+        'contribution_id' => $params['contributionID'] ?? NULL,
         'description' => $this->getDescription($params),
         'identifier' => $params['qfKey'] ?? NULL,
         'contact_id' => $params['contactID'],
@@ -1230,13 +1249,17 @@ class CRM_Core_Payment_Stripe extends CRM_Core_Payment {
 
   /**
    * Get a description field
+   *
+   * Public so that the Stripe Checkout flows can build descriptions in the
+   * same format as the quickform/PaymentElement flows.
+   *
    * @param array|PropertyBag $params
    * @param string $type
    *   One of description, statement_descriptor, statement_descriptor_suffix
    *
    * @return string
    */
-  protected function getDescription($params, string $type = 'description'): string {
+  public function getDescription($params, string $type = 'description'): string {
     /* @var \Civi\Payment\PropertyBag $propertyBag */
     $propertyBag = PropertyBag::cast($params);
 
@@ -1288,7 +1311,7 @@ class CRM_Core_Payment_Stripe extends CRM_Core_Payment {
         if (empty($description)) {
           $description = 'X';
         }
-        return substr($description,0,12);
+        return substr($description, 0, 12);
 
       default:
         // The (paymentIntent) full description has no restriction on characters that are allowed/disallowed.
@@ -1574,7 +1597,7 @@ class CRM_Core_Payment_Stripe extends CRM_Core_Payment {
    * @throws \CRM_Core_Exception
    * @throws \Stripe\Exception\UnknownApiErrorException
    */
-  public function handlePaymentNotification() {
+  public function handlePaymentNotification(): void {
     // Set default http response to 200
     http_response_code(200);
     $rawData = file_get_contents("php://input");
@@ -1594,16 +1617,19 @@ class CRM_Core_Payment_Stripe extends CRM_Core_Payment {
         $ipnClass->setVerifyData(FALSE);
         $data = StripeObject::constructFrom($event['data']);
         $ipnClass->setData($data);
-      } catch (\UnexpectedValueException $e) {
+      }
+      catch (\UnexpectedValueException $e) {
         // Invalid payload
         \Civi::log('stripe')->error($this->getLogPrefix() . 'webhook signature validation error: ' . $e->getMessage());
         http_response_code(400);
-        exit();
-      } catch (\Stripe\Exception\SignatureVerificationException $e) {
+        // Return (not exit) so core's IPN dispatcher still runs postIPNProcess/finishes its own exit.
+        return;
+      }
+      catch (\Stripe\Exception\SignatureVerificationException $e) {
         // Invalid signature
         \Civi::log('stripe')->error($this->getLogPrefix() . 'webhook signature validation error: ' . $e->getMessage());
         http_response_code(400);
-        exit();
+        return;
       }
     }
     else {
@@ -1666,17 +1692,7 @@ class CRM_Core_Payment_Stripe extends CRM_Core_Payment {
     // If there is another copy of this event in the table with a lower ID, then
     // this is a duplicate that should be ignored. We do not worry if there is one with a higher ID
     // because that means that while there are duplicates, we'll only process the one with the lowest ID.
-    $duplicates = PaymentprocessorWebhook::get(FALSE)
-      ->selectRowCount()
-      ->addWhere('event_id', '=', $webhookEvent['event_id'])
-      ->addWhere('id', '<', $webhookEvent['id'])
-      ->execute()->count();
-    if ($duplicates) {
-      PaymentprocessorWebhook::update(FALSE)
-        ->addWhere('id', '=', $webhookEvent['id'])
-        ->addValue('status', 'error')
-        ->addValue('message', 'Refusing to process this event as it is a duplicate.')
-        ->execute();
+    if (\Civi\Mjwshared\PaymentProcessorWebhook::rejectIfDuplicate($webhookEvent)) {
       return FALSE;
     }
 
@@ -1750,11 +1766,13 @@ class CRM_Core_Payment_Stripe extends CRM_Core_Payment {
     return E::ts('Use this form to change the amount for this recurring contribution. The Stripe subscription will be updated with the new amount.');
   }
 
-  /*
+  /**
+   *
    * Sets a mock stripe client object for this object and all future created
    * instances. This should only be called by phpunit tests.
    *
    * Nb. cannot change other already-existing instances.
+   *
    */
   public function setMockStripeClient($stripeClient) {
     if (!defined('STRIPE_PHPUNIT_TEST')) {
@@ -1768,8 +1786,8 @@ class CRM_Core_Payment_Stripe extends CRM_Core_Payment {
    * If the transaction is declined, there won't be a balance_transaction_id.
    * We also have to do currency conversion here in case Stripe has converted it internally.
    *
-   * @param \Stripe\BalanceTransaction|PropertySpy $balanceTransaction
-   * @param
+   * @param \Stripe\BalanceTransaction $balanceTransaction
+   * @param string $currency
    *
    * @return float
    * @throws \Civi\Payment\Exception\PaymentProcessorException
@@ -1777,7 +1795,8 @@ class CRM_Core_Payment_Stripe extends CRM_Core_Payment {
   public function getFeeFromBalanceTransaction($balanceTransaction, string $currency): float {
     if ($currency !== $balanceTransaction->currency && !empty($balanceTransaction->exchange_rate)) {
       $fee = CRM_Stripe_Api::currencyConversion($balanceTransaction->fee, $balanceTransaction->exchange_rate, $currency);
-    } else {
+    }
+    else {
       // We must round to currency precision otherwise payments may fail because Contribute BAO saves but then
       // can't retrieve because it tries to use the full unrounded number when it only got saved with 2dp.
       $fee = round($balanceTransaction->fee / 100, CRM_Utils_Money::getCurrencyPrecision($currency));

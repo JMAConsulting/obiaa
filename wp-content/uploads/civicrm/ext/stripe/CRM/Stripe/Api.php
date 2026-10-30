@@ -14,6 +14,12 @@ use CRM_Stripe_ExtensionUtil as E;
 class CRM_Stripe_Api {
 
   /**
+   * Metadata key carrying the CiviCRM ContributionRecur ID on the Stripe
+   * subscription. Written at Checkout Session creation, read back below.
+   */
+  const METADATA_CONTRIBUTION_RECUR_ID = 'civicrm_contribution_recur_id';
+
+  /**
    * @param string $name
    * @param \Stripe\StripeObject $stripeObject
    *
@@ -114,13 +120,40 @@ class CRM_Stripe_Api {
             if (!empty($stripeObject->status_transitions->finalized_at)) {
               return self::formatDate($stripeObject->status_transitions->finalized_at);
             }
-          // Intentionally falls through to created_date
+            // Intentionally falls through to created_date
 
           case 'created_date':
             return self::formatDate($stripeObject->created);
 
           case 'subscription_id':
-            return (string) $stripeObject->subscription;
+            if (!empty($stripeObject->subscription)) {
+              return (string) $stripeObject->subscription;
+            }
+            // Invoice.subscription is only set when the invoice was prepared for
+            // exactly one subscription. If Stripe consolidated multiple subscriptions
+            // (or non-subscription items) onto this invoice, fall back to the first
+            // line item that has one - the field is still present there.
+            foreach (($stripeObject->lines?->data ?? []) as $lineItem) {
+              if (!empty($lineItem->subscription)) {
+                return (string) $lineItem->subscription;
+              }
+            }
+            return '';
+
+          case 'subscription_metadata_recur_id':
+            // Stripe copies the subscription's metadata onto every invoice it
+            // generates, including the first. Lets an invoice be matched to its
+            // recur without ContributionRecur.processor_id, which is not written
+            // until checkout.session.completed is processed.
+            if (empty($stripeObject->subscription_details->metadata[self::METADATA_CONTRIBUTION_RECUR_ID])) {
+              return '';
+            }
+            return (string) $stripeObject->subscription_details->metadata[self::METADATA_CONTRIBUTION_RECUR_ID];
+
+          case 'billing_reason':
+            // Distinguishes the first invoice of a subscription
+            // (subscription_create) from a renewal (subscription_cycle).
+            return (string) ($stripeObject->billing_reason ?? '');
 
           case 'amount':
             return (float) $stripeObject->amount_due / 100;
@@ -170,7 +203,7 @@ class CRM_Stripe_Api {
               }
             }
 
-            switch($name) {
+            switch ($name) {
               case 'frequency_interval':
                 return (int) $plan['interval_count'];
 
@@ -202,6 +235,13 @@ class CRM_Stripe_Api {
 
           case 'subscription_id':
             return (string) $stripeObject->id;
+
+          case 'subscription_metadata_recur_id':
+            // As the 'invoice' case, but read from the subscription itself.
+            if (empty($stripeObject->metadata[self::METADATA_CONTRIBUTION_RECUR_ID])) {
+              return '';
+            }
+            return (string) $stripeObject->metadata[self::METADATA_CONTRIBUTION_RECUR_ID];
 
           case 'status_id':
             switch ($stripeObject->status) {
@@ -255,16 +295,12 @@ class CRM_Stripe_Api {
 
       case 'subscription_item':
         /** @var \Stripe\SubscriptionItem $stripeObject */
-        switch ($name) {
-          default:
-            if (isset($stripeObject->$name)) {
-              return $stripeObject->$name;
-            }
-            \Civi::log('stripe')->error('getObjectParam: Tried to get param "' . $name . '" from "' . $stripeObject->object . '" but it is not set');
-            return NULL;
-          // unit_amount
+        // eg. unit_amount
+        if (isset($stripeObject->$name)) {
+          return $stripeObject->$name;
         }
-        break;
+        \Civi::log('stripe')->error('getObjectParam: Tried to get param "' . $name . '" from "' . $stripeObject->object . '" but it is not set');
+        return NULL;
 
       case 'price':
         /** @var \Stripe\Price $stripeObject */
@@ -364,7 +400,7 @@ class CRM_Stripe_Api {
       'pt_PT' => 'pt',
       'zh_CN' => 'zh',
       'zh_HK' => 'zh-HK',
-      'zh_TW' => 'zh-TW'
+      'zh_TW' => 'zh-TW',
     ];
     if (array_key_exists($civiCRMLocale, $localeMap)) {
       return $localeMap[$civiCRMLocale];
@@ -372,7 +408,7 @@ class CRM_Stripe_Api {
     // Most stripe locale codes are two characters which match the first two chars
     //   of the CiviCRM locale. If it doesn't match the Stripe element will fallback
     //   to "auto"
-    return substr($civiCRMLocale,0, 2);
+    return substr($civiCRMLocale, 0, 2);
   }
 
   /**
@@ -468,7 +504,7 @@ class CRM_Stripe_Api {
         'currencies' => ['CHF'],
         'recur' => FALSE,
         'setup' => FALSE,
-      ]
+      ],
     ];
   }
 

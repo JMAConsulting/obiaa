@@ -118,7 +118,3 @@ Attempt to replay all charges for a given payment processor that are completed i
 
     * `ppid` - Use the given Payment Processor ID. By default, uses the saved, live Stripe payment processor and throws an error if there is more than one.
     * `limit` - Limit number of results (25 is default).
-
-#### `Stripe.Cleanup`:
-
-Cleanup and remove old database tables/fields that are no longer required.

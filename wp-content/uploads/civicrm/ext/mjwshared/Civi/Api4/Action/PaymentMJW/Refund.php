@@ -99,12 +99,15 @@ class Refund extends AbstractCreateAction {
           ->execute();
       }
       if ($refund['refund_status'] === 'Completed') {
+        // A manual / refund-unsupported payment sets $refund to just
+        // ['refund_status' => 'Completed'], so refund_trxn_id and fee_amount are
+        // absent. Guard them: a manual refund has no external trxn id and no fee.
         $refundPaymentParams = [
           'contribution_id' => $payment['contribution_id'],
-          'trxn_id' => $refund['refund_trxn_id'],
+          'trxn_id' => $refund['refund_trxn_id'] ?? NULL,
           'order_reference' => $payment['order_reference'] ?? NULL,
           'total_amount' => 0 - abs($refundAmount->getAmount()->toFloat()),
-          'fee_amount' => 0 - abs($refund['fee_amount']),
+          'fee_amount' => 0 - abs($refund['fee_amount'] ?? 0),
           'payment_processor_id' => $payment['payment_processor_id'],
           'trxn_date' => $refund['trxn_date'] ?? NULL,
         ];

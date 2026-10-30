@@ -6,7 +6,7 @@
  * https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_managed/
  */
 
-use \CRM_Stripe_ExtensionUtil as E;
+use CRM_Stripe_ExtensionUtil as E;
 
 // Group is added by mjwshared
 $customGroup = \Civi\Api4\CustomGroup::get(FALSE)

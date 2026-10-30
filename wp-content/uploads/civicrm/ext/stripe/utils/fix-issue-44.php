@@ -15,10 +15,9 @@
  * @see https://lab.civicrm.org/extensions/stripe/issues/63
  *
  */
-use Stripe\Stripe;
-use Stripe\Charge;
 
-exit; // ***REMOVE THIS LINE*** but don't run this until you have understood what it does.
+// ***REMOVE THIS LINE*** but don't run this until you have understood what it does.
+exit;
 
 if (php_sapi_name() !== 'cli') {
   // This is NOT to be run from a web browser.
@@ -32,7 +31,7 @@ if (php_sapi_name() !== 'cli') {
 civicrm_initialize();
 echo "booted ok\n";
 
-$result = civicrm_api3('PaymentProcessor', 'get', [ 'class_name' => 'Payment_Stripe', 'is_active' => 1, ]);
+$result = civicrm_api3('PaymentProcessor', 'get', ['class_name' => 'Payment_Stripe', 'is_active' => 1]);
 $payment_processors = $result['values'];
 if (empty($payment_processors)) {
   echo "Failed to find payment processors\n";
@@ -52,7 +51,8 @@ while ($dao->fetch()) {
     echo "Failed to find a stripe payment processor for recurring contrib $dao->contribution_recur_id\n";
   }
 
-  /** @var \CRM_Core_Payment_Stripe $processor */
+  /**
+ * @var \CRM_Core_Payment_Stripe $processor */
   $processor = \Civi\Payment\System::singleton()->getById($paymentProcessor['id']);
 
   try {
@@ -70,7 +70,8 @@ while ($dao->fetch()) {
       'receive_date' => $d,
     ]);
 
-  } catch (Exception $e) {
+  }
+  catch (Exception $e) {
     echo "Failed to load Stripe charge $dao->trxn_id \n" . $e->getMessage();
     continue;
   }

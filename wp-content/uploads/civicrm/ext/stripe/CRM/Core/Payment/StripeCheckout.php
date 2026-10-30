@@ -10,8 +10,6 @@
  */
 
 use Civi\Payment\PropertyBag;
-use Civi\Payment\Exception\PaymentProcessorException;
-use Stripe\PaymentIntent;
 use Civi\Stripe\CheckoutOption\StripeHostedCheckout;
 use CRM_Stripe_ExtensionUtil as E;
 

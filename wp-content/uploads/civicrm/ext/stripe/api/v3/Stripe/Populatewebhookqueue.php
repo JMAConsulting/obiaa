@@ -78,7 +78,7 @@ function civicrm_api3_stripe_Populatewebhookqueue($params) {
 
   $items = [];
   $last_item = NULL;
-  while(1) {
+  while (1) {
     if ($last_item) {
       $listEventsParams['starting_after'] = $last_item['id'];
     }
@@ -107,7 +107,7 @@ function civicrm_api3_stripe_Populatewebhookqueue($params) {
 
   $missingEventIDs = array_diff($eventIDs, $paymentprocessorWebhookEventIDs);
 
-  foreach($items as $item) {
+  foreach ($items as $item) {
     if (!in_array($item['id'], $missingEventIDs)) {
       continue;
     }
