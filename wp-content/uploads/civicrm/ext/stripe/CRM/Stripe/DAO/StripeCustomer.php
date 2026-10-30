@@ -8,11 +8,11 @@
  *
  * This stub provides compatibility. It is not intended to be modified in a
  * substantive way. Property annotations may be added, but are not required.
- * @property string $id 
- * @property string $customer_id 
- * @property string $contact_id 
- * @property string $processor_id 
- * @property string $currency 
+ * @property string $id
+ * @property string $customer_id
+ * @property string $contact_id
+ * @property string $processor_id
+ * @property string $currency
  */
 class CRM_Stripe_DAO_StripeCustomer extends CRM_Stripe_DAO_Base {
 

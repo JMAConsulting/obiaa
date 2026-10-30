@@ -9,6 +9,48 @@ Releases use the following numbering system:
 
 * **[BC]**: Items marked with [BC] indicate a breaking change that will require updates to your code if you are using that code in your extension.
 
+## 6.19.1 (2026-10-05)
+
+* [!345](https://lab.civicrm.org/extensions/stripe/-/merge_requests/345) Fix [#519](https://lab.civicrm.org/extensions/stripe/-/issues/519): pressing Enter on a Webform payment page could create a PaymentIntent with no customer and send the user back to the first page. Enter on buttons, links, textareas and selects now behaves natively.
+* [!344](https://lab.civicrm.org/extensions/stripe/-/merge_requests/344) Declare the `webhook` param of API4 `StripeWebhook.update` as an array so it passes API4 validation.
+* [!340](https://lab.civicrm.org/extensions/stripe/-/merge_requests/340), [!342](https://lab.civicrm.org/extensions/stripe/-/merge_requests/342), [!343](https://lab.civicrm.org/extensions/stripe/-/merge_requests/343) Code cleanup: remove unused lodash, convert to short array syntax, remove duplicate semicolons.
+
+## 6.19.0 (2026-09-09)
+
+* [!318](https://lab.civicrm.org/extensions/stripe/-/merge_requests/318) Resolve the recurring contribution from Stripe subscription metadata instead of waiting on webhook ordering, fixing Checkout subscription signups that could be left at Pending indefinitely when `invoice.paid` arrived before `checkout.session.completed`.
+* [!333](https://lab.civicrm.org/extensions/stripe/-/merge_requests/333) Retry webhook events when the contribution lock is contended instead of proceeding without it.
+* [!335](https://lab.civicrm.org/extensions/stripe/-/merge_requests/335) Lock the contribution in `doCheckoutSessionCompleted`, closing a race with `doChargeSucceeded` that could overwrite `trxn_id` and revert an already-completed Contribution back to Pending.
+* [!331](https://lab.civicrm.org/extensions/stripe/-/merge_requests/331) Re-queue the webhook row the duplicate-event guard will actually accept, instead of one Stripe's redelivery can leave permanently rejected.
+* [!320](https://lab.civicrm.org/extensions/stripe/-/merge_requests/320) Skip a payment-intent lookup that always failed for Checkout Sessions in subscription mode (Stripe puts `payment_intent` on the invoice instead), removing an error logged on every such signup.
+* [!336](https://lab.civicrm.org/extensions/stripe/-/merge_requests/336) Net off Stripe-side refunds in the duplicate-payment check, so a duplicate charge that was later refunded doesn't stay flagged forever.
+* [!334](https://lab.civicrm.org/extensions/stripe/-/merge_requests/334) Use the standard payment description for Stripe Checkout.
+
+## 6.18.0 (2026-08-28)
+
+**Requires Payment Shared (MJWShared) 1.6.1.**
+
+* [!322](https://lab.civicrm.org/extensions/stripe/-/merge_requests/322) Adopt the shared `PaymentProcessorWebhookInterface` webhook contract and its centralized event-dedup helper from MJWShared, replacing Stripe's own duplicated implementation.
+* [!323](https://lab.civicrm.org/extensions/stripe/-/merge_requests/323) Embedded Checkout: navigate back to CiviCRM ourselves via a completion callback instead of relying solely on Stripe's own redirect, which could silently fail to fire.
+* [!324](https://lab.civicrm.org/extensions/stripe/-/merge_requests/324) Don't cancel a PaymentIntent that has already succeeded at Stripe during the "cancel incomplete" cleanup job.
+* [!324](https://lab.civicrm.org/extensions/stripe/-/merge_requests/324) Add a CRITICAL system status check flagging Stripe payments that succeeded but were never recorded as a Contribution.
+* [!324](https://lab.civicrm.org/extensions/stripe/-/merge_requests/324) Add a system status check flagging Contributions where the total taken at Stripe exceeds what's recorded as paid (eg. a duplicate charge from a retried Checkout Session).
+* [!325](https://lab.civicrm.org/extensions/stripe/-/merge_requests/325) Resolve webhook contribution matching via `civicrm_stripe_paymentintent` before falling back to `trxn_id`, fixing payments silently going unmatched when a customer retries on the same pending order.
+* [!326](https://lab.civicrm.org/extensions/stripe/-/merge_requests/326) **[BC]** Convert `Job.process_stripe`'s cleanup logic to a new API4 `Stripe.cleanup` action. The old API3 `Job.process_stripe` action remains as a deprecated shim, but the unrelated legacy `Stripe.Cleanup` API3 action (for dropping long-migrated legacy tables) has been removed.
+* [!327](https://lab.civicrm.org/extensions/stripe/-/merge_requests/327) Link Contribution IDs in the duplicate-Stripe-payment check messages straight to the Contribution's view page.
+* [!317](https://lab.civicrm.org/extensions/stripe/-/merge_requests/317) Release the find/create lock explicitly on the early-return path in `doInvoicePaid()`, rather than relying on refcount timing to release it.
+* [!328](https://lab.civicrm.org/extensions/stripe/-/merge_requests/328) Record a late-arriving genuine payment (eg. a retried Checkout Session's delayed `charge.succeeded`) as an additional Payment on an already-completed Contribution instead of silently dropping it.
+
+## 6.17.0 (2026-08-06)
+
+* [!315](https://lab.civicrm.org/extensions/stripe/-/merge_requests/315) Record civicrm_stripe_paymentintent rows for Checkout Session payments (previously only the card-element/PaymentElement flow populated this table, leaving no troubleshooting record for the FormBuilder CheckoutOptions or classic StripeCheckout payment processor flows).
+* [!216](https://lab.civicrm.org/extensions/stripe/-/merge_requests/216) Fix #428: webform submit button non-responsive for zero-dollar contribution amount.
+* [!308](https://lab.civicrm.org/extensions/stripe/-/merge_requests/308) Only expose CheckoutOptions for active processors (a deactivated payment processor could still be selected/used as a CheckoutOption).
+* Reinstate getPaymentProcessorId() signature.
+* Add context to error log.
+* [!312](https://lab.civicrm.org/extensions/stripe/-/merge_requests/312) Fix webhook update only converging one payment processor at a time; automatically fix/update webhooks on extension upgrade instead of requiring a manual system-check fix.
+* [!311](https://lab.civicrm.org/extensions/stripe/-/merge_requests/311) Fix "Missing Stripe subscription_id" on invoice.paid/invoice.finalized webhooks - recovers subscription_id/charge_id when Stripe renders webhook data at an unexpected API version (eg. basil) by re-fetching the actual object directly.
+* [!310](https://lab.civicrm.org/extensions/stripe/-/merge_requests/310) Fix payment failure caused by a JS/PHP tax rounding mismatch (#510).
+
 ## 6.16.2 (2026-06-15)
 
 * [!303](https://lab.civicrm.org/extensions/stripe/-/merge_requests/303) Fix #496 StripeCheckout LineItems: Handle negative quantity/amount and non-integer quantity.

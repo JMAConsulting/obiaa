@@ -9,7 +9,6 @@
  +--------------------------------------------------------------------+
  */
 
-use Civi\Api4\ContributionRecur;
 use Civi\Api4\PaymentprocessorWebhook;
 use Civi\Payment\Exception\PaymentProcessorException;
 
@@ -21,7 +20,18 @@ class CRM_Core_Payment_StripeIPN {
   use CRM_Core_Payment_MJWIPNTrait;
 
   /**
-   * @var \CRM_Core_Payment_Stripe Payment processor
+   * How long a webhook event may keep being returned to the queue because its
+   * contribution lock is contended, measured from when the event was received.
+   *
+   * A strtotime() interval: an event created longer ago than this is no
+   * longer retried.
+   *
+   * @var string
+   */
+  private const RETRY_WINDOW = '1 hour';
+
+  /**
+   * @var \CRM_Core_Payment_StripePaymentprocessor
    */
   protected $_paymentProcessor;
 
@@ -43,47 +53,47 @@ class CRM_Core_Payment_StripeIPN {
   // Properties of the event.
 
   /**
-   * @var string The Stripe Subscription ID
+   * @var stringTheStripeSubscriptionID
    */
   protected $subscription_id = NULL;
 
   /**
-   * @var string The Stripe Customer ID
+   * @var stringTheStripeCustomerID
    */
   protected $customer_id = NULL;
 
   /**
-   * @var string The Stripe PaymentIntent ID
+   * @var stringTheStripePaymentIntentID
    */
   protected $payment_intent_id = NULL;
 
   /**
-   * @var string The Stripe Charge ID
+   * @var stringTheStripeChargeID
    */
   protected $charge_id = NULL;
 
   /**
-   * @var string The stripe Invoice ID (mapped to trxn_id on a contribution for recurring contributions)
+   * @var stringThestripeInvoiceIDmappedtotrxn_idonacontributionforrecurringcontributions
    */
   protected $invoice_id = NULL;
 
   /**
-   * @var string The date/time the charge was made
+   * @var stringThedatetimethechargewasmade
    */
   protected $receive_date = NULL;
 
   /**
-   * @var float The amount paid
+   * @var floatTheamountpaid
    */
   protected $amount = 0.0;
 
   /**
-   * @var float The fee charged by Stripe
+   * @var floatThefeechargedbyStripe
    */
   protected $fee = 0.0;
 
   /**
-   * @var array The current contribution (linked to Stripe charge(single)/invoice(subscription)
+   * @var arrayThecurrentcontributionlinkedtoStripechargesingleinvoicesubscription
    */
   protected $contribution = NULL;
 
@@ -98,14 +108,12 @@ class CRM_Core_Payment_StripeIPN {
    *
    * In a test environment it is often helpful for it to throw the exception instead.
    *
-   * @var bool.
+   * @var bool
    */
   public $exceptionOnFailure = FALSE;
 
   /**
    * Redeclared here to tighten up the var type
-   * Can't define return because unit tests return PropertySpy
-   * Should be \Stripe\StripeObject|PropertySpy with PHP8.0+
    *
    * @return \Stripe\StripeObject
    */
@@ -192,6 +200,21 @@ class CRM_Core_Payment_StripeIPN {
       /** @var \Stripe\Event $event */
       $event = $this->getPaymentProcessor()->stripeClient->events->retrieve($this->eventID);
       $this->setData($event->data);
+
+      // Event data is rendered at the Stripe account's *default* API version at
+      // the time the event was created - not at the version pinned to our
+      // webhook endpoint, and Stripe ignores the Stripe-Version header on
+      // Events::retrieve() specifically, so this can come back in an
+      // unexpected (eg. newer/basil) shape, missing fields like `charge` or
+      // `subscription`. Ordinary object retrievals DO honour Stripe-Version,
+      // so re-fetch the actual object directly for a complete, correctly
+      // versioned copy to use for all further processing.
+      $freshObject = $this->retrieveFreshObject($event->data->object);
+      if ($freshObject) {
+        $data = $this->getData();
+        $data->object = $freshObject;
+        $this->setData($data);
+      }
     }
 
     // If we have a webhook signing secret data was already set on the class.
@@ -200,12 +223,14 @@ class CRM_Core_Payment_StripeIPN {
       $this->exception('Invalid input data (not an object)');
     }
 
-    // When we receive a charge.X webhook event and it has an invoice ID we expand the invoice object
-    //   so that we have the subscription ID.
+    // When we receive a charge.X webhook event (from a *trusted* raw payload -
+    // if we re-fetched a fresh object above it's already expanded) and it has
+    // an invoice ID we expand the invoice object so that we have the
+    // subscription ID.
     //   We'll receive both invoice.payment_succeeded/failed and charge.succeeded/failed at the same time
     //   and we need to make sure we don't process them at the same time or we can get deadlocks/race conditions
     //   that cause processing to fail.
-    if (($data->object instanceof \Stripe\Charge) && !empty($data->object->invoice)) {
+    if (!$this->getVerifyData() && ($data->object instanceof \Stripe\Charge) && !empty($data->object->invoice)) {
       $data->object = $this->getPaymentProcessor()->stripeClient->charges->retrieve(
         $this->getData()->object->id,
         ['expand' => ['invoice']]
@@ -213,6 +238,11 @@ class CRM_Core_Payment_StripeIPN {
       $this->setData($data);
       $this->subscription_id = CRM_Stripe_Api::getObjectParam('subscription_id', $this->getData()->object->invoice);
       $this->invoice_id = CRM_Stripe_Api::getObjectParam('invoice_id', $this->getData()->object->invoice);
+    }
+    elseif (($data->object instanceof \Stripe\Charge) && !empty($data->object->invoice)) {
+      // We're on the re-fetched (and already invoice-expanded) path.
+      $this->subscription_id = CRM_Stripe_Api::getObjectParam('subscription_id', $data->object->invoice);
+      $this->invoice_id = CRM_Stripe_Api::getObjectParam('invoice_id', $data->object->invoice);
     }
     else {
       $this->subscription_id = $this->retrieve('subscription_id', 'String', FALSE);
@@ -224,6 +254,46 @@ class CRM_Core_Payment_StripeIPN {
     $this->customer_id = $this->retrieve('customer_id', 'String', FALSE);
 
     $this->setInputParametersHasRun = TRUE;
+  }
+
+  /**
+   * Re-fetch the actual Stripe object referenced by an Event's data.object,
+   * using the resource-specific API (which honours our pinned Stripe-Version)
+   * rather than trusting the Event's frozen (possibly differently-versioned)
+   * snapshot - see setInputParameters().
+   *
+   * Returns NULL for object types we don't know how to re-fetch (or if the
+   * re-fetch itself fails), in which case the original Event snapshot is
+   * used as before.
+   *
+   * @param \Stripe\StripeObject $object
+   *
+   * @return \Stripe\StripeObject|null
+   */
+  private function retrieveFreshObject($object) {
+    $id = $object->id ?? NULL;
+    if (empty($id)) {
+      return NULL;
+    }
+    try {
+      switch ($object->object ?? '') {
+        case 'invoice':
+          return $this->getPaymentProcessor()->stripeClient->invoices->retrieve($id);
+
+        case 'charge':
+          return $this->getPaymentProcessor()->stripeClient->charges->retrieve($id, ['expand' => ['invoice']]);
+
+        case 'subscription':
+          return $this->getPaymentProcessor()->stripeClient->subscriptions->retrieve($id);
+
+        case 'checkout.session':
+          return $this->getPaymentProcessor()->stripeClient->checkout->sessions->retrieve($id);
+      }
+    }
+    catch (\Throwable $e) {
+      \Civi::log('stripe')->warning('Unable to re-fetch fresh ' . ($object->object ?? 'unknown') . ' object ' . $id . ': ' . $e->getMessage());
+    }
+    return NULL;
   }
 
   /**
@@ -366,14 +436,14 @@ class CRM_Core_Payment_StripeIPN {
 
     // Check the number of webhooks to be processed does not exceed connection-limit
     $toBeProcessedWebhook = PaymentprocessorWebhook::get(FALSE)
-        ->addWhere('payment_processor_id', '=', $this->getPaymentProcessor()->getID())
-        ->addWhere('processed_date', 'IS NULL')
-        ->execute();
+      ->addWhere('payment_processor_id', '=', $this->getPaymentProcessor()->getID())
+      ->addWhere('processed_date', 'IS NULL')
+      ->execute();
 
     // Limit on webhooks that will be processed immediately. Otherwise we delay execution.
-    $webhookProcessingLimit = (int)\Civi::settings()->get('stripe_webhook_processing_limit');
+    $webhookProcessingLimit = (int) \Civi::settings()->get('stripe_webhook_processing_limit');
     if (!$processWebhook || ($toBeProcessedWebhook->rowCount > $webhookProcessingLimit)) {
-        return TRUE;
+      return TRUE;
     }
 
     return $this->processQueuedWebhookEvent($newWebhookEvent);
@@ -398,15 +468,67 @@ class CRM_Core_Payment_StripeIPN {
     $this->setExceptionMode(FALSE);
 
     $processingResult = $this->processWebhookEvent();
+
+    // A handler that could not obtain its lock has neither processed the event
+    // nor failed it, and wants another attempt. Retrying indefinitely would
+    // fail silently, so stop once the event has been queued for too long: it
+    // is then recorded as an error, which is visible at
+    // civicrm/paymentprocessorwebhooks and can be marked for retry by hand.
+    $retry = !empty($processingResult->retry);
+    if ($retry && $this->hasExceededRetryWindow($webhookEvent['id'])) {
+      $retry = FALSE;
+      $processingResult->message = 'Gave up after ' . self::RETRY_WINDOW . ': ' . $processingResult->message;
+      \Civi::log('stripe')->error("StripeIPN: giving up on webhook event {$webhookEvent['event_id']} after " . self::RETRY_WINDOW . ' of lock contention. Investigate the contention, then mark the event for retry.');
+    }
+
     // Update the stored webhook event.
-    PaymentprocessorWebhook::update(FALSE)
+    $update = PaymentprocessorWebhook::update(FALSE)
       ->addWhere('id', '=', $webhookEvent['id'])
+      ->addValue('message', preg_replace('/^(.{250}).*/su', '$1 ...', $processingResult->message));
+
+    if ($retry) {
+      // Neither success nor error: put it back for the next run. The queue
+      // selects on status and processed_date together, so both must be reset.
+      $update
+        ->addValue('status', 'new')
+        ->addValue('processed_date', NULL)
+        ->execute();
+      return FALSE;
+    }
+
+    $update
       ->addValue('status', $processingResult->ok ? 'success' : 'error')
-      ->addValue('message', preg_replace('/^(.{250}).*/su', '$1 ...', $processingResult->message))
       ->addValue('processed_date', 'now')
       ->execute();
 
     return $processingResult->ok;
+  }
+
+  /**
+   * Has this event been waiting for a lock for longer than we are willing to
+   * keep retrying it?
+   *
+   * The age is read from the database rather than taken from the queue row we
+   * were handed, because that row does not necessarily carry created_date.
+   *
+   * @param int $webhookEventID
+   *
+   * @return bool
+   */
+  private function hasExceededRetryWindow(int $webhookEventID): bool {
+    $createdDate = PaymentprocessorWebhook::get(FALSE)
+      ->addSelect('created_date')
+      ->addWhere('id', '=', $webhookEventID)
+      ->execute()
+      ->first()['created_date'] ?? NULL;
+
+    if (empty($createdDate)) {
+      // We cannot tell how long this has been retrying, and retrying forever
+      // is the silent failure we are trying to avoid, so stop here.
+      return TRUE;
+    }
+
+    return strtotime($createdDate) < strtotime('-' . self::RETRY_WINDOW);
   }
 
   /**
@@ -417,7 +539,7 @@ class CRM_Core_Payment_StripeIPN {
    * @throws \Civi\API\Exception\UnauthorizedException
    */
   public function processWebhookEvent() :stdClass {
-    $return = (object) ['message' => '', 'ok' => FALSE, 'exception' => NULL];
+    $return = (object) ['message' => '', 'ok' => FALSE, 'exception' => NULL, 'retry' => FALSE];
 
     try {
       $this->setInputParameters();

@@ -120,5 +120,4 @@ class StripeHostedCheckout extends StripeCheckoutOptionBase {
     return $this->createCheckoutSession($uiModeParams, $testMode, $contributionId, $recurIntervalUnit, $recurIntervalCount);
   }
 
-
 }

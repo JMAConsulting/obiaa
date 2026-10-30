@@ -21,23 +21,26 @@ function _civicrm_api3_mosaico_template_create_spec(&$spec) {
  */
 function civicrm_api3_mosaico_template_create($params) {
   // Add current domain id to the template while creating
-  if(empty($params['domain_id']) && empty($params['id'])){
+  if (empty($params['domain_id']) && empty($params['id'])) {
     $params['domain_id'] = CRM_Core_Config::domainID();
   }
 
   if (isset($params['metadata'])) {
     $metaData = json_decode($params['metadata'], TRUE);
-    $baseTemplateURL = $metaData['template'];
+    if (isset($metaData['template'])) {
+      $baseTemplateURL = $metaData['template'];
 
-    // Check if domain name exists in the URL and remove it. Storing the relative path to get the templates work with multi domain sites.
-    if (_civicrm_api3_mosaico_template_getDomainFrom($baseTemplateURL)) {
-      $urlParts = parse_url($baseTemplateURL);
-      $templatePath = trim($urlParts['path'], '/');
-    } else {
-      $templatePath = $baseTemplateURL;
+      // Check if domain name exists in the URL and remove it. Storing the relative path to get the templates work with multi domain sites.
+      if (_civicrm_api3_mosaico_template_getDomainFrom($baseTemplateURL)) {
+        $urlParts = parse_url($baseTemplateURL);
+        $templatePath = trim($urlParts['path'], '/');
+      }
+      else {
+        $templatePath = $baseTemplateURL;
+      }
+
+      $metaData['template'] = $templatePath;
     }
-
-    $metaData['template'] = $templatePath;
     $params['metadata'] = json_encode($metaData);
   }
   return _civicrm_api3_basic_create('CRM_Mosaico_BAO_MosaicoTemplate', $params);
@@ -63,26 +66,29 @@ function civicrm_api3_mosaico_template_delete($params) {
  */
 function civicrm_api3_mosaico_template_get($params) {
   // Added the current domain id to the template while retrieving
-  if(empty($params['domain_id']) && empty($params['id'])){
+  if (empty($params['domain_id']) && empty($params['id'])) {
     $params['domain_id'] = CRM_Core_Config::domainID();
   }
 
   $getresult = _civicrm_api3_basic_get('CRM_Mosaico_BAO_MosaicoTemplate', $params);
   // Check if domain name exists in the URL and append current domain with it. Returning the URL with current domain to get the templates work with multi domain sites.
-  if ( !empty($getresult['values']) && isset($getresult['values'][0]['metadata']) ) {
+  if (!empty($getresult['values']) && isset($getresult['values'][0]['metadata'])) {
     $metaData = json_decode($getresult['values'][0]['metadata'], TRUE);
-    $baseTemplateURL = $metaData['template'];
+    if (isset($metaData['template'])) {
+      $baseTemplateURL = $metaData['template'];
 
-    if (_civicrm_api3_mosaico_template_getDomainFrom($baseTemplateURL)) {
-      $urlParts = parse_url($baseTemplateURL);
-      $templatePath = $urlParts['path'];
-      $currentURL = rtrim(\Civi::paths()->getVariable('cms.root', 'url'), "/") .
-                    '/' . ltrim($templatePath,'/');
-    } else {
-      $currentURL = $baseTemplateURL;
+      if (_civicrm_api3_mosaico_template_getDomainFrom($baseTemplateURL)) {
+        $urlParts = parse_url($baseTemplateURL);
+        $templatePath = $urlParts['path'];
+        $currentURL = rtrim(\Civi::paths()->getVariable('cms.root', 'url'), "/") .
+          '/' . ltrim($templatePath, '/');
+      }
+      else {
+        $currentURL = $baseTemplateURL;
+      }
+
+      $metaData['template'] = $currentURL;
     }
-
-    $metaData['template'] = $currentURL;
     $getresult['values'][0]['metadata'] = json_encode($metaData);
   }
 
@@ -166,7 +172,7 @@ function civicrm_api3_mosaico_template_replaceurls($params) {
   if (!preg_match('/' . preg_quote('/', '/') . '$/', $params['from_url'])) {
     $params['from_url'] .= '/';
   }
-  
+
   // Ensure the `to_url` ends with a slash
   if (!preg_match('/' . preg_quote('/', '/') . '$/', $params['to_url'])) {
     $params['to_url'] .= '/';
@@ -188,5 +194,5 @@ function _civicrm_api3_mosaico_template_getDomainFrom($url) {
   if (preg_match('/(?P<domain>[a-z0-9][a-z0-9\-]{1,63}\.[a-z\.]{2,6})$/i', $domain, $regs)) {
     return $regs['domain'];
   }
-  return false;
+  return FALSE;
 }

@@ -20,11 +20,13 @@ if (file_exists($autoload)) {
 // backfill empty versions of CheckoutOptionInterface to prevent crash on old civicrm core
 spl_autoload_register(function ($class) {
   if ($class === 'Civi\\Checkout\\CheckoutOptionInterface' && version_compare(CRM_Utils_System::version(), '6.14.alpha1', '<')) {
-    interface CRM_Stripe_CheckoutOptionInterface {};
+    interface CRM_Stripe_CheckoutOptionInterface {
+    }
     class_alias('CRM_Stripe_CheckoutOptionInterface', $class);
   }
   if ($class === 'Civi\\Checkout\\AfformCheckoutOptionInterface' && version_compare(CRM_Utils_System::version(), '6.14.alpha1', '<')) {
-    interface CRM_Stripe_AfformCheckoutOptionInterface {};
+    interface CRM_Stripe_AfformCheckoutOptionInterface {
+    }
     class_alias('CRM_Stripe_AfformCheckoutOptionInterface', $class);
   }
 }, TRUE, TRUE);
@@ -32,21 +34,21 @@ spl_autoload_register(function ($class) {
 use CRM_Stripe_ExtensionUtil as E;
 
 /**
- * Implementation of hook_civicrm_config().
+ * Implements hook_civicrm_config().
  */
 function stripe_civicrm_config(&$config) {
   _stripe_civix_civicrm_config($config);
 }
 
 /**
- * Implementation of hook_civicrm_install().
+ * Implements hook_civicrm_install().
  */
 function stripe_civicrm_install() {
   _stripe_civix_civicrm_install();
 }
 
 /**
- * Implementation of hook_civicrm_enable().
+ * Implements hook_civicrm_enable().
  */
 function stripe_civicrm_enable() {
   _stripe_civix_civicrm_enable();
@@ -99,13 +101,15 @@ function stripe_civicrm_alterLogTables(&$logTableSpec) {
 function stripe_civicrm_permission(&$permissions) {
   if (\Civi::settings()->get('stripe_moto')) {
     $permissions['allow stripe moto payments'] = [
-      'label' => E::ts('CiviCRM Stripe: Process MOTO transactions')
+      'label' => E::ts('CiviCRM Stripe: Process MOTO transactions'),
     ];
   }
 }
 
-/*
+/**
+ *
  * Implements hook_civicrm_post().
+ *
  */
 function stripe_civicrm_post($op, $objectName, $objectId, &$objectRef) {
   switch ($objectName) {
@@ -168,7 +172,10 @@ function stripe_civicrm_shutdown_updatestripecustomer(int $contactID) {
     }
   }
   catch (Exception $e) {
-    \Civi::log('stripe')->error('Stripe Contact update failed: ' . $e->getMessage());
+    \Civi::log('stripe')->error(
+      'Stripe Contact update failed: ' . $e->getMessage(),
+      ['contact_id' => $contactID]
+    );
   }
 
 }

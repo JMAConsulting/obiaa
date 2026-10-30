@@ -1,10 +1,6 @@
 <?php
 
 use CRM_Stripe_ExtensionUtil as E;
-use Civi\Test\HeadlessInterface;
-use Civi\Test\HookInterface;
-use Civi\Test\TransactionalInterface;
-use Civi\Test\CiviEnvBuilder;
 
 /**
  * FIXME - Add test description.
@@ -20,7 +16,7 @@ use Civi\Test\CiviEnvBuilder;
  *
  * @group headless
  */
-require_once('TestBase.php');
+require_once 'TestBase.php';
 
 class CRM_Stripe_MergeTest extends CRM_Stripe_TestBase {
 
@@ -39,7 +35,7 @@ class CRM_Stripe_MergeTest extends CRM_Stripe_TestBase {
     $result = civicrm_api3('Stripe', 'importsubscription', [
       'subscription' => 'sub_mock',
       'contact_id' => $this->contactID,
-      'ppid' => $this->paymentProcessorID
+      'ppid' => $this->paymentProcessorID,
     ]);
 
     $this->contributionID = $result['values']['contribution_id'];
@@ -66,10 +62,10 @@ class CRM_Stripe_MergeTest extends CRM_Stripe_TestBase {
 
     // Create a new contact
     $res = \Civi\Api4\Contact::create()
-       ->addValue('first_name', $contact['first_name'])
-       ->addValue('last_name', $contact['last_name'])
-       ->execute()
-       ->first();
+      ->addValue('first_name', $contact['first_name'])
+      ->addValue('last_name', $contact['last_name'])
+      ->execute()
+      ->first();
 
     $new_id = $res['id'];
 
@@ -86,7 +82,6 @@ class CRM_Stripe_MergeTest extends CRM_Stripe_TestBase {
       ->execute()
       ->first();
     $this->assertEquals($res['is_deleted'], 1);
-
 
     // update saved contact_id
     $this->contactID = $new_id;

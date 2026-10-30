@@ -9,8 +9,6 @@
  +--------------------------------------------------------------------+
  */
 
-use Civi\Api4\StripePaymentintent;
-
 /**
  * This job performs various housekeeping actions related to the Stripe payment processor
  * NOT domain-specific. On multidomain only run on one domain.
@@ -20,67 +18,17 @@ use Civi\Api4\StripePaymentintent;
  * @return array
  *   API result array.
  * @throws CRM_Core_Exception
+ * @deprecated Use API4 Stripe.cleanup
  */
 function civicrm_api3_job_process_stripe($params) {
-  // Note: "canceled" is the status from Stripe, we used to record "cancelled" so we check for both
-  $results = [
-    'deleted' => 0,
-    'canceled' => 0,
-  ];
+  $result = \Civi\Api4\Stripe::cleanup(FALSE)
+    ->setDeleteOld($params['delete_old'])
+    ->setCancelIncomplete($params['cancel_incomplete'])
+    ->setStripePaymentintentId($params['stripe_paymentintent_id'] ?? NULL)
+    ->execute()
+    ->first();
 
-  if ($params['delete_old'] !== 0 && !empty($params['delete_old'])) {
-    // Delete all locally recorded paymentIntents that are older than 3 months
-
-    $oldPaymentintents = StripePaymentintent::delete(FALSE)
-      ->addWhere('status', 'IN', ['succeeded', 'cancelled', 'canceled', 'failed'])
-      ->addWhere('created_date', '<', '-3 month')
-      ->execute();
-    $results['deleted'] = $oldPaymentintents->count();
-  }
-
-  if ($params['cancel_incomplete'] !== 0 && !empty($params['cancel_incomplete'])) {
-    // Cancel incomplete paymentIntents after 1 hour
-    $incompletePaymentintents = StripePaymentintent::get(FALSE)
-      ->addWhere('status', 'NOT IN', ['succeeded', 'cancelled', 'canceled', 'failed'])
-      ->addWhere('created_date', '<', $params['cancel_incomplete'])
-      ->addWhere('stripe_intent_id', 'IS NOT EMPTY');
-    if (!empty($params['stripe_paymentintent_id'])) {
-      $incompletePaymentintents->addWhere('id', '=', $params['stripe_paymentintent_id']);
-    }
-    $incompletePaymentintents = $incompletePaymentintents->execute();
-
-    $cancelledIDs = [];
-    foreach ($incompletePaymentintents as $incompletePaymentintent) {
-      try {
-        /** @var \CRM_Core_Payment_Stripe $paymentProcessor */
-        $paymentProcessor = Civi\Payment\System::singleton()->getById($incompletePaymentintent['payment_processor_id']);
-        $intent = $paymentProcessor->stripeClient->paymentIntents->retrieve($incompletePaymentintent['stripe_intent_id']);
-        // Check intent was not already cancelled - this could happen eg. at Stripe before we process it
-        if ($intent->status !== 'canceled') {
-          $intent->cancel(['cancellation_reason' => 'abandoned']);
-        }
-        $cancelledIDs[] = $incompletePaymentintent['id'];
-      } catch (Exception $e) {
-        if ($e instanceof \Stripe\Exception\InvalidRequestException) {
-          // 404 resource_missing (paymentIntent not found at Stripe)
-          // 400 bad_request (paymentIntent is already in canceled state?)
-          if (in_array($e->getHttpStatus(), [400, 404])) {
-            $cancelledIDs[] = $incompletePaymentintent['id'];
-          }
-        }
-        \Civi::log('stripe')->error("Stripe.process_stripe: Unable to cancel paymentIntentID: {$incompletePaymentintent['id']}: " . $e->getMessage());
-      }
-    }
-    if (!empty($cancelledIDs)) {
-      StripePaymentintent::update(FALSE)
-        ->addValue('status', 'canceled')
-        ->addWhere('id', 'IN', $cancelledIDs)
-        ->execute();
-    }
-    $results['canceled'] = count($cancelledIDs);
-  }
-
-  return civicrm_api3_create_success($results, $params);
+  return civicrm_api3_create_success($result, $params);
 }
 
 /**

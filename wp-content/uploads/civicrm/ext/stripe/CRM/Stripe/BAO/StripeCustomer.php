@@ -1,7 +1,6 @@
 <?php
 
 use Civi\Api4\Contact;
-use Civi\Api4\Email;
 use Civi\Api4\Extension;
 use Civi\Api4\StripeCustomer;
 use Civi\Payment\Exception\PaymentProcessorException;

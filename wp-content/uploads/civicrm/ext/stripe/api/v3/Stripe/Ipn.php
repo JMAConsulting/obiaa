@@ -93,7 +93,8 @@ function civicrm_api3_stripe_Ipn($params) {
       json_encode($stripeObject),
       FALSE,
       $emailReceipt);
-  } catch (Throwable $e) {
+  }
+  catch (Throwable $e) {
     return civicrm_api3_create_error($e->getMessage());
   }
 

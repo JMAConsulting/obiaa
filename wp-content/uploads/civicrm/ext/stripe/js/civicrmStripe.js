@@ -150,7 +150,7 @@
         // cards
         var totalAmount = CRM.payment.getTotalAmount();
         if (totalAmount) {
-          totalAmount = totalAmount.toFixed(2);
+          totalAmount = CRM.payment.roundMoney(totalAmount);
         }
         if (CRM.payment.getIsRecur() || (totalAmount === null)) {
           try {
@@ -234,7 +234,7 @@
             let processParams = {
               // payment_method_id: createPaymentMethodResult.paymentMethod.id,
               paymentMethodID: createPaymentMethodResult.paymentMethod.id,
-              amount: CRM.payment.getTotalAmount().toFixed(2),
+              amount: CRM.payment.roundMoney(CRM.payment.getTotalAmount()),
               currency: CRM.payment.getCurrency(CRM.vars[script.name].currency),
               paymentProcessorID: CRM.vars[script.name].id,
               description: document.title,
@@ -446,10 +446,24 @@
         });
         // If enter pressed, use our submit function
         CRM.payment.form.addEventListener('keydown', function (keydownEvent) {
-          if (keydownEvent.code === 'Enter') {
-            CRM.payment.addDrupalWebformActionElement(this.value);
-            script.submit(keydownEvent);
+          if (keydownEvent.code !== 'Enter') {
+            return;
           }
+          // Let Enter on buttons, links etc. behave natively (eg. Enter on
+          // "Previous" should go back, Enter on "Submit" fires our click handler).
+          if (keydownEvent.target.closest('button, [type="submit"], [type="button"], [type="reset"], a, textarea, select')) {
+            return;
+          }
+          if (!CRM.payment.submitButtons.length) {
+            return;
+          }
+          // `this` is the form, which has no value - use the real submit button
+          // value so Drupal identifies the triggering element correctly.
+          CRM.payment.addDrupalWebformActionElement(CRM.payment.submitButtons[0].value);
+          // Enter in a field is a payment submit, so clear any flag left by an
+          // earlier non-payment button (eg. an AJAX button), as submitButtonClick() does.
+          CRM.payment.form.dataset.submitdontprocess = 'false';
+          script.submit(keydownEvent);
         });
 
         $('#billingcheckbox:input').hide();
@@ -486,7 +500,16 @@
     },
 
     submit: function(submitEvent) {
-      submitEvent.preventDefault();
+      // Fix stripe#428: Don't preventDefault for Webforms with zero-dollar total amount.
+      if (
+        CRM.payment.getIsDrupalWebform() &&
+        $('#billing-payment-block').is(':hidden')
+      ) {
+        // Do nothing.
+      }
+      else {
+        submitEvent.preventDefault();
+      }
       script.debugging('submit handler');
 
       if (CRM.payment.form.dataset.submitted === 'true') {

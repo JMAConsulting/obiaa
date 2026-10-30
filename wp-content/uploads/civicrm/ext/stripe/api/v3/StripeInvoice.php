@@ -60,4 +60,3 @@ function civicrm_api3_stripe_invoice_process($params) {
     return civicrm_api3_create_error('Invoice not paid');
   }
 }
-

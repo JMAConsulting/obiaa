@@ -1,4 +1,4 @@
-(function (angular, $, _) {
+(function (angular, $) {
   angular.module('afStripe').component('afStripeEmbeddedCheckout', {
     require: {
       afCheckoutBlock: '^^afCheckoutBlock',
@@ -28,21 +28,37 @@
 
       this.$onDestroy = () => {
         this.getFormElement().off('crmFormSuccess', listener);
-      }
+      };
 
       this.onAfformSuccess = (data) => {
         const response = data.submissionResponse;
-        if (!response || !response.length || !response[0].stripe_embedded_checkout
-          || !response[0].stripe_embedded_checkout.client_secret) {
+        if (!response || !response.length || !response[0].stripe_embedded_checkout ||
+          !response[0].stripe_embedded_checkout.client_secret) {
           // invalid response - maybe we switched to a different payment processor
           throw new Error('Missing Stripe Embedded Checkout Client Secret');
         }
         const clientSecret = response[0].stripe_embedded_checkout.client_secret;
+        const returnUrl = response[0].stripe_embedded_checkout.return_url;
 
         const stripe = this.getStripeClient();
 
         return stripe.initEmbeddedCheckout({
           fetchClientSecret: () => clientSecret,
+          // Stripe is configured with redirect_on_completion: 'if_required'
+          // (see StripeEmbeddedCheckout::createEmbeddedCheckoutSession), so
+          // for payment methods that don't need a redirect (eg. cards)
+          // Stripe calls this instead of navigating away itself - we own
+          // that navigation here rather than depending on Stripe's own
+          // redirect always firing. Redirect-based payment methods (eg.
+          // Bancontact/iDEAL) are unaffected: Stripe still redirects for
+          // those on its own.
+          onComplete: () => {
+            // The Checkout Session id is the part of the client secret before
+            // "_secret_" - avoids a round-trip just to look it up.
+            const sessionId = clientSecret.split('_secret_')[0];
+            CRM.console('log', 'afStripeEmbeddedCheckout: checkout complete, returning to', returnUrl);
+            window.location.href = returnUrl + '&session_id=' + sessionId;
+          },
         })
         .then((checkout) => {
           const $formElement = this.getFormElement();
@@ -72,4 +88,4 @@
       this.getFormElement = () => $element.closest('af-form');
     }
   });
-})(angular, CRM.$, CRM._);
+})(angular, CRM.$);

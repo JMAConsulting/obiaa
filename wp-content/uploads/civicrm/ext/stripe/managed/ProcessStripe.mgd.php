@@ -21,10 +21,9 @@ return [
           'name' => 'Stripe: Cleanup',
           'description' => 'Cleanup Stripe PaymentIntents',
           'run_frequency' => 'Hourly',
-          'api_entity' => 'Job',
-          'api_action' => 'process_stripe',
-          'parameters' => 'delete_old=-3 month
-cancel_incomplete=-1 hour',
+          'api_entity' => 'Stripe',
+          'api_action' => 'cleanup',
+          'parameters' => '{"version":4,"deleteOld":"-3 month","cancelIncomplete":"-1 hour"}',
         ],
     ],
 ];

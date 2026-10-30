@@ -4,45 +4,24 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInite358e00eab491ffb98725c35dadd8bfb
+class ComposerStaticInitecd796483fd25f26fa63d6789726ccd4
 {
     public static $prefixLengthsPsr4 = array (
-        'c' =>
-        array (
-            'cweagans\\Composer\\' => 18,
-        ),
-        'L' =>
-        array (
-            'LastCall\\DownloadsPlugin\\' => 25,
-        ),
         'I' =>
         array (
             'Intervention\\Image\\' => 19,
+            'Intervention\\Gif\\' => 17,
         ),
     );
 
     public static $prefixDirsPsr4 = array (
-        'cweagans\\Composer\\' =>
-        array (
-            0 => __DIR__ . '/..' . '/cweagans/composer-patches/src',
-        ),
-        'LastCall\\DownloadsPlugin\\' =>
-        array (
-            0 => __DIR__ . '/..' . '/civicrm/composer-downloads-plugin/src',
-        ),
         'Intervention\\Image\\' =>
         array (
-            0 => __DIR__ . '/..' . '/intervention/image/src/Intervention/Image',
+            0 => __DIR__ . '/..' . '/intervention/image/src',
         ),
-    );
-
-    public static $prefixesPsr0 = array (
-        'T' =>
+        'Intervention\\Gif\\' =>
         array (
-            'TOGoS_GitIgnore_' =>
-            array (
-                0 => __DIR__ . '/..' . '/civicrm/gitignore/src/main/php',
-            ),
+            0 => __DIR__ . '/..' . '/intervention/gif/src',
         ),
     );
 
@@ -53,10 +32,9 @@ class ComposerStaticInite358e00eab491ffb98725c35dadd8bfb
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInite358e00eab491ffb98725c35dadd8bfb::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInite358e00eab491ffb98725c35dadd8bfb::$prefixDirsPsr4;
-            $loader->prefixesPsr0 = ComposerStaticInite358e00eab491ffb98725c35dadd8bfb::$prefixesPsr0;
-            $loader->classMap = ComposerStaticInite358e00eab491ffb98725c35dadd8bfb::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInitecd796483fd25f26fa63d6789726ccd4::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInitecd796483fd25f26fa63d6789726ccd4::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInitecd796483fd25f26fa63d6789726ccd4::$classMap;
 
         }, null, ClassLoader::class);
     }

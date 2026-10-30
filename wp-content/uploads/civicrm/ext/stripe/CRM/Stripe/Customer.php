@@ -9,7 +9,6 @@
  +--------------------------------------------------------------------+
  */
 
-use Civi\Api4\Contact;
 use Civi\Api4\StripeCustomer;
 use Civi\Payment\Exception\PaymentProcessorException;
 use CRM_Stripe_ExtensionUtil as E;
@@ -70,6 +69,7 @@ class CRM_Stripe_Customer {
    * Find all the Stripe customers in the CiviCRM database for a given processorId
    *
    * @param string $processorId
+   * @param array $options
    *
    * @return array|null
    */
@@ -85,7 +85,7 @@ class CRM_Stripe_Customer {
    * @param array $params
    * @param \CRM_Core_Payment_Stripe $stripe
    *
-   * @return \Stripe\Customer|\PropertySpy
+   * @return \Stripe\Customer
    * @throws \CRM_Core_Exception
    * @throws \Civi\Payment\Exception\PaymentProcessorException
    */

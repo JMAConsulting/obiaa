@@ -56,4 +56,5 @@ class StripeWebhook extends Generic\AbstractEntity {
     return (new Action\StripeWebhook\Update(__CLASS__, __FUNCTION__))
       ->setCheckPermissions($checkPermissions);
   }
+
 }

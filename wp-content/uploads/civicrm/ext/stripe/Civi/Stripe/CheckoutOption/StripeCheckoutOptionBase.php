@@ -48,10 +48,10 @@ abstract class StripeCheckoutOptionBase implements CheckoutOptionInterface {
   }
 
   /**
-   * @throws \CRM_Core_Exception if the configuration is missing
-   *
    * TODO: we should validate all the required connection details are present
-   * somewhere a bit higher up
+   * somewhere a bit higher up.
+   *
+   * @throws \CRM_Core_Exception if the configuration is missing.
    */
   protected function getPublicKey(bool $testMode): string {
     $key = $this->getConnectionDetails($testMode)['user_name'];
@@ -73,9 +73,8 @@ abstract class StripeCheckoutOptionBase implements CheckoutOptionInterface {
     return 'Stripe';
   }
 
-  public function getPaymentProcessorId(): ?int {
-    // DO NOT USE: Inconsistent signature and unable to select test processor.
-    return NULL;
+  public function getPaymentProcessorId(bool $testMode = FALSE): ?int {
+    return $testMode ? $this->testConnection['id'] : $this->liveConnection['id'];
   }
 
   protected function getQuickformProcessor(bool $testMode = FALSE): \CRM_Core_Payment_Stripe {
@@ -98,6 +97,7 @@ abstract class StripeCheckoutOptionBase implements CheckoutOptionInterface {
    *
    * @return \Stripe\Checkout\Session
    */
+
   /**
    * @param array $uiModeParams
    * @param bool $testMode
@@ -114,7 +114,7 @@ abstract class StripeCheckoutOptionBase implements CheckoutOptionInterface {
   protected function createCheckoutSession(array $uiModeParams, bool $testMode, int $contributionId, ?string $recurIntervalUnit = NULL, int $recurIntervalCount = 1): Session {
     $contribution = Contribution::get(FALSE)
       ->addWhere('id', '=', $contributionId)
-      ->addSelect('contact_id', 'invoice_id', 'amount', 'currency', 'is_test', 'source')
+      ->addSelect('contact_id', 'invoice_id', 'amount', 'currency', 'is_test', 'source', 'contribution_recur_id')
       ->execute()
       ->single();
 
@@ -131,13 +131,35 @@ abstract class StripeCheckoutOptionBase implements CheckoutOptionInterface {
       // 'submit_type' => one of 'auto', pay, book, donate
       'client_reference_id' => $contribution['invoice_id'],
       'payment_intent_data' => [
-        'description' => E::ts("CiviCRM Contribution %1", [1 => $contribution['invoice_id']]),
+        'description' => $this->getContributionDescription($contribution, $testMode),
         'capture_method' => PaymentIntent::CAPTURE_METHOD_AUTOMATIC,
       ],
     ];
 
     if ($recurIntervalUnit) {
       $checkoutSessionParams = $this->alterParamsForRecurring($checkoutSessionParams, $recurIntervalUnit, $recurIntervalCount);
+
+      // Stripe creates the subscription when the customer completes Checkout, so
+      // we never know the sub_... ID here to write to processor_id. Send the
+      // recur ID the other way instead: Stripe copies subscription metadata onto
+      // every invoice it generates, letting invoice.paid resolve the recur from
+      // its own payload. Read back in CRM_Stripe_Api::getObjectParam().
+      if (!empty($contribution['contribution_recur_id'])) {
+        $checkoutSessionParams['subscription_data']['metadata'][\CRM_Stripe_Api::METADATA_CONTRIBUTION_RECUR_ID]
+          = (string) $contribution['contribution_recur_id'];
+        if ((bool) \Civi::settings()->get('stripe_ipndebug')) {
+          \Civi::log('stripe')->debug('StripeCheckout: attached '
+            . \CRM_Stripe_Api::METADATA_CONTRIBUTION_RECUR_ID . '=' . $contribution['contribution_recur_id']
+            . ' to subscription_data.metadata for Contribution ' . $contributionId);
+        }
+      }
+      elseif ((bool) \Civi::settings()->get('stripe_ipndebug')) {
+        // Nothing to fall back on, so invoice.paid stays dependent on
+        // checkout.session.completed winning the race.
+        \Civi::log('stripe')->debug('StripeCheckout: Contribution ' . $contributionId
+          . ' has no contribution_recur_id, so no subscription metadata was attached.'
+          . ' Webhooks for this subscription cannot resolve the recur from their own payload.');
+      }
     }
 
     // Allows you to alter the params passed to StripeCheckout (eg. payment_method_types)
@@ -148,12 +170,64 @@ abstract class StripeCheckoutOptionBase implements CheckoutOptionInterface {
     }
     catch (\Exception $e) {
       $parsedError = $this->parseStripeException('createCheckout', $e);
+      \CRM_Stripe_BAO_StripePaymentintent::writeRecord([
+        'stripe_intent_id' => NULL,
+        'contribution_id' => $contributionId,
+        'payment_processor_id' => $this->getPaymentProcessorId($testMode),
+        'status' => 'failed',
+        'description' => $e->getMessage(),
+      ]);
       throw new PaymentProcessorException($parsedError['message']);
     }
+
+    // Record the Checkout Session for troubleshooting. We may not have a
+    // stripe_intent_id yet (subscription-mode sessions only get one once the
+    // first invoice is paid), so also record the session id as 'identifier'
+    // so continueCheckout()/webhooks can find and update this same record.
+    \CRM_Stripe_BAO_StripePaymentintent::writeRecord([
+      'identifier' => $checkoutSession->id,
+      'stripe_intent_id' => $checkoutSession->payment_intent ?: NULL,
+      'contribution_id' => $contributionId,
+      'payment_processor_id' => $this->getPaymentProcessorId($testMode),
+      'status' => $checkoutSession->status,
+    ]);
 
     \CRM_Stripe_BAO_StripeCustomer::updateMetadata(['contact_id' => $contribution['contact_id']], $this->getQuickformProcessor($testMode), $checkoutSession['customer']);
 
     return $checkoutSession;
+  }
+
+  /**
+   * Build the description passed to Stripe for a Checkout payment/subscription.
+   *
+   * Uses the same format as CRM_Core_Payment_Stripe::getDescription() so that
+   * the description recorded against a Stripe charge is consistent regardless
+   * of whether the contribution was taken via Stripe Checkout or via the
+   * quickform/PaymentElement flows.
+   *
+   * @param array $contribution the details on the contribution record (using Api4 keys)
+   * @param bool $testMode
+   *
+   * @return string
+   * @throws \CRM_Core_Exception
+   */
+  protected function getContributionDescription(array $contribution, bool $testMode): string {
+    if (empty($contribution['source']) || empty($contribution['contact_id'])) {
+      // getDescription() requires both a description and a contactID.
+      return E::ts('CiviCRM Contribution %1', [1 => $contribution['invoice_id']]);
+    }
+
+    $propertyBag = new PropertyBag();
+    $propertyBag->setContactID($contribution['contact_id']);
+    $propertyBag->setDescription($contribution['source']);
+    if (!empty($contribution['id'])) {
+      $propertyBag->setContributionID($contribution['id']);
+    }
+    if (!empty($contribution['invoice_id'])) {
+      $propertyBag->setInvoiceID($contribution['invoice_id']);
+    }
+
+    return $this->getQuickformProcessor($testMode)->getDescription($propertyBag);
   }
 
   /**
@@ -255,7 +329,8 @@ abstract class StripeCheckoutOptionBase implements CheckoutOptionInterface {
           ],
         ],
         'quantity' => 1,
-      ]];
+      ],
+      ];
     }
 
     return $stripeLineItems ?? [];
