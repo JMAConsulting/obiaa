@@ -71,7 +71,6 @@ class CRM_Stripe_Upgrader extends CRM_Extension_Upgrader_Base {
     return TRUE;
   }
 
-
   /**
    * Populate processor_id column in civicrm_stripe_customers, civicrm_stripe_plans and civicrm_stripe_subscriptions tables.
    *
@@ -112,14 +111,14 @@ class CRM_Stripe_Upgrader extends CRM_Extension_Upgrader_Base {
             CRM_Core_DAO::executeQuery('UPDATE `civicrm_stripe_subscriptions` SET processor_id = %2 where processor_id IS NULL and is_live = 0', $p);
           }
         }
-      } catch (CRM_Core_Exception $e) {
+      }
+      catch (CRM_Core_Exception $e) {
         Civi::log()->debug("Cannot find a PaymentProcessorType named Stripe.");
         return;
       }
     }
     return TRUE;
   }
-
 
   /**
    * Add subscription_id column to civicrm_stripe_subscriptions table.
@@ -174,7 +173,8 @@ class CRM_Stripe_Upgrader extends CRM_Extension_Upgrader_Base {
             'customer' => $customer_id,
             'limit' => 1,
           ]);
-        } catch (Exception $e) {
+        }
+        catch (Exception $e) {
           // Don't quit here.  A missing customer in Stipe is OK.  They don't exist, so they can't have a subscription.
           Civi::log()->debug('Cannot find Stripe API key: ' . $e->getMessage());
         }
@@ -225,7 +225,6 @@ class CRM_Stripe_Upgrader extends CRM_Extension_Upgrader_Base {
    * @return TRUE on success
    * @throws Exception
    */
-
   public function upgrade_5006() {
     $config = CRM_Core_Config::singleton();
     $dbName = DB::connect($config->dsn)->_db;
@@ -242,7 +241,8 @@ class CRM_Stripe_Upgrader extends CRM_Extension_Upgrader_Base {
           'invoice_id' => $subscriptions->invoice_id,
           'contribution_test' => $test_mode,
         ]);
-      } catch (CRM_Core_Exception $e) {
+      }
+      catch (CRM_Core_Exception $e) {
         // Don't quit here. If we can't find the recurring ID for a single customer, make a note in the error log and carry on.
         Civi::log()->debug('Recurring contribution search: ' . $e->getMessage());
       }
@@ -456,6 +456,16 @@ class CRM_Stripe_Upgrader extends CRM_Extension_Upgrader_Base {
     $this->ctx->log->info('Extend civicrm_stripe_paymentintent.referrer field from 255 to 1024 characters');
     CRM_Core_DAO::executeQuery("ALTER TABLE civicrm_stripe_paymentintent
       CHANGE referrer referrer varchar(1024) DEFAULT NULL COMMENT 'HTTP referrer of this paymentIntent'");
+    return TRUE;
+  }
+
+  public function upgrade_6904() {
+    $this->ctx->log->info('Check and update Stripe webhooks to match the current API version');
+    $messages = [];
+    (new CRM_Stripe_Webhook())->check($messages, TRUE);
+    foreach ($messages as $message) {
+      $this->ctx->log->warning($message->getMessage());
+    }
     return TRUE;
   }
 

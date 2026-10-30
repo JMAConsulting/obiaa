@@ -60,7 +60,7 @@ class CRM_Stripe_Recur {
         // We add for this month or next month depending on todays date.
         $month = ($dayOfMonth < $todayDay) ? 'next' : 'this';
         $date = new DateTime();
-        $date->setTime(3,0,0)
+        $date->setTime(3, 0, 0)
           ->modify("first day of {$month} month")
           ->modify("+" . ($dayOfMonth - 1) . " days");
         $startDates[$date->format('YmdHis')] = CRM_Utils_Date::customFormat($date->format('YmdHis'), \Civi::settings()->get('dateformatFull'));
@@ -128,4 +128,5 @@ class CRM_Stripe_Recur {
     }
 
   }
+
 }

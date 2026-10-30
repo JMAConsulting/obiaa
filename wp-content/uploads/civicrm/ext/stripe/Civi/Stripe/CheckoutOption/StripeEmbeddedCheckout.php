@@ -46,6 +46,11 @@ class StripeEmbeddedCheckout extends StripeCheckoutOptionBase {
 
   /**
    * Register details for afCheckout
+   *
+   * @param bool $testMode
+   *
+   * @return array
+   * @throws \CRM_Core_Exception
    */
   public function getAfformSettings(bool $testMode): array {
     return [
@@ -72,6 +77,10 @@ class StripeEmbeddedCheckout extends StripeCheckoutOptionBase {
 
     $session->setResponseItem('stripe_embedded_checkout', [
       'client_secret' => $stripeSession->client_secret,
+      // For the client's onComplete handler, used for non-redirect payment
+      // methods (eg. cards) - see createEmbeddedCheckoutSession()'s
+      // redirect_on_completion setting.
+      'return_url' => $returnUrl,
     ]);
 
     // override any default message that might interrupt the embedded widget
@@ -83,6 +92,16 @@ class StripeEmbeddedCheckout extends StripeCheckoutOptionBase {
     $sessionId = \CRM_Utils_Request::retrieve('session_id', 'String');
 
     $stripeSession = $this->getStripeClient($session->isTestMode())->checkout->sessions->retrieve($sessionId);
+
+    // update the paymentintent tracking record (created in createCheckoutSession)
+    // now that we know the outcome of the Checkout Session
+    \CRM_Stripe_BAO_StripePaymentintent::writeRecord([
+      'identifier' => $stripeSession->id,
+      'stripe_intent_id' => $stripeSession->payment_intent ?: NULL,
+      'contribution_id' => $session->getContributionId(),
+      'payment_processor_id' => $this->getPaymentProcessorId($session->isTestMode()),
+      'status' => $stripeSession->status,
+    ]);
 
     // save the payment intent to the contribution trxn_id
     // for webhook matching
@@ -142,6 +161,15 @@ class StripeEmbeddedCheckout extends StripeCheckoutOptionBase {
       // generated value, which allows checking the checkout status
       // in continueCheckout
       'return_url' => $returnUrl . '&session_id={CHECKOUT_SESSION_ID}',
+      // "if_required" only redirects for payment methods that genuinely
+      // need it (eg. bank-redirect methods like Bancontact/iDEAL) - for
+      // everything else (eg. cards) Stripe calls our onComplete handler
+      // in-page instead, which we use to navigate back to CiviCRM
+      // ourselves rather than relying solely on Stripe's own redirect,
+      // which has no client-side fallback if it silently fails to fire
+      // (eg. a backgrounded/suspended tab). "never" isn't usable here as
+      // it would break redirect-based payment methods entirely.
+      'redirect_on_completion' => 'if_required',
     ];
     return $this->createCheckoutSession($uiModeParams, $testMode, $contributionId, $recurIntervalUnit, $recurIntervalCount);
   }

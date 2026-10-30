@@ -231,11 +231,11 @@ class CRM_Stripe_PaymentIntent {
   public function processSetupIntent(array $params) {
     /*
     $params = [
-      // Optional paymentMethodID
-      'paymentMethodID' => 'pm_xx',
-      'customer => 'cus_xx',
+    // Optional paymentMethodID
+    'paymentMethodID' => 'pm_xx',
+    'customer => 'cus_xx',
     ];
-    */
+     */
     $resultObject = (object) ['ok' => FALSE, 'message' => '', 'data' => []];
 
     $intentParams['confirm'] = TRUE;
@@ -257,7 +257,8 @@ class CRM_Stripe_PaymentIntent {
     try {
       $intent = $this->paymentProcessor->stripeClient->setupIntents->create($intentParams);
 
-    } catch (Exception $e) {
+    }
+    catch (Exception $e) {
       // Save the "error" in the paymentIntent table in case investigation is required.
       $stripePaymentintentParams = [
         'payment_processor_id' => $this->paymentProcessor->getID(),
@@ -381,15 +382,15 @@ class CRM_Stripe_PaymentIntent {
   public function processPaymentIntent(array $params) {
     /*
     $params = [
-      // Either paymentIntentID or paymentMethodID must be set
-      'paymentIntentID' => 'pi_xx',
-      'paymentMethodID' => 'pm_xx',
-      'customer' => 'cus_xx', // required if paymentMethodID is set
-      'capture' => TRUE/FALSE,
-      'amount' => '12.05',
-      'currency' => 'USD',
+    // Either paymentIntentID or paymentMethodID must be set
+    'paymentIntentID' => 'pi_xx',
+    'paymentMethodID' => 'pm_xx',
+    'customer' => 'cus_xx', // required if paymentMethodID is set
+    'capture' => TRUE/FALSE,
+    'amount' => '12.05',
+    'currency' => 'USD',
     ];
-    */
+     */
     $resultObject = (object) ['ok' => FALSE, 'message' => '', 'data' => []];
 
     if (class_exists('\Civi\Firewall\Event\FraudEvent')) {
@@ -540,17 +541,17 @@ class CRM_Stripe_PaymentIntent {
     CRM_Stripe_BAO_StripePaymentintent::writeRecord($stripePaymentintentParams);
 
     $resultObject->data = [
-      'requires_payment_method' => false,
-      'requires_action' => false,
-      'success' => false,
-      'paymentIntent' => null,
+      'requires_payment_method' => FALSE,
+      'requires_action' => FALSE,
+      'success' => FALSE,
+      'paymentIntent' => NULL,
     ];
     // generatePaymentResponse()
     if ($intent->status === 'requires_action' &&
       $intent->next_action->type === 'use_stripe_sdk') {
       // Tell the client to handle the action
       $resultObject->ok = TRUE;
-      $resultObject->data['requires_action'] = true;
+      $resultObject->data['requires_action'] = TRUE;
       $resultObject->data['paymentIntentClientSecret'] = $intent->client_secret;
       $resultObject->data['paymentIntent'] = ['id' => $intent->id];
     }
@@ -559,17 +560,17 @@ class CRM_Stripe_PaymentIntent {
       // The payment intent has been confirmed, we just need to capture the payment
       // Handle post-payment fulfillment
       $resultObject->ok = TRUE;
-      $resultObject->data['success'] = true;
+      $resultObject->data['success'] = TRUE;
       $resultObject->data['paymentIntent'] = ['id' => $intent->id];
     }
     elseif ($intent->status === 'succeeded') {
       $resultObject->ok = TRUE;
-      $resultObject->data['success'] = true;
+      $resultObject->data['success'] = TRUE;
       $resultObject->data['paymentIntent'] = ['id' => $intent->id];
     }
     elseif ($intent->status === 'requires_payment_method') {
       $resultObject->ok = TRUE;
-      $resultObject->data['requires_payment_method'] = true;
+      $resultObject->data['requires_payment_method'] = TRUE;
       $resultObject->data['paymentIntentClientSecret'] = $intent->client_secret;
     }
     else {

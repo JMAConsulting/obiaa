@@ -14,8 +14,7 @@ use CRM_Stripe_ExtensionUtil as E;
 /**
  * This api retries all non-processed webhooks for a given payment processor.
  *
-
-/**
+ * /**
  * Stripe.Ipn API specification
  *
  * @param array $spec description of fields supported by this API call
@@ -45,11 +44,11 @@ function civicrm_api3_stripe_Retryall($params) {
     'ppid' => $ppid,
     'limit' => $limit,
     'filter_processed' => 1,
-    'source' => 'systemlog'
+    'source' => 'systemlog',
   ];
   $values = [];
   $results = civicrm_api3('Stripe', 'ListEvents', $params);
-  foreach($results['values'] as $value) {
+  foreach ($results['values'] as $value) {
     if (!isset($value['system_log_id'])) {
       $values[] = 'system_log_id is not set for charge: ' . $value['charge'];
     }

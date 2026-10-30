@@ -1,17 +1,21 @@
 <?php
 
 use CRM_Mosaico_ExtensionUtil as E;
-use Civi\Test\EndToEndInterface;
+use Civi\Test\HeadlessInterface;
 
 require_once __DIR__ . '/TestCase.php';
 
 /**
  * Test resize dimension scaling method - adjustResizeDimensions for various sizes.
  *
- * @group e2e
+ * @group headless
  * @see cv
  */
-class CRM_Mosaico_ResizeScaleTest extends CRM_Mosaico_TestCase implements EndToEndInterface {
+class CRM_Mosaico_ResizeScaleTest extends CRM_Mosaico_TestCase implements HeadlessInterface {
+
+  public function setUpHeadless() {
+    return \Civi\Test::headless()->installMe(__DIR__)->apply();
+  }
 
   /**
    * Test adjustResizeDimensions method for various inputs.
@@ -58,7 +62,7 @@ class CRM_Mosaico_ResizeScaleTest extends CRM_Mosaico_TestCase implements EndToE
     $resizeWidth  = 258;
     $resizeHeight = 100;
     $sf = $graphics->adjustResizeDimensions(358, 200, $resizeWidth, $resizeHeight);
-    // dimensions should be almost same as that of image ignoring the scaling config, 
+    // dimensions should be almost same as that of image ignoring the scaling config,
     // keeping the ratio of resize dimensions
     $this->assertEquals(round($sf * 258), $resizeWidth);
     $this->assertEquals(round($sf * 100), $resizeHeight);

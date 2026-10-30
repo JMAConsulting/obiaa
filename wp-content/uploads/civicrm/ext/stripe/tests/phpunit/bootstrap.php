@@ -22,7 +22,7 @@ $loader->add('api_', __DIR__);
 $loader->add('api\\', __DIR__);
 $loader->register();
 
-require_once(__DIR__ . '/../../vendor/stripe/stripe-php/init.php');
+require_once __DIR__ . '/../../vendor/stripe/stripe-php/init.php';
 
 if (CIVICRM_UF === 'UnitTests') {
   Civi\Test::headless()->apply();
@@ -42,7 +42,7 @@ if (CIVICRM_UF === 'UnitTests') {
  */
 function cv($cmd, $decode = 'json') {
   $cmd = 'cv ' . $cmd;
-  $descriptorSpec = array(0 => array("pipe", "r"), 1 => array("pipe", "w"), 2 => STDERR);
+  $descriptorSpec = [0 => ["pipe", "r"], 1 => ["pipe", "w"], 2 => STDERR];
   $oldOutput = getenv('CV_OUTPUT');
   putenv("CV_OUTPUT=json");
 

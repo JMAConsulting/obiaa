@@ -74,7 +74,7 @@
           recurStartMessage = ts('Your membership payment will start on %1', {1: $('#receive_date').text()});
         }
         else {
-          recurStartMessage = ts('Your recurring contribution will start on %1', {1: $('#receive_date').text()})
+          recurStartMessage = ts('Your recurring contribution will start on %1', {1: $('#receive_date').text()});
         }
         $('#receive_date').after(
           '<div class="description" id="recur-start-date-description">' + recurStartMessage + '</div>'

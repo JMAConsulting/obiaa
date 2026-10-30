@@ -92,6 +92,4 @@ class AuthorizeEvent extends \Civi\Core\Event\GenericHookEvent {
     $this->reasonDescriptions[$nameOfCheck] = $reason;
   }
 
-
-
 }

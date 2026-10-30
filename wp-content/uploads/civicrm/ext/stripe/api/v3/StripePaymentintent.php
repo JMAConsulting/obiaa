@@ -9,7 +9,6 @@
  +--------------------------------------------------------------------+
  */
 
-use Civi\Firewall\Firewall;
 use CRM_Stripe_ExtensionUtil as E;
 
 /**
